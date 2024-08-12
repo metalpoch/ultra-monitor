@@ -1,0 +1,37 @@
+name: Telegram Alert
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  alerts:
+    env:
+      repository: ${{ github.repository }}
+      event: ${{ github.event_name }} on ${{ github.ref_name }}
+      sha: ${{ github.sha }}
+      commit: ${{ github.event.head_commit.message }}
+      author: ${{ github.event.pusher.name }}
+      authorURL: https://github.com/${{ github.event.pusher.name }}
+      url: https://github.com/${{ github.repository }}
+    name: Telegram Alert
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send message
+        id: telegram
+        uses: metalpoch/telegram-alerts-action@v1
+        with:
+          bot-token-id: ${{ secrets.BOT_TOKEN_ID }}
+          chat-id: ${{ secrets.CHAT_ID }}
+          disable-web-page-preview: true
+          text: "*Github Action Alert*\n\n
+            *⚙️ repository:* `${{env.repository }}`\n\n
+            *🎟️ Event:* `${{env.event }}`\n\n
+            *🔑 SHA:* `${{ env.sha }}`\n\n
+            *🗃️ Commit:* `${{ env.commit }}`\n\n
+            *👤 Author:* [${{ env.author }}](${{ env.authorURL }})\n\n
+            *🌐 URL:* [Github](${{env.url}})"

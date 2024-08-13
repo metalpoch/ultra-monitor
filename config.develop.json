@@ -1,0 +1,4 @@
+{
+  "db_uri": "mongodb://root:AsuntosPresidenciales@localhost:27017",
+  "cache_uri": "redis://default:AsuntosPresidenciales@localhost:6379"
+}

@@ -8,5 +8,5 @@ type UserUsecase interface {
 	GetValue(clave string, valor string) (*model.Users, error)
 	DeleteName(name string) (string, error)
 	ChangePassword(user *model.NewUser) (string, error)
-	Login(email string, password string) (string, *model.NewUser, error)
+	Login(email string, password string) (*model.NewUser, error)
 }

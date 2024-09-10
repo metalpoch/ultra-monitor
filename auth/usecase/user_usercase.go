@@ -50,7 +50,7 @@ func (use userUsecase) Get() (*model.Users, error) {
 
 	for _, userEntity := range *res {
 		newModel := model.NewUser{
-			Id:               userEntity.ID.String(),
+			Id:               userEntity.ID.Hex(),
 			Email:            userEntity.Email,
 			Password:         userEntity.Password,
 			ChangePassw:      userEntity.ChangePassw,
@@ -78,7 +78,7 @@ func (use userUsecase) GetValue(clave string, valor string) (*model.Users, error
 
 	for _, userEntity := range *res {
 		newModel := model.NewUser{
-			Id:               userEntity.ID.String(),
+			Id:               userEntity.ID.Hex(),
 			Email:            userEntity.Email,
 			Password:         userEntity.Password,
 			ChangePassw:      userEntity.ChangePassw,
@@ -128,13 +128,13 @@ func (use userUsecase) ChangePassword(user *model.NewUser) (string, error) {
 	return res, nil
 }
 
-func (use userUsecase) Login(email string, password string) (string, *model.NewUser, error) {
+func (use userUsecase) Login(email string, password string) (*model.NewUser, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, user, err := use.repo.Login(ctx, email, password)
+	user, err := use.repo.Login(ctx, email, password)
 	if err != nil {
-		return "ocurrio un error en 2", nil, err
+		return nil, err
 	}
 
 	newModel := model.NewUser{
@@ -148,5 +148,5 @@ func (use userUsecase) Login(email string, password string) (string, *model.NewU
 		StatesPermission: user.StatesPermission,
 	}
 
-	return res, &newModel, nil
+	return &newModel, nil
 }

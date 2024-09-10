@@ -2,9 +2,14 @@ package handler
 
 import (
 	"net/http"
+	"time"
+
 	//"strconv"
 
 	"github.com/gofiber/fiber/v3"
+	jtoken "github.com/golang-jwt/jwt/v5"
+	middlewares "github.com/metalpoch/olt-blueprint/auth/Middlewares"
+	"github.com/metalpoch/olt-blueprint/auth/constants"
 	"github.com/metalpoch/olt-blueprint/auth/model"
 	"github.com/metalpoch/olt-blueprint/auth/usecase"
 )
@@ -80,19 +85,76 @@ func (hdlr UserHandler) ChangePassword(ctx fiber.Ctx) error {
 	return ctx.JSON(res)
 }
 func (hdlr UserHandler) Login(ctx fiber.Ctx) error {
-	email := ctx.Params("email")
-	password := ctx.Params("password")
-	if email == "email" {
-		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "email invalida"})
-	}
-	if password == "password" {
-		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "password invalida"})
+	//Optiene las credenciales de el body
+	loginRequest := new(model.LoginRequest)
+
+	if err := ctx.Bind().JSON(loginRequest); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
-	_, user, err := hdlr.Usecase.Login(email, password)
+	//Pregunta a la db por el usuario con esas credenciales
+	user, err := hdlr.Usecase.Login(loginRequest.Email, loginRequest.Password)
+	if err != nil {
+		return ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{"error al inicar sesion": err.Error()})
+	}
+	//Creacion de los credenciales del token
+	claims := jtoken.MapClaims{
+		"ID":       user.Id,
+		"name":     user.Fullname,
+		"email":    user.Email,
+		"p00":      user.P00,
+		"admin":    user.IsAdmin,
+		"exp":      time.Now().Add(time.Minute * 30).Unix(),
+		"password": user.Password,
+	}
+	//Creacion del token
+	temp := jtoken.NewWithClaims(jtoken.SigningMethodHS256, claims)
+	token, err := temp.SignedString([]byte(constants.SALT))
 
 	if err != nil {
-		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error al inicar sesion": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error al generar el token": err.Error(),
+		})
 	}
+	return ctx.JSON(model.LoginResponse{
+		Token: token,
+	})
+
+}
+
+func (hdlr UserHandler) ReadToken(ctx fiber.Ctx) error {
+	loginResponse := new(model.LoginResponse)
+	if err := ctx.Bind().JSON(loginResponse); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error Mal bindeo": err.Error(),
+		})
+	}
+
+	token, err := middlewares.TokenCheck(loginResponse.Token)
+
+	if err != nil {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error No autorizado": err.Error(),
+		})
+	}
+
+	claims, ok := token.Claims.(*jtoken.MapClaims)
+	if !ok {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "No se pudieron analizar las credenciales",
+		})
+	}
+
+	user := model.NewUser{
+		Id:       (*claims)["ID"].(string),
+		Email:    (*claims)["email"].(string),
+		P00:      uint((*claims)["p00"].(float64)),
+		IsAdmin:  (*claims)["admin"].(bool),
+		Fullname: (*claims)["name"].(string),
+		Password: (*claims)["password"].(string),
+	}
+
 	return ctx.JSON(user)
 }

@@ -85,17 +85,17 @@ func (repo userRepository) DeleteName(ctx context.Context, name string) (string,
 	filter := bson.M{"p00": name}
 	col := repo.client.Database(constants.DATABASE).Collection(constants.USER_COLLECTION)
 
-	res, err := col.DeleteMany(ctx, filter)
+	res, err := col.DeleteOne(ctx, filter)
 	if err != nil {
 		return "Ocurrio un error al intentar eliminar", err
 	}
+	temp := res.DeletedCount
+	// temp := strconv.Itoa(int(res.DeletedCount))
 
-	temp := strconv.Itoa(int(res.DeletedCount))
-
-	if temp != "0" {
+	if temp > 0 {
 		return "Se elimino con exito", nil
 	} else {
-		return temp, nil
+		return strconv.FormatInt(temp, 10), nil
 	}
 
 }
@@ -130,7 +130,7 @@ func (repo userRepository) ChangePassword(ctx context.Context, user *entity.User
 	}
 }
 
-func (repo userRepository) Login(ctx context.Context, email string, pasword string) (string, *entity.User, error) {
+func (repo userRepository) Login(ctx context.Context, email string, pasword string) (*entity.User, error) {
 	col := repo.client.Database(constants.DATABASE).Collection(constants.USER_COLLECTION)
 	var user entity.User
 	filter := bson.M{
@@ -140,14 +140,14 @@ func (repo userRepository) Login(ctx context.Context, email string, pasword stri
 
 	cursor, err := col.Find(ctx, filter)
 	if err != nil {
-		return "No existe usuario con esa combinacion de correo y contraseña", nil, err
+		return nil, err
 	}
 	for cursor.Next(ctx) {
 		err = cursor.Decode(&user)
 
 		if err != nil {
-			return "Error Session 1.2", nil, err
+			return nil, err
 		}
 	}
-	return "Sesion iniciada", &user, nil
+	return &user, nil
 }

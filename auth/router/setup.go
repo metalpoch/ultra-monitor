@@ -6,5 +6,5 @@ import (
 )
 
 func Setup(server *fiber.App, client *mongo.Client) {
-	newExampleRouter(server, client)
+	newUserRouter(server, client)
 }

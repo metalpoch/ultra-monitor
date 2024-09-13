@@ -2,152 +2,128 @@ package repository
 
 import (
 	"context"
-	"strconv"
+	"database/sql"
 
-	"github.com/metalpoch/olt-blueprint/auth/constants"
 	"github.com/metalpoch/olt-blueprint/auth/entity"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type userRepository struct {
-	client *mongo.Client
+	db *sql.DB
 }
 
-func NewUserRepository(client *mongo.Client) *userRepository {
-	return &userRepository{client}
+func NewUserRepository(db *sql.DB) *userRepository {
+	return &userRepository{db}
 }
 
-func (repo userRepository) Create(ctx context.Context, data *entity.User) (string, error) {
-	var err error
-	col := repo.client.Database(constants.DATABASE).Collection(constants.USER_COLLECTION)
-
-	_, err = col.InsertOne(ctx, data)
-
-	if err != nil {
-		return "Ocurrio un error al insertar", err
+func (repo userRepository) Create(ctx context.Context, user *entity.User) error {
+	q := `
+    INSERT INTO users (
+		id,
+		first_name,
+		last_name,
+		email,
+		password,
+		change_password,
+		states_permission,
+		is_admin)
+    	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    	RETURNING id;
+    `
+	if err := repo.db.QueryRowContext(
+		ctx, q, user.ID, user.FirstName, user.LastName, user.Email, user.Password,
+		user.ChangePassword, user.StatesPermission, user.IsAdmin,
+	).Scan(&user.ID); err != nil {
+		return err
 	}
-	return "Datos Guardados", nil
+
+	return nil
 }
 
-func (repo userRepository) Get(ctx context.Context) (*entity.Users, error) {
-	var users entity.Users
-	filter := bson.D{}
+func (repo userRepository) GetAll(ctx context.Context) ([]*entity.User, error) {
+	users := []*entity.User{}
+	q := "SELECT * FROM users WHERE is_disable=false;"
 
-	col := repo.client.Database(constants.DATABASE).Collection(constants.USER_COLLECTION)
-	cursor, err := col.Find(ctx, filter)
-
-	if err != nil {
-		return nil, err
-	}
-	for cursor.Next(ctx) {
-		var user entity.User
-		err = cursor.Decode(&user)
-
-		if err != nil {
-			return nil, err
-		}
-
-		users = append(users, &user)
-	}
-
-	return &users, nil
-}
-
-func (repo userRepository) GetValue(ctx context.Context, clave string, valor string) (*entity.Users, error) {
-	var users entity.Users
-	col := repo.client.Database(constants.DATABASE).Collection(constants.USER_COLLECTION)
-
-	filter := bson.M{
-		clave: valor,
-	}
-
-	cursor, err := col.Find(ctx, filter)
+	rows, err := repo.db.QueryContext(ctx, q)
 	if err != nil {
 		return nil, err
 	}
-	for cursor.Next(ctx) {
-		var user entity.User
-		err = cursor.Decode(&user)
+	defer rows.Close()
 
-		if err != nil {
-			return nil, err
-		}
-
-		users = append(users, &user)
+	for rows.Next() {
+		u := new(entity.User)
+		rows.Scan(
+			u.ID,
+			u.FirstName,
+			u.LastName,
+			u.Email,
+			u.Password,
+			u.ChangePassword,
+			u.StatesPermission,
+			u.IsAdmin,
+			u.IsDisabled,
+			u.CreatedAt,
+			u.UpdatedAt,
+		)
+		users = append(users, u)
 	}
 
-	return &users, nil
+	return users, nil
 }
 
-func (repo userRepository) DeleteName(ctx context.Context, name string) (string, error) {
-	//var err error
-	filter := bson.M{"p00": name}
-	col := repo.client.Database(constants.DATABASE).Collection(constants.USER_COLLECTION)
+func (repo userRepository) GetByEmail(ctx context.Context, email string) (*entity.User, error) {
+	user := new(entity.User)
+	row := repo.db.QueryRowContext(ctx, "SELECT * FROM users WHERE email=$1;", email)
 
-	res, err := col.DeleteOne(ctx, filter)
-	if err != nil {
-		return "Ocurrio un error al intentar eliminar", err
-	}
-	temp := res.DeletedCount
-	// temp := strconv.Itoa(int(res.DeletedCount))
-
-	if temp > 0 {
-		return "Se elimino con exito", nil
-	} else {
-		return strconv.FormatInt(temp, 10), nil
-	}
-
-}
-
-func (repo userRepository) ChangePassword(ctx context.Context, user *entity.User) (string, error) {
-	//var err error
-	col := repo.client.Database(constants.DATABASE).Collection(constants.USER_COLLECTION)
-	filter := bson.M{
-		"p00":             user.P00,
-		"change_password": true,
-	}
-	update := bson.M{
-		"$set": bson.M{
-			"password":        user.Password,
-			"change_password": false,
-		},
-	}
-	res, err := col.UpdateOne(ctx, filter, update)
-	if err != nil {
-		return "Ocurrio un error al intenar actualizar la contraseña", err
-	}
-
-	temp1 := strconv.Itoa(int(res.MatchedCount))
-	temp2 := strconv.Itoa(int(res.ModifiedCount))
-	temp3 := strconv.Itoa(int(res.UpsertedCount))
-	temp4 := temp1 + "," + temp2 + "," + temp3
-
-	if temp4 != "0,0,0" {
-		return "Se actualizo la  contraseña correctamente", nil
-	} else {
-		return temp4, nil
-	}
-}
-
-func (repo userRepository) Login(ctx context.Context, email string, pasword string) (*entity.User, error) {
-	col := repo.client.Database(constants.DATABASE).Collection(constants.USER_COLLECTION)
-	var user entity.User
-	filter := bson.M{
-		"email":    email,
-		"password": pasword,
-	}
-
-	cursor, err := col.Find(ctx, filter)
+	err := row.Scan(
+		user.ID,
+		user.FirstName,
+		user.LastName,
+		user.Email,
+		user.Password,
+		user.ChangePassword,
+		user.StatesPermission,
+		user.IsAdmin,
+		user.IsDisabled,
+		user.CreatedAt,
+		user.UpdatedAt,
+	)
 	if err != nil {
 		return nil, err
 	}
-	for cursor.Next(ctx) {
-		err = cursor.Decode(&user)
 
-		if err != nil {
-			return nil, err
-		}
+	return user, nil
+}
+
+func (repo userRepository) SoftDelete(ctx context.Context, id uint) error {
+	q := "UPDATE users set is_disabled=true  WHERE id=$1;"
+
+	stmt, err := repo.db.PrepareContext(ctx, q)
+	if err != nil {
+		return err
 	}
-	return &user, nil
+
+	defer stmt.Close()
+
+	if _, err = stmt.ExecContext(ctx, id); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repo userRepository) ChangePassword(ctx context.Context, id, password string) error {
+	q := "UPDATE users set change_password=false, password=$1 WHERE id=$2 AND change_password=true;"
+
+	stmt, err := repo.db.PrepareContext(ctx, q)
+	if err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+
+	if _, err = stmt.ExecContext(ctx, password, id); err != nil {
+		return err
+	}
+
+	return nil
 }

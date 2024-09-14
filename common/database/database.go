@@ -11,13 +11,12 @@ func createTableIfNotExist(db *sql.DB) {
 	usersTable := `
     CREATE TABLE IF NOT EXISTS users (
         id 					serial NOT NULL,
-        first_name 			text NOT NULL,
-        last_name 			text NOT NULL,
+        fullname 			text NOT NULL,
         email 				text NOT NULL UNIQUE,
         password			text NOT NULL,
-		change_password 	boolean,
-		states_permission	text[],
-		is_admin			boolean,
+		change_password 	boolean DEFAULT true,
+		is_admin			boolean DEFAULT false,
+		is_disabled			boolean DEFAULT false,
         created_at			timestamp DEFAULT now(),
         updated_at			timestamp DEFAULT now(),
         CONSTRAINT pk_users PRIMARY KEY(id)

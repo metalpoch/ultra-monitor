@@ -23,14 +23,13 @@ func (repo userRepository) Create(ctx context.Context, user *entity.User) error 
 		email,
 		password,
 		change_password,
-		states_permission,
 		is_admin)
-    	VALUES ($1, $2, $3, $4, $5, $6, $7)
+    	VALUES ($1, $2, $3, $4, $5, $6)
     	RETURNING id;
     `
 	if err := repo.db.QueryRowContext(
 		ctx, q, user.ID, user.Fullname, user.Email, user.Password,
-		user.ChangePassword, user.StatesPermission, user.IsAdmin,
+		user.ChangePassword, user.IsAdmin,
 	).Scan(&user.ID); err != nil {
 		return err
 	}
@@ -40,7 +39,7 @@ func (repo userRepository) Create(ctx context.Context, user *entity.User) error 
 
 func (repo userRepository) GetAll(ctx context.Context) ([]*entity.User, error) {
 	users := []*entity.User{}
-	q := "SELECT * FROM users WHERE is_disable=false;"
+	q := "SELECT * FROM users;"
 
 	rows, err := repo.db.QueryContext(ctx, q)
 	if err != nil {
@@ -51,16 +50,15 @@ func (repo userRepository) GetAll(ctx context.Context) ([]*entity.User, error) {
 	for rows.Next() {
 		u := new(entity.User)
 		rows.Scan(
-			u.ID,
-			u.Fullname,
-			u.Email,
-			u.Password,
-			u.ChangePassword,
-			u.StatesPermission,
-			u.IsAdmin,
-			u.IsDisabled,
-			u.CreatedAt,
-			u.UpdatedAt,
+			&u.ID,
+			&u.Fullname,
+			&u.Email,
+			&u.Password,
+			&u.ChangePassword,
+			&u.IsAdmin,
+			&u.IsDisabled,
+			&u.CreatedAt,
+			&u.UpdatedAt,
 		)
 		users = append(users, u)
 	}
@@ -73,16 +71,15 @@ func (repo userRepository) GetUserByID(ctx context.Context, id uint) (*entity.Us
 	row := repo.db.QueryRowContext(ctx, "SELECT * FROM users WHERE id=$1;", id)
 
 	err := row.Scan(
-		u.ID,
-		u.Fullname,
-		u.Email,
-		u.Password,
-		u.ChangePassword,
-		u.StatesPermission,
-		u.IsAdmin,
-		u.IsDisabled,
-		u.CreatedAt,
-		u.UpdatedAt,
+		&u.ID,
+		&u.Fullname,
+		&u.Email,
+		&u.Password,
+		&u.ChangePassword,
+		&u.IsAdmin,
+		&u.IsDisabled,
+		&u.CreatedAt,
+		&u.UpdatedAt,
 	)
 	if err != nil {
 		return nil, err
@@ -93,20 +90,20 @@ func (repo userRepository) GetUserByID(ctx context.Context, id uint) (*entity.Us
 
 func (repo userRepository) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
 	u := new(entity.User)
-	row := repo.db.QueryRowContext(ctx, "SELECT * FROM users WHERE email=$1;", email)
+	row := repo.db.QueryRowContext(ctx, "SELECT * FROM users WHERE email=$1 AND is_disabled=false;", email)
 
 	err := row.Scan(
-		u.ID,
-		u.Fullname,
-		u.Email,
-		u.Password,
-		u.ChangePassword,
-		u.StatesPermission,
-		u.IsAdmin,
-		u.IsDisabled,
-		u.CreatedAt,
-		u.UpdatedAt,
+		&u.ID,
+		&u.Fullname,
+		&u.Email,
+		&u.Password,
+		&u.ChangePassword,
+		&u.IsAdmin,
+		&u.IsDisabled,
+		&u.CreatedAt,
+		&u.UpdatedAt,
 	)
+
 	if err != nil {
 		return nil, err
 	}

@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 type NewUser struct {
 	ID              uint   `json:"p00" validate:"required,gte=100000"`
 	Email           string `json:"email" validate:"required,email"`
@@ -9,12 +11,22 @@ type NewUser struct {
 }
 
 type User struct {
-	ID               uint     `json:"p00"`
-	Email            string   `json:"email"`
-	ChangePassword   bool     `json:"change_password"`
-	Fullname         string   `json:"fullname"`
-	IsAdmin          bool     `json:"is_admin"`
-	StatesPermission []string `json:"states_permission"`
+	ID             uint   `json:"p00"`
+	Email          string `json:"email"`
+	ChangePassword bool   `json:"change_password"`
+	Fullname       string `json:"fullname"`
+	IsAdmin        bool   `json:"is_admin"`
+}
+
+type FullUser struct {
+	ID             uint      `json:"p00"`
+	Fullname       string    `json:"fullname"`
+	Email          string    `json:"email"`
+	ChangePassword bool      `json:"change_password"`
+	IsAdmin        bool      `json:"is_admin"`
+	IsDisabled     bool      `json:"is_disabled"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
 }
 
 type ChangePassword struct {

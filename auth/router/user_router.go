@@ -5,25 +5,21 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/metalpoch/olt-blueprint/auth/handler"
-	"github.com/metalpoch/olt-blueprint/auth/repository"
+	"github.com/metalpoch/olt-blueprint/auth/middleware"
 	"github.com/metalpoch/olt-blueprint/auth/usecase"
 )
 
-func newUserRouter(server *fiber.App, db *sql.DB) {
-
+func newUserRouter(server *fiber.App, db *sql.DB, secret []byte) {
 	hdlr := &handler.UserHandler{
-		Usecase: usecase.NewUserUsecase(
-			repository.NewUserRepository(db),
-		),
+		Usecase: *usecase.NewUserUsecase(db, secret),
 	}
-	server.Get("/user/Get", hdlr.Get)
-	server.Post("/user/Post", hdlr.Create)
-	server.Get("/user/Getvalue/:clave/:valor", hdlr.GetValue)
 
-	server.Delete("/user/DeleteName/:p00", hdlr.DeleteName)
+	server.Post("/api/auth/signin", hdlr.Login)
+	server.Get("/api/auth/user/profile", middleware.ValidateJWT(secret), hdlr.GetOwn)
+	server.Patch("/api/auth/user/reset_password", middleware.ValidateJWT(secret), hdlr.ChangePassword)
 
-	server.Patch("/user/ChangeP", hdlr.ChangePassword)
-	server.Post("/user/Login", hdlr.Login)
-	server.Post("/user/ReadToken", hdlr.ReadToken)
-
+	// Admin routes
+	server.Post("/api/auth/signup", middleware.ValidateJWT(secret), middleware.AdminAccess, hdlr.Create)
+	server.Get("/api/auth/user/all", middleware.ValidateJWT(secret), middleware.AdminAccess, hdlr.GetAll)
+	server.Delete("/api/auth/user/:id", middleware.ValidateJWT(secret), middleware.AdminAccess, hdlr.DeleteUser)
 }

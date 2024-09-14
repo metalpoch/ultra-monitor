@@ -14,12 +14,15 @@ func newUserRouter(server *fiber.App, db *sql.DB, secret []byte) {
 		Usecase: *usecase.NewUserUsecase(db, secret),
 	}
 
-	server.Post("/api/auth/signin", hdlr.Login)
-	server.Get("/api/auth/user/profile", middleware.ValidateJWT(secret), hdlr.GetOwn)
-	server.Patch("/api/auth/user/reset_password", middleware.ValidateJWT(secret), hdlr.ChangePassword)
+	server.Post("/api/auth/login", hdlr.Login)
+	server.Get("/api/auth/user/profile", hdlr.GetOwn, middleware.ValidateJWT(secret))
+	server.Patch("/api/auth/user/reset_password", hdlr.ChangePassword, middleware.ValidateJWT(secret))
+
+	// for develop
+	server.Post("/api/auth/signup", hdlr.Create)
 
 	// Admin routes
-	server.Post("/api/auth/signup", middleware.ValidateJWT(secret), middleware.AdminAccess, hdlr.Create)
-	server.Get("/api/auth/user/all", middleware.ValidateJWT(secret), middleware.AdminAccess, hdlr.GetAll)
-	server.Delete("/api/auth/user/:id", middleware.ValidateJWT(secret), middleware.AdminAccess, hdlr.DeleteUser)
+	// server.Post("/api/auth/signup", hdlr.Create, middleware.ValidateJWT(secret), middleware.AdminAccess)
+	server.Get("/api/auth/user/all", hdlr.GetAll, middleware.ValidateJWT(secret), middleware.AdminAccess)
+	server.Delete("/api/auth/user/:id", hdlr.DeleteUser, middleware.ValidateJWT(secret), middleware.AdminAccess)
 }

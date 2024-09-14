@@ -33,7 +33,6 @@ func (hdlr UserHandler) Login(ctx fiber.Ctx) error {
 	if err := ctx.Bind().JSON(credentials); err != nil {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
-
 	res, err := hdlr.Usecase.Login(credentials.Email, credentials.Password)
 	if err != nil {
 		return ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
@@ -43,8 +42,9 @@ func (hdlr UserHandler) Login(ctx fiber.Ctx) error {
 }
 
 func (hdlr UserHandler) GetOwn(ctx fiber.Ctx) error {
-	id := ctx.Locals("id").(uint)
+	id := uint(ctx.Locals("id").(float64))
 	users, err := hdlr.Usecase.GetUser(id)
+
 	if err != nil {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -60,10 +60,7 @@ func (hdlr UserHandler) GetAll(ctx fiber.Ctx) error {
 }
 
 func (hdlr UserHandler) DeleteUser(ctx fiber.Ctx) error {
-	id := ctx.Params("id")
-	if id == "" {
-		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "id is required"})
-	}
+	id := uint(ctx.Locals("id").(float64))
 
 	if err := hdlr.Usecase.SoftDelete(id); err != nil {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -73,7 +70,7 @@ func (hdlr UserHandler) DeleteUser(ctx fiber.Ctx) error {
 }
 
 func (hdlr UserHandler) ChangePassword(ctx fiber.Ctx) error {
-	id := ctx.Locals("id").(uint)
+	id := uint(ctx.Locals("id").(float64))
 	passwords := new(model.ChangePassword)
 	if err := ctx.Bind().JSON(passwords); err != nil {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -82,7 +79,7 @@ func (hdlr UserHandler) ChangePassword(ctx fiber.Ctx) error {
 	err := hdlr.Usecase.ChangePassword(id, passwords)
 
 	if err != nil {
-		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error al cambiar contraseña": err.Error()})
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 	return ctx.SendStatus(http.StatusOK)
 }

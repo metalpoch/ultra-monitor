@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/metalpoch/olt-blueprint/auth/entity"
@@ -36,13 +35,12 @@ func (use userUsecase) Create(newUser *model.NewUser) error {
 	}
 
 	user := &entity.User{
-		ID:               newUser.ID,
-		Fullname:         newUser.Fullname,
-		Email:            newUser.Email,
-		Password:         password,
-		ChangePassword:   true,
-		IsAdmin:          false,
-		StatesPermission: []string{},
+		ID:             newUser.ID,
+		Fullname:       newUser.Fullname,
+		Email:          newUser.Email,
+		Password:       password,
+		ChangePassword: true,
+		IsAdmin:        false,
 	}
 
 	if err := use.repo.Create(ctx, user); err != nil {
@@ -63,7 +61,6 @@ func (use userUsecase) Login(email string, password string) (*model.LoginRespons
 	}
 
 	if err := utils.CheckPasswordHash(password, res.Password); err != nil {
-		log.Println("An error has occurred:", err.Error())
 		return nil, errors.New("invalid email or password")
 	}
 
@@ -76,12 +73,11 @@ func (use userUsecase) Login(email string, password string) (*model.LoginRespons
 	return &model.LoginResponse{
 		Token: token,
 		User: model.User{
-			ID:               res.ID,
-			Email:            res.Email,
-			ChangePassword:   res.ChangePassword,
-			Fullname:         res.Fullname,
-			IsAdmin:          res.IsAdmin,
-			StatesPermission: res.StatesPermission,
+			ID:             res.ID,
+			Email:          res.Email,
+			ChangePassword: res.ChangePassword,
+			Fullname:       res.Fullname,
+			IsAdmin:        res.IsAdmin,
 		},
 	}, nil
 }
@@ -96,17 +92,16 @@ func (use userUsecase) GetUser(id uint) (*model.User, error) {
 	}
 
 	return &model.User{
-		ID:               res.ID,
-		Email:            res.Email,
-		ChangePassword:   res.ChangePassword,
-		Fullname:         res.Fullname,
-		IsAdmin:          res.IsAdmin,
-		StatesPermission: res.StatesPermission,
+		ID:             res.ID,
+		Email:          res.Email,
+		ChangePassword: res.ChangePassword,
+		Fullname:       res.Fullname,
+		IsAdmin:        res.IsAdmin,
 	}, nil
 }
 
-func (use userUsecase) GetAllUsers() ([]*model.User, error) {
-	users := []*model.User{}
+func (use userUsecase) GetAllUsers() ([]*model.FullUser, error) {
+	users := []*model.FullUser{}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -116,29 +111,26 @@ func (use userUsecase) GetAllUsers() ([]*model.User, error) {
 	}
 
 	for _, e := range res {
-		users = append(users, &model.User{
-			ID:               e.ID,
-			Email:            e.Email,
-			ChangePassword:   e.ChangePassword,
-			Fullname:         e.Fullname,
-			IsAdmin:          e.IsAdmin,
-			StatesPermission: e.StatesPermission,
+		users = append(users, &model.FullUser{
+			ID:             e.ID,
+			Email:          e.Email,
+			ChangePassword: e.ChangePassword,
+			Fullname:       e.Fullname,
+			IsAdmin:        e.IsAdmin,
+			IsDisabled:     e.IsDisabled,
+			CreatedAt:      e.CreatedAt,
+			UpdatedAt:      e.UpdatedAt,
 		})
 	}
 
 	return users, nil
 }
 
-func (use userUsecase) SoftDelete(id string) error {
+func (use userUsecase) SoftDelete(id uint) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	p00, err := strconv.Atoi(id)
-	if err != nil {
-		return err
-	}
-
-	if err := use.repo.SoftDelete(ctx, uint(p00)); err != nil {
+	if err := use.repo.SoftDelete(ctx, id); err != nil {
 		return err
 	}
 	return nil
@@ -161,7 +153,12 @@ func (use userUsecase) ChangePassword(id uint, user *model.ChangePassword) error
 		return errors.New("passwords do not match")
 	}
 
-	if err := use.repo.ChangePassword(ctx, id, user.NewPassword); err != nil {
+	password, err := utils.HashPassword(user.NewPassword)
+	if err != nil {
+		return err
+	}
+
+	if err := use.repo.ChangePassword(ctx, id, password); err != nil {
 		log.Println("An error has occurred:", err.Error())
 		return err
 	}

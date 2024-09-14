@@ -4,8 +4,7 @@ import "time"
 
 type User struct {
 	ID               uint      `sql:"id"`
-	FirstName        string    `sql:"first_name"`
-	LastName         string    `sql:"last_name"`
+	Fullname         string    `sql:"fullname"`
 	Email            string    `sql:"email"`
 	Password         string    `sql:"password"`
 	ChangePassword   bool      `sql:"change_password"`

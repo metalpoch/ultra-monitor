@@ -19,18 +19,17 @@ func (repo userRepository) Create(ctx context.Context, user *entity.User) error 
 	q := `
     INSERT INTO users (
 		id,
-		first_name,
-		last_name,
+		fullname,
 		email,
 		password,
 		change_password,
 		states_permission,
 		is_admin)
-    	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    	VALUES ($1, $2, $3, $4, $5, $6, $7)
     	RETURNING id;
     `
 	if err := repo.db.QueryRowContext(
-		ctx, q, user.ID, user.FirstName, user.LastName, user.Email, user.Password,
+		ctx, q, user.ID, user.Fullname, user.Email, user.Password,
 		user.ChangePassword, user.StatesPermission, user.IsAdmin,
 	).Scan(&user.ID); err != nil {
 		return err
@@ -53,8 +52,7 @@ func (repo userRepository) GetAll(ctx context.Context) ([]*entity.User, error) {
 		u := new(entity.User)
 		rows.Scan(
 			u.ID,
-			u.FirstName,
-			u.LastName,
+			u.Fullname,
 			u.Email,
 			u.Password,
 			u.ChangePassword,
@@ -70,28 +68,27 @@ func (repo userRepository) GetAll(ctx context.Context) ([]*entity.User, error) {
 	return users, nil
 }
 
-func (repo userRepository) GetByEmail(ctx context.Context, email string) (*entity.User, error) {
-	user := new(entity.User)
+func (repo userRepository) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
+	u := new(entity.User)
 	row := repo.db.QueryRowContext(ctx, "SELECT * FROM users WHERE email=$1;", email)
 
 	err := row.Scan(
-		user.ID,
-		user.FirstName,
-		user.LastName,
-		user.Email,
-		user.Password,
-		user.ChangePassword,
-		user.StatesPermission,
-		user.IsAdmin,
-		user.IsDisabled,
-		user.CreatedAt,
-		user.UpdatedAt,
+		u.ID,
+		u.Fullname,
+		u.Email,
+		u.Password,
+		u.ChangePassword,
+		u.StatesPermission,
+		u.IsAdmin,
+		u.IsDisabled,
+		u.CreatedAt,
+		u.UpdatedAt,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	return user, nil
+	return u, nil
 }
 
 func (repo userRepository) SoftDelete(ctx context.Context, id uint) error {
@@ -111,8 +108,8 @@ func (repo userRepository) SoftDelete(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (repo userRepository) ChangePassword(ctx context.Context, id, password string) error {
-	q := "UPDATE users set change_password=false, password=$1 WHERE id=$2 AND change_password=true;"
+func (repo userRepository) ChangePassword(ctx context.Context, id uint, password string) error {
+	q := "UPDATE users set change_password=false, password=$1 WHERE id=$2;"
 
 	stmt, err := repo.db.PrepareContext(ctx, q)
 	if err != nil {

@@ -1,10 +1,11 @@
 package router
 
 import (
+	"database/sql"
+
 	"github.com/gofiber/fiber/v3"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func Setup(server *fiber.App, client *mongo.Client) {
-	newUserRouter(server, client)
+func Setup(server *fiber.App, db *sql.DB) {
+	newUserRouter(server, db)
 }

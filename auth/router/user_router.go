@@ -1,18 +1,19 @@
 package router
 
 import (
+	"database/sql"
+
 	"github.com/gofiber/fiber/v3"
 	"github.com/metalpoch/olt-blueprint/auth/handler"
 	"github.com/metalpoch/olt-blueprint/auth/repository"
 	"github.com/metalpoch/olt-blueprint/auth/usecase"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func newUserRouter(server *fiber.App, client *mongo.Client) {
+func newUserRouter(server *fiber.App, db *sql.DB) {
 
 	hdlr := &handler.UserHandler{
 		Usecase: usecase.NewUserUsecase(
-			repository.NewUserRepository(client),
+			repository.NewUserRepository(db),
 		),
 	}
 	server.Get("/user/Get", hdlr.Get)

@@ -68,6 +68,29 @@ func (repo userRepository) GetAll(ctx context.Context) ([]*entity.User, error) {
 	return users, nil
 }
 
+func (repo userRepository) GetUserByID(ctx context.Context, id uint) (*entity.User, error) {
+	u := new(entity.User)
+	row := repo.db.QueryRowContext(ctx, "SELECT * FROM users WHERE id=$1;", id)
+
+	err := row.Scan(
+		u.ID,
+		u.Fullname,
+		u.Email,
+		u.Password,
+		u.ChangePassword,
+		u.StatesPermission,
+		u.IsAdmin,
+		u.IsDisabled,
+		u.CreatedAt,
+		u.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return u, nil
+}
+
 func (repo userRepository) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
 	u := new(entity.User)
 	row := repo.db.QueryRowContext(ctx, "SELECT * FROM users WHERE email=$1;", email)

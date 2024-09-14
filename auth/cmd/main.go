@@ -31,7 +31,7 @@ func main() {
 	db := database.Connect(cfg.DatabaseURI)
 	server := fiber.New()
 
-	router.Setup(server, db)
+	router.Setup(server, db, []byte(cfg.SecretKey))
 
 	server.Listen(":3000")
 }

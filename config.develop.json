@@ -1,5 +1,4 @@
 {
   "db_uri": "postgresql://postgres:example@localhost:5432",
-  "db_uri_bk": "mongodb://root:AsuntosPresidenciales@localhost:27017",
   "cache_uri": "redis://default:AsuntosPresidenciales@localhost:6379"
 }

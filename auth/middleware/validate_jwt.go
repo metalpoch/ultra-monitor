@@ -13,7 +13,6 @@ func ValidateJWT(secret []byte) fiber.Handler {
 
 	return func(ctx fiber.Ctx) error {
 		authHeader := ctx.Get("Authorization")
-
 		if !strings.HasPrefix(authHeader, "Bearer ") {
 			return ctx.Status(http.StatusForbidden).JSON(fiber.Map{"error": "authorization token invalid"})
 		}

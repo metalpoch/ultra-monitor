@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 	"github.com/metalpoch/olt-blueprint/auth/router"
 	"github.com/metalpoch/olt-blueprint/common/database"
@@ -29,7 +30,10 @@ func init() {
 
 func main() {
 	db := database.Connect(cfg.DatabaseURI)
-	server := fiber.New()
+
+	server := fiber.New(fiber.Config{
+		StructValidator: &model.StructValidator{Validator: validator.New()},
+	})
 
 	router.Setup(server, db, []byte(cfg.SecretKey))
 

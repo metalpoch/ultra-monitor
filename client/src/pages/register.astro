@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Outside.astro';
 import { isValidEmail, isValidPassword } from '../utils/validation';
+import { Routes } from '../constant/routes';
 
 const errors = { email: "", password: "", names: "", lastNames: ""}
 if (Astro.request.method == "POST") {
@@ -69,7 +70,9 @@ if (Astro.request.method == "POST") {
 		</div>
 		<button class="w-fit px-4 py-1 bg-blue-600 rounded-full text-lg text-gray-50 font-semibold transition-all duration-200 ease-in hover:bg-blue-700 max-sm:text-base max-sm:rounded-lg">Registrar</button>
 		<section class="flex flex-col items-center justify-center">
-			<h5 class="text-center text-sm text-blue-500 font-light">¿Ya tienes una cuenta? <a class="text-blue-400 font-normal transition-all duration-200 ease-in hover:text-blue-700" href="/">Inicia Sesión</a></h5>
+			<h5 class="text-center text-sm text-blue-500 font-light">¿Ya tienes una cuenta? 
+				<a class="text-blue-400 font-normal transition-all duration-200 ease-in hover:text-blue-700" href={Routes.LOGIN}>Inicia Sesión</a>
+			</h5>
 		</section>
 	</form>
 </Layout>

@@ -1,7 +1,15 @@
 package entity
 
+import "time"
+
 type Device struct {
-	Sysname   string `bson:"_id"`
-	IP        string `bson:"ip"`
-	Community string `bson:"community"`
+	ID         uint
+	IP         string
+	Sysname    string
+	Community  string
+	TemplateID uint
+	IsAlive    bool
+	LastCheck  time.Time
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }

@@ -2,6 +2,8 @@ package usecase
 
 import (
 	"context"
+	"database/sql"
+	"log"
 	"time"
 
 	"github.com/metalpoch/olt-blueprint/update/entity"
@@ -14,48 +16,63 @@ type deviceUsecase struct {
 	repo repository.DeviceRepository
 }
 
-func NewDeviceUsecase(repo repository.DeviceRepository) *deviceUsecase {
-	return &deviceUsecase{repo}
+func NewDeviceUsecase(db *sql.DB) *deviceUsecase {
+	return &deviceUsecase{repository.NewDeviceRepository(db)}
 }
 
-func (use deviceUsecase) Create(ip, community string) error {
-	device := new(entity.Device)
-	sysname, err := snmp.Sysname(ip, community)
-	if err != nil {
-		return err
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (use deviceUsecase) Add(device *model.AddDevice) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
-	device.Community = community
-	device.IP = ip
-	device.Sysname = sysname
-
-	if _, err := use.repo.Create(ctx, device); err != nil {
-		return err
+	var isAlive bool
+	sysname, err := snmp.GetSysname(device.IP, device.Community)
+	if err != nil {
+		log.Println("snmp error on try get the sysname:", err)
+		isAlive = false
+	} else {
+		isAlive = true
 	}
+
+	now := time.Now()
+	use.repo.Add(ctx, &entity.Device{
+		ID:         0,
+		IP:         device.IP,
+		Sysname:    sysname,
+		Community:  device.Community,
+		TemplateID: device.TemplateID,
+		IsAlive:    isAlive,
+		LastCheck:  now,
+		CreatedAt:  now,
+		UpdatedAt:  now,
+	})
 
 	return nil
+
 }
 
-func (use deviceUsecase) FindAll() ([]*model.Device, error) {
-	devices := []*model.Device{}
+func (use deviceUsecase) GetAll() ([]model.Device, error) {
+	devices := []model.Device{}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	res, err := use.repo.FindAll(ctx)
-	if err != nil {
-		return nil, err
-	}
 
-	for _, d := range res {
-		devices = append(devices, &model.Device{
-			IP:        d.IP,
-			Community: d.Community,
-			Sysname:   d.Sysname,
+	res, err := use.repo.GetAll(ctx)
+
+	// Gestionar errores (con Axios por ejemplo)
+	// ...
+
+	for _, e := range res {
+		devices = append(devices, model.Device{
+			ID:         e.ID,
+			IP:         e.IP,
+			Sysname:    e.Sysname,
+			Community:  e.Community,
+			TemplateID: e.TemplateID,
+			IsAlive:    e.IsAlive,
+			LastCheck:  e.LastCheck,
+			CreatedAt:  e.CreatedAt,
+			UpdatedAt:  e.UpdatedAt,
 		})
-
 	}
 
-	return devices, nil
+	return devices, err
 }

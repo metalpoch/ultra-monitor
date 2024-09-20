@@ -1,39 +1,65 @@
 package controller
 
 import (
-	"context"
-	"log"
+	"database/sql"
+	"os"
 
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/metalpoch/olt-blueprint/update/model"
-	"github.com/metalpoch/olt-blueprint/update/repository"
 	"github.com/metalpoch/olt-blueprint/update/usecase"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func AddDevice(ip, community string, client *mongo.Client) {
-	defer func() {
-		if err := client.Disconnect(context.TODO()); err != nil {
-			panic(err)
-		}
-	}()
-
-	u := usecase.DeviceUsecase(usecase.NewDeviceUsecase(repository.NewDeviceRepository(client)))
-	if err := u.Create(ip, community); err != nil {
-		log.Fatalf("error saving %s - %s: %v\n", ip, community, err)
-	}
+type deviceHandler struct {
+	Usecase usecase.DeviceUsecase
 }
 
-func GetDevices(client *mongo.Client) []*model.Device {
-	defer func() {
-		if err := client.Disconnect(context.TODO()); err != nil {
-			panic(err)
-		}
-	}()
+func newDeviceHandler(db *sql.DB) *deviceHandler {
+	return &deviceHandler{Usecase: *usecase.NewDeviceUsecase(db)}
+}
 
-	u := usecase.DeviceUsecase(usecase.NewDeviceUsecase(repository.NewDeviceRepository(client)))
-	devices, err := u.FindAll()
+func AddDevice(db *sql.DB, device *model.AddDevice) error {
+	return newDeviceHandler(db).Usecase.Add(device)
+}
+
+func ShowAllDevices(db *sql.DB, csv bool) error {
+	devices, err := newDeviceHandler(db).Usecase.GetAll()
 	if err != nil {
-		log.Fatalln("error searching for devices:", err)
+		return err
 	}
-	return devices
+
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{
+		"ID",
+		"IP",
+		"Community",
+		"Sysname",
+		"Template ID",
+		"Is Alive",
+		"Last Check",
+		"Created at",
+		"Updated at",
+	})
+
+	for _, device := range devices {
+		t.AppendRow(table.Row{
+			device.ID,
+			device.IP,
+			device.Community,
+			device.Sysname,
+			device.TemplateID,
+			device.IsAlive,
+			device.LastCheck.Local().Format("2006-01-02 15:04:05"),
+			device.CreatedAt.Local().Format("2006-01-02 15:04:05"),
+			device.UpdatedAt.Local().Format("2006-01-02 15:04:05"),
+		})
+		t.AppendSeparator()
+	}
+	if csv {
+		t.RenderCSV()
+	} else {
+		t.Render()
+	}
+
+	return nil
 }

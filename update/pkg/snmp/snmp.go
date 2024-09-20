@@ -1,114 +1,73 @@
 package snmp
 
 import (
-	"bytes"
-	"fmt"
-	"log"
-	"os/exec"
+	"errors"
 	"strconv"
 	"strings"
-	"sync"
 
+	"github.com/gosnmp/gosnmp"
+	"github.com/metalpoch/olt-blueprint/update/constants"
 	"github.com/metalpoch/olt-blueprint/update/model"
 )
 
-const (
-	sysname_oid   = "1.3.6.1.2.1.1.5.0"
-	ifname_oid    = "1.3.6.1.2.1.31.1.1.1.1"
-	bytes_in_oid  = "1.3.6.1.4.1.2011.6.128.1.1.4.21.1.15"
-	bytes_out_oid = "1.3.6.1.4.1.2011.6.128.1.1.4.21.1.30"
-	bandwidth_oid = "1.3.6.1.2.1.31.1.1.1.15"
-)
+func GetSysname(ip, community string) (string, error) {
+	gosnmp.Default.Target = ip
+	gosnmp.Default.Community = community
 
-func runCmd(command string) (string, string, error) {
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
-	cmd := exec.Command("bash", "-c", command)
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stdout
-	err := cmd.Run()
-	return stdout.String(), stderr.String(), err
-}
-
-func Sysname(ip, community string) (string, error) {
-	var sysname string
-	cmd := fmt.Sprintf("snmpwalk -v 2c -c %s %s %s", community, ip, sysname_oid)
-
-	stdout, stderr, err := runCmd(cmd)
+	err := gosnmp.Default.Connect()
 	if err != nil {
-		log.Printf("snmp error on device: %s - %s | stderr: %s | err: %s\n", ip, community, stderr, err.Error())
-		return sysname, err
+		return "", err
+	}
+	defer gosnmp.Default.Conn.Close()
+
+	result, err := gosnmp.Default.Get([]string{constants.SYSNAME_OID})
+	if err != nil {
+		return "", err
 	}
 
-	rows := strings.Split(string(stdout), "\n")
-	for _, row := range rows {
-		if len(row) < 1 {
-			break
-		}
-		sysname = strings.Split(row, "STRING: ")[1]
-	}
-	return sysname, nil
+	return string(result.Variables[0].Value.([]byte)), nil
 }
 
-func Measurements(device *model.Device) model.Snmp {
-	oids := [4]string{ifname_oid, bytes_in_oid, bytes_out_oid, bandwidth_oid}
-	ifnames := make(map[int]string)
-	byteInOcts := make(map[int]int64)
-	byteOutOcts := make(map[int]int64)
-	bandwidths := make(map[int]int16)
+func Walk(ip, community, oid string) (model.Snmp, error) {
+	response := model.Snmp{}
+	gosnmp.Default.Target = ip
+	gosnmp.Default.Community = community
 
-	var wg sync.WaitGroup
-	wg.Add(4)
+	err := gosnmp.Default.Connect()
+	if err != nil {
+		return nil, err
+	}
+	defer gosnmp.Default.Conn.Close()
 
-	for _, oid := range oids {
-		defer wg.Done()
-		cmd := fmt.Sprintf("snmpwalk -v 2c -c %s %s %s", device.Community, device.IP, oid)
-		stdout, stderr, err := runCmd(cmd)
+	if err = gosnmp.Default.BulkWalk(oid, func(pdu gosnmp.SnmpPDU) error {
+		parts := strings.Split(pdu.Name, ".")
+		strID := parts[len(parts)-1]
+
+		id, err := strconv.Atoi(strID)
 		if err != nil {
-			log.Fatalf("snmp error on device: %s - %s | stderr: %s | err: %s", device.IP, device.Community, stderr, err)
+			return err
 		}
 
-		rows := strings.Split(string(stdout), "\n")
-		for _, r := range rows {
-			if len(r) < 1 {
-				break
-			}
+		switch pdu.Type {
 
-			var val string
-			splited := strings.Split(r, " = ")
-			idxStr := strings.Split(splited[0], ".")
-			val = strings.Split(splited[1], ": ")[1]
-
-			idx, err := strconv.Atoi(idxStr[len(idxStr)-1])
-			if err != nil {
-				log.Println(device.Sysname, "-", err, string(stdout))
-			}
-
-			if oid == ifname_oid {
-				ifnames[idx] = val
-			} else {
-				v, err := strconv.Atoi(val)
-				if err != nil {
-					log.Println(device.Sysname, "-", err, string(stdout))
-				}
-
-				switch oid {
-				case bytes_in_oid:
-					byteInOcts[idx] = int64(v)
-				case bytes_out_oid:
-					byteOutOcts[idx] = int64(v)
-				case bandwidth_oid:
-					bandwidths[idx] = int16(v)
-				}
-			}
+		case gosnmp.OctetString:
+			response[uint(id)] = string(pdu.Value.([]byte))
+		case gosnmp.Counter32:
+			response[uint(id)] = pdu.Value.(uint)
+		case gosnmp.Counter64:
+			response[uint(id)] = pdu.Value.(uint)
+		case gosnmp.Gauge32:
+			response[uint(id)] = pdu.Value.(uint)
+		case gosnmp.Uinteger32:
+			response[uint(id)] = pdu.Value.(uint)
+		default:
+			return errors.New("invalid snmp response type")
 		}
-	}
-	wg.Wait()
+		return nil
 
-	return model.Snmp{
-		IfName:    ifnames,
-		ByteIn:    byteInOcts,
-		ByteOut:   byteOutOcts,
-		Bandwidth: bandwidths,
+	}); err != nil {
+		return nil, err
 	}
+
+	return response, err
 }

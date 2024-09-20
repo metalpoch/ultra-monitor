@@ -1,7 +1,21 @@
 package model
 
+import "time"
+
 type Device struct {
-	IP        string `json:"ip"`
-	Community string `json:"community"`
-	Sysname   string `json:"sysname"`
+	ID         uint
+	IP         string
+	Sysname    string
+	Community  string
+	TemplateID uint
+	IsAlive    bool
+	LastCheck  time.Time
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+}
+
+type AddDevice struct {
+	IP         string
+	Community  string
+	TemplateID uint
 }

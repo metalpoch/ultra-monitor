@@ -2,56 +2,68 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"time"
 
-	"github.com/metalpoch/olt-blueprint/update/constants"
 	"github.com/metalpoch/olt-blueprint/update/entity"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type deviceRepository struct {
-	client *mongo.Client
+	db *sql.DB
 }
 
-func NewDeviceRepository(client *mongo.Client) *deviceRepository {
-	return &deviceRepository{client}
+func NewDeviceRepository(db *sql.DB) *deviceRepository {
+	return &deviceRepository{db}
 }
 
-func (repo deviceRepository) Create(ctx context.Context, device *entity.Device) (string, error) {
-	col := repo.client.Database(constants.DATABASE).Collection(constants.DEVICES_COLLECTION)
-	cursor, err := col.InsertOne(ctx, device)
-	if err != nil {
-		return "", err
+func (repo deviceRepository) Add(ctx context.Context, device *entity.Device) (uint, error) {
+	var id uint
+	q := `INSERT INTO device
+		(ip, sysname, community, template_id, is_alive, last_check, created_at, updated_at) 
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    RETURNING id;`
+	now := time.Now()
+	if err := repo.db.QueryRowContext(
+		ctx,
+		q,
+		device.IP,
+		device.Sysname,
+		device.Community,
+		device.TemplateID,
+		device.IsAlive,
+		device.LastCheck,
+		now,
+		now,
+	).Scan(&id); err != nil {
+		return 0, err
 	}
-	id := cursor.InsertedID.(primitive.ObjectID).Hex()
+
 	return id, nil
 }
 
-func (repo deviceRepository) FindAllOffset(ctx context.Context, limit int64, offset int64) ([]*entity.Device, error) {
+func (repo deviceRepository) GetAll(ctx context.Context) ([]*entity.Device, error) {
 	devices := []*entity.Device{}
-	col := repo.client.Database(constants.DATABASE).Collection(constants.DEVICES_COLLECTION)
-	cursor, err := col.Find(ctx, bson.M{}, options.Find().SetLimit(limit).SetSkip(offset))
+	rows, err := repo.db.QueryContext(ctx, "SELECT * FROM device;")
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
-	if err := cursor.All(ctx, &devices); err != nil {
-		return nil, err
+	for rows.Next() {
+		d := new(entity.Device)
+		rows.Scan(
+			&d.ID,
+			&d.IP,
+			&d.Sysname,
+			&d.Community,
+			&d.TemplateID,
+			&d.IsAlive,
+			&d.LastCheck,
+			&d.CreatedAt,
+			&d.UpdatedAt,
+		)
+		devices = append(devices, d)
 	}
-	return devices, nil
-}
 
-func (repo deviceRepository) FindAll(ctx context.Context) ([]*entity.Device, error) {
-	devices := []*entity.Device{}
-	col := repo.client.Database(constants.DATABASE).Collection(constants.DEVICES_COLLECTION)
-	cursor, err := col.Find(ctx, bson.M{})
-	if err != nil {
-		return nil, err
-	}
-	if err := cursor.All(ctx, &devices); err != nil {
-		return nil, err
-	}
 	return devices, nil
 }

@@ -9,10 +9,14 @@ import (
 	"github.com/metalpoch/olt-blueprint/update/controller"
 	"github.com/metalpoch/olt-blueprint/update/database"
 	"github.com/metalpoch/olt-blueprint/update/model"
+	"github.com/metalpoch/olt-blueprint/update/utils"
 	"github.com/urfave/cli/v2"
 )
 
 func main() {
+
+	utils.Mkdir("./data/")
+
 	app := &cli.App{
 		Commands: []*cli.Command{
 			{

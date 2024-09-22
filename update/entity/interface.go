@@ -6,7 +6,7 @@ type Interface struct {
 	ID        uint // IfIndex
 	IfName    string
 	IfDescr   string
-	DeviceID  uint
+	IfAlias   string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

@@ -16,7 +16,7 @@ func initDB(db *sql.DB, name string) error {
 
 	switch name {
 	case constants.DATABASE_DEVICE:
-		querys := [3]string{constants.SQL_DEVICE_SEQUENCES, constants.SQL_TEMPLATE_TABLE, constants.SQL_DEVICE_TABLE}
+		querys := [3]string{constants.SQL_DEVICE_SEQUENCES, constants.SQL_CREATE_TABLE_TEMPLATE, constants.SQL_CREATE_TABLE_DEVICE}
 		for _, q := range querys {
 			if _, err := db.ExecContext(ctx, q); err != nil {
 				fmt.Println(q, err.Error())
@@ -25,7 +25,7 @@ func initDB(db *sql.DB, name string) error {
 		}
 
 	default:
-		tables := [3]string{constants.SQL_INTERFACE_TABLE, constants.SQL_MEASUREMENT_TABLE, constants.SQL_TMP_MEASUREMENT_TABLE}
+		tables := [3]string{constants.SQL_CREATE_TABLE_INTERFACE, constants.SQL_CREATE_TABLE_MEASUREMENT, constants.SQL_CREATE_TABLE_TMP_MEASUREMENT}
 		for _, table := range tables {
 			if _, err := db.ExecContext(ctx, table); err != nil {
 				return err

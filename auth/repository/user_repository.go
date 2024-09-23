@@ -36,7 +36,7 @@ func (repo userRepository) Create(ctx context.Context, user *entity.User) error 
 		}
 
 		return nil*/
-	if err := repo.db.Create(&user).Error; err != nil {
+	if err := repo.db.WithContext(ctx).Create(&user).Error; err != nil {
 		return err
 	}
 	return nil
@@ -70,7 +70,7 @@ func (repo userRepository) GetAll(ctx context.Context) ([]*entity.User, error) {
 
 	return users, nil*/
 
-	if err := repo.db.Find(&users).Error; err != nil {
+	if err := repo.db.WithContext(ctx).Find(&users).Error; err != nil {
 		return nil, err
 	}
 	return users, nil
@@ -97,7 +97,7 @@ func (repo userRepository) GetUserByID(ctx context.Context, id uint) (*entity.Us
 	}
 
 	return u, nil*/
-	if err := repo.db.Find(&u, "id=?", id).Error; err != nil {
+	if err := repo.db.WithContext(ctx).Find(&u, "id=?", id).Error; err != nil {
 		return nil, err
 	}
 	return u, nil
@@ -122,7 +122,7 @@ func (repo userRepository) GetUserByEmail(ctx context.Context, email string) (*e
 	if err != nil {
 		return nil, err
 	}*/
-	if err := repo.db.Find(&u, "email=?", email, "is_disabled=false").Error; err != nil {
+	if err := repo.db.WithContext(ctx).Find(&u, "email=?", email).Error; err != nil {
 		return nil, err
 	}
 
@@ -130,6 +130,7 @@ func (repo userRepository) GetUserByEmail(ctx context.Context, email string) (*e
 }
 
 func (repo userRepository) SoftDelete(ctx context.Context, id uint) error {
+	u := new(entity.User)
 	/*q := "UPDATE users set is_disabled=true  WHERE id=$1;"
 
 	stmt, err := repo.db.PrepareContext(ctx, q)
@@ -143,10 +144,18 @@ func (repo userRepository) SoftDelete(ctx context.Context, id uint) error {
 		return err
 	}*/
 
+	if err := repo.db.Find(&u, "id=?", id).Error; err != nil {
+		return err
+	}
+
+	if err := repo.db.WithContext(ctx).Delete(&u).Error; err != nil {
+		return err
+	}
 	return nil
 }
 
 func (repo userRepository) ChangePassword(ctx context.Context, id uint, password string) error {
+	u := new(entity.User)
 	/*q := "UPDATE users set change_password=false, password=$1 WHERE id=$2;"
 
 	stmt, err := repo.db.PrepareContext(ctx, q)
@@ -159,6 +168,12 @@ func (repo userRepository) ChangePassword(ctx context.Context, id uint, password
 	if _, err = stmt.ExecContext(ctx, password, id); err != nil {
 		return err
 	}*/
+	if err := repo.db.Find(&u, "id=?", id, password).Error; err != nil {
+		return err
+	}
 
+	if err := repo.db.Update("Password", password).Error; err != nil {
+		return err
+	}
 	return nil
 }

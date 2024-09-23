@@ -117,7 +117,6 @@ func (use userUsecase) GetAllUsers() ([]*model.FullUser, error) {
 			ChangePassword: e.ChangePassword,
 			Fullname:       e.Fullname,
 			IsAdmin:        e.IsAdmin,
-			IsDisabled:     e.IsDisabled,
 			CreatedAt:      e.CreatedAt,
 			UpdatedAt:      e.UpdatedAt,
 		})

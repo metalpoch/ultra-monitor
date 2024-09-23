@@ -1,17 +1,21 @@
 package entity
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type User struct {
-	ID             uint      `gorm:"id"`
-	Fullname       string    `gorm:"fullname"`
-	Email          string    `gorm:"email"`
-	Password       string    `gorm:"password"`
-	ChangePassword bool      `gorm:"change_password"`
-	IsAdmin        bool      `gorm:"is_admin"`
-	IsDisabled     bool      `gorm:"is_disabled"`
-	CreatedAt      time.Time `gorm:"created_at"`
-	UpdatedAt      time.Time `gorm:"updated_at"`
+	ID             uint `gorm:"primaryKey"`
+	Fullname       string
+	Email          string
+	Password       string
+	ChangePassword bool
+	IsAdmin        bool
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	DeleteAt       gorm.DeletedAt
 }
 
 type UserResponse struct {

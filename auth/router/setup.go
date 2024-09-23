@@ -1,11 +1,12 @@
 package router
 
 import (
-	"database/sql"
+	//"database/sql"
 
 	"github.com/gofiber/fiber/v3"
+	"gorm.io/gorm"
 )
 
-func Setup(server *fiber.App, db *sql.DB, secret []byte) {
+func Setup(server *fiber.App, db *gorm.DB, secret []byte) {
 	newUserRouter(server, db, secret)
 }

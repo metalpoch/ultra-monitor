@@ -3,15 +3,15 @@ package entity
 import "time"
 
 type User struct {
-	ID             uint      `sql:"id"`
-	Fullname       string    `sql:"fullname"`
-	Email          string    `sql:"email"`
-	Password       string    `sql:"password"`
-	ChangePassword bool      `sql:"change_password"`
-	IsAdmin        bool      `sql:"is_admin"`
-	IsDisabled     bool      `sql:"is_disabled"`
-	CreatedAt      time.Time `sql:"created_at"`
-	UpdatedAt      time.Time `sql:"updated_at"`
+	ID             uint      `gorm:"id"`
+	Fullname       string    `gorm:"fullname"`
+	Email          string    `gorm:"email"`
+	Password       string    `gorm:"password"`
+	ChangePassword bool      `gorm:"change_password"`
+	IsAdmin        bool      `gorm:"is_admin"`
+	IsDisabled     bool      `gorm:"is_disabled"`
+	CreatedAt      time.Time `gorm:"created_at"`
+	UpdatedAt      time.Time `gorm:"updated_at"`
 }
 
 type UserResponse struct {

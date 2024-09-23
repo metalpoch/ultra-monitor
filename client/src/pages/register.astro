@@ -1,0 +1,177 @@
+---
+import Layout from '../layouts/Outside.astro';
+import { isValidEmail, isValidPassword } from '../utils/validation';
+import { Routes } from '../constant/routes';
+import type { Register } from '../models/register';
+import { RegisterController } from '../controllers/register';
+import NoticeModal from '../components/modals/notice.tsx';
+
+const titleSuccessModal = "Usuario registrado";
+const titleFailedModal = "Error al registrar";
+
+const errors = {p00: "", email: "", password: "", passwordConfirm: "", names: "", lastnames: ""}
+let modalSuccess = { showModal: false, title: "", message: "" };
+let modalError = { showModal: false, title: "", message: "" };
+
+if (Astro.request.method == "POST") {
+	try {
+		const data = await Astro.request.formData();
+		const p00 = data.get("p00") as string;
+		const email = data.get("email") as string;
+		const password = data.get("password") as string;
+		const passwordConfirm = data.get("passwordConfirm") as string;
+		const names = data.get("names") as string;
+		const lastnames = data.get("lastnames") as string;
+		const newP00 = parseInt(p00 as string);
+		
+		if (isNaN(newP00)) errors.p00 += "* P00 inválido";
+		if (!isValidEmail(email)) errors.email += "* Correo inválido";
+		if (!isValidPassword(password)) errors.password += "* Contraseña inválida";
+		else if (!isValidPassword(passwordConfirm)) errors.passwordConfirm += "* Contraseña inválida";
+		else if (password !== passwordConfirm) errors.passwordConfirm += "* Las contraseñas no coinciden";
+        if (typeof names !== "string") errors.names += "* Nombres requeridos";
+        if (typeof lastnames !== "string") errors.lastnames += "* Apellidos requeridos";
+
+		const hasErrors = Object.values(errors).some(msg => msg);
+		if (!hasErrors) {
+			const response = await RegisterController.newUser(newP00 as number, email as string, password as string, passwordConfirm as string, names as string, lastnames as string);
+			if (response.success) {
+				modalSuccess = { showModal: true, title: titleSuccessModal, message: response.message };
+				Astro.redirect(Routes.LOGIN);
+			} else {
+				modalError = { showModal: true, title: titleFailedModal, message: response.message };
+			}
+		}
+	} catch (error) {
+		console.error(error);
+		modalError = { showModal: true, title: "Upss...", message: "Ha ocurrido un error inesperado. Por favor, refresca la página o intenta más tarde." };
+	}
+}
+---
+<Layout title="Registro - OLT">
+	{modalSuccess.showModal && <NoticeModal showModal={true} title={modalSuccess.title} message={modalSuccess.message} client:load />}
+	{modalError.showModal && <NoticeModal showModal={true} title={modalError.title} message={modalError.message} client:load />}
+	<form id="registerForm" method="POST" class="min-w-fit w-2/6 py-6 px-10 flex flex-col items-center justify-center gap-3 bg-gray-50 rounded-xl max-md:w-2/3">
+		<h2 class="mb-2 text-center text-4xl text-blue-600 font-semibold max-md:text-3xl max-sm:text-2xl">Registro</h2>
+		<div class="w-fit">
+			<div class="inputGroup md:w-96 relative max-md:max-w-96">
+				<input name="p00" type="text" required />
+				<label>P00</label>
+			</div>
+			{errors.p00 && <small class="px-2 text-sm text-red-600 font-normal">{errors.p00}</small>}
+		</div>
+		<div class="w-fit">
+			<div class="inputGroup md:w-96 relative max-md:max-w-96">
+				<input name="names" type="text" required />
+				<label>Nombres</label>
+			</div>
+			{errors.names && <small class="px-2 text-sm text-red-600 font-normal">{errors.names}</small>}
+		</div>
+		<div class="w-fit">
+			<div class="inputGroup md:w-96 relative max-md:max-w-96">
+				<input name="lastnames" type="text" required />
+				<label>Apellidos</label>
+			</div>
+			{errors.lastnames && <small class="px-2 text-sm text-red-600 font-normal">{errors.lastnames}</small>}
+		</div>
+		<div class="w-fit">
+			<div class="inputGroup md:w-96 relative max-md:max-w-96">
+				<input name="email" type="text" required />
+				<label>Correo CANTV</label>
+			</div>
+			{errors.email && <small class="px-2 text-sm text-red-600 font-normal">{errors.email}</small>}
+		</div>
+		<div class="w-fit flex flex-col">
+			<div class="inputGroup md:w-96 relative max-md:max-w-96">
+				<input name="password" type="password" required />
+				<label>Contraseña</label>
+			</div>
+			{errors.password && <small class="px-2 text-sm text-red-600 font-normal">{errors.password}</small>}
+			{errors.password && <small class="px-2 text-sm text-red-600 font-normal">* Min. 7 caracteres y 1 simbolo</small>}
+		</div>
+		<div class="w-fit flex flex-col">
+			<div class="inputGroup md:w-96 relative max-md:max-w-96">
+				<input name="passwordConfirm" type="password" required />
+				<label>Confirmar Contraseña</label>
+			</div>
+			{errors.passwordConfirm && <small class="px-2 text-sm text-red-600 font-normal">{errors.passwordConfirm}</small>}
+			{errors.password && <small class="px-2 text-sm text-red-600 font-normal">* Min. 7 caracteres y 1 símbolo</small>}
+		</div>
+		<button class="w-fit px-4 py-1 bg-blue-600 rounded-full text-lg text-gray-50 font-semibold transition-all duration-200 ease-in hover:bg-blue-700 max-sm:text-base max-sm:rounded-lg">Registrar</button>
+		<section class="flex flex-col items-center justify-center">
+			<h5 class="text-center text-sm text-blue-500 font-light">¿Ya tienes una cuenta? 
+				<a class="text-blue-400 font-normal transition-all duration-200 ease-in hover:text-blue-700" href={Routes.LOGIN}>Inicia Sesión</a>
+			</h5>
+		</section>
+	</form>
+</Layout>
+<style>
+	.inputGroup input {
+		font-size: 100%;
+		padding: 0.8em;
+		outline: none;
+		border: 2px solid var(--blue-500);
+		border-radius: 20px;
+		background-color: transparent;
+		color: var(--blue-500);
+		height: fit-content;
+	}
+
+	input {
+		width: 100%;
+	}
+
+	.inputGroup label {
+		font-size: 100%;
+		position: absolute;
+		left: 0;
+		padding: 0.8em;
+		margin-left: 0.5em;
+		pointer-events: none;
+		transition: all 0.3s ease;
+		color: var(--blue-500);
+		height: fit-content;
+	}
+
+	.inputGroup :is(input:focus, input:valid)~label {
+		transform: translateY(-50%) scale(.9);
+		margin: 0em;
+		margin-left: 1.3em;
+		padding: 0 0.2em;
+		background-color: white;
+        border-radius: 0%;
+		height: fit-content;
+	}
+
+	.inputGroup :is(input:focus, input:valid) {
+		border-color: var(--blue-500);
+		height: fit-content;
+	}
+
+	@media not all and (min-width: 640px) {
+		.inputGroup :is(input:focus, input:valid)~label {
+			transform: translateY(-50%) scale(.7);
+			width: fit-content;
+			margin: 0em;
+			padding: 0.2em;
+			background-color: white;
+		}
+	}
+
+	@media not all and (min-width: 260px) {
+		label {
+			width: 100px;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+			overflow: hidden;
+		}
+
+		.inputGroup :is(input:focus, input:valid)~label {
+			transform: translateY(-50%) scale(.7);
+			width: fit-content;
+			margin: 0em;
+			padding: 0.2em;
+			background-color: white;
+		}
+	}
+</style>

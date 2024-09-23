@@ -1,0 +1,111 @@
+---
+import { ViewTransitions } from 'astro:transitions';
+/**FONTS */
+import '@fontsource/kanit/300.css';
+import '@fontsource/kanit/400.css';
+import '@fontsource/kanit/600.css';
+import '@fontsource/kanit/700.css';
+
+
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content="OLT Blueprint" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+        <ViewTransitions />
+	</head>
+	<body class="font-kanit">
+		<div class="w-full h-full relative bg-gradient-to-b from-gray-100 to-gray-50">
+            <main class="w-full h-full py-4 absolute flex flex-col items-center justify-start gap-16 max-md:px-2">
+                <h1 class="text-center text-6xl text-blue-800 font-bold max-md:text-5xl max-sm:text-4xl">OLT Blueprint</h1>
+                <slot />
+            </main>
+			<svg class="-z-10">
+				<defs></defs>
+				<path fill="#035089"></path>
+			</svg>
+		</div>
+	</body>
+	<script>
+		var WIDTH = window.innerWidth;
+		var HEIGHT = window.innerHeight;
+		var WAVEHEIGHT = 60;
+		var FREQUENCY = 200;
+		var SPEED = 2;
+
+		let xs: any = [];
+		let tick = 0;
+
+		function createWave() {
+			for (var i = 0; i <= WIDTH; i++) {
+				xs.push(i);
+			}
+		}
+		createWave();
+
+		function animate() {
+			let points = xs.map((x: any) => {
+				let y = HEIGHT / 2 + WAVEHEIGHT * Math.sin((x + tick) / FREQUENCY);
+				return [x, y];
+			});
+
+			let path =
+				"M" +
+				points
+				.map((p: any) => {
+					return p[0] + "," + p[1];
+				})
+				.join(" L") +
+				"L " +
+				WIDTH +
+				"," +
+				HEIGHT +
+				" L " +
+				0 +
+				"," +
+				HEIGHT +
+				" Z";
+
+			document.querySelector("path")?.setAttribute("d", path);
+			tick += SPEED;
+			requestAnimationFrame(animate);
+		}
+
+		animate();
+
+		window.addEventListener("resize", function() {
+			WIDTH = window.innerWidth;
+			HEIGHT = window.innerHeight;
+			xs = [];
+			createWave();
+		});
+	</script>
+</html>
+<style is:global>
+	html, body {
+		width: 100%;
+		height: 100%;
+		--primary-gray: #EFEFEF;
+		--blue-500: #0796F0;
+	}
+	body {
+		margin: 0;
+		overflow: hidden;
+	}
+	svg {
+		fill: #000;
+		width: 100%;
+		height: 100%;
+	}
+</style>

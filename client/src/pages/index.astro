@@ -1,0 +1,124 @@
+---
+import Layout from '../layouts/Outside.astro';
+import { isValidEmail, isValidPassword } from '../utils/validation';
+import { Routes } from '../constant/routes';
+
+const errors = { email: "", password: ""}
+if (Astro.request.method == "POST") {
+	try {
+		const data = await Astro.request.formData();
+		const email = data.get("email");
+		const password = data.get("password");
+		if (typeof email !== "string") {
+			errors.email += "* Correo requerido"
+		} else if (!isValidEmail(email)) {
+			errors.email += "* Correo inválido"
+		}
+		if (typeof password !== "string") {
+			errors.password += "* Contraseña requerida"
+		} else if (!isValidPassword(password)) {
+			errors.password += "* Contraseña inválida"
+		}
+
+		const hasErrors = Object.values(errors).some(msg => msg);
+		if (!hasErrors) {
+			// TODO: Código de envío de solicitud... 
+		}
+	} catch (error) {
+		console.error(error);
+	}
+}
+---
+<Layout title="Inicio de Sesión - OLT">
+	<form method="POST" class="min-w-fit w-2/6 py-10 px-10 flex flex-col items-center justify-center gap-4 bg-gray-50 rounded-xl max-md:w-2/3">
+		<h2 class="mb-2 text-center text-4xl text-blue-600 font-semibold max-md:text-3xl max-sm:text-2xl">Inicio de Sesión</h2>
+		<div class="w-fit">
+			<div class="inputGroup md:w-96 relative max-md:max-w-96">
+				<input name="email" type="text" required />
+				<label>Correo Electrónico</label>
+			</div>
+			{errors.email && <small class="px-2 text-sm text-red-600 font-normal">{errors.email}</small>}
+		</div>
+		<div class="w-fit">
+			<div class="inputGroup md:w-96 relative max-md:max-w-96">
+				<input name="password" type="password" required />
+				<label>Contraseña</label>
+			</div>
+			{errors.password && <small class="px-2 text-sm text-red-600 font-normal">{errors.password}</small>}
+		</div>
+		<button class="w-fit px-4 py-1 bg-blue-600 rounded-full text-lg text-gray-50 font-semibold transition-all duration-200 ease-in hover:bg-blue-700 max-sm:text-base max-sm:rounded-lg">Iniciar Sesión</button>
+		<section class="flex flex-col items-center justify-center">
+			<a class="text-center text-sm text-blue-400 font-light transition-all duration-200 ease-in hover:text-blue-700" href="#">¿Olvidaste tu contraseña?</a>
+			<h5 class="text-center text-sm text-blue-500 font-light">¿No tienes una cuenta? 
+				<a class="text-blue-400 font-normal transition-all duration-200 ease-in hover:text-blue-700" href={Routes.REGISTER}>Registrate</a>
+			</h5>
+		</section>
+	</form>
+</Layout>
+<style>
+	.inputGroup input {
+		font-size: 100%;
+		padding: 0.8em;
+		outline: none;
+		border: 2px solid var(--blue-500);
+		background-color: transparent;
+		border-radius: 20px;
+		color: var(--blue-500);
+	}
+
+	input {
+		width: 100%;
+	}
+
+	.inputGroup label {
+		font-size: 100%;
+		position: absolute;
+		left: 0;
+		padding: 0.8em;
+		margin-left: 0.5em;
+		pointer-events: none;
+		transition: all 0.3s ease;
+		color: var(--blue-500);
+		border-radius: 40%;
+	}
+
+	.inputGroup :is(input:focus, input:valid)~label {
+		transform: translateY(-50%) scale(.9);
+		margin: 0em;
+		margin-left: 1.3em;
+		padding: 0.2em;
+		background-color: white;
+		border-radius: 40%;
+	}
+
+	.inputGroup :is(input:focus, input:valid) {
+		border-color: var(--blue-500);
+	}
+
+	@media not all and (min-width: 640px) {
+		.inputGroup :is(input:focus, input:valid)~label {
+			transform: translateY(-50%) scale(.7);
+			width: fit-content;
+			margin: 0em;
+			padding: 0.2em;
+			background-color: white;
+		}
+	}
+
+	@media not all and (min-width: 260px) {
+		label {
+			width: 100px;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+			overflow: hidden;
+		}
+
+		.inputGroup :is(input:focus, input:valid)~label {
+			transform: translateY(-50%) scale(.7);
+			width: fit-content;
+			margin: 0em;
+			padding: 0.2em;
+			background-color: white;
+		}
+	}
+</style>

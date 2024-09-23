@@ -5,6 +5,7 @@ export function isValidEmail(email: string) {
 }
 
 export function isValidPassword(password:string) {
+    const regex = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
     password = password.trim();
-    return password.length >= 6;
+    return password.length >= 7 && regex.test(password);
 }

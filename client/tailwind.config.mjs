@@ -43,7 +43,9 @@ export default {
 				'800': '#A0141D',
 				'900': '#84181F',
 				'950': '#48070B',
-			}
+			},
+			black: "#000000",
+			white: "#FFFFFF",
 		},
 		fontFamily: {
 			kanit: ['Kanit', 'sans-serif']

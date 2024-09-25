@@ -1,6 +1,6 @@
 package constants
 
 const (
-	DB = "olt"
-	SC = "host=localhost user=postgres password=example sslmode=disable port=5432"
+	DATABASE    string = "olt"
+	FORMAT_DATE string = "2006-01-02 15:04:05"
 )

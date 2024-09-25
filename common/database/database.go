@@ -1,45 +1,33 @@
 package database
 
 import (
-	"database/sql"
 	"log"
 
-	_ "github.com/lib/pq"
+	authEntity "github.com/metalpoch/olt-blueprint/auth/entity"
+	updateEntity "github.com/metalpoch/olt-blueprint/update/entity"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-func createTableIfNotExist(db *sql.DB) {
-	usersTable := `
-    CREATE TABLE IF NOT EXISTS users (
-        id 					serial NOT NULL,
-        fullname 			text NOT NULL,
-        email 				text NOT NULL UNIQUE,
-        password			text NOT NULL,
-		change_password 	boolean DEFAULT true,
-		is_admin			boolean DEFAULT false,
-		is_disabled			boolean DEFAULT false,
-        created_at			timestamp DEFAULT now(),
-        updated_at			timestamp DEFAULT now(),
-        CONSTRAINT pk_users PRIMARY KEY(id)
-    );`
-
-	_, err := db.Exec(usersTable)
-	if err != nil {
-		log.Fatalf("error creating users table: %v\n", err)
-	}
-
-}
-
-func Connect(uri string) *sql.DB {
+func Connect(uri string) *gorm.DB {
 	if uri == "" {
-		log.Fatal("Set your 'db_uri' on config.json")
+		log.Fatalln("Set your 'db_uri' on config.json")
 	}
-
-	db, err := sql.Open("postgres", uri)
+	db, err := gorm.Open(postgres.Open(uri), &gorm.Config{})
 	if err != nil {
-		panic(err)
-	}
+		log.Fatalln(err)
 
-	createTableIfNotExist(db)
+	}
+	if err := db.AutoMigrate(
+		authEntity.User{},
+		updateEntity.Template{},
+		updateEntity.Device{},
+		updateEntity.Interface{},
+		updateEntity.Traffic{},
+		updateEntity.Measurement{},
+	); err != nil {
+		log.Fatalln(err)
+	}
 
 	return db
 }

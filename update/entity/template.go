@@ -3,8 +3,8 @@ package entity
 import "time"
 
 type Template struct {
-	ID        uint
-	Name      string
+	ID        uint   `gorm:"primaryKey"`
+	Name      string `gorm:"uniqueIndex"`
 	OidBw     string
 	OidIn     string
 	OidOut    string

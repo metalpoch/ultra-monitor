@@ -1,30 +1,31 @@
 package controller
 
 import (
-	"database/sql"
 	"os"
 
 	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/metalpoch/olt-blueprint/common/constants"
 	"github.com/metalpoch/olt-blueprint/update/model"
 	"github.com/metalpoch/olt-blueprint/update/usecase"
+	"gorm.io/gorm"
 )
 
-type deviceHandler struct {
+type deviceController struct {
 	Usecase usecase.DeviceUsecase
 }
 
-func newDeviceHandler(db *sql.DB) *deviceHandler {
-	return &deviceHandler{Usecase: *usecase.NewDeviceUsecase(db)}
+func newDeviceController(db *gorm.DB) *deviceController {
+	return &deviceController{Usecase: *usecase.NewDeviceUsecase(db)}
 }
 
-func AddDevice(db *sql.DB, device *model.AddDevice) error {
-	return newDeviceHandler(db).Usecase.Add(device)
+func AddDevice(db *gorm.DB, device *model.AddDevice) error {
+	return newDeviceController(db).Usecase.Add(device)
 }
 
-func ShowAllDevices(db *sql.DB, csv bool) error {
-	devices, err := newDeviceHandler(db).Usecase.GetAll()
+func ShowAllDevices(db *gorm.DB, csv bool) ([]model.Device, error) {
+	devices, err := newDeviceController(db).Usecase.GetAll()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	t := table.NewWriter()
@@ -33,7 +34,8 @@ func ShowAllDevices(db *sql.DB, csv bool) error {
 		"ID",
 		"IP",
 		"Community",
-		"Sysname",
+		"SysName",
+		"SysLocation",
 		"Template ID",
 		"Is Alive",
 		"Last Check",
@@ -46,12 +48,13 @@ func ShowAllDevices(db *sql.DB, csv bool) error {
 			device.ID,
 			device.IP,
 			device.Community,
-			device.Sysname,
+			device.SysName,
+			device.SysLocation,
 			device.TemplateID,
 			device.IsAlive,
-			device.LastCheck.Local().Format("2006-01-02 15:04:05"),
-			device.CreatedAt.Local().Format("2006-01-02 15:04:05"),
-			device.UpdatedAt.Local().Format("2006-01-02 15:04:05"),
+			device.LastCheck.Local().Format(constants.FORMAT_DATE),
+			device.CreatedAt.Local().Format(constants.FORMAT_DATE),
+			device.UpdatedAt.Local().Format(constants.FORMAT_DATE),
 		})
 		t.AppendSeparator()
 	}
@@ -61,5 +64,9 @@ func ShowAllDevices(db *sql.DB, csv bool) error {
 		t.Render()
 	}
 
-	return nil
+	return nil, nil
+}
+
+func GetDeviceWithOIDRows(db *gorm.DB) ([]*model.DeviceWithOID, error) {
+	return newDeviceController(db).Usecase.GetDeviceWithOIDRows()
 }

@@ -1,3 +1,8 @@
 package model
 
-type Snmp map[uint]interface{}
+type SnmpInfo struct {
+	SysName     string
+	SysLocation string
+}
+
+type Snmp map[int]interface{}

@@ -1,14 +1,18 @@
-package entity
+package model
 
-import "time"
+import (
+	"time"
+
+	"github.com/metalpoch/olt-blueprint/update/entity"
+)
 
 type Interface struct {
-	ID        uint `gorm:"primaryKey"`
+	ID        uint
 	IfIndex   uint
 	IfName    string
 	IfDescr   string
 	IfAlias   string
-	Device    Device `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Device    entity.Device
 	DeviceID  uint
 	CreatedAt time.Time
 	UpdatedAt time.Time

@@ -12,5 +12,18 @@ type TemplateUsecase interface {
 
 type DeviceUsecase interface {
 	Add(device *model.AddDevice) error
-	GetAll() ([]model.Device, error)
+	Check(device *model.CheckDevice) error
+	GetAll() ([]*model.Device, error)
+	GetDeviceWithOIDRows() ([]*model.DeviceWithOID, error)
+}
+
+type InterfaceUsecase interface {
+	Upsert(element *model.Interface) error
+	GetAll() ([]*model.Interface, error)
+	GetAllByDevice(id uint) ([]*model.Interface, error)
+}
+
+type MeasurementUsecase interface {
+	Get(id uint) error
+	Upsert(measurement *model.Measurement) error
 }

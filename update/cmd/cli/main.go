@@ -1,22 +1,36 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
+	"time"
 
-	"github.com/metalpoch/olt-blueprint/update/constants"
+	"github.com/metalpoch/olt-blueprint/common/database"
+	commonModel "github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/update/controller"
-	"github.com/metalpoch/olt-blueprint/update/database"
 	"github.com/metalpoch/olt-blueprint/update/model"
-	"github.com/metalpoch/olt-blueprint/update/utils"
 	"github.com/urfave/cli/v2"
 )
 
+var cfg commonModel.Config
+
+func init() {
+	fileJSON := os.Getenv("CONFIG_JSON")
+	if fileJSON == "" {
+		log.Panicln("CONFIG_JSON env is required")
+	}
+
+	f, err := os.ReadFile(fileJSON)
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	json.Unmarshal([]byte(f), &cfg)
+}
+
 func main() {
-
-	utils.Mkdir("./data/")
-
 	app := &cli.App{
 		Commands: []*cli.Command{
 			{
@@ -36,13 +50,8 @@ func main() {
 							&cli.StringFlag{Name: "prefix-out", Usage: "traffic out SI prefix", Value: "octe"},
 						},
 						Action: func(cCtx *cli.Context) error {
-							db, err := database.Duckdb(constants.DATABASE_DEVICE)
-							if err != nil {
-								log.Fatalln(err)
-							}
-							defer db.Close()
-
-							err = controller.AddTemplate(db, &model.AddTemplate{
+							db := database.Connect(cfg.DatabaseURI)
+							err := controller.AddTemplate(db, &model.AddTemplate{
 								Name:      cCtx.String("name"),
 								OidBw:     cCtx.String("oid-bw"),
 								OidIn:     cCtx.String("oid-in"),
@@ -52,9 +61,10 @@ func main() {
 								PrefixOut: cCtx.String("prefix-out"),
 							})
 							if err != nil {
-								log.Fatalln(err)
+								log.Fatal(err)
 							}
 							fmt.Println("saved.")
+
 							return nil
 						},
 					},
@@ -65,14 +75,9 @@ func main() {
 							&cli.BoolFlag{Name: "csv", Usage: "show as csv"},
 						},
 						Action: func(cCtx *cli.Context) error {
-							db, err := database.Duckdb(constants.DATABASE_DEVICE)
-							if err != nil {
-								log.Fatalln(err)
-							}
-							defer db.Close()
-
+							db := database.Connect(cfg.DatabaseURI)
 							if err := controller.ShowAllTemplates(db, cCtx.Bool("csv")); err != nil {
-								log.Fatalln(err)
+								log.Fatal(err)
 							}
 
 							return nil
@@ -88,23 +93,18 @@ func main() {
 						Name:  "add",
 						Usage: "add a new device",
 						Flags: []cli.Flag{
-							&cli.UintFlag{Name: "template", Usage: "template id", Required: true},
+							&cli.IntFlag{Name: "template", Usage: "template id", Required: true},
 							&cli.StringFlag{Name: "ip", Usage: "device IP", Required: true},
 							&cli.StringFlag{Name: "community", Usage: "device community", Required: true},
 						},
 						Action: func(cCtx *cli.Context) error {
-							db, err := database.Duckdb(constants.DATABASE_DEVICE)
-							if err != nil {
-								log.Fatalln(err)
-							}
-							defer db.Close()
-
+							db := database.Connect(cfg.DatabaseURI)
 							if err := controller.AddDevice(db, &model.AddDevice{
-								IP:         cCtx.String("ip"),
-								Community:  cCtx.String("community"),
-								TemplateID: cCtx.Uint("template"),
+								IP:        cCtx.String("ip"),
+								Community: cCtx.String("community"),
+								Template:  cCtx.Uint("template"),
 							}); err != nil {
-								log.Fatalln(err)
+								log.Fatal(err)
 							} else {
 								fmt.Println("saved.")
 							}
@@ -118,14 +118,25 @@ func main() {
 							&cli.BoolFlag{Name: "csv", Usage: "show as csv"},
 						},
 						Action: func(cCtx *cli.Context) error {
-							db, err := database.Duckdb(constants.DATABASE_DEVICE)
-							if err != nil {
-								log.Fatalln(err)
+							db := database.Connect(cfg.DatabaseURI)
+							if _, err := controller.ShowAllDevices(db, cCtx.Bool("csv")); err != nil {
+								log.Fatal(err)
 							}
-							defer db.Close()
 
-							if err := controller.ShowAllDevices(db, cCtx.Bool("csv")); err != nil {
-								log.Fatalln(err)
+							return nil
+						},
+					},
+					{
+						Name:  "show-interfaces",
+						Usage: "show interface existing in devices",
+						Flags: []cli.Flag{
+							&cli.UintFlag{Name: "device", Usage: "device id", Required: true},
+							&cli.BoolFlag{Name: "csv", Usage: "show as csv"},
+						},
+						Action: func(cCtx *cli.Context) error {
+							db := database.Connect(cfg.DatabaseURI)
+							if err := controller.ShowAllInterfaces(db, cCtx.Uint("device"), cCtx.Bool("csv")); err != nil {
+								log.Fatal(err)
 							}
 
 							return nil
@@ -134,12 +145,21 @@ func main() {
 				},
 			},
 			{
-				Name:    "complete",
-				Aliases: []string{"c"},
-				Usage:   "complete a task on the list",
+				Name:  "traffic",
+				Usage: "get the traffic from the devices and store into the database",
 				Action: func(cCtx *cli.Context) error {
-					fmt.Println("completed task: ", cCtx.Args().First())
-					return nil
+					for {
+						db := database.Connect(cfg.DatabaseURI)
+						devices, err := controller.GetDeviceWithOIDRows(db)
+						if err != nil {
+							log.Fatalln(err)
+						}
+
+						go controller.Scan(db, devices)
+
+						time.Sleep(20 * time.Second)
+						// time.Sleep(5 * time.Minute)
+					}
 				},
 			},
 		},

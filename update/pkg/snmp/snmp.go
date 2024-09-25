@@ -2,44 +2,66 @@ package snmp
 
 import (
 	"errors"
+	"log"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gosnmp/gosnmp"
 	"github.com/metalpoch/olt-blueprint/update/constants"
 	"github.com/metalpoch/olt-blueprint/update/model"
 )
 
-func GetSysname(ip, community string) (string, error) {
-	gosnmp.Default.Target = ip
-	gosnmp.Default.Community = community
-
-	err := gosnmp.Default.Connect()
-	if err != nil {
-		return "", err
+func GetInfo(ip, community string) (model.SnmpInfo, error) {
+	query := gosnmp.GoSNMP{
+		Target:             ip,
+		Community:          community,
+		Port:               161,
+		Transport:          "udp",
+		Version:            gosnmp.Version2c,
+		Timeout:            time.Duration(2) * time.Second,
+		Retries:            0,
+		ExponentialTimeout: true,
+		MaxOids:            gosnmp.MaxOids,
 	}
-	defer gosnmp.Default.Conn.Close()
-
-	result, err := gosnmp.Default.Get([]string{constants.SYSNAME_OID})
+	err := query.Connect()
 	if err != nil {
-		return "", err
+		log.Fatalf("Connect() err: %v", err)
+	}
+	defer query.Conn.Close()
+
+	result, err := query.Get([]string{constants.SYSNAME_OID, constants.SYSLOCATION_OID})
+	if err != nil {
+		return model.SnmpInfo{}, err
 	}
 
-	return string(result.Variables[0].Value.([]byte)), nil
+	info := model.SnmpInfo{
+		SysName:     string(result.Variables[0].Value.([]byte)),
+		SysLocation: string(result.Variables[1].Value.([]byte)),
+	}
+
+	return info, nil
 }
-
 func Walk(ip, community, oid string) (model.Snmp, error) {
-	response := model.Snmp{}
-	gosnmp.Default.Target = ip
-	gosnmp.Default.Community = community
-
-	err := gosnmp.Default.Connect()
-	if err != nil {
-		return nil, err
+	result := model.Snmp{}
+	query := gosnmp.GoSNMP{
+		Target:             ip,
+		Community:          community,
+		Port:               161,
+		Transport:          "udp",
+		Version:            gosnmp.Version2c,
+		Timeout:            time.Duration(2) * time.Second,
+		Retries:            0,
+		ExponentialTimeout: true,
+		MaxOids:            gosnmp.MaxOids,
 	}
-	defer gosnmp.Default.Conn.Close()
+	err := query.Connect()
+	if err != nil {
+		log.Fatalf("Connect() err: %v", err)
+	}
+	defer query.Conn.Close()
 
-	if err = gosnmp.Default.BulkWalk(oid, func(pdu gosnmp.SnmpPDU) error {
+	if err = query.BulkWalk(oid, func(pdu gosnmp.SnmpPDU) error {
 		parts := strings.Split(pdu.Name, ".")
 		strID := parts[len(parts)-1]
 
@@ -51,15 +73,19 @@ func Walk(ip, community, oid string) (model.Snmp, error) {
 		switch pdu.Type {
 
 		case gosnmp.OctetString:
-			response[uint(id)] = string(pdu.Value.([]byte))
+			result[id] = string(pdu.Value.([]byte))
+
 		case gosnmp.Counter32:
-			response[uint(id)] = pdu.Value.(uint)
+			result[id] = int(pdu.Value.(uint))
+
 		case gosnmp.Counter64:
-			response[uint(id)] = pdu.Value.(uint)
+			result[id] = int(pdu.Value.(uint))
+
 		case gosnmp.Gauge32:
-			response[uint(id)] = pdu.Value.(uint)
+			result[id] = int(pdu.Value.(uint))
+
 		case gosnmp.Uinteger32:
-			response[uint(id)] = pdu.Value.(uint)
+			result[id] = int(pdu.Value.(uint))
 		default:
 			return errors.New("invalid snmp response type")
 		}
@@ -69,5 +95,5 @@ func Walk(ip, community, oid string) (model.Snmp, error) {
 		return nil, err
 	}
 
-	return response, err
+	return result, err
 }

@@ -1,21 +1,53 @@
 package model
 
-import "time"
+import (
+	"time"
+
+	"github.com/metalpoch/olt-blueprint/update/entity"
+)
 
 type Device struct {
-	ID         uint
-	IP         string
-	Sysname    string
-	Community  string
-	TemplateID uint
-	IsAlive    bool
-	LastCheck  time.Time
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	ID          uint
+	IP          string
+	Community   string
+	SysName     string
+	SysLocation string
+	IsAlive     bool
+	Template    entity.Template
+	TemplateID  uint
+	LastCheck   time.Time
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type AddDevice struct {
-	IP         string
-	Community  string
-	TemplateID uint
+	IP        string
+	Community string
+	Template  uint
+}
+
+type CheckDevice struct {
+	ID          uint
+	SysName     string
+	SysLocation string
+	IsAlive     bool
+	LastCheck   time.Time
+	UpdatedAt   time.Time
+}
+
+type DeviceWithOID struct {
+	ID          uint
+	IP          string
+	SysName     string
+	SysLocation string
+	Community   string
+	IsAlive     bool
+	Template    entity.Template
+	TemplateID  uint
+	OidBw       string
+	OidIn       string
+	OidOut      string
+	LastCheck   time.Time
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }

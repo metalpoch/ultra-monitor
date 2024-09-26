@@ -62,14 +62,18 @@ export default function Navbar({ user }: Props) {
                     <img className="w-8 h-8 rounded-full" src="/assets/profile.svg" alt="user photo" />
                 </button>
                 <div id="dropdownAvatar" className="z-10 hidden absolute top-14 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600">
-                    <div className="px-4 py-3 text-sm text-gray-900 dark:text-white">
-                        <div>{user.fullname}</div>
-                        <div className="font-medium truncate">{user.email}</div>
-                    </div>
+                    {user &&
+                        <div className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                            <div>{user.fullname}</div>
+                            <div className="font-medium truncate">{user.email}</div>
+                        </div>
+                    }
                     <ul className="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownUserAvatarButton">
-                        <li>
-                            <a href={Routes.PROFILE} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Perfil</a>
-                        </li>
+                        {user &&
+                            <li>
+                                <a href={Routes.PROFILE} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Perfil</a>
+                            </li>
+                        }
                     </ul>
                     <div className="py-2">
                         <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Cerrar Sesión</a>

@@ -24,8 +24,9 @@ if (Astro.request.method == "POST") {
 		const hasErrors = Object.values(errors).some(msg => msg);
 		if (!hasErrors) {
 			const response = await AuthController.login(email, password);
+			const token = response.data as string;
 			if (response.success) {
-				Astro.cookies.set('token', response.data.token, { path: '/', httpOnly: true, sameSite: 'strict' });
+				Astro.cookies.set('token', token, { path: '/', httpOnly: true, sameSite: 'strict' });
 				return Astro.redirect(Routes.HOME);
 			} else {
 				errors.password = response.message;

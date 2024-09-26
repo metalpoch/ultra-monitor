@@ -2,5 +2,6 @@ export const Routes = {
     LOGIN: "/",
     REGISTER: "/register",
     HOME: "/dashboard",
-    PROFILE: "/profile"
+    PROFILE: "/profile",
+    LOGOUT: "/logout"
 }

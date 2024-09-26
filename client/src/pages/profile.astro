@@ -7,11 +7,11 @@ import { $user } from '../controllers/auth';
 const token = Astro.cookies.get('token');
 if (!token) return Astro.redirect(Routes.LOGIN);
 ---
-<Layout title="Dashboard - OLT">
+<Layout title="Perfil - OLT">
     <Navbar user={$user.get()!} client:load/>
 	<main class="w-full h-full absolute flex justify-center">
 		<div class="w-1/2 h-1/2 py-6 flex flex-col items-center">
-			<h1 class="text-black">Contenido de Dashboard</h1>
+			<h1 class="text-black">Contenido de Perfil</h1>
 		</div>
 	</main>
 </Layout>

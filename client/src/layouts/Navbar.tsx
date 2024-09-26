@@ -24,13 +24,9 @@ export default function Navbar({ user }: Props) {
             menuList.classList.remove('max-md:visible');
         }
 
-        if (showProfile &&dropdownButton && dropdown) {
-            dropdown.classList.remove('hidden');
-            dropdown.classList.add('visible');
-        } else if (dropdownButton && dropdown) {
-            dropdown.classList.add('hidden');
-            dropdown.classList.remove('visible');
-        }
+        if (showProfile &&dropdownButton && dropdown) dropdown.classList.toggle('hidden');
+        else if (dropdownButton && dropdown) dropdown.classList.toggle('hidden');
+
     }, [showMenu, showProfile]);
 
     return(
@@ -58,7 +54,8 @@ export default function Navbar({ user }: Props) {
             </ul>
             <div className="flex flex-col justify-center items-end gap-1 h-10 w-30 px-2">
                 <button id="dropdownUserAvatarButton" data-dropdown-toggle="dropdownAvatar" className="w-8 h-8 flex text-sm rounded-full md:me-0 
-                focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600" type="button" onClick={() => setShowProfile(!showProfile)} onBlur={() => setShowProfile(false)}>
+                    focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600" type="button" 
+                    onClick={() => setShowProfile(!showProfile)}>
                     <img className="w-8 h-8 rounded-full" src="/assets/profile.svg" alt="user photo" />
                 </button>
                 <div id="dropdownAvatar" className="z-10 hidden absolute top-14 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600">

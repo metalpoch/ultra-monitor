@@ -4,13 +4,25 @@ const (
 	DATABASE                     string = "olt"
 	FORMAT_DATE                  string = "2006-01-02 15:04:05"
 	TELEGRAM_API_URL             string = "https://api.telegram.org/bot%s/sendMessage"
-	TELEGRAM_MARKDOWN_V2_MESSAGE string = `*Tracker Error*
+	TELEGRAM_MARKDOWN_V2_MESSAGE string = `<b>Tracker Error</b>
 	
-    *🧩 Module:* %s
+    <b>🧩 Module:</b> %s
 	
-    *🗃️ Category:* %s
+    <b>🗃️ Category:</b> %s
 
-    *⚠️ Event:* %s
+    <b>⚠️ Event:</b> %s
 
-    *💬 Message:* %v`
+    <b>💬 Message:</b> %v`
+)
+
+const (
+	MODULE_UPDATE      string = "Update"
+	MODULE_AUTH        string = "Auth"
+	MODULE_REPORT      string = "Report"
+	MODULE_MEASUREMENT string = "Measurement"
+)
+
+const (
+	CATEGORY_SNMP     string = "SNMP"
+	CATEGORY_DATABASE string = "Database"
 )

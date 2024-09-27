@@ -22,7 +22,7 @@ func (t *Telegram) Notification(module, category, event string, err error) {
 	text := fmt.Sprintf(constants.TELEGRAM_MARKDOWN_V2_MESSAGE, module, category, event, err)
 	jsonValue, _ := json.Marshal(model.Telegram{
 		ChatID:                t.ChatID,
-		ParseMode:             "MarkdownV2",
+		ParseMode:             "HTML",
 		Text:                  text,
 		DisableWebPagePreview: true,
 	})

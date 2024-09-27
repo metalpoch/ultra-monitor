@@ -150,6 +150,10 @@ func main() {
 				Action: func(cCtx *cli.Context) error {
 					for {
 						db := database.Connect(cfg.DatabaseURI)
+						sqlDB, err := db.DB()
+						if err != nil {
+							log.Fatal(err)
+						}
 						devices, err := controller.GetDeviceWithOIDRows(db)
 						if err != nil {
 							log.Fatalln(err)
@@ -157,8 +161,8 @@ func main() {
 
 						go controller.Scan(db, devices)
 
-						time.Sleep(20 * time.Second)
-						// time.Sleep(5 * time.Minute)
+						time.Sleep(5 * time.Minute)
+						sqlDB.Close()
 					}
 				},
 			},

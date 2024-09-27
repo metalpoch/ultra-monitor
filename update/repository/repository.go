@@ -14,7 +14,7 @@ type TemplateRepository interface {
 
 type DeviceRepository interface {
 	Add(ctx context.Context, device *entity.Device) error
-	Check(ctx context.Context, device *entity.CheckDevice) error
+	Check(ctx context.Context, device *entity.Device) error
 	GetAll(ctx context.Context) ([]*entity.Device, error)
 	GetDeviceWithOIDRows(ctx context.Context) ([]*entity.DeviceWithOID, error)
 }
@@ -29,4 +29,8 @@ type InterfaceRepository interface {
 type MeasurementRepository interface {
 	Get(ctx context.Context, id uint, measurement *entity.Measurement) error
 	Upsert(ctx context.Context, measurement *entity.Measurement) error
+}
+
+type TrafficRepository interface {
+	Add(ctx context.Context, traffic *entity.Traffic) error
 }

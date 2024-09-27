@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"github.com/metalpoch/olt-blueprint/update/constants"
 	"github.com/metalpoch/olt-blueprint/update/entity"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -17,9 +18,20 @@ func NewInterfaceRepository(db *gorm.DB) *interfaceRepository {
 }
 
 func (repo interfaceRepository) Upsert(ctx context.Context, element *entity.Interface) error {
-	// update the elements:	element.IfName,	element.IfDescr, element.IfAlias, element.UpdatedAt
+	columns := []clause.Column{
+		{Name: constants.INTERFACE_COLUMN_IF_INDEX},
+		{Name: constants.INTERFACE_COLUMN_DEVICE_ID},
+	}
+	doUpdates := []string{
+		constants.INTERFACE_COLUMN_IF_NAME,
+		constants.INTERFACE_COLUMN_IF_DESCR,
+		constants.INTERFACE_COLUMN_IF_ALIAS,
+		constants.GLOBAL_COLUMN_UPDATED_AT,
+	}
+
 	return repo.db.WithContext(ctx).Clauses(clause.OnConflict{
-		UpdateAll: true,
+		Columns:   columns,
+		DoUpdates: clause.AssignmentColumns(doUpdates),
 	}).Create(element).Error
 }
 

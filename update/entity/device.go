@@ -16,15 +16,6 @@ type Device struct {
 	UpdatedAt   time.Time
 }
 
-type CheckDevice struct {
-	ID          uint
-	SysName     string
-	SysLocation string
-	IsAlive     bool
-	LastCheck   time.Time
-	UpdatedAt   time.Time
-}
-
 type DeviceWithOID struct {
 	ID          uint
 	IP          string

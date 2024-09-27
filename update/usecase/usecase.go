@@ -12,7 +12,7 @@ type TemplateUsecase interface {
 
 type DeviceUsecase interface {
 	Add(device *model.AddDevice) error
-	Check(device *model.CheckDevice) error
+	Check(device *model.Device) error
 	GetAll() ([]*model.Device, error)
 	GetDeviceWithOIDRows() ([]*model.DeviceWithOID, error)
 }
@@ -24,6 +24,10 @@ type InterfaceUsecase interface {
 }
 
 type MeasurementUsecase interface {
-	Get(id uint) error
+	Get(id uint) (*model.Measurement, error)
 	Upsert(measurement *model.Measurement) error
+}
+
+type TrafficUsecase interface {
+	Add(measurement *model.Traffic) error
 }

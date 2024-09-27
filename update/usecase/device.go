@@ -48,10 +48,10 @@ func (use deviceUsecase) Add(device *model.AddDevice) error {
 	return nil
 }
 
-func (use deviceUsecase) Check(device *model.CheckDevice) error {
+func (use deviceUsecase) Check(device *model.Device) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	return use.repo.Check(ctx, (*entity.CheckDevice)(device))
+	return use.repo.Check(ctx, (*entity.Device)(device))
 }
 
 func (use deviceUsecase) GetAll() ([]*model.Device, error) {
@@ -63,7 +63,6 @@ func (use deviceUsecase) GetAll() ([]*model.Device, error) {
 
 	// Gestionar errores (con Axios por ejemplo)
 	// ...
-
 	for _, e := range res {
 		devices = append(devices, (*model.Device)(e))
 	}

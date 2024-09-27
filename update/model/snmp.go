@@ -6,3 +6,5 @@ type SnmpInfo struct {
 }
 
 type Snmp map[int]interface{}
+
+type MapSnmp map[string]Snmp

@@ -16,9 +16,5 @@ func NewTrafficRepository(db *gorm.DB) *trafficRepository {
 }
 
 func (repo trafficRepository) Add(ctx context.Context, traffic *entity.Traffic) error {
-	return repo.db.WithContext(ctx).Save(traffic).Error
-}
-
-func (repo trafficRepository) Get(ctx context.Context, id uint, traffic *entity.Traffic) error {
-	return repo.db.WithContext(ctx).Where("interface_id = ?", id).First(traffic).Error
+	return repo.db.WithContext(ctx).Create(traffic).Error
 }

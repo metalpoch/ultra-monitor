@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/metalpoch/olt-blueprint/update/entity"
@@ -19,21 +18,16 @@ func NewMeasurementUsecase(db *gorm.DB) *measurementUsecase {
 	return &measurementUsecase{repository.NewMeasurementRepository(db)}
 }
 
-func (use measurementUsecase) Get(id uint) error {
+func (use measurementUsecase) Get(id uint) (*model.Measurement, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	measurement := new(entity.Measurement)
-	fmt.Println(measurement)
-	// return use.repo.Get(ctx, id, measurement)
-
-	err := use.repo.Get(ctx, id, measurement)
-	if err != nil {
-		return err
+	if err := use.repo.Get(ctx, id, measurement); err != nil {
+		return &model.Measurement{}, err
 	}
 
-	fmt.Println(measurement)
-	return nil
+	return (*model.Measurement)(measurement), nil
 }
 
 func (use measurementUsecase) Upsert(measurement *model.Measurement) error {

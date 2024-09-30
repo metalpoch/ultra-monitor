@@ -38,7 +38,7 @@ def Ejecute_SQL(sql_entrada:str):
 
     column_names= result.keys()
 
-    print("\nDatos:")
+    data_dict={}
     for row in result:
         data_dict = dict(zip(column_names, row))
-        print(data_dict)
+    return data_dict

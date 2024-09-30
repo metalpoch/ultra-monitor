@@ -5,6 +5,7 @@ import (
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/metalpoch/olt-blueprint/common/constants"
+	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
 	"github.com/metalpoch/olt-blueprint/update/model"
 	"github.com/metalpoch/olt-blueprint/update/usecase"
 	"gorm.io/gorm"
@@ -14,16 +15,16 @@ type deviceController struct {
 	Usecase usecase.DeviceUsecase
 }
 
-func newDeviceController(db *gorm.DB) *deviceController {
-	return &deviceController{Usecase: *usecase.NewDeviceUsecase(db)}
+func newDeviceController(db *gorm.DB, telegram tracking.Telegram) *deviceController {
+	return &deviceController{Usecase: *usecase.NewDeviceUsecase(db, telegram)}
 }
 
-func AddDevice(db *gorm.DB, device *model.AddDevice) error {
-	return newDeviceController(db).Usecase.Add(device)
+func AddDevice(db *gorm.DB, telegram tracking.Telegram, device *model.AddDevice) error {
+	return newDeviceController(db, telegram).Usecase.Add(device)
 }
 
-func ShowAllDevices(db *gorm.DB, csv bool) ([]model.Device, error) {
-	devices, err := newDeviceController(db).Usecase.GetAll()
+func ShowAllDevices(db *gorm.DB, telegram tracking.Telegram, csv bool) ([]model.Device, error) {
+	devices, err := newDeviceController(db, telegram).Usecase.GetAll()
 	if err != nil {
 		return nil, err
 	}
@@ -67,6 +68,6 @@ func ShowAllDevices(db *gorm.DB, csv bool) ([]model.Device, error) {
 	return nil, nil
 }
 
-func GetDeviceWithOIDRows(db *gorm.DB) ([]*model.DeviceWithOID, error) {
-	return newDeviceController(db).Usecase.GetDeviceWithOIDRows()
+func GetDeviceWithOIDRows(db *gorm.DB, telegram tracking.Telegram) ([]*model.DeviceWithOID, error) {
+	return newDeviceController(db, telegram).Usecase.GetDeviceWithOIDRows()
 }

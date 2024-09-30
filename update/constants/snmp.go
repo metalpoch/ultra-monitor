@@ -8,6 +8,7 @@ const (
 	IF_NAME_OID        string = "1.3.6.1.2.1.31.1.1.1.1"
 	IF_HIGH_SPEED_OID  string = "1.3.6.1.2.1.31.1.1.1.15" // bandwidth as Mbps
 	SYSNAME            string = "sysname"
+	IF_ALIAS           string = "ifalias"
 	IF_NAME            string = "ifname"
 	IF_DESCR           string = "ifdescr"
 	BANDWIDTH          string = "bw"

@@ -9,6 +9,7 @@ import (
 
 	"github.com/metalpoch/olt-blueprint/common/database"
 	commonModel "github.com/metalpoch/olt-blueprint/common/model"
+	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
 	"github.com/metalpoch/olt-blueprint/update/controller"
 	"github.com/metalpoch/olt-blueprint/update/model"
 	"github.com/urfave/cli/v2"
@@ -31,6 +32,11 @@ func init() {
 }
 
 func main() {
+	telegram := tracking.Telegram{
+		BotID:  cfg.TelegramBotTokenID,
+		ChatID: cfg.TelegramChatID,
+	}
+
 	app := &cli.App{
 		Commands: []*cli.Command{
 			{
@@ -51,7 +57,7 @@ func main() {
 						},
 						Action: func(cCtx *cli.Context) error {
 							db := database.Connect(cfg.DatabaseURI)
-							err := controller.AddTemplate(db, &model.AddTemplate{
+							err := controller.AddTemplate(db, telegram, &model.AddTemplate{
 								Name:      cCtx.String("name"),
 								OidBw:     cCtx.String("oid-bw"),
 								OidIn:     cCtx.String("oid-in"),
@@ -76,10 +82,9 @@ func main() {
 						},
 						Action: func(cCtx *cli.Context) error {
 							db := database.Connect(cfg.DatabaseURI)
-							if err := controller.ShowAllTemplates(db, cCtx.Bool("csv")); err != nil {
+							if err := controller.ShowAllTemplates(db, telegram, cCtx.Bool("csv")); err != nil {
 								log.Fatal(err)
 							}
-
 							return nil
 						},
 					},
@@ -99,7 +104,7 @@ func main() {
 						},
 						Action: func(cCtx *cli.Context) error {
 							db := database.Connect(cfg.DatabaseURI)
-							if err := controller.AddDevice(db, &model.AddDevice{
+							if err := controller.AddDevice(db, telegram, &model.AddDevice{
 								IP:        cCtx.String("ip"),
 								Community: cCtx.String("community"),
 								Template:  cCtx.Uint("template"),
@@ -119,7 +124,7 @@ func main() {
 						},
 						Action: func(cCtx *cli.Context) error {
 							db := database.Connect(cfg.DatabaseURI)
-							if _, err := controller.ShowAllDevices(db, cCtx.Bool("csv")); err != nil {
+							if _, err := controller.ShowAllDevices(db, telegram, cCtx.Bool("csv")); err != nil {
 								log.Fatal(err)
 							}
 
@@ -135,7 +140,7 @@ func main() {
 						},
 						Action: func(cCtx *cli.Context) error {
 							db := database.Connect(cfg.DatabaseURI)
-							if err := controller.ShowAllInterfaces(db, cCtx.Uint("device"), cCtx.Bool("csv")); err != nil {
+							if err := controller.ShowAllInterfaces(db, telegram, cCtx.Uint("device"), cCtx.Bool("csv")); err != nil {
 								log.Fatal(err)
 							}
 
@@ -154,12 +159,12 @@ func main() {
 						if err != nil {
 							log.Fatal(err)
 						}
-						devices, err := controller.GetDeviceWithOIDRows(db)
+						devices, err := controller.GetDeviceWithOIDRows(db, telegram)
 						if err != nil {
 							log.Fatalln(err)
 						}
 
-						go controller.Scan(db, devices)
+						go controller.Scan(db, telegram, devices)
 
 						time.Sleep(5 * time.Minute)
 						sqlDB.Close()

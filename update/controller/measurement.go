@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
 	"github.com/metalpoch/olt-blueprint/update/constants"
 	"github.com/metalpoch/olt-blueprint/update/model"
 	"github.com/metalpoch/olt-blueprint/update/pkg/snmp"
@@ -19,14 +20,14 @@ type trafficController struct {
 	Traffic     usecase.TrafficUsecase
 }
 
-func newTrafficController(db *gorm.DB) *trafficController {
+func newTrafficController(db *gorm.DB, telegram tracking.Telegram) *trafficController {
 	return &trafficController{
-		Measurement: *usecase.NewMeasurementUsecase(db),
-		Traffic:     *usecase.NewTrafficUsecase(db),
+		Measurement: *usecase.NewMeasurementUsecase(db, telegram),
+		Traffic:     *usecase.NewTrafficUsecase(db, telegram),
 	}
 }
 
-func deviceUpdater(db *gorm.DB, device *model.DeviceWithOID) (bool, error) {
+func deviceUpdater(db *gorm.DB, telegram tracking.Telegram, device *model.DeviceWithOID) (bool, error) {
 	var isAlive bool
 	checkDevice := &model.Device{
 		ID:          device.ID,
@@ -45,12 +46,12 @@ func deviceUpdater(db *gorm.DB, device *model.DeviceWithOID) (bool, error) {
 
 	checkDevice.IsAlive = isAlive
 	checkDevice.LastCheck = time.Now()
-	return isAlive, newDeviceController(db).Usecase.Check(checkDevice)
+	return isAlive, newDeviceController(db, telegram).Usecase.Check(checkDevice)
 }
 
-func measurements(db *gorm.DB, device *model.DeviceWithOID) error {
-	measurementUsecase := newTrafficController(db).Measurement
-	trafficUsecase := newTrafficController(db).Traffic
+func measurements(db *gorm.DB, telegram tracking.Telegram, device *model.DeviceWithOID) error {
+	measurementUsecase := newTrafficController(db, telegram).Measurement
+	trafficUsecase := newTrafficController(db, telegram).Traffic
 	var (
 		err error
 		wg  sync.WaitGroup
@@ -97,7 +98,7 @@ func measurements(db *gorm.DB, device *model.DeviceWithOID) error {
 		var isFirstMeasurement bool
 		i := interfaces[idx]
 		m := measurements[idx]
-		err := newInterfaceController(db).Usecase.Upsert(i)
+		err := newInterfaceController(db, telegram).Usecase.Upsert(i)
 		if err != nil {
 			log.Printf("interfaceUpdaterError: on update the interface %s of deviceID %d:%v\n", i.IfName, device.ID, err)
 			continue
@@ -138,18 +139,18 @@ func measurements(db *gorm.DB, device *model.DeviceWithOID) error {
 	return nil
 }
 
-func Scan(db *gorm.DB, devices []*model.DeviceWithOID) {
+func Scan(db *gorm.DB, telegram tracking.Telegram, devices []*model.DeviceWithOID) {
 
 	for _, d := range devices {
 		go func(d *model.DeviceWithOID) {
-			if ok, err := deviceUpdater(db, d); err != nil {
+			if ok, err := deviceUpdater(db, telegram, d); err != nil {
 				log.Printf("deviceUpdaterError: on update the device %d:%v\n", d.ID, err)
 				return
 			} else if !ok {
 				return
 			}
 
-			err := measurements(db, d)
+			err := measurements(db, telegram, d)
 			if err != nil {
 				log.Printf("deviceUpdaterError: on update the measurement of %d:%v\n", d.ID, err)
 				return

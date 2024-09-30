@@ -42,6 +42,7 @@ func GetInfo(ip, community string) (model.SnmpInfo, error) {
 
 	return info, nil
 }
+
 func Walk(ip, community, oid string) (model.Snmp, error) {
 	result := model.Snmp{}
 	query := gosnmp.GoSNMP{
@@ -79,7 +80,7 @@ func Walk(ip, community, oid string) (model.Snmp, error) {
 			result[id] = int(pdu.Value.(uint))
 
 		case gosnmp.Counter64:
-			result[id] = int(pdu.Value.(uint))
+			result[id] = int(pdu.Value.(uint64))
 
 		case gosnmp.Gauge32:
 			result[id] = int(pdu.Value.(uint))

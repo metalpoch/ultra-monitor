@@ -2,9 +2,11 @@ package usecase
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"time"
 
+	"github.com/metalpoch/olt-blueprint/common/constants"
+	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
 	"github.com/metalpoch/olt-blueprint/update/entity"
 	"github.com/metalpoch/olt-blueprint/update/model"
 	"github.com/metalpoch/olt-blueprint/update/pkg/snmp"
@@ -13,11 +15,12 @@ import (
 )
 
 type deviceUsecase struct {
-	repo repository.DeviceRepository
+	repo     repository.DeviceRepository
+	telegram tracking.Telegram
 }
 
-func NewDeviceUsecase(db *gorm.DB) *deviceUsecase {
-	return &deviceUsecase{repository.NewDeviceRepository(db)}
+func NewDeviceUsecase(db *gorm.DB, telegram tracking.Telegram) *deviceUsecase {
+	return &deviceUsecase{repository.NewDeviceRepository(db), telegram}
 }
 
 func (use deviceUsecase) Add(device *model.AddDevice) error {
@@ -27,13 +30,18 @@ func (use deviceUsecase) Add(device *model.AddDevice) error {
 	var isAlive bool
 	info, err := snmp.GetInfo(device.IP, device.Community)
 	if err != nil {
-		log.Println("snmp error on try get the sysname:", err)
+		use.telegram.Notification(
+			constants.MODULE_UPDATE,
+			constants.CATEGORY_SNMP,
+			fmt.Sprintf("(deviceUsecase).Add - snmp.GetInfo(%s, %s)", device.IP, device.Community),
+			err,
+		)
 		isAlive = false
 	} else {
 		isAlive = true
 	}
 
-	if err := use.repo.Add(ctx, &entity.Device{
+	newDevice := &entity.Device{
 		IP:          device.IP,
 		SysName:     info.SysName,
 		SysLocation: info.SysLocation,
@@ -41,17 +49,34 @@ func (use deviceUsecase) Add(device *model.AddDevice) error {
 		IsAlive:     isAlive,
 		TemplateID:  device.Template,
 		LastCheck:   time.Now(),
-	}); err != nil {
-		log.Fatal(err)
-		return err
 	}
-	return nil
+
+	err = use.repo.Add(ctx, newDevice)
+	if err != nil {
+		use.telegram.Notification(
+			constants.MODULE_UPDATE,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(deviceUsecase).Add - use.repo.Add(ctx, %v)", *newDevice),
+			err,
+		)
+	}
+	return err
 }
 
 func (use deviceUsecase) Check(device *model.Device) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	return use.repo.Check(ctx, (*entity.Device)(device))
+	err := use.repo.Check(ctx, (*entity.Device)(device))
+	if err != nil {
+		use.telegram.Notification(
+			constants.MODULE_UPDATE,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(deviceUsecase).Check - use.repo.Check(ctx, %v)", *(*entity.Device)(device)),
+			err,
+		)
+	}
+
+	return err
 }
 
 func (use deviceUsecase) GetAll() ([]*model.Device, error) {
@@ -60,9 +85,15 @@ func (use deviceUsecase) GetAll() ([]*model.Device, error) {
 	defer cancel()
 
 	res, err := use.repo.GetAll(ctx)
+	if err != nil {
+		use.telegram.Notification(
+			constants.MODULE_UPDATE,
+			constants.CATEGORY_DATABASE,
+			"(deviceUsecase).GetAll - use.repo.GetAll(ctx)",
+			err,
+		)
+	}
 
-	// Gestionar errores (con Axios por ejemplo)
-	// ...
 	for _, e := range res {
 		devices = append(devices, (*model.Device)(e))
 	}
@@ -77,6 +108,12 @@ func (use deviceUsecase) GetDeviceWithOIDRows() ([]*model.DeviceWithOID, error) 
 
 	res, err := use.repo.GetDeviceWithOIDRows(ctx)
 	if err != nil {
+		use.telegram.Notification(
+			constants.MODULE_UPDATE,
+			constants.CATEGORY_DATABASE,
+			"(deviceUsecase).GetDeviceWithOIDRows - use.repo.GetDeviceWithOIDRows(ctx)",
+			err,
+		)
 		return nil, err
 	}
 

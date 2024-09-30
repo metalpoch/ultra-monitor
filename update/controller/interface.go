@@ -5,6 +5,7 @@ import (
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/metalpoch/olt-blueprint/common/constants"
+	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
 	"github.com/metalpoch/olt-blueprint/update/usecase"
 	"gorm.io/gorm"
 )
@@ -13,12 +14,12 @@ type interfaceController struct {
 	Usecase usecase.InterfaceUsecase
 }
 
-func newInterfaceController(db *gorm.DB) *interfaceController {
-	return &interfaceController{*usecase.NewInterfaceUsecase(db)}
+func newInterfaceController(db *gorm.DB, telegram tracking.Telegram) *interfaceController {
+	return &interfaceController{*usecase.NewInterfaceUsecase(db, telegram)}
 }
 
-func ShowAllInterfaces(db *gorm.DB, deviceID uint, csv bool) error {
-	interfaces, err := newInterfaceController(db).Usecase.GetAllByDevice(deviceID)
+func ShowAllInterfaces(db *gorm.DB, telegram tracking.Telegram, deviceID uint, csv bool) error {
+	interfaces, err := newInterfaceController(db, telegram).Usecase.GetAllByDevice(deviceID)
 	if err != nil {
 		return err
 	}

@@ -2,8 +2,11 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"time"
 
+	"github.com/metalpoch/olt-blueprint/common/constants"
+	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
 	"github.com/metalpoch/olt-blueprint/update/entity"
 	"github.com/metalpoch/olt-blueprint/update/model"
 	"github.com/metalpoch/olt-blueprint/update/repository"
@@ -11,17 +14,28 @@ import (
 )
 
 type interfaceUsecase struct {
-	repo repository.InterfaceRepository
+	repo     repository.InterfaceRepository
+	telegram tracking.Telegram
 }
 
-func NewInterfaceUsecase(db *gorm.DB) *interfaceUsecase {
-	return &interfaceUsecase{repository.NewInterfaceRepository(db)}
+func NewInterfaceUsecase(db *gorm.DB, telegram tracking.Telegram) *interfaceUsecase {
+	return &interfaceUsecase{repository.NewInterfaceRepository(db), telegram}
 }
 
 func (use interfaceUsecase) Upsert(element *model.Interface) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	return use.repo.Upsert(ctx, (*entity.Interface)(element))
+	err := use.repo.Upsert(ctx, (*entity.Interface)(element))
+	if err != nil {
+		use.telegram.Notification(
+			constants.MODULE_UPDATE,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(interfaceUsecase).Upsert - use.repo.Upsert(ctx, %v)", *(*entity.Interface)(element)),
+			err,
+		)
+	}
+
+	return err
 }
 
 func (use interfaceUsecase) GetAllByDevice(id uint) ([]*model.Interface, error) {
@@ -31,6 +45,12 @@ func (use interfaceUsecase) GetAllByDevice(id uint) ([]*model.Interface, error) 
 
 	res, err := use.repo.GetAllByDevice(ctx, id)
 	if err != nil {
+		use.telegram.Notification(
+			constants.MODULE_UPDATE,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(interfaceUsecase).GetAllByDevice - use.repo.GetAllByDevice(ctx, %d)", id),
+			err,
+		)
 		return nil, err
 	}
 
@@ -48,6 +68,12 @@ func (use interfaceUsecase) GetAll() ([]*model.Interface, error) {
 
 	res, err := use.repo.GetAll(ctx)
 	if err != nil {
+		use.telegram.Notification(
+			constants.MODULE_UPDATE,
+			constants.CATEGORY_DATABASE,
+			"(interfaceUsecase).GetAll - use.repo.GetAll(ctx)",
+			err,
+		)
 		return nil, err
 	}
 
@@ -57,107 +83,3 @@ func (use interfaceUsecase) GetAll() ([]*model.Interface, error) {
 
 	return interfaces, nil
 }
-
-// func (use interfaceUsecase) Scan(device model.DeviceWithOID) {
-// 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-// 	defer cancel()
-// 	var (
-// 		names      model.Snmp
-// 		descrs     model.Snmp
-// 		alias      model.Snmp
-// 		bw         model.Snmp
-// 		in         model.Snmp
-// 		out        model.Snmp
-// 		wg         sync.WaitGroup
-// 		date       time.Time = time.Now()
-// 		isTemporal bool      = true
-// 		err        error
-// 	)
-
-// 	wg.Add(6)
-// 	go func(oid string) {
-// 		defer wg.Done()
-// 		if res, snmpErr := snmp.Walk(device.IP, device.Community, oid); snmpErr != nil {
-// 			err = snmpErr
-// 		} else {
-// 			names = res
-// 		}
-// 	}(constants.IF_NAME_OID)
-
-// 	go func(oid string) {
-// 		defer wg.Done()
-// 		if res, snmpErr := snmp.Walk(device.IP, device.Community, oid); snmpErr != nil {
-// 			err = snmpErr
-// 		} else {
-// 			descrs = res
-// 		}
-// 	}(constants.IF_DESCR_OID)
-
-// 	go func(oid string) {
-// 		defer wg.Done()
-// 		if res, snmpErr := snmp.Walk(device.IP, device.Community, oid); snmpErr != nil {
-// 			err = snmpErr
-// 		} else {
-// 			alias = res
-// 		}
-// 	}(constants.IF_ALIAS_OID)
-
-// 	go func(oid string) {
-// 		defer wg.Done()
-// 		if res, snmpErr := snmp.Walk(device.IP, device.Community, oid); snmpErr != nil {
-// 			err = snmpErr
-// 		} else {
-// 			bw = res
-// 		}
-// 	}(device.OidBw)
-
-// 	go func(oid string) {
-// 		defer wg.Done()
-// 		if res, snmpErr := snmp.Walk(device.IP, device.Community, oid); snmpErr != nil {
-// 			err = snmpErr
-// 		} else {
-// 			in = res
-// 		}
-// 	}(device.OidIn)
-
-// 	go func(oid string) {
-// 		defer wg.Done()
-// 		if res, snmpErr := snmp.Walk(device.IP, device.Community, oid); snmpErr != nil {
-// 			err = snmpErr
-// 		} else {
-// 			out = res
-// 		}
-// 	}(device.OidOut)
-// 	wg.Wait()
-
-// 	if err != nil {
-// 		log.Println("error on", device.IP, err.Error())
-// 		return
-// 	}
-
-// 	measurements := []entity.Measurement{}
-// 	for id, ifname := range names {
-// 		result, err := use.repo.UpsertInterface(ctx, &entity.Interface{
-// 			ID:        int32(id),
-// 			IfName:    ifname.(string),
-// 			IfDescr:   descrs[id].(string),
-// 			IfAlias:   alias[id].(string),
-// 			CreatedAt: date,
-// 			UpdatedAt: date,
-// 		})
-
-// 		fmt.Println(result, err)
-
-// 		measurements = append(measurements, entity.Measurement{
-// 			Date:        date,
-// 			Bandwidth:   int64(bw[id].(int)),
-// 			In:          int64(in[id].(int)),
-// 			Out:         int64(out[id].(int)),
-// 			InterfaceID: int32(id),
-// 		})
-// 	}
-
-// 	if err := use.repo.SaveMeasurement(ctx, isTemporal, device.IP, measurements); err != nil {
-// 		log.Println("error on try save the element", device.IP, err.Error())
-// 	}
-// }

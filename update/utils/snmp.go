@@ -34,34 +34,6 @@ func MeasurementToEntitys(date time.Time, measurements model.MapSnmp) []*entity.
 	return rows
 }
 
-// func InterfacesToEntitys(deviceID uint, date time.Time, measurements model.MapSnmp) []*model.Interface {
-// 	var rows []*model.Interface
-// 	fields := [3]string{"ifname", "ifdescr", "ifalias"}
-// 	for ifIndex := range measurements["ifname"] {
-// 		m := new(model.Measurement)
-// 		i := new(model.Interface)
-
-// 		i.DeviceID = deviceID
-// 		i.IfIndex = uint(ifIndex)
-// 		i.UpdatedAt = date
-
-// 		for idx := 0; idx < 3; idx++ {
-// 			f := fields[idx]
-// 			switch f {
-// 			case "ifname":
-// 				i.IfName = measurements[f][ifIndex].(string)
-// 			case "ifdescr":
-// 				i.IfDescr = measurements[f][ifIndex].(string)
-// 			case "ifalias":
-// 				i.IfAlias = measurements[f][ifIndex].(string)
-
-// 			}
-// 		}
-// 		rows = append(rows, i)
-// 	}
-// 	return rows
-// }
-
 func isString(field string) bool {
 	if field == "ifname" || field == "ifdescr" || field == "ifalias" {
 		return true
@@ -85,6 +57,11 @@ func SnmpElements(deviceID uint, date time.Time, snmp model.MapSnmp) ([]*model.I
 
 		for idx := 0; idx < 6; idx++ {
 			f := fields[idx]
+
+			if snmp[f][ifIndex] == nil {
+				snmp[f][ifIndex] = 0
+			}
+
 			if isString(f) {
 				switch f {
 				case "ifname":

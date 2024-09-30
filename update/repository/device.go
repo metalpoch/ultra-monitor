@@ -41,6 +41,7 @@ func (repo deviceRepository) GetAll(ctx context.Context) ([]*entity.Device, erro
 func (repo deviceRepository) GetDeviceWithOIDRows(ctx context.Context) ([]*entity.DeviceWithOID, error) {
 	var devices []*entity.DeviceWithOID
 	err := repo.db.Table(constants.TABLE_DEVICES).
+		Select(constants.SELECT_TEMPLATES_ON_DEVICES).
 		Joins(constants.JOIN_TEMPLATES_ON_DEVICES).
 		Scan(&devices).Error
 

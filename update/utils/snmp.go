@@ -57,12 +57,11 @@ func SnmpElements(deviceID uint, date time.Time, snmp model.MapSnmp) ([]*model.I
 
 		for idx := 0; idx < 6; idx++ {
 			f := fields[idx]
-
 			if snmp[f][ifIndex] == nil {
-				snmp[f][ifIndex] = 0
+				continue
 			}
-
 			if isString(f) {
+
 				switch f {
 				case "ifname":
 					i.IfName = snmp[f][ifIndex].(string)

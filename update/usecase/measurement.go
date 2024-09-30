@@ -28,7 +28,7 @@ func (use measurementUsecase) Get(id uint) (*model.Measurement, error) {
 
 	measurement := new(entity.Measurement)
 	if err := use.repo.Get(ctx, id, measurement); err != nil {
-		use.telegram.Notification(
+		go use.telegram.Notification(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(measurementUsecase).Get - use.repo.Get(ctx, %d, %v)", id, *measurement),

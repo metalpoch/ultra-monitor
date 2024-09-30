@@ -17,7 +17,7 @@ type Telegram struct {
 	ChatID string
 }
 
-func (t *Telegram) Notification(module, category, event string, err error) {
+func (t Telegram) Notification(module, category, event string, err error) {
 	url := fmt.Sprintf(constants.TELEGRAM_API_URL, t.BotID)
 	text := fmt.Sprintf(constants.TELEGRAM_MARKDOWN_V2_MESSAGE, module, category, event, err)
 	jsonValue, _ := json.Marshal(model.Telegram{
@@ -30,6 +30,7 @@ func (t *Telegram) Notification(module, category, event string, err error) {
 	res, err := http.Post(url, "application/json", bytes.NewBuffer(jsonValue))
 	if err != nil {
 		log.Println("error to send traking on telegram:", err.Error())
+		return
 	}
 	defer res.Body.Close()
 

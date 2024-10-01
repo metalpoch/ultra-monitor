@@ -24,8 +24,8 @@ export default function Navbar({ user }: Props) {
             menuList.classList.remove('max-md:visible');
         }
 
-        if (showProfile &&dropdownButton && dropdown) dropdown.classList.toggle('hidden');
-        else if (dropdownButton && dropdown) dropdown.classList.toggle('hidden');
+        if (showProfile &&dropdownButton && dropdown) dropdown.classList.remove('hidden');
+        else if (dropdownButton && dropdown) dropdown.classList.add('hidden');
 
     }, [showMenu, showProfile]);
 

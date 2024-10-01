@@ -51,7 +51,7 @@ func Walk(ip, community, oid string) (model.Snmp, error) {
 		Port:               161,
 		Transport:          "udp",
 		Version:            gosnmp.Version2c,
-		Timeout:            time.Duration(2) * time.Second,
+		Timeout:            10 * time.Second,
 		Retries:            0,
 		ExponentialTimeout: true,
 		MaxOids:            gosnmp.MaxOids,

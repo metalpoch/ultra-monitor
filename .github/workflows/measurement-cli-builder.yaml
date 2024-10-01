@@ -45,11 +45,11 @@ jobs:
           bot-token-id: ${{ secrets.BOT_TOKEN_ID }}
           chat-id: ${{ secrets.CHAT_ID }}
           disable-web-page-preview: true
-          text: "*New CLI Release*\n\n
-            *🎟 Event:* `${{env.event }}`\n\n
+          text: "*New Release*\n\n
+            *🎟 Event:* `${{ env.event }}`\n\n
             *🔑 SHA:* `${{ env.sha }}`\n\n
             *📝 Commit:* `${{ env.commit }}`\n\n
-            *👤 Author:* [${{ env.author }}](${{ env.authorURL }})\n\n
             *🔗 Links:*\n
             \t\t\t[🗃 Repository](${{ env.url }})\n
-            \t\t\t[📦 Releases](${{ env.releaseURL }})"
+            \t\t\t[📦 Releases](${{ env.releaseURL }})\n\n
+            *👤 Author:* [${{ env.author }}](${{ env.authorURL }})"

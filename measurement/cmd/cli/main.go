@@ -56,7 +56,7 @@ func main() {
 							&cli.StringFlag{Name: "prefix-out", Usage: "traffic out SI prefix", Value: "octe"},
 						},
 						Action: func(cCtx *cli.Context) error {
-							db := database.Connect(cfg.DatabaseURI)
+							db := database.Connect(cfg.DatabaseURI, cfg.IsProduction)
 							err := controller.AddTemplate(db, telegram, &model.AddTemplate{
 								Name:      cCtx.String("name"),
 								OidBw:     cCtx.String("oid-bw"),
@@ -81,7 +81,7 @@ func main() {
 							&cli.BoolFlag{Name: "csv", Usage: "show as csv"},
 						},
 						Action: func(cCtx *cli.Context) error {
-							db := database.Connect(cfg.DatabaseURI)
+							db := database.Connect(cfg.DatabaseURI, cfg.IsProduction)
 							if err := controller.ShowAllTemplates(db, telegram, cCtx.Bool("csv")); err != nil {
 								log.Fatal(err)
 							}
@@ -103,7 +103,7 @@ func main() {
 							&cli.StringFlag{Name: "community", Usage: "device community", Required: true},
 						},
 						Action: func(cCtx *cli.Context) error {
-							db := database.Connect(cfg.DatabaseURI)
+							db := database.Connect(cfg.DatabaseURI, cfg.IsProduction)
 							if err := controller.AddDevice(db, telegram, &model.AddDevice{
 								IP:        cCtx.String("ip"),
 								Community: cCtx.String("community"),
@@ -123,7 +123,7 @@ func main() {
 							&cli.BoolFlag{Name: "csv", Usage: "show as csv"},
 						},
 						Action: func(cCtx *cli.Context) error {
-							db := database.Connect(cfg.DatabaseURI)
+							db := database.Connect(cfg.DatabaseURI, cfg.IsProduction)
 							if _, err := controller.ShowAllDevices(db, telegram, cCtx.Bool("csv")); err != nil {
 								log.Fatal(err)
 							}
@@ -139,7 +139,7 @@ func main() {
 							&cli.BoolFlag{Name: "csv", Usage: "show as csv"},
 						},
 						Action: func(cCtx *cli.Context) error {
-							db := database.Connect(cfg.DatabaseURI)
+							db := database.Connect(cfg.DatabaseURI, cfg.IsProduction)
 							if err := controller.ShowAllInterfaces(db, telegram, cCtx.Uint("device"), cCtx.Bool("csv")); err != nil {
 								log.Fatal(err)
 							}
@@ -154,7 +154,7 @@ func main() {
 				Usage: "get the traffic from the devices and store into the database",
 				Action: func(cCtx *cli.Context) error {
 					for {
-						db := database.Connect(cfg.DatabaseURI)
+						db := database.Connect(cfg.DatabaseURI, cfg.IsProduction)
 						sqlDB, err := db.DB()
 						if err != nil {
 							log.Fatal(err)

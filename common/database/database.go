@@ -7,16 +7,24 @@ import (
 	measurementEntity "github.com/metalpoch/olt-blueprint/measurement/entity"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
-func Connect(uri string) *gorm.DB {
+func Connect(uri string, isProduction bool) *gorm.DB {
+	var typeLogger logger.Interface
 	if uri == "" {
 		log.Fatalln("Set your 'db_uri' on config.json")
 	}
-	db, err := gorm.Open(postgres.Open(uri), &gorm.Config{})
+
+	if isProduction {
+		typeLogger = logger.Default.LogMode(logger.Silent)
+	} else {
+		typeLogger = logger.Default.LogMode(logger.Info)
+	}
+
+	db, err := gorm.Open(postgres.Open(uri), &gorm.Config{Logger: typeLogger})
 	if err != nil {
 		log.Fatalln(err)
-
 	}
 	if err := db.AutoMigrate(
 		authEntity.User{},

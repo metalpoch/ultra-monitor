@@ -80,11 +80,12 @@ func measurements(db *gorm.DB, telegram tracking.Telegram, device *model.DeviceW
 		go func(oid string) {
 			defer wg.Done()
 			res, errSnmp := snmp.Walk(device.IP, device.Community, oid)
-			if err != nil {
+			if errSnmp != nil {
 				err = errSnmp
-			} else {
-				result[name] = res
+				return
 			}
+			result[name] = res
+
 		}(oid)
 	}
 	wg.Wait()

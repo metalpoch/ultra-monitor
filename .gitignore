@@ -25,7 +25,14 @@ go.work.sum
 .env
 *config.json
 .vscode
+
+#binaries
 update/dist
 auth/dist
 measurement/dist
 report/dist
+
+
+*__pycache__
+*venv
+*.venv

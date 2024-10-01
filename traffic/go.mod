@@ -1,3 +1,3 @@
-module github.com/metalpoch/olt-blueprint/measurement
+module github.com/metalpoch/olt-blueprint/traffic
 
 go 1.22.3

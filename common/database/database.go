@@ -4,7 +4,7 @@ import (
 	"log"
 
 	authEntity "github.com/metalpoch/olt-blueprint/auth/entity"
-	updateEntity "github.com/metalpoch/olt-blueprint/update/entity"
+	measurementEntity "github.com/metalpoch/olt-blueprint/measurement/entity"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -20,11 +20,11 @@ func Connect(uri string) *gorm.DB {
 	}
 	if err := db.AutoMigrate(
 		authEntity.User{},
-		updateEntity.Template{},
-		updateEntity.Device{},
-		updateEntity.Interface{},
-		updateEntity.Traffic{},
-		updateEntity.Measurement{},
+		measurementEntity.Template{},
+		measurementEntity.Device{},
+		measurementEntity.Interface{},
+		measurementEntity.Traffic{},
+		measurementEntity.Measurement{},
 	); err != nil {
 		log.Fatalln(err)
 	}

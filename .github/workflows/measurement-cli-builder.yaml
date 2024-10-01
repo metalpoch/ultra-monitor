@@ -49,7 +49,7 @@ jobs:
             *🎟 Event:* `${{env.event }}`\n\n
             *🔑 SHA:* `${{ env.sha }}`\n\n
             *📝 Commit:* `${{ env.commit }}`\n\n
-            *👤 Author:* [${{ env.author }}](${{ env.authorURL }})"
+            *👤 Author:* [${{ env.author }}](${{ env.authorURL }})\n\n
             *🔗 Links:*\n
             \t\t\t[🗃 Repository](${{ env.url }})\n
-            \t\t\t[📦 Releases](${{ env.releaseURL }})\n\n
+            \t\t\t[📦 Releases](${{ env.releaseURL }})"

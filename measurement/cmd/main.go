@@ -10,6 +10,7 @@ import (
 	"github.com/metalpoch/olt-blueprint/common/database"
 	commonModel "github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
+	"github.com/metalpoch/olt-blueprint/measurement/constants"
 	"github.com/metalpoch/olt-blueprint/measurement/controller"
 	"github.com/metalpoch/olt-blueprint/measurement/model"
 	"github.com/urfave/cli/v2"
@@ -38,6 +39,9 @@ func main() {
 	}
 
 	app := &cli.App{
+		Name:        constants.CLI_TITLE,
+		Description: constants.CLI_DESCRIPTION,
+		Authors:     []*cli.Author{{Name: "Keiber Urbila", Email: "keiberup.dev@gmail.com"}},
 		Commands: []*cli.Command{
 			{
 				Name:  "template",

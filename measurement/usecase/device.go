@@ -63,6 +63,61 @@ func (use deviceUsecase) Add(device *model.AddDevice) error {
 	return err
 }
 
+func (use deviceUsecase) Update(id uint, device *model.AddDevice) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	e, err := use.repo.Get(ctx, id)
+	if err != nil {
+		use.telegram.Notification(
+			constants.MODULE_UPDATE,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(deviceUsecase).Update - use.repo.Get(ctx, %d)", id),
+			err,
+		)
+		return err
+	}
+
+	if device.IP != "" {
+		e.IP = device.IP
+	}
+	if device.Community != "" {
+		e.Community = device.Community
+	}
+	if device.Template > 0 {
+		e.TemplateID = device.Template
+	}
+
+	err = use.repo.Update(ctx, e)
+	if err != nil {
+		use.telegram.Notification(
+			constants.MODULE_UPDATE,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(deviceUsecase).Update - use.repo.Update(ctx, %v)", e),
+			err,
+		)
+	}
+
+	return err
+}
+
+func (use deviceUsecase) Delete(id uint) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err := use.repo.Delete(ctx, id)
+	if err != nil {
+		use.telegram.Notification(
+			constants.MODULE_UPDATE,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(deviceUsecase).Add - use.repo.Delete(ctx, %v)", id),
+			err,
+		)
+	}
+
+	return err
+}
+
 func (use deviceUsecase) Check(device *model.Device) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

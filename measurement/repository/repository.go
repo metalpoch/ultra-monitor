@@ -8,15 +8,20 @@ import (
 
 type TemplateRepository interface {
 	Add(ctx context.Context, template entity.Template) error
-	Get(ctx context.Context, id uint) (entity.Template, error)
+	Get(ctx context.Context, id uint) (*entity.Template, error)
 	GetAll(ctx context.Context) ([]entity.Template, error)
+	Update(ctx context.Context, template *entity.Template) error
+	Delete(ctx context.Context, id uint) error
 }
 
 type DeviceRepository interface {
 	Add(ctx context.Context, device *entity.Device) error
 	Check(ctx context.Context, device *entity.Device) error
+	Get(ctx context.Context, id uint) (*entity.Device, error)
 	GetAll(ctx context.Context) ([]*entity.Device, error)
 	GetDeviceWithOIDRows(ctx context.Context) ([]*entity.DeviceWithOID, error)
+	Update(ctx context.Context, device *entity.Device) error
+	Delete(ctx context.Context, id uint) error
 }
 
 type InterfaceRepository interface {

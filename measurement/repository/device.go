@@ -21,6 +21,14 @@ func (repo deviceRepository) Add(ctx context.Context, device *entity.Device) err
 	return repo.db.WithContext(ctx).Create(device).Error
 }
 
+func (repo deviceRepository) Update(ctx context.Context, device *entity.Device) error {
+	return repo.db.WithContext(ctx).Save(device).Error
+}
+
+func (repo deviceRepository) Delete(ctx context.Context, id uint) error {
+	return repo.db.WithContext(ctx).Delete(&entity.Device{ID: id}).Error
+}
+
 func (repo deviceRepository) Check(ctx context.Context, device *entity.Device) error {
 	return repo.db.WithContext(ctx).
 		Model(&entity.Device{ID: device.ID}).
@@ -32,6 +40,13 @@ func (repo deviceRepository) Check(ctx context.Context, device *entity.Device) e
 			"UpdatedAt":   time.Now(),
 		}).Error
 }
+
+func (repo deviceRepository) Get(ctx context.Context, id uint) (*entity.Device, error) {
+	device := new(entity.Device)
+	err := repo.db.WithContext(ctx).First(device, id).Error
+	return device, err
+}
+
 func (repo deviceRepository) GetAll(ctx context.Context) ([]*entity.Device, error) {
 	var devices []*entity.Device
 	err := repo.db.WithContext(ctx).Find(&devices).Error

@@ -71,3 +71,11 @@ func ShowAllDevices(db *gorm.DB, telegram tracking.Telegram, csv bool) ([]model.
 func GetDeviceWithOIDRows(db *gorm.DB, telegram tracking.Telegram) ([]*model.DeviceWithOID, error) {
 	return newDeviceController(db, telegram).Usecase.GetDeviceWithOIDRows()
 }
+
+func UpdateDevice(db *gorm.DB, telegram tracking.Telegram, id uint, device *model.AddDevice) error {
+	return newDeviceController(db, telegram).Usecase.Update(id, device)
+}
+
+func DeleteDevice(db *gorm.DB, telegram tracking.Telegram, id uint) error {
+	return newDeviceController(db, telegram).Usecase.Delete(id)
+}

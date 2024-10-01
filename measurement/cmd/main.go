@@ -73,8 +73,48 @@ func main() {
 							if err != nil {
 								log.Fatal(err)
 							}
-							fmt.Println("saved.")
-
+							fmt.Println("saved")
+							return nil
+						},
+					},
+					{
+						Name:  "update",
+						Usage: "update a template by id",
+						Flags: []cli.Flag{
+							&cli.UintFlag{Name: "id", Usage: "template id", Required: true},
+							&cli.StringFlag{Name: "name", Usage: "new name of the template"},
+							&cli.StringFlag{Name: "oid-bw", Usage: "new bandwidth oid"},
+							&cli.StringFlag{Name: "oid-in", Usage: "new traffic in oid"},
+							&cli.StringFlag{Name: "oid-out", Usage: "new traffic out oid"},
+						},
+						Action: func(cCtx *cli.Context) error {
+							db := database.Connect(cfg.DatabaseURI, cfg.IsProduction)
+							err := controller.UpdateTemplate(db, telegram, cCtx.Uint("id"), &model.AddTemplate{
+								Name:   cCtx.String("name"),
+								OidBw:  cCtx.String("oid-bw"),
+								OidIn:  cCtx.String("oid-in"),
+								OidOut: cCtx.String("oid-out"),
+							})
+							if err != nil {
+								log.Fatal(err)
+							}
+							fmt.Println("updated")
+							return nil
+						},
+					},
+					{
+						Name:  "delete",
+						Usage: "delete a template by id",
+						Flags: []cli.Flag{
+							&cli.UintFlag{Name: "id", Usage: "template id", Required: true},
+						},
+						Action: func(cCtx *cli.Context) error {
+							db := database.Connect(cfg.DatabaseURI, cfg.IsProduction)
+							err := controller.DeleteTemplate(db, telegram, cCtx.Uint("id"))
+							if err != nil {
+								log.Fatal(err)
+							}
+							fmt.Println("deleted")
 							return nil
 						},
 					},
@@ -117,6 +157,45 @@ func main() {
 							} else {
 								fmt.Println("saved.")
 							}
+							return nil
+						},
+					},
+					{
+						Name:  "update",
+						Usage: "update a device by id",
+						Flags: []cli.Flag{
+							&cli.UintFlag{Name: "id", Usage: "device id", Required: true},
+							&cli.StringFlag{Name: "ip", Usage: "new ip"},
+							&cli.StringFlag{Name: "community", Usage: "new community"},
+							&cli.UintFlag{Name: "template-id", Usage: "new template id"},
+						},
+						Action: func(cCtx *cli.Context) error {
+							db := database.Connect(cfg.DatabaseURI, cfg.IsProduction)
+							err := controller.UpdateDevice(db, telegram, cCtx.Uint("id"), &model.AddDevice{
+								IP:        cCtx.String("ip"),
+								Community: cCtx.String("community"),
+								Template:  cCtx.Uint("template-id"),
+							})
+							if err != nil {
+								log.Fatal(err)
+							}
+							fmt.Println("updated")
+							return nil
+						},
+					},
+					{
+						Name:  "delete",
+						Usage: "delete a device by id",
+						Flags: []cli.Flag{
+							&cli.UintFlag{Name: "id", Usage: "device id", Required: true},
+						},
+						Action: func(cCtx *cli.Context) error {
+							db := database.Connect(cfg.DatabaseURI, cfg.IsProduction)
+							err := controller.DeleteDevice(db, telegram, cCtx.Uint("id"))
+							if err != nil {
+								log.Fatal(err)
+							}
+							fmt.Println("deleted")
 							return nil
 						},
 					},

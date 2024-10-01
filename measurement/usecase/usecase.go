@@ -8,6 +8,8 @@ type TemplateUsecase interface {
 	Add(template *model.AddTemplate) error
 	GetByID(id uint) (model.Template, error)
 	GetAll() ([]model.Template, error)
+	Update(id uint, template *model.AddTemplate) error
+	Delete(id uint) error
 }
 
 type DeviceUsecase interface {
@@ -15,6 +17,8 @@ type DeviceUsecase interface {
 	Check(device *model.Device) error
 	GetAll() ([]*model.Device, error)
 	GetDeviceWithOIDRows() ([]*model.DeviceWithOID, error)
+	Update(id uint, device *model.AddDevice) error
+	Delete(id uint) error
 }
 
 type InterfaceUsecase interface {

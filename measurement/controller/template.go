@@ -23,6 +23,14 @@ func AddTemplate(db *gorm.DB, telegram tracking.Telegram, template *model.AddTem
 	return newTemplateController(db, telegram).Usecase.Add(template)
 }
 
+func UpdateTemplate(db *gorm.DB, telegram tracking.Telegram, id uint, template *model.AddTemplate) error {
+	return newTemplateController(db, telegram).Usecase.Update(id, template)
+}
+
+func DeleteTemplate(db *gorm.DB, telegram tracking.Telegram, id uint) error {
+	return newTemplateController(db, telegram).Usecase.Delete(id)
+}
+
 func ShowAllTemplates(db *gorm.DB, telegram tracking.Telegram, csv bool) error {
 	templates, err := newTemplateController(db, telegram).Usecase.GetAll()
 	if err != nil {

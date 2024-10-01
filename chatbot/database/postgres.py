@@ -1,12 +1,14 @@
-from sqlalchemy import create_engine, inspect, MetaData
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.sql import text
 import json
 
-def Get_database_schema():
-    with open('config.json', 'r' ) as f:
-        data= json.load(f)
-    connection_string = data['db_uri']
+from sqlalchemy import MetaData, create_engine, inspect
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql import text
+
+
+def get_database_schema():
+    with open("config.json", "r") as f:
+        data = json.load(f)
+    connection_string = data["db_uri"]
 
     engine = create_engine(connection_string)
     metadata = MetaData()
@@ -19,26 +21,27 @@ def Get_database_schema():
         for column in table.columns:
             schema_info += f" {column.name}: {column.type}"
         schema_info += " "
-    
+
     return schema_info.strip()
 
-def Ejecute_SQL(sql_entrada:str):
-    with open('config.json', 'r' ) as f:
-        data= json.load(f)
-    connection_string = data['db_uri']
 
-    engine= create_engine(connection_string)
+def execute_sql(input: str):
+    with open("config.json", "r") as f:
+        data = json.load(f)
+    connection_string = data["db_uri"]
+
+    engine = create_engine(connection_string)
 
     session = sessionmaker(bind=engine)
-    Session= session()
+    Session = session()
 
-    sql_text= text(sql_entrada)
+    sql_text = text(input)
 
-    result=Session.execute(sql_text)
+    result = Session.execute(sql_text)
 
-    column_names= result.keys()
+    column_names = result.keys()
 
-    data_dict={}
+    data_dict = {}
     for row in result:
         data_dict = dict(zip(column_names, row))
     return data_dict

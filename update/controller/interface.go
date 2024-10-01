@@ -28,6 +28,7 @@ func ShowAllInterfaces(db *gorm.DB, telegram tracking.Telegram, deviceID uint, c
 	t.SetOutputMirror(os.Stdout)
 	t.AppendHeader(table.Row{
 		"ID",
+		"IfIndex",
 		"IfName",
 		"IfDescr",
 		"IfAlias",
@@ -38,6 +39,7 @@ func ShowAllInterfaces(db *gorm.DB, telegram tracking.Telegram, deviceID uint, c
 	for _, i := range interfaces {
 		t.AppendRow(table.Row{
 			i.ID,
+			i.IfIndex,
 			i.IfName,
 			i.IfDescr,
 			i.IfAlias,

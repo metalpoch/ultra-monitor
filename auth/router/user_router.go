@@ -1,8 +1,6 @@
 package router
 
 import (
-	//"database/sql"
-
 	"github.com/gofiber/fiber/v3"
 	"github.com/metalpoch/olt-blueprint/auth/handler"
 	"github.com/metalpoch/olt-blueprint/auth/middleware"

@@ -2,7 +2,7 @@ package snmp
 
 import (
 	"errors"
-	"log"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -26,7 +26,7 @@ func GetInfo(ip, community string) (model.SnmpInfo, error) {
 	}
 	err := query.Connect()
 	if err != nil {
-		log.Fatalf("Connect() err: %v", err)
+		return model.SnmpInfo{}, fmt.Errorf("error on try connect to device: %v", err)
 	}
 	defer query.Conn.Close()
 
@@ -58,7 +58,7 @@ func Walk(ip, community, oid string) (model.Snmp, error) {
 	}
 	err := query.Connect()
 	if err != nil {
-		log.Fatalf("Connect() err: %v", err)
+		return nil, fmt.Errorf("error on try connect to device: %v", err)
 	}
 	defer query.Conn.Close()
 

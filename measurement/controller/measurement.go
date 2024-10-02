@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	commonModel "github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
 	"github.com/metalpoch/olt-blueprint/measurement/constants"
 	"github.com/metalpoch/olt-blueprint/measurement/model"
@@ -128,7 +129,7 @@ func measurements(db *gorm.DB, telegram tracking.Telegram, device *model.DeviceW
 
 		diffTime := uint(m.Date.Sub(old_m.Date).Seconds())
 
-		if err := trafficUsecase.Add(&model.Traffic{
+		if err := trafficUsecase.Add(&commonModel.Traffic{
 			InterfaceID: id,
 			Date:        m.Date,
 			Bandwidth:   m.Bandwidth,

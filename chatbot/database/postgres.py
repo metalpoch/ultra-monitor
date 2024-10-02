@@ -31,17 +31,22 @@ def execute_sql(input: str):
     connection_string = data["db_uri"]
 
     engine = create_engine(connection_string)
-
     session = sessionmaker(bind=engine)
     Session = session()
 
     sql_text = text(input)
-
     result = Session.execute(sql_text)
-
     column_names = result.keys()
 
-    data_dict = {}
-    for row in result:
-        data_dict = dict(zip(column_names, row))
-    return data_dict
+    data = []
+    i = 0
+    lista=[]
+    for j in result:
+        lista.append(list(j))
+    for column in column_names:
+        data_dict = { "column": column, "values": []}
+        for row in lista:
+            data_dict['values'].append(row[i])
+        i += 1 
+        data.append(data_dict)
+    return data

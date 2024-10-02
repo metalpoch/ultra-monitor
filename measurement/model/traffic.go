@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	"github.com/metalpoch/olt-blueprint/measurement/entity"
+	"github.com/metalpoch/olt-blueprint/common/entity"
 )
 
 type Traffic struct {

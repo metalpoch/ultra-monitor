@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/metalpoch/olt-blueprint/common/constants"
+	"github.com/metalpoch/olt-blueprint/common/entity"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
-	"github.com/metalpoch/olt-blueprint/measurement/entity"
 	"github.com/metalpoch/olt-blueprint/measurement/model"
 	"github.com/metalpoch/olt-blueprint/measurement/repository"
 	"gorm.io/gorm"

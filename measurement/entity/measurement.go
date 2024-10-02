@@ -1,10 +1,14 @@
 package entity
 
-import "time"
+import (
+	"time"
+
+	"github.com/metalpoch/olt-blueprint/common/entity"
+)
 
 type Measurement struct {
-	Interface   Interface `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	InterfaceID uint      `gorm:"uniqueIndex"`
+	Interface   entity.Interface `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	InterfaceID uint             `gorm:"uniqueIndex"`
 	Date        time.Time
 	Bandwidth   uint
 	In          uint

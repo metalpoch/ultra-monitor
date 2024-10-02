@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/metalpoch/olt-blueprint/common/entity"
 	"github.com/metalpoch/olt-blueprint/measurement/constants"
-	"github.com/metalpoch/olt-blueprint/measurement/entity"
 	"gorm.io/gorm"
 )
 

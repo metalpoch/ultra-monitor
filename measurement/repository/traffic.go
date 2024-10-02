@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/metalpoch/olt-blueprint/measurement/entity"
+	"github.com/metalpoch/olt-blueprint/common/entity"
 	"gorm.io/gorm"
 )
 

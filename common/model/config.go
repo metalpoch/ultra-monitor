@@ -11,6 +11,7 @@ func (v *StructValidator) Validate(out any) error {
 }
 
 type Config struct {
+	IsProduction       bool   `json:"is_production"`
 	DatabaseURI        string `json:"db_uri"`
 	CacheURI           string `json:"cache_uri"`
 	SecretKey          string `json:"secret_key"`

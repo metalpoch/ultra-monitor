@@ -30,7 +30,7 @@ func init() {
 }
 
 func main() {
-	db := database.Connect(cfg.DatabaseURI)
+	db := database.Connect(cfg.DatabaseURI, cfg.IsProduction)
 	db.AutoMigrate(entity.User{})
 	server := fiber.New(fiber.Config{
 		StructValidator: &model.StructValidator{Validator: validator.New()},

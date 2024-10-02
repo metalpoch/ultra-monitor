@@ -19,7 +19,7 @@ type Telegram struct {
 
 func (t Telegram) Notification(module, category, event string, err error) {
 	url := fmt.Sprintf(constants.TELEGRAM_API_URL, t.BotID)
-	text := fmt.Sprintf(constants.TELEGRAM_MARKDOWN_V2_MESSAGE, module, category, event, err)
+	text := fmt.Sprintf(constants.TELEGRAM_HTML_MESSAGE, module, category, event, err)
 	jsonValue, _ := json.Marshal(model.Telegram{
 		ChatID:                t.ChatID,
 		ParseMode:             "HTML",

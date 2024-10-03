@@ -1,8 +1,10 @@
 import json
-
+import utils
 from sqlalchemy import MetaData, create_engine, inspect
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
+
+import utils.text
 
 
 def get_database_schema():
@@ -34,10 +36,15 @@ def execute_sql(input: str):
     session = sessionmaker(bind=engine)
     Session = session()
 
-    sql_text = text(input)
-    result = Session.execute(sql_text)
-    column_names = result.keys()
+    temp=utils.text.revisar_sql(input)
+    sql_text= text(temp)
 
+    try:
+        result=Session.execute(sql_text)
+    except:
+        return "No se pudo procesar su pregunta intentelo mas tarde"   
+        
+    column_names = result.keys()
     data = []
     i = 0
     lista=[]

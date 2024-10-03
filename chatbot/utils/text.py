@@ -25,3 +25,13 @@ def sql_extract(msg: str):
         return result.group(1).strip()
     else:
         return None
+
+def revisar_sql(sql: str)->str:
+    contador= sql.count(';')
+    if contador >= 2:
+        i= sql.rfind(';')
+        if i == -1:
+            return sql
+        newSql= sql.replace(";","")+";"
+        return newSql
+    return sql

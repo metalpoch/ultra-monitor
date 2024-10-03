@@ -7,10 +7,10 @@ import (
 
 	"github.com/metalpoch/olt-blueprint/common/constants"
 	"github.com/metalpoch/olt-blueprint/common/entity"
+	"github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
-	"github.com/metalpoch/olt-blueprint/measurement/model"
+	"github.com/metalpoch/olt-blueprint/common/repository"
 	"github.com/metalpoch/olt-blueprint/measurement/pkg/snmp"
-	"github.com/metalpoch/olt-blueprint/measurement/repository"
 	"gorm.io/gorm"
 )
 

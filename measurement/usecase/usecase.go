@@ -13,15 +13,6 @@ type TemplateUsecase interface {
 	Delete(id uint) error
 }
 
-type DeviceUsecase interface {
-	Add(device *model.AddDevice) error
-	Check(device *model.Device) error
-	GetAll() ([]*model.Device, error)
-	GetDeviceWithOIDRows() ([]*model.DeviceWithOID, error)
-	Update(id uint, device *model.AddDevice) error
-	Delete(id uint) error
-}
-
 type InterfaceUsecase interface {
 	Upsert(element *model.Interface) error
 	GetAll() ([]*model.Interface, error)

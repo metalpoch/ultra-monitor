@@ -6,10 +6,9 @@ import (
 	"sync"
 	"time"
 
-	commonModel "github.com/metalpoch/olt-blueprint/common/model"
+	"github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
 	"github.com/metalpoch/olt-blueprint/measurement/constants"
-	"github.com/metalpoch/olt-blueprint/measurement/model"
 	"github.com/metalpoch/olt-blueprint/measurement/pkg/snmp"
 	"github.com/metalpoch/olt-blueprint/measurement/usecase"
 	"github.com/metalpoch/olt-blueprint/measurement/utils"
@@ -59,13 +58,13 @@ func measurements(db *gorm.DB, telegram tracking.Telegram, device *model.DeviceW
 		wg  sync.WaitGroup
 	)
 
-	result := model.MapSnmp{
-		"bw":      model.Snmp{},
-		"in":      model.Snmp{},
-		"out":     model.Snmp{},
-		"ifname":  model.Snmp{},
-		"ifdescr": model.Snmp{},
-		"ifalias": model.Snmp{},
+	result := snmp.MapSnmp{
+		"bw":      snmp.Snmp{},
+		"in":      snmp.Snmp{},
+		"out":     snmp.Snmp{},
+		"ifname":  snmp.Snmp{},
+		"ifdescr": snmp.Snmp{},
+		"ifalias": snmp.Snmp{},
 	}
 
 	oidMap := map[string]string{
@@ -135,7 +134,7 @@ func measurements(db *gorm.DB, telegram tracking.Telegram, device *model.DeviceW
 
 		diffTime := uint(m.Date.Sub(old_m.Date).Seconds())
 
-		if err := trafficUsecase.Add(&commonModel.Traffic{
+		if err := trafficUsecase.Add(&model.Traffic{
 			InterfaceID: id,
 			Date:        m.Date,
 			Bandwidth:   m.Bandwidth,

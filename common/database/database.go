@@ -5,7 +5,6 @@ import (
 
 	authEntity "github.com/metalpoch/olt-blueprint/auth/entity"
 	"github.com/metalpoch/olt-blueprint/common/entity"
-	measurementEntity "github.com/metalpoch/olt-blueprint/measurement/entity"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -33,7 +32,7 @@ func Connect(uri string, isProduction bool) *gorm.DB {
 		entity.Device{},
 		entity.Interface{},
 		entity.Traffic{},
-		measurementEntity.Measurement{},
+		entity.Measurement{},
 	); err != nil {
 		log.Fatalln(err)
 	}

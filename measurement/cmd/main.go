@@ -148,7 +148,7 @@ func main() {
 						},
 						Action: func(cCtx *cli.Context) error {
 							db := database.Connect(cfg.DatabaseURI, cfg.IsProduction)
-							if err := controller.AddDevice(db, telegram, &model.AddDevice{
+							if err := controller.AddDevice(db, telegram, &commonModel.AddDevice{
 								IP:        cCtx.String("ip"),
 								Community: cCtx.String("community"),
 								Template:  cCtx.Uint("template"),
@@ -171,7 +171,7 @@ func main() {
 						},
 						Action: func(cCtx *cli.Context) error {
 							db := database.Connect(cfg.DatabaseURI, cfg.IsProduction)
-							err := controller.UpdateDevice(db, telegram, cCtx.Uint("id"), &model.AddDevice{
+							err := controller.UpdateDevice(db, telegram, cCtx.Uint("id"), &commonModel.AddDevice{
 								IP:        cCtx.String("ip"),
 								Community: cCtx.String("community"),
 								Template:  cCtx.Uint("template-id"),

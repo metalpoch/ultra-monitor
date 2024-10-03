@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/metalpoch/olt-blueprint/measurement/entity"
+	"github.com/metalpoch/olt-blueprint/common/entity"
 	"github.com/metalpoch/olt-blueprint/measurement/model"
+	"github.com/metalpoch/olt-blueprint/measurement/pkg/snmp"
 )
 
-func MeasurementToEntitys(date time.Time, measurements model.MapSnmp) []*entity.Measurement {
+func MeasurementToEntitys(date time.Time, measurements snmp.MapSnmp) []*entity.Measurement {
 	var rows []*entity.Measurement
 	fields := [3]string{"bw", "in", "out"}
 
@@ -41,7 +42,7 @@ func isString(field string) bool {
 	return false
 }
 
-func SnmpElements(deviceID uint, date time.Time, snmp model.MapSnmp) ([]*model.Interface, []*model.Measurement) {
+func SnmpElements(deviceID uint, date time.Time, snmp snmp.MapSnmp) ([]*model.Interface, []*model.Measurement) {
 	var interfaces []*model.Interface
 	var measurements []*model.Measurement
 

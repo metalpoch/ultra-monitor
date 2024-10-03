@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	cModel "github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/measurement/model"
 )
 
@@ -16,8 +15,4 @@ type TemplateUsecase interface {
 type MeasurementUsecase interface {
 	Get(id uint) (*model.Measurement, error)
 	Upsert(measurement *model.Measurement) error
-}
-
-type TrafficUsecase interface {
-	Add(measurement *cModel.Traffic) error
 }

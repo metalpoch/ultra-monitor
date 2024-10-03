@@ -18,7 +18,3 @@ type MeasurementRepository interface {
 	Get(ctx context.Context, id uint, measurement *entity.Measurement) error
 	Upsert(ctx context.Context, measurement *entity.Measurement) error
 }
-
-type TrafficRepository interface {
-	Add(ctx context.Context, traffic *entity.Traffic) error
-}

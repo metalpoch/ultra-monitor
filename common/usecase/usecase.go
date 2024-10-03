@@ -16,3 +16,9 @@ type InterfaceUsecase interface {
 	GetAll() ([]*model.Interface, error)
 	GetAllByDevice(id uint) ([]*model.Interface, error)
 }
+
+type TrafficUsecase interface {
+	Add(measurement *model.Traffic) error
+	GetTrafficByInterface(id uint, date *model.TranficRangeDate) ([]*model.TrafficResponse, error)
+	GetTrafficByDevice(id uint, date *model.TranficRangeDate) ([]*model.TrafficResponse, error)
+}

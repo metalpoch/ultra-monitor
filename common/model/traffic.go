@@ -14,3 +14,15 @@ type Traffic struct {
 	In          uint
 	Out         uint
 }
+
+type TrafficResponse struct {
+	Date      time.Time `json:"date"`
+	Bandwidth uint      `json:"bandwidth_mbps"`
+	In        uint      `json:"in_bps"`
+	Out       uint      `json:"out_bps"`
+}
+
+type TranficRangeDate struct {
+	InitDate time.Time `query:"init_date" validate:"required"`
+	EndDate  time.Time `query:"end_date" validate:"required"`
+}

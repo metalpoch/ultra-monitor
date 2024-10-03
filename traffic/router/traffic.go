@@ -2,14 +2,15 @@ package router
 
 import (
 	"github.com/gofiber/fiber/v3"
+	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
+	"github.com/metalpoch/olt-blueprint/common/usecase"
 	"github.com/metalpoch/olt-blueprint/traffic/handler"
-	"github.com/metalpoch/olt-blueprint/traffic/usecase"
 	"gorm.io/gorm"
 )
 
-func newTrafficRouter(server *fiber.App, db *gorm.DB, secret []byte) {
+func newTrafficRouter(server *fiber.App, db *gorm.DB, telegram tracking.Telegram) {
 	hdlr := handler.TrafficHandler{
-		Usecase: *usecase.NewTrafficUsecase(db, secret),
+		Usecase: *usecase.NewTrafficUsecase(db, telegram),
 	}
 
 	server.Get("/interface/:id", hdlr.GetByInterface)

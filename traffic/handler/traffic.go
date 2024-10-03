@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/metalpoch/olt-blueprint/traffic/model"
-	"github.com/metalpoch/olt-blueprint/traffic/usecase"
+	"github.com/metalpoch/olt-blueprint/common/model"
+	"github.com/metalpoch/olt-blueprint/common/usecase"
 )
 
 type TrafficHandler struct {
@@ -30,7 +30,7 @@ func (hdlr TrafficHandler) GetByInterface(c fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	query := new(model.RangeDate)
+	query := new(model.TranficRangeDate)
 	if err := c.Bind().Query(query); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -60,7 +60,7 @@ func (hdlr TrafficHandler) GetByDevice(c fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	query := new(model.RangeDate)
+	query := new(model.TranficRangeDate)
 	if err := c.Bind().Query(query); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

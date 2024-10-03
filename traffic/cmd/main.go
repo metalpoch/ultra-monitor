@@ -11,6 +11,7 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/metalpoch/olt-blueprint/common/database"
 	"github.com/metalpoch/olt-blueprint/common/model"
+	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
 	"github.com/metalpoch/olt-blueprint/traffic/router"
 )
 
@@ -31,6 +32,11 @@ func init() {
 }
 
 func main() {
+	telegram := tracking.Telegram{
+		BotID:  cfg.TelegramBotTokenID,
+		ChatID: cfg.TelegramChatID,
+	}
+
 	db := database.Connect(cfg.DatabaseURI, cfg.IsProduction)
 	server := fiber.New(fiber.Config{
 		StructValidator: &model.StructValidator{Validator: validator.New()},
@@ -40,7 +46,7 @@ func main() {
 
 	server.Use(logger.New())
 
-	router.Setup(server, db, []byte(cfg.SecretKey))
+	router.Setup(server, db, telegram)
 
 	server.Listen(":3000")
 

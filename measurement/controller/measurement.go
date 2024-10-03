@@ -8,6 +8,7 @@ import (
 
 	"github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
+	commonUsecase "github.com/metalpoch/olt-blueprint/common/usecase"
 	"github.com/metalpoch/olt-blueprint/measurement/constants"
 	"github.com/metalpoch/olt-blueprint/measurement/pkg/snmp"
 	"github.com/metalpoch/olt-blueprint/measurement/usecase"
@@ -17,13 +18,13 @@ import (
 
 type trafficController struct {
 	Measurement usecase.MeasurementUsecase
-	Traffic     usecase.TrafficUsecase
+	Traffic     commonUsecase.TrafficUsecase
 }
 
 func newTrafficController(db *gorm.DB, telegram tracking.Telegram) *trafficController {
 	return &trafficController{
 		Measurement: *usecase.NewMeasurementUsecase(db, telegram),
-		Traffic:     *usecase.NewTrafficUsecase(db, telegram),
+		Traffic:     *commonUsecase.NewTrafficUsecase(db, telegram),
 	}
 }
 

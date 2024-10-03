@@ -12,7 +12,6 @@ func newTrafficRouter(server *fiber.App, db *gorm.DB, secret []byte) {
 		Usecase: *usecase.NewTrafficUsecase(db, secret),
 	}
 
-	server.Get("/interface/:id", hdlr.GetTrafficByInterface)
-	server.Get("/device/:id", hdlr.GetTrafficByDevice)
-
+	server.Get("/interface/:id", hdlr.GetByInterface)
+	server.Get("/device/:id", hdlr.GetByDevice)
 }

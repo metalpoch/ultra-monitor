@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/metalpoch/olt-blueprint/common/entity"
+	commonModel "github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/measurement/model"
 	"github.com/metalpoch/olt-blueprint/measurement/pkg/snmp"
 )
@@ -42,13 +43,13 @@ func isString(field string) bool {
 	return false
 }
 
-func SnmpElements(deviceID uint, date time.Time, snmp snmp.MapSnmp) ([]*model.Interface, []*model.Measurement) {
-	var interfaces []*model.Interface
+func SnmpElements(deviceID uint, date time.Time, snmp snmp.MapSnmp) ([]*commonModel.Interface, []*model.Measurement) {
+	var interfaces []*commonModel.Interface
 	var measurements []*model.Measurement
 
 	fields := [6]string{"ifname", "ifdescr", "ifalias", "bw", "in", "out"}
 	for ifIndex := range snmp["ifname"] {
-		i := new(model.Interface)
+		i := new(commonModel.Interface)
 		i.DeviceID = deviceID
 		i.IfIndex = uint(ifIndex)
 		i.UpdatedAt = date

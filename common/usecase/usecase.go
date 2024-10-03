@@ -10,3 +10,9 @@ type DeviceUsecase interface {
 	Update(id uint, device *model.AddDevice) error
 	Delete(id uint) error
 }
+
+type InterfaceUsecase interface {
+	Upsert(element *model.Interface) error
+	GetAll() ([]*model.Interface, error)
+	GetAllByDevice(id uint) ([]*model.Interface, error)
+}

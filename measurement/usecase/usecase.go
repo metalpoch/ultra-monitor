@@ -13,12 +13,6 @@ type TemplateUsecase interface {
 	Delete(id uint) error
 }
 
-type InterfaceUsecase interface {
-	Upsert(element *model.Interface) error
-	GetAll() ([]*model.Interface, error)
-	GetAllByDevice(id uint) ([]*model.Interface, error)
-}
-
 type MeasurementUsecase interface {
 	Get(id uint) (*model.Measurement, error)
 	Upsert(measurement *model.Measurement) error

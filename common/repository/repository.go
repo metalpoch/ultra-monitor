@@ -15,3 +15,10 @@ type DeviceRepository interface {
 	Update(ctx context.Context, device *entity.Device) error
 	Delete(ctx context.Context, id uint) error
 }
+
+type InterfaceRepository interface {
+	Get(ctx context.Context, id uint) (*entity.Interface, error)
+	Upsert(ctx context.Context, element *entity.Interface) error
+	GetAll(ctx context.Context) ([]*entity.Interface, error)
+	GetAllByDevice(ctx context.Context, id uint) ([]*entity.Interface, error)
+}

@@ -14,13 +14,6 @@ type TemplateRepository interface {
 	Delete(ctx context.Context, id uint) error
 }
 
-type InterfaceRepository interface {
-	Get(ctx context.Context, id uint) (*entity.Interface, error)
-	Upsert(ctx context.Context, element *entity.Interface) error
-	GetAll(ctx context.Context) ([]*entity.Interface, error)
-	GetAllByDevice(ctx context.Context, id uint) ([]*entity.Interface, error)
-}
-
 type MeasurementRepository interface {
 	Get(ctx context.Context, id uint, measurement *entity.Measurement) error
 	Upsert(ctx context.Context, measurement *entity.Measurement) error

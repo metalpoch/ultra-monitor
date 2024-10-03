@@ -1,12 +1,14 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"os"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/logger"
+
+	"github.com/goccy/go-json"
 	"github.com/metalpoch/olt-blueprint/common/database"
 	"github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/traffic/router"
@@ -32,9 +34,14 @@ func main() {
 	db := database.Connect(cfg.DatabaseURI, cfg.IsProduction)
 	server := fiber.New(fiber.Config{
 		StructValidator: &model.StructValidator{Validator: validator.New()},
+		JSONEncoder:     json.Marshal,
+		JSONDecoder:     json.Unmarshal,
 	})
+
+	server.Use(logger.New())
 
 	router.Setup(server, db, []byte(cfg.SecretKey))
 
 	server.Listen(":3000")
+
 }

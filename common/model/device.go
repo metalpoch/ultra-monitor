@@ -42,3 +42,16 @@ type DeviceWithOID struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
+
+type DeviceResponse struct {
+	ID          uint      `json:"id"`
+	IP          string    `json:"ip"`
+	Community   string    `json:"community"`
+	SysName     string    `json:"sysname"`
+	SysLocation string    `json:"syslocation"`
+	IsAlive     bool      `json:"is_alive"`
+	TemplateID  uint      `json:"template_id"`
+	LastCheck   time.Time `json:"last_check"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}

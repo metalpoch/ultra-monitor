@@ -41,7 +41,7 @@ func (repo deviceRepository) Check(ctx context.Context, device *entity.Device) e
 		}).Error
 }
 
-func (repo deviceRepository) Get(ctx context.Context, id uint) (*entity.Device, error) {
+func (repo deviceRepository) GetByID(ctx context.Context, id uint) (*entity.Device, error) {
 	device := new(entity.Device)
 	err := repo.db.WithContext(ctx).First(device, id).Error
 	return device, err

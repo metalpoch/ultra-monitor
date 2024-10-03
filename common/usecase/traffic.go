@@ -44,6 +44,12 @@ func (use trafficUsecase) GetTrafficByInterface(id uint, date *model.TranficRang
 
 	res, err := use.repo.GetTrafficByInterface(ctx, id, date)
 	if err != nil {
+		go use.telegram.Notification(
+			constants.MODULE_UPDATE,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(trafficUsecase).GetTrafficByInterface - use.repo.GetTrafficByInterface(ctx, %d, %v)", id, date),
+			err,
+		)
 		return nil, err
 	}
 
@@ -66,6 +72,12 @@ func (use trafficUsecase) GetTrafficByDevice(id uint, date *model.TranficRangeDa
 
 	res, err := use.repo.GetTrafficByDevice(ctx, id, date)
 	if err != nil {
+		go use.telegram.Notification(
+			constants.MODULE_UPDATE,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(trafficUsecase).GetTrafficByDevice - use.repo.GetTrafficByDevice(ctx, %d, %v)", id, date),
+			err,
+		)
 		return nil, err
 	}
 

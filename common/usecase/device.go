@@ -67,7 +67,7 @@ func (use deviceUsecase) Update(id uint, device *model.AddDevice) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	e, err := use.repo.Get(ctx, id)
+	e, err := use.repo.GetByID(ctx, id)
 	if err != nil {
 		use.telegram.Notification(
 			constants.MODULE_UPDATE,
@@ -134,6 +134,22 @@ func (use deviceUsecase) Check(device *model.Device) error {
 	return err
 }
 
+func (use deviceUsecase) GetByID(id uint) (*model.Device, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	e, err := use.repo.GetByID(ctx, id)
+	if err != nil {
+		use.telegram.Notification(
+			constants.MODULE_UPDATE,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(deviceUsecase).GetByID - use.repo.GetByID(ctx, %d)\n", id),
+			err,
+		)
+	}
+	fmt.Println(e.Template)
+	return (*model.Device)(e), err
+}
 func (use deviceUsecase) GetAll() ([]*model.Device, error) {
 	var devices []*model.Device
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

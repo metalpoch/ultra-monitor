@@ -13,6 +13,6 @@ func newTrafficRouter(server *fiber.App, db *gorm.DB, telegram tracking.Telegram
 		Usecase: *usecase.NewTrafficUsecase(db, telegram),
 	}
 
-	server.Get("/interface/:id", hdlr.GetByInterface)
-	server.Get("/device/:id", hdlr.GetByDevice)
+	server.Get("/traffic/interface/:id", hdlr.GetByInterface)
+	server.Get("/traffic/device/:id", hdlr.GetByDevice)
 }

@@ -6,6 +6,7 @@ type DeviceUsecase interface {
 	Add(device *model.AddDevice) error
 	Check(device *model.Device) error
 	GetAll() ([]*model.Device, error)
+	GetByID(id uint) (*model.Device, error)
 	GetDeviceWithOIDRows() ([]*model.DeviceWithOID, error)
 	Update(id uint, device *model.AddDevice) error
 	Delete(id uint) error

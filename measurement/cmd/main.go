@@ -8,15 +8,14 @@ import (
 	"time"
 
 	"github.com/metalpoch/olt-blueprint/common/database"
-	commonModel "github.com/metalpoch/olt-blueprint/common/model"
+	"github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
 	"github.com/metalpoch/olt-blueprint/measurement/constants"
 	"github.com/metalpoch/olt-blueprint/measurement/controller"
-	"github.com/metalpoch/olt-blueprint/measurement/model"
 	"github.com/urfave/cli/v2"
 )
 
-var cfg commonModel.Config
+var cfg model.Config
 
 func init() {
 	fileJSON := os.Getenv("CONFIG_JSON")
@@ -148,7 +147,7 @@ func main() {
 						},
 						Action: func(cCtx *cli.Context) error {
 							db := database.Connect(cfg.DatabaseURI, cfg.IsProduction)
-							if err := controller.AddDevice(db, telegram, &commonModel.AddDevice{
+							if err := controller.AddDevice(db, telegram, &model.AddDevice{
 								IP:        cCtx.String("ip"),
 								Community: cCtx.String("community"),
 								Template:  cCtx.Uint("template"),
@@ -171,7 +170,7 @@ func main() {
 						},
 						Action: func(cCtx *cli.Context) error {
 							db := database.Connect(cfg.DatabaseURI, cfg.IsProduction)
-							err := controller.UpdateDevice(db, telegram, cCtx.Uint("id"), &commonModel.AddDevice{
+							err := controller.UpdateDevice(db, telegram, cCtx.Uint("id"), &model.AddDevice{
 								IP:        cCtx.String("ip"),
 								Community: cCtx.String("community"),
 								Template:  cCtx.Uint("template-id"),

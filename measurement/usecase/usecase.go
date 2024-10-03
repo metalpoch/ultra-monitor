@@ -1,7 +1,8 @@
 package usecase
 
 import (
-	"github.com/metalpoch/olt-blueprint/measurement/model"
+	"github.com/metalpoch/olt-blueprint/common/model"
+	commonModel "github.com/metalpoch/olt-blueprint/measurement/model"
 )
 
 type TemplateUsecase interface {
@@ -13,6 +14,6 @@ type TemplateUsecase interface {
 }
 
 type MeasurementUsecase interface {
-	Get(id uint) (*model.Measurement, error)
-	Upsert(measurement *model.Measurement) error
+	Get(id uint) (*commonModel.Measurement, error)
+	Upsert(measurement *commonModel.Measurement) error
 }

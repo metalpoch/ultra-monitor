@@ -55,6 +55,7 @@ func measurements(db *gorm.DB, telegram tracking.Telegram, device *model.DeviceW
 	trafficUsecase := newTrafficController(db, telegram).Traffic
 	var (
 		err error
+		mu  sync.Mutex
 		wg  sync.WaitGroup
 	)
 
@@ -75,19 +76,24 @@ func measurements(db *gorm.DB, telegram tracking.Telegram, device *model.DeviceW
 		"ifdescr": constants.IF_DESCR_OID,
 		"ifname":  constants.IF_NAME_OID,
 	}
+
 	date := time.Now()
 	for name, oid := range oidMap {
 		wg.Add(1)
-		go func(oid string) {
+		go func(f, oid string) {
 			defer wg.Done()
 			res, errSnmp := snmp.Walk(device.IP, device.Community, oid)
 			if errSnmp != nil {
+				mu.Lock()
 				err = errSnmp
+				mu.Unlock()
 				return
 			}
-			result[name] = res
+			mu.Lock()
+			result[f] = res
+			mu.Unlock()
 
-		}(oid)
+		}(name, oid)
 	}
 	wg.Wait()
 

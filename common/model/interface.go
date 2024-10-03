@@ -17,3 +17,15 @@ type Interface struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
+
+type InterfaceResponse struct {
+	ID        uint
+	IfIndex   uint
+	IfName    string
+	IfDescr   string
+	IfAlias   string
+	Device    DeviceLite
+	Template  Template
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}

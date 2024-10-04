@@ -142,7 +142,7 @@ func measurements(db *gorm.DB, telegram tracking.Telegram, device *model.DeviceW
 			In:          utils.BytesToBbps(old_m.In, m.In, diffTime),
 			Out:         utils.BytesToBbps(old_m.Out, m.Out, diffTime),
 		}); err != nil {
-			log.Println("error guardando el trafico:", err.Error())
+			log.Println("error saving the traffic:", err.Error())
 		}
 	}
 	return nil

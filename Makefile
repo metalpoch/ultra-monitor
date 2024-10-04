@@ -17,7 +17,7 @@ container-measurement-cli:
 	docker run --rm -v ./config.json:/app/config.json --name olt-blueprint-cli -e CONFIG_JSON='/app/config.json' olt-blueprint-cli
 
 container-chatbot:
-	docker build -t olt_chatbot .
+	docker build . -t olt_chatbot  -f ./chatbot/dockerfile
 	
 container-chatbot-run:
 	docker run -p 8000:8000 olt_chatbot

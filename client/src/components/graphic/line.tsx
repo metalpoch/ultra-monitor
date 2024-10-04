@@ -19,13 +19,29 @@ export default function Line({ title, canvasID, data }: LineProps) {
               let currentDate = new Date(measurement.date);
               return `${currentDate.getDate().toString().padStart(2, '0')}/${currentDate.getMonth().toString().padStart(2, '0')}/${currentDate.getFullYear()}`;
             }),
-            datasets: [{
-              label: 'Count',
-              data: data.map((measurement: Measurement) => measurement.out_bps),
-              fill: false,
-              borderColor: 'rgb(75, 192, 192)',
-              tension: 0.1
-            }]
+            datasets: [
+              {
+                label: 'In',
+                data: data.map((measurement: Measurement) => measurement.in_bps),
+                fill: false,
+                borderColor: 'rgb(75, 192, 25)',
+                tension: 0.1
+              },
+              {
+                label: 'Out',
+                data: data.map((measurement: Measurement) => measurement.out_bps),
+                fill: false,
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+              },
+              {
+                label: 'Bandwith',
+                data: data.map((measurement: Measurement) => measurement.bandwidth_mbps),
+                fill: false,
+                borderColor: 'rgb(75, 25, 200)',
+                tension: 0.1
+              },
+            ]
           },
           options: {
             plugins: {

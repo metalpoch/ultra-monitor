@@ -54,20 +54,14 @@ func main() {
 							&cli.StringFlag{Name: "oid-bw", Usage: "bandwidth oid", Required: true},
 							&cli.StringFlag{Name: "oid-in", Usage: "traffic in oid", Required: true},
 							&cli.StringFlag{Name: "oid-out", Usage: "traffic out oid", Required: true},
-							&cli.StringFlag{Name: "prefix-bw", Usage: "bandwidth prefix", Value: "octe"},
-							&cli.StringFlag{Name: "prefix-in", Usage: "traffic in SI prefix", Value: "octe"},
-							&cli.StringFlag{Name: "prefix-out", Usage: "traffic out SI prefix", Value: "octe"},
 						},
 						Action: func(cCtx *cli.Context) error {
 							db := database.Connect(cfg.DatabaseURI, cfg.IsProduction)
 							err := controller.AddTemplate(db, telegram, &model.AddTemplate{
-								Name:      cCtx.String("name"),
-								OidBw:     cCtx.String("oid-bw"),
-								OidIn:     cCtx.String("oid-in"),
-								OidOut:    cCtx.String("oid-out"),
-								PrefixBw:  cCtx.String("prefix-bw"),
-								PrefixIn:  cCtx.String("prefix-in"),
-								PrefixOut: cCtx.String("prefix-out"),
+								Name:   cCtx.String("name"),
+								OidBw:  cCtx.String("oid-bw"),
+								OidIn:  cCtx.String("oid-in"),
+								OidOut: cCtx.String("oid-out"),
 							})
 							if err != nil {
 								log.Fatal(err)

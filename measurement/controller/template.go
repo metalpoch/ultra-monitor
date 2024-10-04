@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -53,9 +52,9 @@ func ShowAllTemplates(db *gorm.DB, telegram tracking.Telegram, csv bool) error {
 		t.AppendRow(table.Row{
 			template.ID,
 			template.Name,
-			fmt.Sprintf("%s (%s)", template.OidBw, template.PrefixBw),
-			fmt.Sprintf("%s (%s)", template.OidIn, template.PrefixIn),
-			fmt.Sprintf("%s (%s)", template.OidOut, template.PrefixOut),
+			template.OidBw,
+			template.OidIn,
+			template.OidOut,
 			template.CreatedAt.Local().Format("2006-01-02 15:04:05"),
 			template.UpdatedAt.Local().Format("2006-01-02 15:04:05"),
 		})

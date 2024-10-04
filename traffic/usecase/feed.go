@@ -86,3 +86,33 @@ func (use feedUsecase) GetInterface(id uint) (*model.Interface, error) {
 
 	return (*model.Interface)(res), err
 }
+
+func (use feedUsecase) GetInterfacesByDevice(id uint) ([]*model.InterfaceWithoutDevice, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	res, err := use.repo.GetInterfacesByDevice(ctx, id)
+	if err != nil {
+		go use.telegram.Notification(
+			constants.MODULE_UPDATE,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(feedUsecase).GetInterface - use.repo.GetInterface(ctx, %d)", id),
+			err,
+		)
+		return nil, err
+	}
+
+	var interfaces []*model.InterfaceWithoutDevice
+	for _, i := range res {
+		interfaces = append(interfaces, &model.InterfaceWithoutDevice{
+			ID:        i.ID,
+			IfIndex:   i.IfIndex,
+			IfName:    i.IfName,
+			IfDescr:   i.IfDescr,
+			IfAlias:   i.IfAlias,
+			CreatedAt: i.CreatedAt,
+			UpdatedAt: i.UpdatedAt,
+		})
+	}
+
+	return interfaces, err
+}

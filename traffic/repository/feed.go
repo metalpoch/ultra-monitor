@@ -21,14 +21,20 @@ func (repo feedRepository) GetDevice(ctx context.Context, id uint) (*entity.Devi
 	return d, err
 }
 
+func (repo feedRepository) GetAllDevice(ctx context.Context) ([]*entity.Device, error) {
+	var devices []*entity.Device
+	err := repo.db.WithContext(ctx).Find(&devices).Error
+	return devices, err
+}
+
 func (repo feedRepository) GetInterface(ctx context.Context, id uint) (*entity.Interface, error) {
 	i := new(entity.Interface)
 	err := repo.db.WithContext(ctx).Preload("Device").Preload("Device.Template").First(i, id).Error
 	return i, err
 }
 
-func (repo feedRepository) GetAllDevice(ctx context.Context) ([]*entity.Device, error) {
-	var devices []*entity.Device
-	err := repo.db.WithContext(ctx).Find(&devices).Error
-	return devices, err
+func (repo feedRepository) GetInterfacesByDevice(ctx context.Context, id uint) ([]*entity.Interface, error) {
+	var ifaces []*entity.Interface
+	err := repo.db.WithContext(ctx).Where("device_id = ?", id).Find(&ifaces).Error
+	return ifaces, err
 }

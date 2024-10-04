@@ -8,6 +8,7 @@ import (
 
 type FeedRepository interface {
 	GetDevice(ctx context.Context, id uint) (*entity.Device, error)
-	GetInterface(ctx context.Context, id uint) (*entity.Interface, error)
 	GetAllDevice(ctx context.Context) ([]*entity.Device, error)
+	GetInterface(ctx context.Context, id uint) (*entity.Interface, error)
+	GetInterfacesByDevice(ctx context.Context, id uint) ([]*entity.Interface, error)
 }

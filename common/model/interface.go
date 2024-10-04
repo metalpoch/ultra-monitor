@@ -29,3 +29,13 @@ type InterfaceResponse struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
+
+type InterfaceWithoutDevice struct {
+	ID        uint
+	IfIndex   uint
+	IfName    string
+	IfDescr   string
+	IfAlias   string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}

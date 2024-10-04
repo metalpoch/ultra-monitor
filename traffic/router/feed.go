@@ -16,4 +16,5 @@ func newFeedRouter(server *fiber.App, db *gorm.DB, telegram tracking.Telegram) {
 	server.Get("/feed/device/", hdlr.GetAllDevice)
 	server.Get("/feed/device/:id", hdlr.GetDevice)
 	server.Get("/feed/interface/:id", hdlr.GetInterface)
+	server.Get("/feed/interface/device/:id", hdlr.GetInterfacesByDevice)
 }

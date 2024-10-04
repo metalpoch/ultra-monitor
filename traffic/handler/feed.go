@@ -84,3 +84,27 @@ func (hdlr FeedHandler) GetInterface(c fiber.Ctx) error {
 
 	return c.JSON(res)
 }
+
+// Get interfaces of a device
+//
+//	@Summary		Get all interfaces from a device
+//	@Description	get all interfaces data by device ID from database
+//	@Tags			feed
+//	@Produce		json
+//	@Param			id	path		uint	true	"Device ID"
+//	@Success		200	{object}	[]model.InterfaceWithoutDevice
+//	@Failure		400	{object}	object{message=string}
+//	@Failure		500	{object}	object{message=string}
+//	@Router			/feed/interface/device/{id} [get]
+func (hdlr FeedHandler) GetInterfacesByDevice(c fiber.Ctx) error {
+	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	res, err := hdlr.Usecase.GetInterfacesByDevice(uint(id))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}

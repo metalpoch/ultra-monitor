@@ -69,7 +69,7 @@ func measurements(db *gorm.DB, telegram tracking.Telegram, device *model.DeviceW
 	}
 
 	oidMap := map[string]string{
-		"bw":      constants.IF_HIGH_SPEED_OID,
+		"bw":      device.OidBw,
 		"in":      device.OidIn,
 		"out":     device.OidOut,
 		"ifalias": constants.IF_ALIAS_OID,

@@ -17,7 +17,7 @@ type Traffic struct {
 
 type TrafficResponse struct {
 	Date      time.Time `json:"date"`
-	Bandwidth uint      `json:"bandwidth_mbps"`
+	Bandwidth uint      `json:"bandwidth_bps"`
 	In        uint      `json:"in_bps"`
 	Out       uint      `json:"out_bps"`
 }

@@ -177,19 +177,28 @@ func (use deviceUsecase) GetDeviceWithOIDRows() ([]*model.DeviceWithOID, error) 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
-	res, err := use.repo.GetDeviceWithOIDRows(ctx)
+	res, err := use.repo.GetDevicesWithTemplate(ctx)
 	if err != nil {
 		use.telegram.Notification(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
-			"(deviceUsecase).GetDeviceWithOIDRows - use.repo.GetDeviceWithOIDRows(ctx)",
+			"(deviceUsecase).GetDeviceWithOIDRows - use.repo.GetDevicesWithTemplate(ctx)",
 			err,
 		)
 		return nil, err
 	}
 
 	for _, e := range res {
-		devices = append(devices, (*model.DeviceWithOID)(e))
+		devices = append(devices, &model.DeviceWithOID{
+			ID:          e.ID,
+			IP:          e.IP,
+			SysName:     e.SysName,
+			SysLocation: e.SysLocation,
+			Community:   e.Community,
+			OidBw:       e.Template.OidBw,
+			OidIn:       e.Template.OidIn,
+			OidOut:      e.Template.OidOut,
+		})
 	}
 
 	return devices, nil

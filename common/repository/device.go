@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/metalpoch/olt-blueprint/common/constants"
 	"github.com/metalpoch/olt-blueprint/common/entity"
 	"gorm.io/gorm"
 )
@@ -53,12 +52,8 @@ func (repo deviceRepository) GetAll(ctx context.Context) ([]*entity.Device, erro
 	return devices, err
 }
 
-func (repo deviceRepository) GetDeviceWithOIDRows(ctx context.Context) ([]*entity.DeviceWithOID, error) {
-	var devices []*entity.DeviceWithOID
-	err := repo.db.Table(constants.TABLE_DEVICES).
-		Select(constants.SELECT_TEMPLATES_ON_DEVICES).
-		Joins(constants.JOIN_TEMPLATES_ON_DEVICES).
-		Scan(&devices).Error
-
+func (repo deviceRepository) GetDevicesWithTemplate(ctx context.Context) ([]*entity.Device, error) {
+	var devices []*entity.Device
+	err := repo.db.WithContext(ctx).Preload("Template").Find(&devices).Error
 	return devices, err
 }

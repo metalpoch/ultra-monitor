@@ -32,15 +32,9 @@ type DeviceWithOID struct {
 	SysName     string
 	SysLocation string
 	Community   string
-	IsAlive     bool
-	Template    entity.Template
-	TemplateID  uint
 	OidBw       string
 	OidIn       string
 	OidOut      string
-	LastCheck   time.Time
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
 }
 
 type DeviceLite struct {

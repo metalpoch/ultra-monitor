@@ -12,7 +12,7 @@ type DeviceRepository interface {
 	Check(ctx context.Context, device *entity.Device) error
 	GetByID(ctx context.Context, id uint) (*entity.Device, error)
 	GetAll(ctx context.Context) ([]*entity.Device, error)
-	GetDeviceWithOIDRows(ctx context.Context) ([]*entity.DeviceWithOID, error)
+	GetDevicesWithTemplate(ctx context.Context) ([]*entity.Device, error)
 	Update(ctx context.Context, device *entity.Device) error
 	Delete(ctx context.Context, id uint) error
 }

@@ -1,30 +1,29 @@
 import { useEffect } from 'react';
 import { Chart } from 'chart.js/auto';
+import type { Measurement } from '../../models/measurement';
 
 interface PieProps {
     title: string;
     canvasID: string;
+    data?: Measurement[];
 }
 
-export default function Pie({ title, canvasID }: PieProps) {
-    const data = [
-        { year: 2010, count: 10 },
-        { year: 2011, count: 20 },
-        { year: 2012, count: 15 },
-    ];
-
-    
+export default function Pie({ title, canvasID, data }: PieProps) {
+        
     useEffect(() => {
         const canvas = document.getElementById(canvasID) as HTMLCanvasElement;
 
-        if (canvas) {
+        if ((canvas) && (data)) {
             new Chart(canvas, {
                 type: 'pie',
                 data: {
-                    labels: data.map(row => row.year),
+                    labels: data.map((measurement: Measurement) => {
+                        let currentDate = new Date(measurement.date);
+                        return `${currentDate.getDate().toString().padStart(2, '0')}/${currentDate.getMonth().toString().padStart(2, '0')}/${currentDate.getFullYear()}`;
+                    }),
                     datasets: [{
                         label: 'Count',
-                        data: data.map(row => row.count),
+                        data: data.map((measurement: Measurement) => measurement.out_bps),
                     }]
                 },
                 options: {

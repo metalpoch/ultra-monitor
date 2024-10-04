@@ -15,15 +15,17 @@ type TrafficHandler struct {
 
 // Traffic by interface
 //
-//	@Summary		Get a array of interface traffic in a range date
-//	@Description	get traffic by interface ID
-//	@Tags			traffic
-//	@Produce		json
-//	@Param			id	path		uint	true	"Interface ID"
-//	@Success		200	{object}	[]model.Traffic
-//	@Failure		400	{object}	object{message=string}
-//	@Failure		500	{object}	object{message=string}
-//	@Router			/interface/{id} [get]
+// @Summary		Get a array of interface traffic in a range date
+// @Description	get traffic by interface ID
+// @Tags		traffic
+// @Produce		json
+// @Param		id			path		uint					true	"Interface ID"
+// @Param		init_date	query		time.Time				true	"Start date for traffic range"
+// @Param		end_date	query		time.Time				true	"End date for traffic range"
+// @Success		200			{object}	[]model.Traffic
+// @Failure		400			{object}	object{message=string}
+// @Failure		500			{object}	object{message=string}
+// @Router			/traffic/interface/{id} [get]
 func (hdlr TrafficHandler) GetByInterface(c fiber.Ctx) error {
 	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
 	if err != nil {
@@ -45,15 +47,17 @@ func (hdlr TrafficHandler) GetByInterface(c fiber.Ctx) error {
 
 // Traffic by device
 //
-//	@Summary		Get a array of device traffic in a range date
-//	@Description	get traffic by device ID
-//	@Tags			traffic
-//	@Produce		json
-//	@Param			id	path		uint	true	"Device ID"
-//	@Success		200	{object}	[]model.Traffic
-//	@Failure		400	{object}	object{message=string}
-//	@Failure		500	{object}	object{message=string}
-//	@Router			/device/{id} [get]
+// @Summary		Get a array of device traffic in a range date
+// @Description	get traffic by device ID
+// @Tags		traffic
+// @Produce		json
+// @Param		id			path		uint					true	"Device ID"
+// @Param		init_date	query		time.Time				true	"Start date for traffic range"
+// @Param		end_date	query		time.Time				true	"End date for traffic range"
+// @Success		200			{object}	[]model.Traffic
+// @Failure		400			{object}	object{message=string}
+// @Failure		500			{object}	object{message=string}
+// @Router			/traffic/device/{id} [get]
 func (hdlr TrafficHandler) GetByDevice(c fiber.Ctx) error {
 	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
 	if err != nil {

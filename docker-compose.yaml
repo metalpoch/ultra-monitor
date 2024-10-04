@@ -1,16 +1,16 @@
 services:
   db:
-    image: postgres
+    image: postgres:alpine3.20
     container_name: postgres-olt
     restart: always
-    shm_size: 128mb # set shared memory limit when using docker-compose
+    shm_size: 256mb # set shared memory limit when using docker-compose
     environment:
       POSTGRES_PASSWORD: example
     ports:
       - 5432:5432
 
   cache:
-    image: redis:7.4.0-alpine3.20
+    image: redis:alpine3.20
     container_name: redis-olt
     restart: always
     ports:

@@ -7,7 +7,11 @@
 *.dll
 *.so
 *.dylib
-data/
+update/dist/
+auth/dist/
+measurement/dist/
+report/dist/
+
 
 # Test binary, built with `go test -c`
 *.test
@@ -25,3 +29,12 @@ go.work.sum
 .env
 *config.json
 .vscode
+
+# python enviroment
+*__pycache__
+*venv
+*.venv
+
+
+mocks/
+data/

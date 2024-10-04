@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"log"
 	"time"
@@ -11,6 +10,7 @@ import (
 	"github.com/metalpoch/olt-blueprint/auth/model"
 	"github.com/metalpoch/olt-blueprint/auth/repository"
 	"github.com/metalpoch/olt-blueprint/auth/utils"
+	"gorm.io/gorm"
 )
 
 type userUsecase struct {
@@ -18,7 +18,7 @@ type userUsecase struct {
 	repo   repository.UserRepository
 }
 
-func NewUserUsecase(db *sql.DB, secret []byte) *userUsecase {
+func NewUserUsecase(db *gorm.DB, secret []byte) *userUsecase {
 	return &userUsecase{secret, repository.NewUserRepository(db)}
 }
 
@@ -117,7 +117,6 @@ func (use userUsecase) GetAllUsers() ([]*model.FullUser, error) {
 			ChangePassword: e.ChangePassword,
 			Fullname:       e.Fullname,
 			IsAdmin:        e.IsAdmin,
-			IsDisabled:     e.IsDisabled,
 			CreatedAt:      e.CreatedAt,
 			UpdatedAt:      e.UpdatedAt,
 		})

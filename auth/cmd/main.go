@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
+	"github.com/metalpoch/olt-blueprint/auth/entity"
 	"github.com/metalpoch/olt-blueprint/auth/router"
 	"github.com/metalpoch/olt-blueprint/common/database"
 	"github.com/metalpoch/olt-blueprint/common/model"
@@ -29,8 +30,8 @@ func init() {
 }
 
 func main() {
-	db := database.Connect(cfg.DatabaseURI)
-
+	db := database.Connect(cfg.DatabaseURI, cfg.IsProduction)
+	db.AutoMigrate(entity.User{})
 	server := fiber.New(fiber.Config{
 		StructValidator: &model.StructValidator{Validator: validator.New()},
 	})

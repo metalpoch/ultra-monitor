@@ -1,15 +1,16 @@
 package router
 
 import (
-	"database/sql"
+	//"database/sql"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/metalpoch/olt-blueprint/auth/handler"
 	"github.com/metalpoch/olt-blueprint/auth/middleware"
 	"github.com/metalpoch/olt-blueprint/auth/usecase"
+	"gorm.io/gorm"
 )
 
-func newUserRouter(server *fiber.App, db *sql.DB, secret []byte) {
+func newUserRouter(server *fiber.App, db *gorm.DB, secret []byte) {
 	hdlr := &handler.UserHandler{
 		Usecase: *usecase.NewUserUsecase(db, secret),
 	}

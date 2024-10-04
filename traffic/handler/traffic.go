@@ -36,8 +36,7 @@ func (hdlr TrafficHandler) GetByInterface(c fiber.Ctx) error {
 	if err := c.Bind().Query(query); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
-
-	res, err := hdlr.Usecase.GetTrafficByDevice(uint(id), query)
+	res, err := hdlr.Usecase.GetTrafficByInterface(uint(id), query)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

@@ -1,16 +1,15 @@
-import json
 import utils
+import os
 from sqlalchemy import MetaData, create_engine, inspect
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
-
+from dotenv import load_dotenv
+load_dotenv(override=True)
 import utils.text
 
 
 def get_database_schema():
-    with open("config.json", "r") as f:
-        data = json.load(f)
-    connection_string = data["db_uri"]
+    connection_string = os.getenv('URI')
 
     engine = create_engine(connection_string)
     metadata = MetaData()
@@ -28,9 +27,7 @@ def get_database_schema():
 
 
 def execute_sql(input: str):
-    with open("config.json", "r") as f:
-        data = json.load(f)
-    connection_string = data["db_uri"]
+    connection_string = os.getenv('URI')
 
     engine = create_engine(connection_string)
     session = sessionmaker(bind=engine)

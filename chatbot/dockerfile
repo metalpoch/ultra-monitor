@@ -1,16 +1,14 @@
-FROM python:alpine AS build
+FROM python:alpine
 
 WORKDIR /app
 
-COPY ./chatbot/requirements.txt requirements.txt
+COPY ./chatbot/requirements.txt .
 
 RUN python -m venv ./venv
 RUN source ./venv/bin/activate
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY  ./config.json .
-COPY chatbot/ .
-
+COPY  . .
 EXPOSE 8000
 
-CMD ["python", "main.py"]
+CMD ["python", "./chatbot/main.py"]

@@ -1,4 +1,5 @@
 import uvicorn
+import os
 from fastapi import FastAPI
 from pydantic import BaseModel
 
@@ -9,8 +10,6 @@ from utils import ollama, text
 class sql(BaseModel):
     text: str
 
-
-schema = postgres.get_database_schema()
 app = FastAPI()
 
 
@@ -24,4 +23,11 @@ async def create_item(sql: sql):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, port=8000)
+    try:
+        if os.getenv('URI'):
+            schema = postgres.get_database_schema()
+            uvicorn.run(app, port=8000)
+        else:
+            raise Exception ("No se encontró la variable URI en el .env")
+    except Exception as e:
+        print(e)

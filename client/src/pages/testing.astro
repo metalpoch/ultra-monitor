@@ -7,6 +7,8 @@ import TitleBar from '../components/titles/titleBar.tsx';
 import type { Measurement } from '../models/measurement';
 import NoticeModal from '../components/modals/notice';
 
+const URL_TRAFFIC = import.meta.env.PUBLIC_API_TRAFFIC; 
+
 let modalError = { showModal: false, title: "", message: "" };
 let data: Measurement[] = [];
 
@@ -16,7 +18,7 @@ if (Astro.request.method == "POST") {
         const initialDate = dataForm.get("initial") as string;
         const ultimateDate = dataForm.get("ultimate") as string;
         
-        const res = await fetch(`http://161.196.30.58:3000/traffic/interface/1?init_date=${initialDate}T00:00:00Z&end_date=${ultimateDate}T23:59:59Z`);
+        const res = await fetch(`${URL_TRAFFIC}/traffic/interface/1?init_date=${initialDate}T00:00:00Z&end_date=${ultimateDate}T23:59:59Z`);
         if (res.ok) {
             const res_data = await res.json();
             if (res_data) data = res_data;

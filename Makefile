@@ -19,5 +19,7 @@ container-measurement-cli:
 container-chatbot:
 	cd chatbot
 	docker build . -t chatbot  -f ./chatbot/dockerfile
-	docker run -p 8000:8000 --name chatbot-olt --network olt-blueprint_chatbot-network chatbot  
+
+container-chatbot-run:
+	docker run -p 8000:8000 --name chatbot-olt --network chatbot-network chatbot  
 	

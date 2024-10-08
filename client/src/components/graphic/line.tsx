@@ -36,7 +36,7 @@ export default function Line({ title, canvasID, data }: LineProps) {
               },
               {
                 label: 'Bandwith',
-                data: data.map((measurement: Measurement) => measurement.bandwidth_mbps),
+                data: data.map((measurement: Measurement) => measurement.bandwidth_bps),
                 fill: false,
                 borderColor: 'rgb(75, 25, 200)',
                 tension: 0.1

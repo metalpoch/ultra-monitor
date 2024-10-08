@@ -61,14 +61,5 @@ func (repo userRepository) SoftDelete(ctx context.Context, id uint) error {
 }
 
 func (repo userRepository) ChangePassword(ctx context.Context, id uint, password string) error {
-	u := new(entity.User)
-
-	if err := repo.db.Find(&u, "id=?", id, password).Error; err != nil {
-		return err
-	}
-
-	if err := repo.db.Update("Password", password).Error; err != nil {
-		return err
-	}
-	return nil
+	return repo.db.Model(&entity.User{}).Where("id = ?", id).Update("password", password).Error
 }

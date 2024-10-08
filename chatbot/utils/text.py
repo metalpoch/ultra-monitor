@@ -7,6 +7,7 @@ load_dotenv(override=True)
 
 
 def union_string(msg: str, schema: str) -> str:
+    """Join the strings to create the promt."""
     p1 = os.getenv("PROMP1")
     p2 = os.getenv("PROMP2")
     p3 = os.getenv("PROMP3")
@@ -18,6 +19,7 @@ def union_string(msg: str, schema: str) -> str:
 
 
 def sql_extract(msg: str):
+    """Extract the SQL from the string of the AI response."""
     pattern = r"```sql(.*?)```"
     result = re.search(pattern, msg, re.DOTALL)
 
@@ -26,12 +28,14 @@ def sql_extract(msg: str):
     else:
         return None
 
-def revisar_sql(sql: str)->str:
-    contador= sql.count(';')
+
+def revisar_sql(sql: str) -> str:
+    """Check that the SQL only has one ”;”."""
+    contador = sql.count(';')
     if contador >= 2:
-        i= sql.rfind(';')
+        i = sql.rfind(';')
         if i == -1:
             return sql
-        newSql= sql.replace(";","")+";"
-        return newSql
+        new_sql = sql.replace(";", "")+";"
+        return new_sql
     return sql

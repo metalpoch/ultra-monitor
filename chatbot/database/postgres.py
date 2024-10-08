@@ -1,14 +1,17 @@
-import utils
 import os
-from sqlalchemy import MetaData, create_engine, inspect
+
+from sqlalchemy import MetaData, create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
 from dotenv import load_dotenv
-load_dotenv(override=True)
+
 import utils.text
+
+load_dotenv(override=True)
 
 
 def get_database_schema():
+    """Return the database schema."""
     connection_string = os.getenv('URI')
 
     engine = create_engine(connection_string)
@@ -27,30 +30,30 @@ def get_database_schema():
 
 
 def execute_sql(input: str):
+    """Execute the SQL statement received by parameter in the database."""
     connection_string = os.getenv('URI')
 
     engine = create_engine(connection_string)
-    session = sessionmaker(bind=engine)
-    Session = session()
+    session_maker = sessionmaker(bind=engine)
+    session = session_maker()
 
-    temp=utils.text.revisar_sql(input)
-    sql_text= text(temp)
+    temp = utils.text.revisar_sql(input)
+    sql_text = text(temp)
 
     try:
-        result=Session.execute(sql_text)
-    except:
-        return "No se pudo procesar su pregunta intentelo mas tarde"   
-        
+        result = session.execute(sql_text)
+    except Exception as e:
+        return "No se pudo procesar su pregunta intentelo mas tarde.", e
     column_names = result.keys()
     data = []
     i = 0
-    lista=[]
+    lista = []
     for j in result:
         lista.append(list(j))
     for column in column_names:
-        data_dict = { "column": column, "values": []}
+        data_dict = {"column": column, "values": []}
         for row in lista:
             data_dict['values'].append(row[i])
-        i += 1 
+        i += 1
         data.append(data_dict)
     return data

@@ -4,6 +4,9 @@ dev-auth:
 dev-traffic:
 	CONFIG_JSON=./config.json go run ./traffic/cmd/main.go
 
+dev-report:
+	CONFIG_JSON=./config.json go run ./report/cmd/main.go
+
 measurement-build-cli:
 	go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o ./measurement/dist/olt-blueprint measurement/cmd/main.go && echo -e "\e[1;32mcreated\e[0m binary was measurement/dist/olt-blueprint"
 

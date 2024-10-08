@@ -16,10 +16,10 @@ const (
 )
 
 const (
-	MODULE_UPDATE      string = "Update"
-	MODULE_AUTH        string = "Auth"
-	MODULE_REPORT      string = "Report"
-	MODULE_MEASUREMENT string = "Measurement"
+	MODULE_UPDATE  string = "Measurement"
+	MODULE_AUTH    string = "Auth"
+	MODULE_REPORT  string = "Report"
+	MODULE_TRAFFIC string = "Traffic"
 )
 
 const (

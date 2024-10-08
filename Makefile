@@ -21,5 +21,5 @@ container-chatbot:
 	docker build . -t chatbot  -f ./chatbot/dockerfile
 
 container-chatbot-run:
-	docker run -p 8000:8000 --name chatbot-olt --network chatbot-network chatbot  
+	docker run --rm -p 8000:8000 --name chatbot-olt --network chatbot-network chatbot  
 	

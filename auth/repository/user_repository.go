@@ -2,9 +2,8 @@ package repository
 
 import (
 	"context"
-	//"database/sql"
 
-	"github.com/metalpoch/olt-blueprint/auth/entity"
+	"github.com/metalpoch/olt-blueprint/common/entity"
 	"gorm.io/gorm"
 )
 

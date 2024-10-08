@@ -1,6 +1,6 @@
 package usecase
 
-import "github.com/metalpoch/olt-blueprint/auth/model"
+import "github.com/metalpoch/olt-blueprint/common/model"
 
 type UserUsecase interface {
 	Create(newUser *model.NewUser) error

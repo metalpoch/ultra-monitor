@@ -6,10 +6,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/metalpoch/olt-blueprint/auth/model"
 	"github.com/metalpoch/olt-blueprint/auth/repository"
 	"github.com/metalpoch/olt-blueprint/auth/utils"
 	"github.com/metalpoch/olt-blueprint/common/entity"
+	"github.com/metalpoch/olt-blueprint/common/model"
 	"gorm.io/gorm"
 )
 

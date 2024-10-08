@@ -19,8 +19,8 @@ type User struct {
 }
 
 type UserResponse struct {
-	Fullname string `bson:"fullname"`
-	P00      uint   `bson:"p00"`
-	Email    string `bson:"email"`
-	Password string `bson:"password"`
+	Fullname string
+	P00      uint
+	Email    string
+	Password string
 }

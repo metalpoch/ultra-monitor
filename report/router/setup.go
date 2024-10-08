@@ -8,4 +8,5 @@ import (
 
 func Setup(server *fiber.App, db *gorm.DB, telegram tracking.Telegram) {
 	newFatRouter(server, db, telegram)
+	newReportRouter(server, db, telegram)
 }

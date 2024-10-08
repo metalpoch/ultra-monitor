@@ -18,6 +18,12 @@ type User struct {
 	IsAdmin        bool   `json:"is_admin"`
 }
 
+type UserLite struct {
+	ID       uint   `json:"p00"`
+	Email    string `json:"email"`
+	Fullname string `json:"fullname"`
+}
+
 type FullUser struct {
 	ID             uint      `json:"p00"`
 	Fullname       string    `json:"fullname"`

@@ -11,3 +11,8 @@ type FatRepository interface {
 	Get(ctx context.Context, id uint) (*entity.Fat, error)
 	Update(ctx context.Context, fat *entity.Fat) error
 }
+
+type ReportRepository interface {
+	Add(ctx context.Context, static *entity.Report) error
+	Get(ctx context.Context, id string) (*entity.Report, error)
+}

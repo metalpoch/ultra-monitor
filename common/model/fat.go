@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/metalpoch/olt-blueprint/common/entity"
+	"gorm.io/gorm"
 )
 
 type Fat struct {
@@ -17,7 +18,7 @@ type Fat struct {
 	InterfaceID uint
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-	DeletedAt   time.Time
+	DeletedAt   gorm.DeletedAt
 }
 
 type NewFat struct {

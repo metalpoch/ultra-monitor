@@ -31,6 +31,22 @@ func FatResponse(f *model.Fat) model.FatResponse {
 		},
 		CreatedAt: f.CreatedAt,
 		UpdatedAt: f.UpdatedAt,
-		DeletedAt: f.DeletedAt,
+		DeletedAt: f.DeletedAt.Time,
+	}
+}
+
+func ReportResponse(rp *model.Report) model.ReportResponse {
+	return model.ReportResponse{
+		Category: rp.Category,
+		Filename: rp.Filename,
+		Filepath: rp.Filepath,
+		User: model.UserLite{
+			ID:       rp.User.ID,
+			Email:    rp.User.Email,
+			Fullname: rp.User.Fullname,
+		},
+		CreatedAt: rp.CreatedAt,
+		UpdatedAt: rp.UpdatedAt,
+		DeletedAt: rp.DeletedAt.Time,
 	}
 }

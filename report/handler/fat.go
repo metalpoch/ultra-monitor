@@ -42,7 +42,7 @@ func (hdlr FatHandler) Add(c fiber.Ctx) error {
 //	@Description	get a fat by id from database
 //	@Tags			fat
 //	@Produce		json
-//	@Success		200	{object}	[]model.FatResponse
+//	@Success		200	{object}	model.FatResponse
 //	@Failure		400	{object}	object{message=string}
 //	@Failure		500	{object}	object{message=string}
 //	@Router			/fat/:id [get]

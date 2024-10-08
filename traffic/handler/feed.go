@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/traffic/usecase"
 	"github.com/metalpoch/olt-blueprint/traffic/utils"
 )
@@ -80,7 +79,7 @@ func (hdlr FeedHandler) GetInterface(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
-	res := utils.InterfaceResponse((*model.Interface)(iface))
+	res := utils.InterfaceResponse(iface)
 
 	return c.JSON(res)
 }

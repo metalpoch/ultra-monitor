@@ -27,7 +27,7 @@ func (use feedUsecase) GetDevice(id uint) (*model.Device, error) {
 	res, err := use.repo.GetDevice(ctx, id)
 	if err != nil {
 		go use.telegram.Notification(
-			constants.MODULE_UPDATE,
+			constants.MODULE_TRAFFIC,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(feedUsecase).GetDevice - use.repo.GetDevice(ctx, %d)", id),
 			err,
@@ -45,7 +45,7 @@ func (use feedUsecase) GetAllDevice() ([]*model.DeviceLite, error) {
 	res, err := use.repo.GetAllDevice(ctx)
 	if err != nil {
 		go use.telegram.Notification(
-			constants.MODULE_UPDATE,
+			constants.MODULE_TRAFFIC,
 			constants.CATEGORY_DATABASE,
 			"(feedUsecase).GetAllDevice - use.repo.GetAllDevice(ctx, %d)",
 			err,
@@ -76,7 +76,7 @@ func (use feedUsecase) GetInterface(id uint) (*model.Interface, error) {
 	res, err := use.repo.GetInterface(ctx, id)
 	if err != nil {
 		go use.telegram.Notification(
-			constants.MODULE_UPDATE,
+			constants.MODULE_TRAFFIC,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(feedUsecase).GetInterface - use.repo.GetInterface(ctx, %d)", id),
 			err,
@@ -87,13 +87,13 @@ func (use feedUsecase) GetInterface(id uint) (*model.Interface, error) {
 	return (*model.Interface)(res), err
 }
 
-func (use feedUsecase) GetInterfacesByDevice(id uint) ([]*model.InterfaceWithoutDevice, error) {
+func (use feedUsecase) GetInterfacesByDevice(id uint) ([]*model.InterfaceLite, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	res, err := use.repo.GetInterfacesByDevice(ctx, id)
 	if err != nil {
 		go use.telegram.Notification(
-			constants.MODULE_UPDATE,
+			constants.MODULE_TRAFFIC,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(feedUsecase).GetInterface - use.repo.GetInterface(ctx, %d)", id),
 			err,
@@ -101,9 +101,9 @@ func (use feedUsecase) GetInterfacesByDevice(id uint) ([]*model.InterfaceWithout
 		return nil, err
 	}
 
-	var interfaces []*model.InterfaceWithoutDevice
+	var interfaces []*model.InterfaceLite
 	for _, i := range res {
-		interfaces = append(interfaces, &model.InterfaceWithoutDevice{
+		interfaces = append(interfaces, &model.InterfaceLite{
 			ID:        i.ID,
 			IfIndex:   i.IfIndex,
 			IfName:    i.IfName,

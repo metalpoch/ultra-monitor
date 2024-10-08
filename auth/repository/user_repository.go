@@ -16,10 +16,7 @@ func NewUserRepository(db *gorm.DB) *userRepository {
 }
 
 func (repo userRepository) Create(ctx context.Context, user *entity.User) error {
-	if err := repo.db.WithContext(ctx).Create(&user).Error; err != nil {
-		return err
-	}
-	return nil
+	return repo.db.WithContext(ctx).Create(&user).Error
 }
 
 func (repo userRepository) GetAll(ctx context.Context) ([]*entity.User, error) {
@@ -33,7 +30,7 @@ func (repo userRepository) GetAll(ctx context.Context) ([]*entity.User, error) {
 
 func (repo userRepository) GetUserByID(ctx context.Context, id uint) (*entity.User, error) {
 	u := new(entity.User)
-	if err := repo.db.WithContext(ctx).Find(&u, "id=?", id).Error; err != nil {
+	if err := repo.db.WithContext(ctx).Find(&u, "id = ?", id).Error; err != nil {
 		return nil, err
 	}
 	return u, nil
@@ -41,7 +38,7 @@ func (repo userRepository) GetUserByID(ctx context.Context, id uint) (*entity.Us
 
 func (repo userRepository) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
 	u := new(entity.User)
-	if err := repo.db.WithContext(ctx).Find(&u, "email=?", email).Error; err != nil {
+	if err := repo.db.WithContext(ctx).Find(&u, "email = ?", email).Error; err != nil {
 		return nil, err
 	}
 
@@ -49,17 +46,9 @@ func (repo userRepository) GetUserByEmail(ctx context.Context, email string) (*e
 }
 
 func (repo userRepository) SoftDelete(ctx context.Context, id uint) error {
-	u := new(entity.User)
-	if err := repo.db.Find(&u, "id=?", id).Error; err != nil {
-		return err
-	}
-
-	if err := repo.db.WithContext(ctx).Delete(&u).Error; err != nil {
-		return err
-	}
-	return nil
+	return repo.db.WithContext(ctx).Delete(&entity.User{}, id).Error
 }
 
 func (repo userRepository) ChangePassword(ctx context.Context, id uint, password string) error {
-	return repo.db.Model(&entity.User{}).Where("id = ?", id).Update("password", password).Error
+	return repo.db.WithContext(ctx).Model(&entity.User{}).Where("id = ?", id).Update("password", password).Error
 }

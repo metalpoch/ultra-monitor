@@ -27,10 +27,10 @@ func (use reportUsecase) Add(rp *model.NewReport) (string, error) {
 	defer cancel()
 
 	newReport := &entity.Report{
-		UserID:   rp.UserID,
-		Category: rp.Category,
-		Filename: rp.Filename,
-		Filepath: constants.BASE_FILEPATH,
+		UserID:           rp.UserID,
+		Category:         rp.Category,
+		ContentType:      rp.File.Header.Get("Content-Type"),
+		OriginalFilename: rp.File.Filename,
 	}
 	err := use.repo.Add(ctx, newReport)
 	if err != nil {
@@ -54,10 +54,61 @@ func (use reportUsecase) Get(id string) (*model.Report, error) {
 		go use.telegram.Notification(
 			constants.MODULE_REPORT,
 			constants.CATEGORY_DATABASE,
-			fmt.Sprintf("(feedUsecase).GetDevice - use.repo.GetDevice(ctx, %s)", id),
+			fmt.Sprintf("(reportUsecase).Get - use.repo.Get(ctx, %s)", id),
 			err,
 		)
 		return nil, err
 	}
 	return (*model.Report)(res), nil
+}
+
+func (use reportUsecase) GetReports(query *model.FindReports) ([]*model.ReportResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetReports(ctx, query.Category, query.UserID)
+	if err != nil {
+		go use.telegram.Notification(
+			constants.MODULE_REPORT,
+			constants.CATEGORY_DATABASE,
+			"(reportUsecase).GetReports - use.repo.GetReports(ctx, %s)",
+			err,
+		)
+	}
+
+	var reports []*model.ReportResponse
+	for _, e := range res {
+		reports = append(reports, &model.ReportResponse{
+			Category:         e.Category,
+			OriginalFilename: e.OriginalFilename,
+			ContentType:      e.ContentType,
+			Filepath:         e.Filepath,
+			CreatedAt:        e.CreatedAt,
+			UpdatedAt:        e.UpdatedAt,
+			DeletedAt:        e.DeletedAt.Time,
+			User: model.UserLite{
+				ID:       e.User.ID,
+				Email:    e.User.Email,
+				Fullname: e.User.Fullname,
+			},
+		})
+	}
+	return reports, err
+}
+
+func (use reportUsecase) GetCategories() ([]*string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetCategories(ctx)
+	if err != nil {
+		go use.telegram.Notification(
+			constants.MODULE_REPORT,
+			constants.CATEGORY_DATABASE,
+			"(reportUsecase).GetCategories - use.repo.GetCategories(ctx, %s)",
+			err,
+		)
+	}
+
+	return res, err
 }

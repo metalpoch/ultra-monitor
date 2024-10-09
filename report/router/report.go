@@ -14,5 +14,8 @@ func newReportRouter(server *fiber.App, db *gorm.DB, telegram tracking.Telegram)
 	}
 
 	server.Post("/report/", hdlr.Add)
+	server.Get("/reports/", hdlr.GetReports)
+	server.Get("/report/categories/", hdlr.GetCategories)
 	server.Get("/report/:id", hdlr.Get)
+	server.Get("/report/download/:id", hdlr.Download)
 }

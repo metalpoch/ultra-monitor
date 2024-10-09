@@ -37,9 +37,9 @@ func FatResponse(f *model.Fat) model.FatResponse {
 
 func ReportResponse(rp *model.Report) model.ReportResponse {
 	return model.ReportResponse{
-		Category: rp.Category,
-		Filename: rp.Filename,
-		Filepath: rp.Filepath,
+		Category:         rp.Category,
+		OriginalFilename: rp.OriginalFilename,
+		Filepath:         rp.Filepath,
 		User: model.UserLite{
 			ID:       rp.User.ID,
 			Email:    rp.User.Email,

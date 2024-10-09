@@ -10,4 +10,6 @@ type FatUsecase interface {
 type ReportUsecase interface {
 	Add(rp *model.NewReport) (string, error)
 	Get(id string) (*model.Report, error)
+	GetReports(query *model.FindReports) ([]*model.ReportResponse, error)
+	GetCategories() ([]*string, error)
 }

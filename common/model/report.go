@@ -10,30 +10,38 @@ import (
 )
 
 type Report struct {
-	ID        uuid.UUID
-	Category  string
-	Filename  string
-	Filepath  string
-	User      entity.User
-	UserID    uint
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt
+	ID               uuid.UUID
+	Category         string
+	OriginalFilename string
+	ContentType      string
+	Filepath         string
+	User             entity.User
+	UserID           uint
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	DeletedAt        gorm.DeletedAt
 }
 
 type NewReport struct {
-	Category string `form:"category"`
-	UserID   uint   `form:"user_id"`
-	Filename string
-	File     *multipart.FileHeader `form:"file"`
+	Category         string `form:"category"`
+	UserID           uint   `form:"user_id"`
+	OriginalFilename string
+	ContentType      string
+	File             *multipart.FileHeader `form:"file"`
+}
+
+type FindReports struct {
+	UserID   uint   `query:"user_id"`
+	Category string `query:"category"`
 }
 
 type ReportResponse struct {
-	Category  string
-	Filename  string
-	Filepath  string
-	User      UserLite
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt time.Time
+	Category         string
+	OriginalFilename string
+	ContentType      string
+	Filepath         string
+	User             UserLite
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	DeletedAt        time.Time
 }

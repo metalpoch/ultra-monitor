@@ -15,4 +15,6 @@ type FatRepository interface {
 type ReportRepository interface {
 	Add(ctx context.Context, static *entity.Report) error
 	Get(ctx context.Context, id string) (*entity.Report, error)
+	GetReports(ctx context.Context, category string, user_id uint) ([]*entity.Report, error)
+	GetCategories(ctx context.Context) ([]*string, error)
 }

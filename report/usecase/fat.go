@@ -10,6 +10,7 @@ import (
 	"github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
 	"github.com/metalpoch/olt-blueprint/report/repository"
+	"github.com/metalpoch/olt-blueprint/report/utils"
 	"gorm.io/gorm"
 )
 
@@ -53,15 +54,53 @@ func (use fatUsecase) Get(id uint) (*model.Fat, error) {
 	defer cancel()
 
 	res, err := use.repo.Get(ctx, id)
-	if err != nil {
+	if err != nil && err != gorm.ErrRecordNotFound {
 		go use.telegram.Notification(
 			constants.MODULE_REPORT,
 			constants.CATEGORY_DATABASE,
-			fmt.Sprintf("(feedUsecase).GetDevice - use.repo.GetDevice(ctx, %d)", id),
+			fmt.Sprintf("(fatUsecase).Get - use.repo.Get(ctx, %d)", id),
 			err,
 		)
 		return nil, err
 	}
 
 	return (*model.Fat)(res), nil
+}
+
+func (use fatUsecase) GetAll() ([]model.FatResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetAll(ctx)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		go use.telegram.Notification(
+			constants.MODULE_REPORT,
+			constants.CATEGORY_DATABASE,
+			"(fatUsecase).GetAll - use.repo.GetAll(ctx)",
+			err,
+		)
+		return nil, err
+	}
+	var fats []model.FatResponse
+	for _, e := range res {
+		fats = append(fats, utils.FatResponse((*model.Fat)(e)))
+	}
+	return fats, err
+}
+
+func (use fatUsecase) Delete(id uint) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err := use.repo.Delete(ctx, id)
+	if err != nil {
+		go use.telegram.Notification(
+			constants.MODULE_REPORT,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(fatUsecase).Delete - use.repo.Delete(ctx, %d)", id),
+			err,
+		)
+	}
+
+	return err
 }

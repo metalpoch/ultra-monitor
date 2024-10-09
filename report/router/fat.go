@@ -14,5 +14,7 @@ func newFatRouter(server *fiber.App, db *gorm.DB, telegram tracking.Telegram) {
 	}
 
 	server.Post("/fat/", hdlr.Add)
+	server.Get("/fat/", hdlr.GetAll)
+	server.Delete("/fat/:id", hdlr.Delete)
 	server.Get("/fat/:id", hdlr.Get)
 }

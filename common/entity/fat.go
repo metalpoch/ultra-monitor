@@ -2,8 +2,6 @@ package entity
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type Fat struct {
@@ -17,5 +15,4 @@ type Fat struct {
 	InterfaceID uint
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-	DeletedAt   gorm.DeletedAt
 }

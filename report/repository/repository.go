@@ -9,7 +9,8 @@ import (
 type FatRepository interface {
 	Add(ctx context.Context, fat *entity.Fat) error
 	Get(ctx context.Context, id uint) (*entity.Fat, error)
-	Update(ctx context.Context, fat *entity.Fat) error
+	Delete(ctx context.Context, id uint) error
+	GetAll(ctx context.Context) ([]*entity.Fat, error)
 }
 
 type ReportRepository interface {

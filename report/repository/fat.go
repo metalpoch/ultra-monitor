@@ -25,6 +25,12 @@ func (repo fatRepository) Get(ctx context.Context, id uint) (*entity.Fat, error)
 	return f, err
 }
 
-func (repo fatRepository) Update(ctx context.Context, fat *entity.Fat) error {
-	return repo.db.WithContext(ctx).Save(fat).Error
+func (repo fatRepository) GetAll(ctx context.Context) ([]*entity.Fat, error) {
+	var f []*entity.Fat
+	err := repo.db.WithContext(ctx).Preload("Interface").Preload("Interface.Device").Find(&f).Error
+	return f, err
+}
+
+func (repo fatRepository) Delete(ctx context.Context, id uint) error {
+	return repo.db.WithContext(ctx).Where("id = ?", id).Delete(&entity.Fat{}).Error
 }

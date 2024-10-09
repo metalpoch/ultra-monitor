@@ -31,7 +31,6 @@ func FatResponse(f *model.Fat) model.FatResponse {
 		},
 		CreatedAt: f.CreatedAt,
 		UpdatedAt: f.UpdatedAt,
-		DeletedAt: f.DeletedAt.Time,
 	}
 }
 

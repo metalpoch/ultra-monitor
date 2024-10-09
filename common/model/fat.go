@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/metalpoch/olt-blueprint/common/entity"
-	"gorm.io/gorm"
 )
 
 type Fat struct {
@@ -18,7 +17,6 @@ type Fat struct {
 	InterfaceID uint
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-	DeletedAt   gorm.DeletedAt
 }
 
 type NewFat struct {
@@ -41,14 +39,4 @@ type FatResponse struct {
 	Device    DeviceLite    `json:"device"`
 	CreatedAt time.Time     `json:"created_at"`
 	UpdatedAt time.Time     `json:"updated_at"`
-	DeletedAt time.Time     `json:"deleted_at"`
 }
-
-// `json:"id"`
-// `json:"ip"`
-// `json:"sysname"`
-// `json:"syslocation"`
-// `json:"is_alive"`
-// `json:"last_check"`
-// `json:"created_at"`
-// `json:"updated_at"`

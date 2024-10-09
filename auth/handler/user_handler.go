@@ -3,11 +3,9 @@ package handler
 import (
 	"net/http"
 
-	//"strconv"
-
 	"github.com/gofiber/fiber/v3"
-	"github.com/metalpoch/olt-blueprint/auth/model"
 	"github.com/metalpoch/olt-blueprint/auth/usecase"
+	"github.com/metalpoch/olt-blueprint/common/model"
 )
 
 type UserHandler struct {

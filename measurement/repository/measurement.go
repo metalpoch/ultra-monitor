@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"github.com/metalpoch/olt-blueprint/measurement/constants"
-	"github.com/metalpoch/olt-blueprint/measurement/entity"
+	"github.com/metalpoch/olt-blueprint/common/constants"
+	"github.com/metalpoch/olt-blueprint/common/entity"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )

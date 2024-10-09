@@ -3,23 +3,26 @@ package usecase
 import (
 	"context"
 	"errors"
-	"log"
+	"fmt"
 	"time"
 
-	"github.com/metalpoch/olt-blueprint/auth/entity"
-	"github.com/metalpoch/olt-blueprint/auth/model"
 	"github.com/metalpoch/olt-blueprint/auth/repository"
 	"github.com/metalpoch/olt-blueprint/auth/utils"
+	"github.com/metalpoch/olt-blueprint/common/constants"
+	"github.com/metalpoch/olt-blueprint/common/entity"
+	"github.com/metalpoch/olt-blueprint/common/model"
+	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
 	"gorm.io/gorm"
 )
 
 type userUsecase struct {
-	secret []byte
-	repo   repository.UserRepository
+	secret   []byte
+	telegram tracking.Telegram
+	repo     repository.UserRepository
 }
 
-func NewUserUsecase(db *gorm.DB, secret []byte) *userUsecase {
-	return &userUsecase{secret, repository.NewUserRepository(db)}
+func NewUserUsecase(db *gorm.DB, secret []byte, telegram tracking.Telegram) *userUsecase {
+	return &userUsecase{secret, telegram, repository.NewUserRepository(db)}
 }
 
 func (use userUsecase) Create(newUser *model.NewUser) error {
@@ -31,6 +34,12 @@ func (use userUsecase) Create(newUser *model.NewUser) error {
 	}
 	password, err := utils.HashPassword(newUser.Password)
 	if err != nil {
+		go use.telegram.Notification(
+			constants.MODULE_AUTH,
+			constants.CATEGORY_UTILS,
+			fmt.Sprintf("(userUsecase).Create - utils.HashPassword(%s)", newUser.Password),
+			err,
+		)
 		return err
 	}
 
@@ -44,6 +53,12 @@ func (use userUsecase) Create(newUser *model.NewUser) error {
 	}
 
 	if err := use.repo.Create(ctx, user); err != nil {
+		go use.telegram.Notification(
+			constants.MODULE_AUTH,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(userUsecase).Create - use.repo.Create(ctx, %v)", user),
+			err,
+		)
 		return err
 	}
 
@@ -56,17 +71,33 @@ func (use userUsecase) Login(email string, password string) (*model.LoginRespons
 
 	res, err := use.repo.GetUserByEmail(ctx, email)
 	if err != nil {
-		log.Println("An error has occurred:", err.Error())
+		go use.telegram.Notification(
+			constants.MODULE_AUTH,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(userUsecase).Login - use.repo.GetUserByEmail(ctx, %s)", email),
+			err,
+		)
 		return nil, errors.New("invalid email or password")
 	}
 
 	if err := utils.CheckPasswordHash(password, res.Password); err != nil {
+		go use.telegram.Notification(
+			constants.MODULE_AUTH,
+			constants.CATEGORY_UTILS,
+			fmt.Sprintf("(userUsecase).Login - utils.CheckPasswordHash(%s, %s)", password, res.Password),
+			err,
+		)
 		return nil, errors.New("invalid email or password")
 	}
 
 	token, err := utils.CreateJWT(use.secret, res.ID, res.IsAdmin)
 	if err != nil {
-		log.Println("An error has occurred:", err.Error())
+		go use.telegram.Notification(
+			constants.MODULE_AUTH,
+			constants.CATEGORY_UTILS,
+			fmt.Sprintf("(userUsecase).Login - utils.CreateJWT(%x, %d, %t)", use.secret, res.ID, res.IsAdmin),
+			err,
+		)
 		return nil, err
 	}
 
@@ -88,6 +119,12 @@ func (use userUsecase) GetUser(id uint) (*model.User, error) {
 
 	res, err := use.repo.GetUserByID(ctx, id)
 	if err != nil {
+		go use.telegram.Notification(
+			constants.MODULE_AUTH,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(userUsecase).GetUser - use.repo.GetUserByID(ctx, %d)", id),
+			err,
+		)
 		return nil, err
 	}
 
@@ -107,6 +144,12 @@ func (use userUsecase) GetAllUsers() ([]*model.FullUser, error) {
 
 	res, err := use.repo.GetAll(ctx)
 	if err != nil {
+		go use.telegram.Notification(
+			constants.MODULE_AUTH,
+			constants.CATEGORY_DATABASE,
+			"(userUsecase).GetAllUsers - use.repo.GetAll(ctx)",
+			err,
+		)
 		return nil, err
 	}
 
@@ -130,6 +173,12 @@ func (use userUsecase) SoftDelete(id uint) error {
 	defer cancel()
 
 	if err := use.repo.SoftDelete(ctx, id); err != nil {
+		go use.telegram.Notification(
+			constants.MODULE_AUTH,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(userUsecase).SoftDelete - use.repo.SoftDelete(ctx, %d)", id),
+			err,
+		)
 		return err
 	}
 	return nil
@@ -141,10 +190,22 @@ func (use userUsecase) ChangePassword(id uint, user *model.ChangePassword) error
 
 	res, err := use.repo.GetUserByID(ctx, id)
 	if err != nil {
+		go use.telegram.Notification(
+			constants.MODULE_AUTH,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(userUsecase).ChangePassword - use.repo.GetUserByID(ctx, %d)", id),
+			err,
+		)
 		return err
 	}
 
 	if err := utils.CheckPasswordHash(user.Password, res.Password); err != nil {
+		go use.telegram.Notification(
+			constants.MODULE_AUTH,
+			constants.CATEGORY_UTILS,
+			fmt.Sprintf("(userUsecase).ChangePassword - utils.CheckPasswordHash(%s, %s)", user.Password, res.Password),
+			err,
+		)
 		return errors.New("invalid password")
 	}
 
@@ -158,7 +219,12 @@ func (use userUsecase) ChangePassword(id uint, user *model.ChangePassword) error
 	}
 
 	if err := use.repo.ChangePassword(ctx, id, password); err != nil {
-		log.Println("An error has occurred:", err.Error())
+		go use.telegram.Notification(
+			constants.MODULE_AUTH,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(userUsecase).ChangePassword - use.repo.ChangePassword(ctx, %d, %s)", id, password),
+			err,
+		)
 		return err
 	}
 	return nil

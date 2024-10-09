@@ -3,8 +3,7 @@ package database
 import (
 	"log"
 
-	authEntity "github.com/metalpoch/olt-blueprint/auth/entity"
-	measurementEntity "github.com/metalpoch/olt-blueprint/measurement/entity"
+	"github.com/metalpoch/olt-blueprint/common/entity"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -27,12 +26,14 @@ func Connect(uri string, isProduction bool) *gorm.DB {
 		log.Fatalln(err)
 	}
 	if err := db.AutoMigrate(
-		authEntity.User{},
-		measurementEntity.Template{},
-		measurementEntity.Device{},
-		measurementEntity.Interface{},
-		measurementEntity.Traffic{},
-		measurementEntity.Measurement{},
+		entity.User{},
+		entity.Template{},
+		entity.Device{},
+		entity.Interface{},
+		entity.Traffic{},
+		entity.Measurement{},
+		entity.Fat{},
+		entity.Report{},
 	); err != nil {
 		log.Fatalln(err)
 	}

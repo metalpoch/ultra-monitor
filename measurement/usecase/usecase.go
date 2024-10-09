@@ -1,7 +1,8 @@
 package usecase
 
 import (
-	"github.com/metalpoch/olt-blueprint/measurement/model"
+	"github.com/metalpoch/olt-blueprint/common/model"
+	commonModel "github.com/metalpoch/olt-blueprint/measurement/model"
 )
 
 type TemplateUsecase interface {
@@ -12,26 +13,7 @@ type TemplateUsecase interface {
 	Delete(id uint) error
 }
 
-type DeviceUsecase interface {
-	Add(device *model.AddDevice) error
-	Check(device *model.Device) error
-	GetAll() ([]*model.Device, error)
-	GetDeviceWithOIDRows() ([]*model.DeviceWithOID, error)
-	Update(id uint, device *model.AddDevice) error
-	Delete(id uint) error
-}
-
-type InterfaceUsecase interface {
-	Upsert(element *model.Interface) error
-	GetAll() ([]*model.Interface, error)
-	GetAllByDevice(id uint) ([]*model.Interface, error)
-}
-
 type MeasurementUsecase interface {
-	Get(id uint) (*model.Measurement, error)
-	Upsert(measurement *model.Measurement) error
-}
-
-type TrafficUsecase interface {
-	Add(measurement *model.Traffic) error
+	Get(id uint) (*commonModel.Measurement, error)
+	Upsert(measurement *commonModel.Measurement) error
 }

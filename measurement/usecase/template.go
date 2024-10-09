@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/metalpoch/olt-blueprint/common/constants"
+	"github.com/metalpoch/olt-blueprint/common/entity"
+	"github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
-	"github.com/metalpoch/olt-blueprint/measurement/entity"
-	"github.com/metalpoch/olt-blueprint/measurement/model"
 	"github.com/metalpoch/olt-blueprint/measurement/repository"
 	"gorm.io/gorm"
 )
@@ -27,13 +27,10 @@ func (use templateUsecase) Add(template *model.AddTemplate) error {
 	defer cancel()
 
 	newTemplate := entity.Template{
-		Name:      template.Name,
-		OidBw:     template.OidBw,
-		OidIn:     template.OidIn,
-		OidOut:    template.OidOut,
-		PrefixBw:  template.PrefixBw,
-		PrefixIn:  template.PrefixIn,
-		PrefixOut: template.PrefixOut,
+		Name:   template.Name,
+		OidBw:  template.OidBw,
+		OidIn:  template.OidIn,
+		OidOut: template.OidOut,
 	}
 
 	err := use.repo.Add(ctx, newTemplate)
@@ -127,9 +124,6 @@ func (use templateUsecase) GetByID(id uint) (model.Template, error) {
 		OidBw:     e.OidBw,
 		OidIn:     e.OidIn,
 		OidOut:    e.OidOut,
-		PrefixBw:  e.PrefixBw,
-		PrefixIn:  e.PrefixIn,
-		PrefixOut: e.PrefixOut,
 		CreatedAt: e.CreatedAt,
 		UpdatedAt: e.UpdatedAt,
 	}, err
@@ -158,9 +152,6 @@ func (use templateUsecase) GetAll() ([]model.Template, error) {
 			OidBw:     e.OidBw,
 			OidIn:     e.OidIn,
 			OidOut:    e.OidOut,
-			PrefixBw:  e.PrefixBw,
-			PrefixIn:  e.PrefixIn,
-			PrefixOut: e.PrefixOut,
 			CreatedAt: e.CreatedAt,
 			UpdatedAt: e.UpdatedAt,
 		})

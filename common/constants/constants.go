@@ -16,13 +16,16 @@ const (
 )
 
 const (
-	MODULE_UPDATE      string = "Update"
-	MODULE_AUTH        string = "Auth"
-	MODULE_REPORT      string = "Report"
-	MODULE_MEASUREMENT string = "Measurement"
+	MODULE_UPDATE  string = "Measurement"
+	MODULE_AUTH    string = "Auth"
+	MODULE_REPORT  string = "Report"
+	MODULE_TRAFFIC string = "Traffic"
 )
 
 const (
 	CATEGORY_SNMP     string = "SNMP"
 	CATEGORY_DATABASE string = "Database"
+	CATEGORY_UTILS    string = "Utilities"
 )
+
+const BASE_FILEPATH string = "./report/data/"

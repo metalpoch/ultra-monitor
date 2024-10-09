@@ -6,9 +6,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
+	commonUsecase "github.com/metalpoch/olt-blueprint/common/usecase"
 	"github.com/metalpoch/olt-blueprint/measurement/constants"
-	"github.com/metalpoch/olt-blueprint/measurement/model"
 	"github.com/metalpoch/olt-blueprint/measurement/pkg/snmp"
 	"github.com/metalpoch/olt-blueprint/measurement/usecase"
 	"github.com/metalpoch/olt-blueprint/measurement/utils"
@@ -17,13 +18,13 @@ import (
 
 type trafficController struct {
 	Measurement usecase.MeasurementUsecase
-	Traffic     usecase.TrafficUsecase
+	Traffic     commonUsecase.TrafficUsecase
 }
 
 func newTrafficController(db *gorm.DB, telegram tracking.Telegram) *trafficController {
 	return &trafficController{
 		Measurement: *usecase.NewMeasurementUsecase(db, telegram),
-		Traffic:     *usecase.NewTrafficUsecase(db, telegram),
+		Traffic:     *commonUsecase.NewTrafficUsecase(db, telegram),
 	}
 }
 
@@ -54,39 +55,45 @@ func measurements(db *gorm.DB, telegram tracking.Telegram, device *model.DeviceW
 	trafficUsecase := newTrafficController(db, telegram).Traffic
 	var (
 		err error
+		mu  sync.Mutex
 		wg  sync.WaitGroup
 	)
 
-	result := model.MapSnmp{
-		"bw":      model.Snmp{},
-		"in":      model.Snmp{},
-		"out":     model.Snmp{},
-		"ifname":  model.Snmp{},
-		"ifdescr": model.Snmp{},
-		"ifalias": model.Snmp{},
+	result := snmp.MapSnmp{
+		"bw":      snmp.Snmp{},
+		"in":      snmp.Snmp{},
+		"out":     snmp.Snmp{},
+		"ifname":  snmp.Snmp{},
+		"ifdescr": snmp.Snmp{},
+		"ifalias": snmp.Snmp{},
 	}
 
 	oidMap := map[string]string{
-		"bw":      constants.IF_HIGH_SPEED_OID,
+		"bw":      device.OidBw,
 		"in":      device.OidIn,
 		"out":     device.OidOut,
 		"ifalias": constants.IF_ALIAS_OID,
 		"ifdescr": constants.IF_DESCR_OID,
 		"ifname":  constants.IF_NAME_OID,
 	}
+
 	date := time.Now()
 	for name, oid := range oidMap {
 		wg.Add(1)
-		go func(oid string) {
+		go func(f, oid string) {
 			defer wg.Done()
 			res, errSnmp := snmp.Walk(device.IP, device.Community, oid)
 			if errSnmp != nil {
+				mu.Lock()
 				err = errSnmp
+				mu.Unlock()
 				return
 			}
-			result[name] = res
+			mu.Lock()
+			result[f] = res
+			mu.Unlock()
 
-		}(oid)
+		}(name, oid)
 	}
 	wg.Wait()
 
@@ -135,7 +142,7 @@ func measurements(db *gorm.DB, telegram tracking.Telegram, device *model.DeviceW
 			In:          utils.BytesToBbps(old_m.In, m.In, diffTime),
 			Out:         utils.BytesToBbps(old_m.Out, m.Out, diffTime),
 		}); err != nil {
-			log.Println("error guardando el trafico:", err.Error())
+			log.Println("error saving the traffic:", err.Error())
 		}
 	}
 	return nil

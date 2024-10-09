@@ -1,16 +1,19 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"os"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v3"
-	"github.com/metalpoch/olt-blueprint/auth/entity"
+
+	"github.com/gofiber/fiber/v3/middleware/logger"
+
 	"github.com/metalpoch/olt-blueprint/auth/router"
 	"github.com/metalpoch/olt-blueprint/common/database"
 	"github.com/metalpoch/olt-blueprint/common/model"
+	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
 )
 
 var cfg model.Config
@@ -30,13 +33,19 @@ func init() {
 }
 
 func main() {
+	telegram := tracking.Telegram{
+		BotID:  cfg.TelegramBotTokenID,
+		ChatID: cfg.TelegramChatID,
+	}
+
 	db := database.Connect(cfg.DatabaseURI, cfg.IsProduction)
-	db.AutoMigrate(entity.User{})
 	server := fiber.New(fiber.Config{
 		StructValidator: &model.StructValidator{Validator: validator.New()},
+		JSONEncoder:     json.Marshal,
+		JSONDecoder:     json.Unmarshal,
 	})
 
-	router.Setup(server, db, []byte(cfg.SecretKey))
-
+	server.Use(logger.New())
+	router.Setup(server, db, []byte(cfg.SecretKey), telegram)
 	server.Listen(":3000")
 }

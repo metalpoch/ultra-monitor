@@ -5,9 +5,9 @@ import (
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/metalpoch/olt-blueprint/common/constants"
+	"github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
-	"github.com/metalpoch/olt-blueprint/measurement/model"
-	"github.com/metalpoch/olt-blueprint/measurement/usecase"
+	"github.com/metalpoch/olt-blueprint/common/usecase"
 	"gorm.io/gorm"
 )
 

@@ -2,17 +2,25 @@ package snmp
 
 import (
 	"errors"
-	"log"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gosnmp/gosnmp"
 	"github.com/metalpoch/olt-blueprint/measurement/constants"
-	"github.com/metalpoch/olt-blueprint/measurement/model"
 )
 
-func GetInfo(ip, community string) (model.SnmpInfo, error) {
+type SnmpInfo struct {
+	SysName     string
+	SysLocation string
+}
+
+type Snmp map[int]interface{}
+
+type MapSnmp map[string]Snmp
+
+func GetInfo(ip, community string) (SnmpInfo, error) {
 	query := gosnmp.GoSNMP{
 		Target:             ip,
 		Community:          community,
@@ -26,16 +34,16 @@ func GetInfo(ip, community string) (model.SnmpInfo, error) {
 	}
 	err := query.Connect()
 	if err != nil {
-		log.Fatalf("Connect() err: %v", err)
+		return SnmpInfo{}, fmt.Errorf("error on try connect to device: %v", err)
 	}
 	defer query.Conn.Close()
 
 	result, err := query.Get([]string{constants.SYSNAME_OID, constants.SYSLOCATION_OID})
 	if err != nil {
-		return model.SnmpInfo{}, err
+		return SnmpInfo{}, err
 	}
 
-	info := model.SnmpInfo{
+	info := SnmpInfo{
 		SysName:     string(result.Variables[0].Value.([]byte)),
 		SysLocation: string(result.Variables[1].Value.([]byte)),
 	}
@@ -43,8 +51,8 @@ func GetInfo(ip, community string) (model.SnmpInfo, error) {
 	return info, nil
 }
 
-func Walk(ip, community, oid string) (model.Snmp, error) {
-	result := model.Snmp{}
+func Walk(ip, community, oid string) (Snmp, error) {
+	result := Snmp{}
 	query := gosnmp.GoSNMP{
 		Target:             ip,
 		Community:          community,
@@ -58,7 +66,7 @@ func Walk(ip, community, oid string) (model.Snmp, error) {
 	}
 	err := query.Connect()
 	if err != nil {
-		log.Fatalf("Connect() err: %v", err)
+		return nil, fmt.Errorf("error on try connect to device: %v", err)
 	}
 	defer query.Conn.Close()
 

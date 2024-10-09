@@ -43,3 +43,16 @@ func (repo trafficRepository) GetTrafficByDevice(ctx context.Context, id uint, d
 		Error
 	return traffic, err
 }
+
+func (repo trafficRepository) GetTrafficByFat(ctx context.Context, id uint, date *model.TranficRangeDate) ([]*entity.Traffic, error) {
+	var traffic []*entity.Traffic
+	err := repo.db.WithContext(ctx).
+		Select("date, \"in\", out, bandwidth").
+		Where("date BETWEEN ? AND ?", date.InitDate, date.EndDate).
+		Joins("JOIN fats ON fats.interface_id = traffics.interface_id").
+		Where("fats.id = ?", id).
+		Order("date").
+		Find(&traffic).
+		Error
+	return traffic, err
+}

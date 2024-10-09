@@ -93,3 +93,31 @@ func (use trafficUsecase) GetTrafficByDevice(id uint, date *model.TranficRangeDa
 
 	return traffics, err
 }
+
+func (use trafficUsecase) GetTrafficByFat(id uint, date *model.TranficRangeDate) ([]*model.TrafficResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetTrafficByFat(ctx, id, date)
+	if err != nil {
+		go use.telegram.Notification(
+			constants.MODULE_UPDATE,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(trafficUsecase).GetTrafficByFat - use.repo.GetTrafficByFat(ctx, %d, %v)", id, date),
+			err,
+		)
+		return nil, err
+	}
+
+	traffics := []*model.TrafficResponse{}
+	for _, e := range res {
+		traffics = append(traffics, &model.TrafficResponse{
+			Date:      e.Date,
+			Bandwidth: e.Bandwidth,
+			In:        e.In,
+			Out:       e.Out,
+		})
+	}
+
+	return traffics, err
+}

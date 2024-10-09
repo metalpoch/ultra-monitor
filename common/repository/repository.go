@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/metalpoch/olt-blueprint/common/entity"
-	"github.com/metalpoch/olt-blueprint/common/model"
 )
 
 type DeviceRepository interface {
@@ -26,7 +25,4 @@ type InterfaceRepository interface {
 
 type TrafficRepository interface {
 	Add(ctx context.Context, traffic *entity.Traffic) error
-	GetTrafficByInterface(ctx context.Context, id uint, date *model.TranficRangeDate) ([]*entity.Traffic, error)
-	GetTrafficByDevice(ctx context.Context, id uint, date *model.TranficRangeDate) ([]*entity.Traffic, error)
-	GetTrafficByFat(ctx context.Context, id uint, date *model.TranficRangeDate) ([]*entity.Traffic, error)
 }

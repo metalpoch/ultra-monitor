@@ -6,7 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/metalpoch/olt-blueprint/common/model"
-	"github.com/metalpoch/olt-blueprint/common/usecase"
+	"github.com/metalpoch/olt-blueprint/traffic/usecase"
 )
 
 type TrafficHandler struct {

@@ -8,3 +8,9 @@ type FeedUsecase interface {
 	GetInterface(id uint) (*model.Interface, error)
 	GetInterfacesByDevice(id uint) ([]*model.InterfaceLite, error)
 }
+
+type TrafficUsecase interface {
+	GetTrafficByInterface(id uint, date *model.TranficRangeDate) ([]*model.TrafficResponse, error)
+	GetTrafficByDevice(id uint, date *model.TranficRangeDate) ([]*model.TrafficResponse, error)
+	GetTrafficByFat(id uint, date *model.TranficRangeDate) ([]*model.TrafficResponse, error)
+}

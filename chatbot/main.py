@@ -1,36 +1,43 @@
 import os
 
-from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException
 import uvicorn
 
 from database import postgres
 from utils import ollama, text
-
-
-class Sql(BaseModel):
-    """Request class."""
-
-    text: str
+from models import request
 
 
 app = FastAPI()
 
 
 @app.post("/")
-async def create_item(sql: Sql):
+async def create_item(sql: request.Sql):
     """Main function."""
-    promp = text.union_string(sql.text, schema)
-    ia = ollama.chatbot(promp)
-    resust = text.sql_extract(ia)
-    temp = postgres.execute_sql(resust)
-    return {"pregunta": resust, "respuesta": temp}
+    try:
+        if not sql.text:
+            raise ValueError("Para continuar debe ingresar un valor")
+        else:
+            if not schema:
+                raise ValueError("Schema empty")
+            else:
+                newschema = text.Delete_table(schema,'users')
+                promp = text.Union_string(sql.text, newschema)
+                ia = ollama.Chatbot(promp)
+                resust = text.Sql_extract(ia)
+                temp = postgres.SQL_exe(resust)
+                #Esta funcion es la encargada de borrar una tabla en especifico del schema, es generico. se debe colocar el nombre exacto de la 
+                #tabla a eliminar, por ahora esta en prueba
+                #temp=text.Delete_table(schema,'clientes')
+                return {"pregunta": resust, "respuesta": temp}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail= str(e))
 
 
 if __name__ == "__main__":
     try:
         if os.getenv('URI'):
-            schema = postgres.get_database_schema()
+            schema = postgres.Get_schema()
             uvicorn.run(app, port=8000)
         else:
             raise Exception("No se encontró la variable URI en el .env")

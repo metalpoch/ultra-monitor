@@ -6,7 +6,8 @@ from sqlalchemy.sql import text
 from fastapi import HTTPException
 from dotenv import load_dotenv
 
-import utils.text, utils.ollama
+import utils.text
+import utils.ollama
 
 load_dotenv(override=True)
 
@@ -39,15 +40,16 @@ def SQL_exe(input: str):
     session = session_maker()
 
     temp = utils.text.SQL_revision(input)
-    check= utils.text.SQL_check(input)
+    check = utils.text.SQL_check(input)
     ia_check = utils.ollama.Chatbot(check)
     try:
         if ia_check == "False \n":
             sql_text = text(temp)
             try:
                 result = session.execute(sql_text)
-            except Exception as e:
-                return HTTPException(status_code=503,detail="No se puede procesar por el momento su solicitud")
+            except Exception:
+                return HTTPException(status_code=503,
+                                     detail="No se puede procesar por el momento su solicitud")
             column_names = result.keys()
             data = []
             i = 0
@@ -64,5 +66,4 @@ def SQL_exe(input: str):
         elif ia_check == "False \n":
             raise ValueError("Esta intentando realizar una acción prohibida.")
     except ValueError as e:
-        raise HTTPException(status_code=451, detail= str(e))
-
+        raise HTTPException(status_code=451, detail=str(e))

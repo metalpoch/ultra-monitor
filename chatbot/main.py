@@ -26,12 +26,14 @@ async def create_item(sql: request.Sql):
                 ia = ollama.Chatbot(promp)
                 resust = text.Sql_extract(ia)
                 temp = postgres.SQL_exe(resust)
-                #Esta funcion es la encargada de borrar una tabla en especifico del schema, es generico. se debe colocar el nombre exacto de la 
+
+                #Esta funcion es la encargada de borrar una tabla en especifico del schema, es generico. se debe colocar el nombre exacto de la
                 #tabla a eliminar, por ahora esta en prueba
                 #temp=text.Delete_table(schema,'clientes')
+
                 return {"pregunta": resust, "respuesta": temp}
     except ValueError as e:
-        raise HTTPException(status_code=400, detail= str(e))
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 if __name__ == "__main__":

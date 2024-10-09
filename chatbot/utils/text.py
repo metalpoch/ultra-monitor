@@ -41,6 +41,7 @@ def SQL_revision(sql: str) -> str:
     return sql
 
 def SQL_check(sql: str)-> str:
+   """Check for banned words in SQL"""
    p1 = os.getenv("PROM5")
    p2 = os.getenv("PROM6") 
    p3 = os.getenv("PROM7")
@@ -48,6 +49,7 @@ def SQL_check(sql: str)-> str:
 
 
 def Delete_table(texto, nombre_tabla):
+    """Delete a specific table from the schema"""
     patron_tabla = f'Tabla: {nombre_tabla}.*?(?=Tabla:|$)'
     texto_modificado = re.sub(patron_tabla, '', texto, flags=re.DOTALL)
     texto_modificado = ' '.join(texto_modificado.split())

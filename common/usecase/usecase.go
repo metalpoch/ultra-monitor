@@ -1,6 +1,8 @@
 package usecase
 
-import "github.com/metalpoch/olt-blueprint/common/model"
+import (
+	"github.com/metalpoch/olt-blueprint/common/model"
+)
 
 type DeviceUsecase interface {
 	Add(device *model.AddDevice) error
@@ -20,4 +22,9 @@ type InterfaceUsecase interface {
 
 type TrafficUsecase interface {
 	Add(measurement *model.Traffic) error
+}
+
+type LocationUsecase interface {
+	Add(location *model.Location) (uint, error)
+	FindID(location *model.Location) (uint, error)
 }

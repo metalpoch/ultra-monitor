@@ -5,6 +5,7 @@ import "github.com/metalpoch/olt-blueprint/common/model"
 func FatResponse(f *model.Fat) model.FatResponse {
 	return model.FatResponse{
 		ID:        f.ID,
+		OND:       f.OND,
 		Fat:       f.Fat,
 		Splitter:  f.Splitter,
 		Address:   f.Address,
@@ -28,6 +29,12 @@ func FatResponse(f *model.Fat) model.FatResponse {
 			LastCheck:   f.Interface.Device.LastCheck,
 			CreatedAt:   f.Interface.Device.CreatedAt,
 			UpdatedAt:   f.Interface.Device.UpdatedAt,
+		},
+		Location: model.Location{
+			ID:           f.Location.ID,
+			State:        f.Location.State,
+			County:       f.Location.County,
+			Municipality: f.Location.Municipality,
 		},
 		CreatedAt: f.CreatedAt,
 		UpdatedAt: f.UpdatedAt,

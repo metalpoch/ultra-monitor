@@ -8,11 +8,14 @@ import (
 
 type Fat struct {
 	ID          uint
+	OND         string
 	Fat         string
 	Splitter    uint8
 	Address     string
 	Latitude    float64
 	Longitude   float64
+	Location    entity.Location
+	LocationID  uint
 	Interface   entity.Interface
 	InterfaceID uint
 	CreatedAt   time.Time
@@ -20,6 +23,7 @@ type Fat struct {
 }
 
 type NewFat struct {
+	ODN         string  `json:"odn" validate:"required"`
 	Fat         string  `json:"fat" validate:"required"`
 	Splitter    uint8   `json:"splitter" validate:"required"`
 	Address     string  `json:"address" validate:"required"`
@@ -29,7 +33,8 @@ type NewFat struct {
 }
 
 type FatResponse struct {
-	ID        uint          `json:"id"`
+	ID        uint `json:"id"`
+	OND       string
 	Fat       string        `json:"fat"`
 	Splitter  uint8         `json:"splitter"`
 	Address   string        `json:"address"`
@@ -37,6 +42,7 @@ type FatResponse struct {
 	Longitude float64       `json:"longitude"`
 	Interface InterfaceLite `json:"interface"`
 	Device    DeviceLite    `json:"device"`
+	Location  Location      `json:"location"`
 	CreatedAt time.Time     `json:"created_at"`
 	UpdatedAt time.Time     `json:"updated_at"`
 }

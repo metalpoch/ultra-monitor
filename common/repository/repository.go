@@ -26,3 +26,8 @@ type InterfaceRepository interface {
 type TrafficRepository interface {
 	Add(ctx context.Context, traffic *entity.Traffic) error
 }
+
+type LocationRepository interface {
+	Add(ctx context.Context, location *entity.Location) error
+	Find(ctx context.Context, location *entity.Location) error
+}

@@ -26,6 +26,7 @@ const (
 	CATEGORY_SNMP     string = "SNMP"
 	CATEGORY_DATABASE string = "Database"
 	CATEGORY_UTILS    string = "Utilities"
+	CATEGORY_OSM      string = "OpenStreetMap"
 )
 
 const BASE_FILEPATH string = "./report/data/"

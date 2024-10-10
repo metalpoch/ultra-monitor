@@ -21,13 +21,17 @@ func (repo fatRepository) Add(ctx context.Context, fat *entity.Fat) error {
 
 func (repo fatRepository) Get(ctx context.Context, id uint) (*entity.Fat, error) {
 	f := new(entity.Fat)
-	err := repo.db.WithContext(ctx).Preload("Interface").Preload("Interface.Device").First(f, id).Error
+	err := repo.db.WithContext(ctx).Preload("Location").Preload("Interface").Preload("Interface.Device").First(f, id).Error
 	return f, err
 }
 
 func (repo fatRepository) GetAll(ctx context.Context) ([]*entity.Fat, error) {
 	var f []*entity.Fat
-	err := repo.db.WithContext(ctx).Preload("Interface").Preload("Interface.Device").Find(&f).Error
+	err := repo.db.WithContext(ctx).
+		Preload("Location").
+		Preload("Interface").
+		Preload("Interface.Device").
+		Find(&f).Error
 	return f, err
 }
 

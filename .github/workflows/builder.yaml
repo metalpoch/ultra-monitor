@@ -26,14 +26,26 @@ jobs:
 
       - name: Build measurement module
         run: |
-          go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o measurement/dist/olt-blueprint-${{ env.tag }} measurement/cmd/main.go
+          go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o dist/olt-blueprint-measurement-${{ env.tag }} measurement/cmd/main.go
+
+      - name: Build traffic module
+        run: |
+          go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o dist/olt-blueprint-traffic-${{ env.tag }} traffic/cmd/main.go
+
+      - name: Build auth module
+        run: |
+          go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o dist/olt-blueprint-auth-${{ env.tag }} auth/cmd/main.go
+
+      - name: Build report module
+        run: |
+          go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o dist/olt-blueprint-report-${{ env.tag }} report/cmd/main.go
 
       - name: Create release
         id: create_release
         uses: ncipollo/release-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: ./measurement/dist/*
+          artifacts: ./dist/*
           name: OLT Blueprint
           draft: false
           prerelease: false

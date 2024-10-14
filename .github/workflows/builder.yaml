@@ -1,4 +1,4 @@
-name: Measurement CLI Builder
+name:  App Builder
 
 on:
   push:

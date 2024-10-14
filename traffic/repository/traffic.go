@@ -53,6 +53,22 @@ func (repo trafficRepository) GetTrafficByFat(ctx context.Context, id uint, date
 	return traffic, err
 }
 
+func (repo trafficRepository) GetTrafficByLocationID(ctx context.Context, id uint, date *model.TranficRangeDate) ([]*entity.Traffic, error) {
+	var traffic []*entity.Traffic
+	err := repo.db.WithContext(ctx).
+		Model(&entity.Traffic{}).
+		Select("date, SUM(\"in\") AS \"in\", SUM(out) AS out, SUM(bandwidth) as bandwidth").
+		Joins("JOIN interfaces as i ON i.id = traffics.interface_id").
+		Joins("JOIN fats as f ON f.interface_id = i.id").
+		Where("f.location_id = ? AND traffics.date BETWEEN ? AND ?", id, date.InitDate, date.EndDate).
+		Group("date").
+		Order("date").
+		Find(&traffic).
+		Error
+
+	return traffic, err
+}
+
 func (repo trafficRepository) GetTrafficByState(ctx context.Context, state string, date *model.TranficRangeDate) ([]*entity.Traffic, error) {
 	var traffic []*entity.Traffic
 	err := repo.db.WithContext(ctx).
@@ -87,15 +103,15 @@ func (repo trafficRepository) GetTrafficByCounty(ctx context.Context, state, cou
 	return traffic, err
 }
 
-// By Municipality
-func (repo trafficRepository) GetTrafficByLocationID(ctx context.Context, id uint, date *model.TranficRangeDate) ([]*entity.Traffic, error) {
+func (repo trafficRepository) GetTrafficByMunicipality(ctx context.Context, state, county, municipality string, date *model.TranficRangeDate) ([]*entity.Traffic, error) {
 	var traffic []*entity.Traffic
 	err := repo.db.WithContext(ctx).
 		Model(&entity.Traffic{}).
 		Select("date, SUM(\"in\") AS \"in\", SUM(out) AS out, SUM(bandwidth) as bandwidth").
 		Joins("JOIN interfaces as i ON i.id = traffics.interface_id").
 		Joins("JOIN fats as f ON f.interface_id = i.id").
-		Where("f.location_id = ? AND traffics.date BETWEEN ? AND ?", id, date.InitDate, date.EndDate).
+		Joins("JOIN locations as l ON l.id = f.location_id").
+		Where("l.state = ? AND l.county = ? AND l.municipality = ? AND traffics.date BETWEEN ? AND ?", state, county, municipality, date.InitDate, date.EndDate).
 		Group("date").
 		Order("date").
 		Find(&traffic).

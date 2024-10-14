@@ -26,7 +26,7 @@ type TrafficHandler struct {
 // @Success		200			{object}	[]model.Traffic
 // @Failure		400			{object}	object{message=string}
 // @Failure		500			{object}	object{message=string}
-// @Router			/traffic/interface/{id} [get]
+// @Router		/traffic/interface/{id} [get]
 func (hdlr TrafficHandler) GetByInterface(c fiber.Ctx) error {
 	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
 	if err != nil {
@@ -57,7 +57,7 @@ func (hdlr TrafficHandler) GetByInterface(c fiber.Ctx) error {
 // @Success		200			{object}	[]model.Traffic
 // @Failure		400			{object}	object{message=string}
 // @Failure		500			{object}	object{message=string}
-// @Router			/traffic/device/{id} [get]
+// @Router		/traffic/device/{id} [get]
 func (hdlr TrafficHandler) GetByDevice(c fiber.Ctx) error {
 	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
 	if err != nil {
@@ -89,7 +89,7 @@ func (hdlr TrafficHandler) GetByDevice(c fiber.Ctx) error {
 // @Success		200			{object}	[]model.Traffic
 // @Failure		400			{object}	object{message=string}
 // @Failure		500			{object}	object{message=string}
-// @Router			/traffic/fat/{id} [get]
+// @Router		/traffic/fat/{id} [get]
 func (hdlr TrafficHandler) GetByFat(c fiber.Ctx) error {
 	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
 	if err != nil {
@@ -121,7 +121,7 @@ func (hdlr TrafficHandler) GetByFat(c fiber.Ctx) error {
 // @Success		200			{object}	[]model.Traffic
 // @Failure		400			{object}	object{message=string}
 // @Failure		500			{object}	object{message=string}
-// @Router			/traffic/location/find/{state} [get]
+// @Router		/traffic/location/{state} [get]
 func (hdlr TrafficHandler) GetByState(c fiber.Ctx) error {
 	state, err := url.QueryUnescape(c.Params("state"))
 	if err != nil {
@@ -154,7 +154,7 @@ func (hdlr TrafficHandler) GetByState(c fiber.Ctx) error {
 // @Success		200			{object}	[]model.Traffic
 // @Failure		400			{object}	object{message=string}
 // @Failure		500			{object}	object{message=string}
-// @Router			/traffic/location/find/{state}/{county} [get]
+// @Router		/traffic/location/{state}/{county} [get]
 func (hdlr TrafficHandler) GetByCounty(c fiber.Ctx) error {
 	state, err := url.QueryUnescape(c.Params("state"))
 	if err != nil {
@@ -179,10 +179,10 @@ func (hdlr TrafficHandler) GetByCounty(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-// Traffic by county
+// Traffic by municipality
 //
-// @Summary		Get a array of county traffic in a range date
-// @Description	get traffic by county
+// @Summary		Get a array of municipality traffic in a range date
+// @Description	get traffic by municipality
 // @Tags		traffic
 // @Produce		json
 // @Param		id			path		uint					true	"Location ID"
@@ -191,9 +191,19 @@ func (hdlr TrafficHandler) GetByCounty(c fiber.Ctx) error {
 // @Success		200			{object}	[]model.Traffic
 // @Failure		400			{object}	object{message=string}
 // @Failure		500			{object}	object{message=string}
-// @Router			/traffic/location/{id} [get]
+// @Router		/traffic/location/{state}/{county}/{municipality} [get]
 func (hdlr TrafficHandler) GetByMunicipaly(c fiber.Ctx) error {
-	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
+	state, err := url.QueryUnescape(c.Params("state"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	county, err := url.QueryUnescape(c.Params("county"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	municipality, err := url.QueryUnescape(c.Params("municipality"))
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -203,7 +213,7 @@ func (hdlr TrafficHandler) GetByMunicipaly(c fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.GetTrafficByMunicipaly(uint(id), query)
+	res, err := hdlr.Usecase.GetTrafficByMunicipality(state, county, municipality, query)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

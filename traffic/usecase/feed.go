@@ -116,3 +116,54 @@ func (use feedUsecase) GetInterfacesByDevice(id uint) ([]*model.InterfaceLite, e
 
 	return interfaces, err
 }
+
+func (use feedUsecase) GetLocationStates() ([]*string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	res, err := use.repo.GetLocationStates(ctx)
+	if err != nil {
+		go use.telegram.Notification(
+			constants.MODULE_TRAFFIC,
+			constants.CATEGORY_DATABASE,
+			"(feedUsecase).GetLocationStates - use.repo.GetLocationStates(ctx)",
+			err,
+		)
+		return nil, err
+	}
+
+	return res, err
+}
+
+func (use feedUsecase) GetLocationCounties(state string) ([]*string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	res, err := use.repo.GetLocationCounties(ctx, state)
+	if err != nil {
+		go use.telegram.Notification(
+			constants.MODULE_TRAFFIC,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(feedUsecase).GetLocationCounties - use.repo.GetLocationCounties(ctx, %s)", state),
+			err,
+		)
+		return nil, err
+	}
+
+	return res, err
+}
+
+func (use feedUsecase) GetLocationMunicipalities(state, county string) ([]*string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	res, err := use.repo.GetLocationMunicipalities(ctx, state, county)
+	if err != nil {
+		go use.telegram.Notification(
+			constants.MODULE_TRAFFIC,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(feedUsecase).GetLocationMunicipalities - use.repo.GetLocationMunicipalities(ctx, %s, %s)", state, county),
+			err,
+		)
+		return nil, err
+	}
+
+	return res, err
+}

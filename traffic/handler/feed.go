@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
@@ -101,6 +102,80 @@ func (hdlr FeedHandler) GetInterfacesByDevice(c fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 	res, err := hdlr.Usecase.GetInterfacesByDevice(uint(id))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+// Get states
+//
+//	@Summary		Get all state
+//	@Description	get all state  from database
+//	@Tags			feed
+//	@Produce		json
+//	@Success		200	{object}	[]string
+//	@Failure		400	{object}	object{message=string}
+//	@Failure		500	{object}	object{message=string}
+//	@Router			/feed/location/state [get]
+func (hdlr FeedHandler) GetLocationStates(c fiber.Ctx) error {
+	res, err := hdlr.Usecase.GetLocationStates()
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+// Get states
+//
+// @Summary		Get all conties from state
+// @Description	get all conties from state from database
+// @Tags		feed
+// @Produce		json
+// @Param		state	string		string					true	"State"
+// @Success		200		{object}	[]string
+// @Failure		400		{object}	object{message=string}
+// @Failure		500		{object}	object{message=string}
+// @Router		/feed/location/{state} [get]
+func (hdlr FeedHandler) GetLocationCounties(c fiber.Ctx) error {
+	state, err := url.QueryUnescape(c.Params("state"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetLocationCounties(state)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+// Get municipalities
+//
+// @Summary		Get all municipalities from conty & state
+// @Description	get all municipalities from conty & state from database
+// @Tags		feed
+// @Produce		json
+// @Param		state	string		string					true	"State"
+// @Param		county	string		string					true	"County"
+// @Success		200		{object}	[]string
+// @Failure		400		{object}	object{message=string}
+// @Failure		500		{object}	object{message=string}
+// @Router		/feed/location/{state}/{county} [get]
+func (hdlr FeedHandler) GetLocationMunicipalities(c fiber.Ctx) error {
+	state, err := url.QueryUnescape(c.Params("state"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	county, err := url.QueryUnescape(c.Params("county"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetLocationMunicipalities(state, county)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

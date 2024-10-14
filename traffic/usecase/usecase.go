@@ -13,4 +13,7 @@ type TrafficUsecase interface {
 	GetTrafficByInterface(id uint, date *model.TranficRangeDate) ([]*model.TrafficResponse, error)
 	GetTrafficByDevice(id uint, date *model.TranficRangeDate) ([]*model.TrafficResponse, error)
 	GetTrafficByFat(id uint, date *model.TranficRangeDate) ([]*model.TrafficResponse, error)
+	GetTrafficByState(state string, date *model.TranficRangeDate) ([]*model.TrafficResponse, error)
+	GetTrafficByCounty(state, county string, date *model.TranficRangeDate) ([]*model.TrafficResponse, error)
+	GetTrafficByMunicipaly(id uint, date *model.TranficRangeDate) ([]*model.TrafficResponse, error)
 }

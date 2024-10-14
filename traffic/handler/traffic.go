@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
@@ -101,6 +102,108 @@ func (hdlr TrafficHandler) GetByFat(c fiber.Ctx) error {
 	}
 
 	res, err := hdlr.Usecase.GetTrafficByFat(uint(id), query)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+// Traffic by state
+//
+// @Summary		Get a array of state traffic in a range date
+// @Description	get traffic by state
+// @Tags		traffic
+// @Produce		json
+// @Param		state		string		string					true	"State"
+// @Param		init_date	query		time.Time				true	"Start date for traffic range"
+// @Param		end_date	query		time.Time				true	"End date for traffic range"
+// @Success		200			{object}	[]model.Traffic
+// @Failure		400			{object}	object{message=string}
+// @Failure		500			{object}	object{message=string}
+// @Router			/traffic/location/find/{state} [get]
+func (hdlr TrafficHandler) GetByState(c fiber.Ctx) error {
+	state, err := url.QueryUnescape(c.Params("state"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	query := new(model.TranficRangeDate)
+	if err := c.Bind().Query(query); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetTrafficByState(state, query)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+// Traffic by county
+//
+// @Summary		Get a array of county traffic in a range date
+// @Description	get traffic by county
+// @Tags		traffic
+// @Produce		json
+// @Param		state		string		string					true	"State"
+// @Param		county		path		string					true	"County"
+// @Param		init_date	query		time.Time				true	"Start date for traffic range"
+// @Param		end_date	query		time.Time				true	"End date for traffic range"
+// @Success		200			{object}	[]model.Traffic
+// @Failure		400			{object}	object{message=string}
+// @Failure		500			{object}	object{message=string}
+// @Router			/traffic/location/find/{state}/{county} [get]
+func (hdlr TrafficHandler) GetByCounty(c fiber.Ctx) error {
+	state, err := url.QueryUnescape(c.Params("state"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	county, err := url.QueryUnescape(c.Params("county"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	query := new(model.TranficRangeDate)
+	if err := c.Bind().Query(query); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetTrafficByCounty(state, county, query)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+// Traffic by county
+//
+// @Summary		Get a array of county traffic in a range date
+// @Description	get traffic by county
+// @Tags		traffic
+// @Produce		json
+// @Param		id			path		uint					true	"Location ID"
+// @Param		init_date	query		time.Time				true	"Start date for traffic range"
+// @Param		end_date	query		time.Time				true	"End date for traffic range"
+// @Success		200			{object}	[]model.Traffic
+// @Failure		400			{object}	object{message=string}
+// @Failure		500			{object}	object{message=string}
+// @Router			/traffic/location/{id} [get]
+func (hdlr TrafficHandler) GetByMunicipaly(c fiber.Ctx) error {
+	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	query := new(model.TranficRangeDate)
+	if err := c.Bind().Query(query); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetTrafficByMunicipaly(uint(id), query)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

@@ -48,6 +48,6 @@ func main() {
 
 	router.Setup(server, db, telegram)
 
-	server.Listen(":3000")
+	server.Listen(":3001")
 
 }

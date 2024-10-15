@@ -80,7 +80,7 @@ make dev-traffic
 # run the CLI measurement module
 CONFIG_JSON=./config.json go run ./measurement/cmd/main.go
 ```
-## Licencia
+## ⚖️ License
 [MIT]
 
 [MIT]:https://github.com/metalpoch/olt-blueprint/blob/main/LICENSE
@@ -89,5 +89,5 @@ CONFIG_JSON=./config.json go run ./measurement/cmd/main.go
 [PostgreSQL]:https://www.postgresql.org/
 [Python]:https://www.python.org/
 [Ollama]:https://ollama.com/
-[Astro]:https://astro.build
+[Astro]:https://astro.build/
 [Docker]:https://www.docker.com/

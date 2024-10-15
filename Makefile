@@ -19,10 +19,10 @@ container-measurement:
 container-measurement-cli:
 	docker run --rm -v ./config.json:/app/config.json --name olt-blueprint-cli -e CONFIG_JSON='/app/config.json' olt-blueprint-cli
 
-container-chatbot:
-	cd chatbot
-	docker build . -t chatbot  -f ./chatbot/dockerfile
+container-smart:
+	cd smart
+	docker build . -t smart  -f ./smart/dockerfile
 
-container-chatbot-run:
-	docker run --rm -p 8000:8000 --name chatbot-olt --network chatbot-network chatbot  
+container-smart-run:
+	docker run --rm -p 8000:8000 --name smart-olt --network smart-network smart  
 	

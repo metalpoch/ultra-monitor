@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Chart } from 'chart.js/auto';
 import type { Measurement } from '../../models/measurement';
+import React from 'react';
 
 interface LineProps {
   title: string;
@@ -56,11 +57,9 @@ export default function Line({ title, canvasID, data }: LineProps) {
   }, []);
 
   return(
-    <div className="w-full min-w-fit h-fit px-12 py-10 bg-white rounded-xl shadow-2xl flex flex-col justify-center items-center gap-4">
+    <div className="w-full min-w-fit h-fit px-10 py-8 bg-white rounded-xl shadow-2xl flex flex-col justify-center items-center gap-4">
       <h1 className="self-start text-2xl font-semibold text-gray-700">{title}</h1>
-      <section className="w-full h-fit">
-          <canvas id={canvasID} className='w-full h-full'></canvas>
-      </section>
+      <canvas id={canvasID} className='w-full max-h-fit'></canvas>
     </div>
   );
 }

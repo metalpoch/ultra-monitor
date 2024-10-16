@@ -7,6 +7,12 @@ dev-traffic:
 dev-report:
 	CONFIG_JSON=./config.json go run ./report/cmd/main.go
 
+build:
+	go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o ./dist/olt-blueprint-auth ./auth/cmd/main.go && echo -e "\e[1;32mcreated\e[0m was created the binary olt-blueprint-auth"
+	go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o ./dist/olt-blueprint-report ./report/cmd/main.go && echo -e "\e[1;32mcreated\e[0m was created the binary olt-blueprint-report"
+	go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o ./dist/olt-blueprint-traffic ./traffic/cmd/main.go && echo -e "\e[1;32mcreated\e[0m was created the binary olt-blueprint-traffic"
+	go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o ./dist/olt-blueprint-measurement ./measurement/cmd/main.go && echo -e "\e[1;32mcreated\e[0m was created the binary olt-blueprint-measurement"
+
 measurement-build-cli:
 	go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o ./measurement/dist/olt-blueprint measurement/cmd/main.go && echo -e "\e[1;32mcreated\e[0m binary was measurement/dist/olt-blueprint"
 

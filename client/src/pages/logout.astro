@@ -3,8 +3,7 @@ import { Routes } from '../constant/routes';
 
 const token = Astro.cookies.get('token');
 
-if (token) {
-    Astro.cookies.delete('token');
-    return Astro.redirect(Routes.LOGIN);
-}
+if (token) Astro.cookies.delete('token');
+
+return Astro.redirect(Routes.LOGIN);
 ---

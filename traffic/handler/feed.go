@@ -41,6 +41,33 @@ func (hdlr FeedHandler) GetDevice(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
+// Get device by IP
+//
+//	@Summary		Get data of a device
+//	@Description	get data of a device by IP from database
+//	@Tags			feed
+//	@Produce		json
+//	@Param			id	path		uint	true	"Device ID"
+//	@Success		200	{object}	model.DeviceResponse
+//	@Failure		400	{object}	object{message=string}
+//	@Failure		500	{object}	object{message=string}
+//	@Router			/feed/device/ip/{ip} [get]
+func (hdlr FeedHandler) GetDeviceByIP(c fiber.Ctx) error {
+	ip, err := url.QueryUnescape(c.Params("ip"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	device, err := hdlr.Usecase.GetDeviceByIP(ip)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res := utils.DeviceResponse(device)
+
+	return c.JSON(res)
+}
+
 // Get all devices
 //
 //	@Summary		Get all devices

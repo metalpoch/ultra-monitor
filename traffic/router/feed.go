@@ -14,6 +14,7 @@ func newFeedRouter(server *fiber.App, db *gorm.DB, telegram tracking.Telegram) {
 	}
 
 	server.Get("/feed/device/", hdlr.GetAllDevice)
+	server.Get("/feed/device/ip/:ip", hdlr.GetDeviceByIP)
 	server.Get("/feed/device/:id", hdlr.GetDevice)
 	server.Get("/feed/device/location/:state", hdlr.GetDeviceByState)
 	server.Get("/feed/device/location/:state/:county", hdlr.GetDeviceByCounty)

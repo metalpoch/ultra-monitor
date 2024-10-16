@@ -9,6 +9,7 @@ import (
 
 type FeedRepository interface {
 	GetDevice(ctx context.Context, id uint) (*entity.Device, error)
+	GetDeviceByIP(ctx context.Context, ip string) (*entity.Device, error)
 	GetAllDevice(ctx context.Context) ([]*entity.Device, error)
 	GetDeviceByState(ctx context.Context, state string) ([]*entity.Device, error)
 	GetDeviceByCounty(ctx context.Context, state, county string) ([]*entity.Device, error)

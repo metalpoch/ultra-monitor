@@ -21,6 +21,12 @@ func (repo feedRepository) GetDevice(ctx context.Context, id uint) (*entity.Devi
 	return d, err
 }
 
+func (repo feedRepository) GetDeviceByIP(ctx context.Context, ip string) (*entity.Device, error) {
+	d := new(entity.Device)
+	err := repo.db.WithContext(ctx).Preload("Template").Where("ip = ?", ip).First(d).Error
+	return d, err
+}
+
 func (repo feedRepository) GetAllDevice(ctx context.Context) ([]*entity.Device, error) {
 	var devices []*entity.Device
 	err := repo.db.WithContext(ctx).Find(&devices).Error

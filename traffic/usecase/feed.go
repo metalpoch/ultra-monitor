@@ -38,6 +38,23 @@ func (use feedUsecase) GetDevice(id uint) (*model.Device, error) {
 	return (*model.Device)(res), err
 }
 
+func (use feedUsecase) GetDeviceByIP(ip string) (*model.Device, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	res, err := use.repo.GetDeviceByIP(ctx, ip)
+	if err != nil {
+		go use.telegram.Notification(
+			constants.MODULE_TRAFFIC,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(feedUsecase).GetDeviceByIP - use.repo.GetDeviceByIP(ctx, %s)", ip),
+			err,
+		)
+		return nil, err
+	}
+
+	return (*model.Device)(res), err
+}
+
 func (use feedUsecase) GetAllDevice() ([]*model.DeviceLite, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

@@ -4,7 +4,7 @@ import { isValidEmail, isValidPassword } from '../utils/validation';
 import { Routes } from '../constant/routes';
 import type { Register } from '../models/register';
 import { RegisterController } from '../controllers/register';
-import NoticeModal from '../components/modals/notice.tsx';
+import NoticeModal from '../components/modals/notice';
 
 const token = Astro.cookies.get('token');
 if (token) return Astro.redirect(Routes.HOME);

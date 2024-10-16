@@ -6,7 +6,7 @@ export default {
 		colors: {
 			gray: {
 				'50': '#FFFFFF',
-				'55': '#FCFCFC',
+				'55': '#F5F5F5',
 				'100': '#EFEFEF',
 				'200': '#DCDCDC',
 				'300': '#BDBDBD',

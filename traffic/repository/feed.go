@@ -27,6 +27,43 @@ func (repo feedRepository) GetAllDevice(ctx context.Context) ([]*entity.Device, 
 	return devices, err
 }
 
+func (repo feedRepository) GetDeviceByState(ctx context.Context, state string) ([]*entity.Device, error) {
+	var devices []*entity.Device
+	err := repo.db.WithContext(ctx).
+		Joins("JOIN interfaces ON devices.id = interfaces.device_id").
+		Joins("JOIN fats ON interfaces.id = fats.interface_id").
+		Joins("JOIN locations ON fats.location_id = locations.id").
+		Select("DISTINCT devices.id, devices.ip, devices.sys_name", "devices.sys_location", "devices.is_alive", "devices.last_check", "devices.created_at", "devices.updated_at").
+		Where("locations.state = ?", state).
+		Find(&devices).Error
+
+	return devices, err
+}
+
+func (repo feedRepository) GetDeviceByCounty(ctx context.Context, state, county string) ([]*entity.Device, error) {
+	var devices []*entity.Device
+	err := repo.db.WithContext(ctx).
+		Joins("JOIN interfaces ON devices.id = interfaces.device_id").
+		Joins("JOIN fats ON interfaces.id = fats.interface_id").
+		Joins("JOIN locations ON fats.location_id = locations.id").
+		Select("DISTINCT devices.id, devices.ip, devices.sys_name", "devices.sys_location", "devices.is_alive", "devices.last_check", "devices.created_at", "devices.updated_at").
+		Where("locations.state = ? AND locations.county = ?", state, county).
+		Find(&devices).Error
+	return devices, err
+}
+
+func (repo feedRepository) GetDeviceByMunicipality(ctx context.Context, state, county, municipality string) ([]*entity.Device, error) {
+	var devices []*entity.Device
+	err := repo.db.WithContext(ctx).
+		Joins("JOIN interfaces ON devices.id = interfaces.device_id").
+		Joins("JOIN fats ON interfaces.id = fats.interface_id").
+		Joins("JOIN locations ON fats.location_id = locations.id").
+		Select("DISTINCT devices.id, devices.ip, devices.sys_name", "devices.sys_location", "devices.is_alive", "devices.last_check", "devices.created_at", "devices.updated_at").
+		Where("locations.state = ? AND locations.county = ? AND locations.municipality = ?", state, county, municipality).
+		Find(&devices).Error
+	return devices, err
+}
+
 func (repo feedRepository) GetInterface(ctx context.Context, id uint) (*entity.Interface, error) {
 	i := new(entity.Interface)
 	err := repo.db.WithContext(ctx).Preload("Device").Preload("Device.Template").First(i, id).Error

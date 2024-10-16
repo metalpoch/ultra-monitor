@@ -70,6 +70,102 @@ func (use feedUsecase) GetAllDevice() ([]*model.DeviceLite, error) {
 	return devices, err
 }
 
+func (use feedUsecase) GetDeviceByState(state string) ([]*model.DeviceLite, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetDeviceByState(ctx, state)
+	if err != nil {
+		go use.telegram.Notification(
+			constants.MODULE_TRAFFIC,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(feedUsecase).GetDeviceByState - use.repo.GetDeviceByState(ctx, %s)", state),
+			err,
+		)
+		return nil, err
+	}
+
+	var devices []*model.DeviceLite
+	for _, d := range res {
+		devices = append(devices, &model.DeviceLite{
+			ID:          d.ID,
+			IP:          d.IP,
+			SysName:     d.SysName,
+			SysLocation: d.SysLocation,
+			IsAlive:     d.IsAlive,
+			LastCheck:   d.LastCheck,
+			CreatedAt:   d.CreatedAt,
+			UpdatedAt:   d.UpdatedAt,
+		})
+	}
+
+	return devices, err
+}
+
+func (use feedUsecase) GetDeviceByCounty(state, county string) ([]*model.DeviceLite, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetDeviceByCounty(ctx, state, county)
+	if err != nil {
+		go use.telegram.Notification(
+			constants.MODULE_TRAFFIC,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(feedUsecase).GetDeviceByCounty - use.repo.GetDeviceByCounty(ctx, %s, %s)", state, county),
+			err,
+		)
+		return nil, err
+	}
+
+	var devices []*model.DeviceLite
+	for _, d := range res {
+		devices = append(devices, &model.DeviceLite{
+			ID:          d.ID,
+			IP:          d.IP,
+			SysName:     d.SysName,
+			SysLocation: d.SysLocation,
+			IsAlive:     d.IsAlive,
+			LastCheck:   d.LastCheck,
+			CreatedAt:   d.CreatedAt,
+			UpdatedAt:   d.UpdatedAt,
+		})
+	}
+
+	return devices, err
+}
+
+func (use feedUsecase) GetDeviceByMunicipality(state, county, municipality string) ([]*model.DeviceLite, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetDeviceByMunicipality(ctx, state, county, municipality)
+	if err != nil {
+		go use.telegram.Notification(
+			constants.MODULE_TRAFFIC,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(feedUsecase).GetDeviceByMunicipality - use.repo.GetDeviceByMunicipality(ctx, %s, %s, %s)", state, county, municipality),
+			err,
+		)
+		return nil, err
+	}
+
+	var devices []*model.DeviceLite
+	for _, d := range res {
+		devices = append(devices, &model.DeviceLite{
+			ID:          d.ID,
+			IP:          d.IP,
+			SysName:     d.SysName,
+			SysLocation: d.SysLocation,
+			IsAlive:     d.IsAlive,
+			LastCheck:   d.LastCheck,
+			CreatedAt:   d.CreatedAt,
+			UpdatedAt:   d.UpdatedAt,
+		})
+	}
+
+	return devices, err
+}
+
 func (use feedUsecase) GetInterface(id uint) (*model.Interface, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

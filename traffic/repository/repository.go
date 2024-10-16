@@ -10,6 +10,9 @@ import (
 type FeedRepository interface {
 	GetDevice(ctx context.Context, id uint) (*entity.Device, error)
 	GetAllDevice(ctx context.Context) ([]*entity.Device, error)
+	GetDeviceByState(ctx context.Context, state string) ([]*entity.Device, error)
+	GetDeviceByCounty(ctx context.Context, state, county string) ([]*entity.Device, error)
+	GetDeviceByMunicipality(ctx context.Context, state, county, municipality string) ([]*entity.Device, error)
 	GetInterface(ctx context.Context, id uint) (*entity.Interface, error)
 	GetInterfacesByDevice(ctx context.Context, id uint) ([]*entity.Interface, error)
 	GetLocationStates(ctx context.Context) ([]*string, error)

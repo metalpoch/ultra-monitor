@@ -60,6 +60,99 @@ func (hdlr FeedHandler) GetAllDevice(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
+// Get devices by state
+//
+//	@Summary		Get data of all devices by state
+//	@Description	get data of all devices by state from database
+//	@Tags			feed
+//	@Produce		json
+//	@Param			state	path		string					true	"State"
+//	@Success		200		{object}	[]model.DeviceResponse
+//	@Failure		400		{object}	object{message=string}
+//	@Failure		500		{object}	object{message=string}
+//	@Router			/feed/device/location/{state} [get]
+func (hdlr FeedHandler) GetDeviceByState(c fiber.Ctx) error {
+	state, err := url.QueryUnescape(c.Params("state"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetDeviceByState(state)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+// Get devices by county
+//
+//	@Summary		Get data of all devices by county
+//	@Description	get data of all devices by county from database
+//	@Tags			feed
+//	@Produce		json
+//	@Param			state	path		string					true	"State"
+//	@Param			county	path		string					true	"County"
+//	@Success		200		{object}	[]model.DeviceResponse
+//	@Failure		400		{object}	object{message=string}
+//	@Failure		500		{object}	object{message=string}
+//	@Router			/feed/device/location/{state}/{county} [get]
+func (hdlr FeedHandler) GetDeviceByCounty(c fiber.Ctx) error {
+	state, err := url.QueryUnescape(c.Params("state"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	county, err := url.QueryUnescape(c.Params("county"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetDeviceByCounty(state, county)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+// Get devices by municipality
+//
+//	@Summary		Get data of all devices by municipality
+//	@Description	get data of all devices by municipality from database
+//	@Tags			feed
+//	@Produce		json
+//	@Param			state			path		string					true	"State"
+//	@Param			county			path		string					true	"County"
+//	@Param			municipality	path		string					true	"Municipality"
+//	@Success		200				{object}	[]model.DeviceResponse
+//	@Failure		400				{object}	object{message=string}
+//	@Failure		500				{object}	object{message=string}
+//	@Router			/feed/device/location/{state}/{county}/{municipality} [get]
+func (hdlr FeedHandler) GetDeviceByMunicipality(c fiber.Ctx) error {
+	state, err := url.QueryUnescape(c.Params("state"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	county, err := url.QueryUnescape(c.Params("county"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	municipality, err := url.QueryUnescape(c.Params("municipality"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetDeviceByMunicipality(state, county, municipality)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
 // Get interface
 //
 //	@Summary		Get all data of a interface

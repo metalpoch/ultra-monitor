@@ -2,24 +2,14 @@
 import Navbar from '../layouts/Navbar';
 import Layout from '../layouts/Inside.astro';
 import { Routes } from '../constant/routes';
-import TitleBar from '../components/titles/titleBar';
-import PieGraph from '../components/graphic/pie';
 import { $user } from '../controllers/auth';
 
 const token = Astro.cookies.get('token');
 if (!token) return Astro.redirect(Routes.LOGIN);
 ---
 <Layout title="Dashboard - OLT">
-	<main class="w-full h-full max-h-fit absolute flex flex-col items-center overflow-y-auto">
+	<main class="w-full h-full absolute flex flex-col items-center overflow-y-auto">
 		<Navbar user={$user.get()!} client:load/>
-        <section class="w-full h-fit p-4 flex flex-col justify-start gap-4">
-            <TitleBar title='Gráficos de prueba' />
-            <div class="w-full h-fit flex flex-row flex-wrap justify-center items-center gap-6">
-                <PieGraph title='Prueba 1' canvasID='pieChart1' client:load />
-                <PieGraph title='Prueba 2' canvasID='pieChart2' client:load />
-                <PieGraph title='Prueba 3' canvasID='pieChart3' client:load />
-            </div>
-        </section>
 	</main>
 </Layout>
 <style>

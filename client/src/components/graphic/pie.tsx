@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Chart } from 'chart.js/auto';
 import type { Measurement } from '../../models/measurement';
+import React from 'react';
 
 interface PieProps {
     title: string;

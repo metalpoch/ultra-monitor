@@ -6,22 +6,24 @@ import CalendarSelector from "../buttons/calendar";
 
 export default function TrafficFilter() {
     return (
-        <aside className="w-fit min-w-52 h-fit min-h-fit px-4 py-6 bg-white shadow-2xl flex flex-col items-center justify-center gap-4 rounded-xl max-sm:w-full max-sm:gap-8">
+        <aside className="w-fit h-full px-4 py-6 bg-white shadow-2xl flex flex-col items-center justify-center gap-4 rounded-xl md:w-1/2 max-sm:w-full max-sm:gap-3">
             <h3 className="text-2xl text-blue-800 font-bold underline underline-offset-8 decoration-4 rounded-full">Búsqueda por</h3>
-            <section className="w-full flex flex-row gap-3 sm:flex-wrap">
-                <CalendarSelector id="fromDate" label="Desde" />
-                <CalendarSelector id="toDate" label="Hasta"/>
-            </section>
-            <Selector id="state" label="Estado" />
             <section className="w-full flex flex-col justify-start gap-3">
-                <h4 className="text-lg text-blue-800 font-bold underline underline-offset-4 decoration-4 rounded-full">Opcional: Ubicación</h4>
+                <div className="w-full flex flex-row gap-3 flex-wrap lg:flex-nowrap max-sm:flex-col max-sm:gap-3">
+                    <CalendarSelector id="fromDate" label="Desde" />
+                    <CalendarSelector id="toDate" label="Hasta"/>
+                </div>
+                <Selector id="state" label="Estado" />
+            </section>
+            <section className="w-full flex flex-col justify-start gap-3">
+                <h4 className="text-lg text-blue-800 font-bold underline underline-offset-8 decoration-4 rounded-full">Opcional: Ubicación</h4>
                 <Selector id="county" label="Municipio" />
                 <Selector id="municipality" label="Parroquia" />
             </section>
             <section className="w-full flex flex-col justify-start gap-3">
-                <h4 className="text-lg text-blue-800 font-bold underline underline-offset-4 decoration-4 rounded-full">Opcional: Equipo</h4>
+                <h4 className="text-lg text-blue-800 font-bold underline underline-offset-8 decoration-4 rounded-full">Opcional: Equipo</h4>
                 <Selector id="olt" label="OLT" />
-                <div className="w-full flex flex-row gap-3">
+                <div className="w-full flex flex-row gap-3 flex-wrap lg:flex-nowrap">
                     <Selector id="card" label="Tarjeta" />
                     <Selector id="port" label="Puerto" />
                 </div>

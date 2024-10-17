@@ -32,9 +32,9 @@ class AI:
         Returns:
             str: The complete prompt that will be sent to the model.
         """
-        p1 = f"{constants.PROMP_1}\n\n```csv\n{schemas}\n```\n"
-        p2 = f"{constants.PROMP_2}\n"
-        p3 = f"\n{constants.PROMP_3}"
+        p1 = f"{constants.PROMPT_1}\n\n```csv\n{schemas}\n```\n"
+        p2 = f"{constants.PROMPT_2}\n"
+        p3 = f"\n{constants.PROMPT_3}"
         return p1 + p2 + body + p3
 
     def query(self, schemas: str, body: str) -> str:

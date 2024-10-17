@@ -12,7 +12,7 @@ class Postgres:
     schema information in CSV format.
     """
 
-    def __init__(self, uri) -> None:
+    def __init__(self, uri: str) -> None:
         """
         Initializes the Postgres class with the given database URI.
 

@@ -21,15 +21,15 @@ async def create_item(sql: request.Sql):
             if not schema:
                 raise ValueError("Schema empty")
             else:
-                newschema = text.Delete_table(schema,'users')
-                promp = text.Union_string(sql.text, newschema)
-                ia = ollama.Chatbot(promp)
-                resust = text.Sql_extract(ia)
+                newschema = text.delete_table(schema, "users")
+                promp = text.union_string(sql.text, newschema)
+                ia = ollama.chatbot(promp)
+                resust = text.sql_extract(ia)
                 temp = postgres.SQL_exe(resust)
 
-                #Esta funcion es la encargada de borrar una tabla en especifico del schema, es generico. se debe colocar el nombre exacto de la
-                #tabla a eliminar, por ahora esta en prueba
-                #temp=text.Delete_table(schema,'clientes')
+                # Esta funcion es la encargada de borrar una tabla en especifico del schema, es generico. se debe colocar el nombre exacto de la
+                # tabla a eliminar, por ahora esta en prueba
+                # temp=text.delete_table(schema,'clientes')
 
                 return {"pregunta": resust, "respuesta": temp}
     except ValueError as e:
@@ -38,7 +38,7 @@ async def create_item(sql: request.Sql):
 
 if __name__ == "__main__":
     try:
-        if os.getenv('URI'):
+        if os.getenv("URI"):
             schema = postgres.Get_schema()
             uvicorn.run(app, port=8000)
         else:

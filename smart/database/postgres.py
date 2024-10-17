@@ -14,7 +14,7 @@ load_dotenv(override=True)
 
 def Get_schema():
     """Return the database schema."""
-    connection_string = os.getenv('URI')
+    connection_string = os.getenv("URI")
 
     engine = create_engine(connection_string)
     metadata = MetaData()
@@ -33,23 +33,25 @@ def Get_schema():
 
 def SQL_exe(input: str):
     """Execute the SQL statement received by parameter in the database."""
-    connection_string = os.getenv('URI')
+    connection_string = os.getenv("URI")
 
     engine = create_engine(connection_string)
     session_maker = sessionmaker(bind=engine)
     session = session_maker()
 
-    temp = utils.text.SQL_revision(input)
-    check = utils.text.SQL_check(input)
-    ia_check = utils.ollama.Chatbot(check)
+    temp = utils.text.sql_revision(input)
+    check = utils.text.sql_check(input)
+    ia_check = utils.ollama.chatbot(check)
     try:
         if ia_check == "False \n":
             sql_text = text(temp)
             try:
                 result = session.execute(sql_text)
             except Exception:
-                return HTTPException(status_code=503,
-                                     detail="No se puede procesar por el momento su solicitud")
+                return HTTPException(
+                    status_code=503,
+                    detail="No se puede procesar por el momento su solicitud",
+                )
             column_names = result.keys()
             data = []
             i = 0
@@ -59,7 +61,7 @@ def SQL_exe(input: str):
             for column in column_names:
                 data_dict = {"column": column, "values": []}
                 for row in lista:
-                    data_dict['values'].append(row[i])
+                    data_dict["values"].append(row[i])
                 i += 1
                 data.append(data_dict)
             return data

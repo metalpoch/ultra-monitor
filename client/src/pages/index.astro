@@ -2,35 +2,45 @@
 import Layout from '../layouts/Outside.astro';
 import { isValidEmail, isValidPassword } from '../utils/validation';
 import { Routes } from '../constant/routes';
+import { AuthController } from '../controllers/auth';
+import { FailedMessage } from '../constant/message';
+import NoticeModal from '../components/modals/notice';
 
+const token = Astro.cookies.get('token');
+if (token) return Astro.redirect(Routes.HOME);
+
+let modalError = { showModal: false, title: "", message: "" };
 const errors = { email: "", password: ""}
+
 if (Astro.request.method == "POST") {
 	try {
 		const data = await Astro.request.formData();
-		const email = data.get("email");
-		const password = data.get("password");
-		if (typeof email !== "string") {
-			errors.email += "* Correo requerido"
-		} else if (!isValidEmail(email)) {
-			errors.email += "* Correo inválido"
-		}
-		if (typeof password !== "string") {
-			errors.password += "* Contraseña requerida"
-		} else if (!isValidPassword(password)) {
-			errors.password += "* Contraseña inválida"
-		}
+		const email = data.get("email") as string;
+		const password = data.get("password") as string;
+
+		if (!isValidEmail(email)) errors.email += "* Correo inválido"
+		if (!isValidPassword(password)) errors.password += FailedMessage.loginFailed;
 
 		const hasErrors = Object.values(errors).some(msg => msg);
 		if (!hasErrors) {
-			// TODO: Código de envío de solicitud... 
+			const response = await AuthController.login(email, password);
+			const token = response.data as string;
+			if (response.success) {
+				Astro.cookies.set('token', token, { path: '/', httpOnly: true, sameSite: 'strict' });
+				return Astro.redirect(Routes.HOME);
+			} else {
+				errors.password = response.message;
+			}
 		}
 	} catch (error) {
 		console.error(error);
+		modalError = { showModal: true, title: "Upss...", message: "Ha ocurrido un error inesperado. Por favor, refresca la página o intenta más tarde." };
 	}
 }
 ---
 <Layout title="Inicio de Sesión - OLT">
-	<form method="POST" class="min-w-fit w-2/6 py-10 px-10 flex flex-col items-center justify-center gap-4 bg-gray-50 rounded-xl max-md:w-2/3">
+	{modalError.showModal && <NoticeModal showModal={true} title={modalError.title} message={modalError.message} client:load />}
+	<form id="loginForm" method="POST" class="min-w-fit w-2/6 py-10 px-10 flex flex-col items-center justify-center gap-4 bg-gray-50 rounded-xl max-md:w-2/3">
 		<h2 class="mb-2 text-center text-4xl text-blue-600 font-semibold max-md:text-3xl max-sm:text-2xl">Inicio de Sesión</h2>
 		<div class="w-fit">
 			<div class="inputGroup md:w-96 relative max-md:max-w-96">

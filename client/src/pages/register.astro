@@ -4,7 +4,10 @@ import { isValidEmail, isValidPassword } from '../utils/validation';
 import { Routes } from '../constant/routes';
 import type { Register } from '../models/register';
 import { RegisterController } from '../controllers/register';
-import NoticeModal from '../components/modals/notice.tsx';
+import NoticeModal from '../components/modals/notice';
+
+const token = Astro.cookies.get('token');
+if (token) return Astro.redirect(Routes.HOME);
 
 const titleSuccessModal = "Usuario registrado";
 const titleFailedModal = "Error al registrar";
@@ -37,7 +40,7 @@ if (Astro.request.method == "POST") {
 			const response = await RegisterController.newUser(newP00 as number, email as string, password as string, passwordConfirm as string, names as string, lastnames as string);
 			if (response.success) {
 				modalSuccess = { showModal: true, title: titleSuccessModal, message: response.message };
-				Astro.redirect(Routes.LOGIN);
+				return Astro.redirect(Routes.LOGIN);
 			} else {
 				modalError = { showModal: true, title: titleFailedModal, message: response.message };
 			}

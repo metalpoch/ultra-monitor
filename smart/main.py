@@ -1,47 +1,35 @@
-import os
+from os import getenv
 
-from fastapi import FastAPI, HTTPException
 import uvicorn
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
 
-from database import postgres
-from utils import ollama, text
-from models import request
+from src import model
+from src.database import Postgres
+from src.libs.chatbox import AI
 
+load_dotenv()
 
 app = FastAPI()
+ai = AI(model="gemma2:2b")
+db = Postgres(getenv("URI", ""))
 
 
-@app.post("/")
-async def create_item(sql: request.Sql):
-    """Main function."""
+@app.post("/trend")
+async def linear_regression():
+    return {"msg": "fooziman"}
+
+
+@app.post("/chatbox")
+async def chatbox(request: model.QueryAI):
     try:
-        if not sql.text:
-            raise ValueError("Para continuar debe ingresar un valor")
-        else:
-            if not schema:
-                raise ValueError("Schema empty")
-            else:
-                newschema = text.delete_table(schema, "users")
-                promp = text.union_string(sql.text, newschema)
-                ia = ollama.chatbot(promp)
-                resust = text.sql_extract(ia)
-                temp = postgres.SQL_exe(resust)
+        schemas = db.csv_schemas(conn=db.connect())
+        msg = ai.query(schemas=schemas, body=request.message)
+        # print(msg)  # for develop
+        sql = ai.sql_extract(msg)
 
-                # Esta funcion es la encargada de borrar una tabla en especifico del schema, es generico. se debe colocar el nombre exacto de la
-                # tabla a eliminar, por ahora esta en prueba
-                # temp=text.delete_table(schema,'clientes')
-
-                return {"pregunta": resust, "respuesta": temp}
-    except ValueError as e:
+    except BaseException as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-
-if __name__ == "__main__":
-    try:
-        if os.getenv("URI"):
-            schema = postgres.Get_schema()
-            uvicorn.run(app, port=8000)
-        else:
-            raise Exception("No se encontró la variable URI en el .env")
-    except Exception as e:
-        print(e)
+    else:
+        return {"response": sql}

@@ -7,7 +7,7 @@ import (
 	"github.com/metalpoch/olt-blueprint/common/model"
 )
 
-type FeedRepository interface {
+type InfoRepository interface {
 	GetDevice(ctx context.Context, id uint) (*entity.Device, error)
 	GetDeviceByIP(ctx context.Context, ip string) (*entity.Device, error)
 	GetAllDevice(ctx context.Context) ([]*entity.Device, error)

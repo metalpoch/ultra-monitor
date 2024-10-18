@@ -8,20 +8,20 @@ import (
 	"github.com/metalpoch/olt-blueprint/common/constants"
 	"github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
-	"github.com/metalpoch/olt-blueprint/traffic/repository"
+	"github.com/metalpoch/olt-blueprint/core/repository"
 	"gorm.io/gorm"
 )
 
-type feedUsecase struct {
-	repo     repository.FeedRepository
+type infoUsecase struct {
+	repo     repository.InfoRepository
 	telegram tracking.Telegram
 }
 
-func NewFeedUsecase(db *gorm.DB, telegram tracking.Telegram) *feedUsecase {
-	return &feedUsecase{repository.NewFeedRepository(db), telegram}
+func NewInfoUsecase(db *gorm.DB, telegram tracking.Telegram) *infoUsecase {
+	return &infoUsecase{repository.NewInfoRepository(db), telegram}
 }
 
-func (use feedUsecase) GetDevice(id uint) (*model.Device, error) {
+func (use infoUsecase) GetDevice(id uint) (*model.Device, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	res, err := use.repo.GetDevice(ctx, id)
@@ -38,7 +38,7 @@ func (use feedUsecase) GetDevice(id uint) (*model.Device, error) {
 	return (*model.Device)(res), err
 }
 
-func (use feedUsecase) GetDeviceByIP(ip string) (*model.Device, error) {
+func (use infoUsecase) GetDeviceByIP(ip string) (*model.Device, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	res, err := use.repo.GetDeviceByIP(ctx, ip)
@@ -55,7 +55,7 @@ func (use feedUsecase) GetDeviceByIP(ip string) (*model.Device, error) {
 	return (*model.Device)(res), err
 }
 
-func (use feedUsecase) GetAllDevice() ([]*model.DeviceLite, error) {
+func (use infoUsecase) GetAllDevice() ([]*model.DeviceLite, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -87,7 +87,7 @@ func (use feedUsecase) GetAllDevice() ([]*model.DeviceLite, error) {
 	return devices, err
 }
 
-func (use feedUsecase) GetDeviceByState(state string) ([]*model.DeviceLite, error) {
+func (use infoUsecase) GetDeviceByState(state string) ([]*model.DeviceLite, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -119,7 +119,7 @@ func (use feedUsecase) GetDeviceByState(state string) ([]*model.DeviceLite, erro
 	return devices, err
 }
 
-func (use feedUsecase) GetDeviceByCounty(state, county string) ([]*model.DeviceLite, error) {
+func (use infoUsecase) GetDeviceByCounty(state, county string) ([]*model.DeviceLite, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -151,7 +151,7 @@ func (use feedUsecase) GetDeviceByCounty(state, county string) ([]*model.DeviceL
 	return devices, err
 }
 
-func (use feedUsecase) GetDeviceByMunicipality(state, county, municipality string) ([]*model.DeviceLite, error) {
+func (use infoUsecase) GetDeviceByMunicipality(state, county, municipality string) ([]*model.DeviceLite, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -183,7 +183,7 @@ func (use feedUsecase) GetDeviceByMunicipality(state, county, municipality strin
 	return devices, err
 }
 
-func (use feedUsecase) GetInterface(id uint) (*model.Interface, error) {
+func (use infoUsecase) GetInterface(id uint) (*model.Interface, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	res, err := use.repo.GetInterface(ctx, id)
@@ -200,7 +200,7 @@ func (use feedUsecase) GetInterface(id uint) (*model.Interface, error) {
 	return (*model.Interface)(res), err
 }
 
-func (use feedUsecase) GetInterfacesByDevice(id uint) ([]*model.InterfaceLite, error) {
+func (use infoUsecase) GetInterfacesByDevice(id uint) ([]*model.InterfaceLite, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	res, err := use.repo.GetInterfacesByDevice(ctx, id)
@@ -230,7 +230,7 @@ func (use feedUsecase) GetInterfacesByDevice(id uint) ([]*model.InterfaceLite, e
 	return interfaces, err
 }
 
-func (use feedUsecase) GetLocationStates() ([]*string, error) {
+func (use infoUsecase) GetLocationStates() ([]*string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	res, err := use.repo.GetLocationStates(ctx)
@@ -247,7 +247,7 @@ func (use feedUsecase) GetLocationStates() ([]*string, error) {
 	return res, err
 }
 
-func (use feedUsecase) GetLocationCounties(state string) ([]*string, error) {
+func (use infoUsecase) GetLocationCounties(state string) ([]*string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	res, err := use.repo.GetLocationCounties(ctx, state)
@@ -264,7 +264,7 @@ func (use feedUsecase) GetLocationCounties(state string) ([]*string, error) {
 	return res, err
 }
 
-func (use feedUsecase) GetLocationMunicipalities(state, county string) ([]*string, error) {
+func (use infoUsecase) GetLocationMunicipalities(state, county string) ([]*string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	res, err := use.repo.GetLocationMunicipalities(ctx, state, county)

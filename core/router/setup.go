@@ -8,5 +8,5 @@ import (
 
 func Setup(server *fiber.App, db *gorm.DB, telegram tracking.Telegram) {
 	newTrafficRouter(server, db, telegram)
-	newFeedRouter(server, db, telegram)
+	newInfoRouter(server, db, telegram)
 }

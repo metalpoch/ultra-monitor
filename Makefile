@@ -1,8 +1,8 @@
 dev-auth:
 	CONFIG_JSON=./config.json go run ./auth/cmd/main.go
 
-dev-traffic:
-	CONFIG_JSON=./config.json go run ./traffic/cmd/main.go
+dev-core:
+	CONFIG_JSON=./config.json go run ./core/cmd/main.go
 
 dev-report:
 	CONFIG_JSON=./config.json go run ./report/cmd/main.go

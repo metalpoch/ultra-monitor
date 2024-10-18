@@ -7,33 +7,33 @@ import (
 	"gorm.io/gorm"
 )
 
-type feedRepository struct {
+type infoRepository struct {
 	db *gorm.DB
 }
 
-func NewFeedRepository(db *gorm.DB) *feedRepository {
-	return &feedRepository{db}
+func NewInfoRepository(db *gorm.DB) *infoRepository {
+	return &infoRepository{db}
 }
 
-func (repo feedRepository) GetDevice(ctx context.Context, id uint) (*entity.Device, error) {
+func (repo infoRepository) GetDevice(ctx context.Context, id uint) (*entity.Device, error) {
 	d := new(entity.Device)
 	err := repo.db.WithContext(ctx).Preload("Template").First(d, id).Error
 	return d, err
 }
 
-func (repo feedRepository) GetDeviceByIP(ctx context.Context, ip string) (*entity.Device, error) {
+func (repo infoRepository) GetDeviceByIP(ctx context.Context, ip string) (*entity.Device, error) {
 	d := new(entity.Device)
 	err := repo.db.WithContext(ctx).Preload("Template").Where("ip = ?", ip).First(d).Error
 	return d, err
 }
 
-func (repo feedRepository) GetAllDevice(ctx context.Context) ([]*entity.Device, error) {
+func (repo infoRepository) GetAllDevice(ctx context.Context) ([]*entity.Device, error) {
 	var devices []*entity.Device
 	err := repo.db.WithContext(ctx).Find(&devices).Error
 	return devices, err
 }
 
-func (repo feedRepository) GetDeviceByState(ctx context.Context, state string) ([]*entity.Device, error) {
+func (repo infoRepository) GetDeviceByState(ctx context.Context, state string) ([]*entity.Device, error) {
 	var devices []*entity.Device
 	err := repo.db.WithContext(ctx).
 		Joins("JOIN interfaces ON devices.id = interfaces.device_id").
@@ -46,7 +46,7 @@ func (repo feedRepository) GetDeviceByState(ctx context.Context, state string) (
 	return devices, err
 }
 
-func (repo feedRepository) GetDeviceByCounty(ctx context.Context, state, county string) ([]*entity.Device, error) {
+func (repo infoRepository) GetDeviceByCounty(ctx context.Context, state, county string) ([]*entity.Device, error) {
 	var devices []*entity.Device
 	err := repo.db.WithContext(ctx).
 		Joins("JOIN interfaces ON devices.id = interfaces.device_id").
@@ -58,7 +58,7 @@ func (repo feedRepository) GetDeviceByCounty(ctx context.Context, state, county 
 	return devices, err
 }
 
-func (repo feedRepository) GetDeviceByMunicipality(ctx context.Context, state, county, municipality string) ([]*entity.Device, error) {
+func (repo infoRepository) GetDeviceByMunicipality(ctx context.Context, state, county, municipality string) ([]*entity.Device, error) {
 	var devices []*entity.Device
 	err := repo.db.WithContext(ctx).
 		Joins("JOIN interfaces ON devices.id = interfaces.device_id").
@@ -70,25 +70,25 @@ func (repo feedRepository) GetDeviceByMunicipality(ctx context.Context, state, c
 	return devices, err
 }
 
-func (repo feedRepository) GetInterface(ctx context.Context, id uint) (*entity.Interface, error) {
+func (repo infoRepository) GetInterface(ctx context.Context, id uint) (*entity.Interface, error) {
 	i := new(entity.Interface)
 	err := repo.db.WithContext(ctx).Preload("Device").Preload("Device.Template").First(i, id).Error
 	return i, err
 }
 
-func (repo feedRepository) GetInterfacesByDevice(ctx context.Context, id uint) ([]*entity.Interface, error) {
+func (repo infoRepository) GetInterfacesByDevice(ctx context.Context, id uint) ([]*entity.Interface, error) {
 	var ifaces []*entity.Interface
 	err := repo.db.WithContext(ctx).Where("device_id = ?", id).Find(&ifaces).Error
 	return ifaces, err
 }
 
-func (repo feedRepository) GetLocationStates(ctx context.Context) ([]*string, error) {
+func (repo infoRepository) GetLocationStates(ctx context.Context) ([]*string, error) {
 	var l []*string
 	err := repo.db.WithContext(ctx).Model(&entity.Location{}).Select("DISTINCT state").Pluck("state", &l).Error
 	return l, err
 }
 
-func (repo feedRepository) GetLocationCounties(ctx context.Context, state string) ([]*string, error) {
+func (repo infoRepository) GetLocationCounties(ctx context.Context, state string) ([]*string, error) {
 	var l []*string
 	err := repo.db.WithContext(ctx).Model(&entity.Location{}).
 		Select("DISTINCT county").
@@ -98,7 +98,7 @@ func (repo feedRepository) GetLocationCounties(ctx context.Context, state string
 	return l, err
 }
 
-func (repo feedRepository) GetLocationMunicipalities(ctx context.Context, state, county string) ([]*string, error) {
+func (repo infoRepository) GetLocationMunicipalities(ctx context.Context, state, county string) ([]*string, error) {
 	var l []*string
 	err := repo.db.WithContext(ctx).Model(&entity.Location{}).
 		Select("DISTINCT municipality").

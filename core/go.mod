@@ -1,4 +1,4 @@
-module github.com/metalpoch/olt-blueprint/traffic
+module github.com/metalpoch/olt-blueprint/core
 
 go 1.22.3
 

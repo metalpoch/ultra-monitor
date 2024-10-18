@@ -12,7 +12,7 @@ import (
 	"github.com/metalpoch/olt-blueprint/common/database"
 	"github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
-	"github.com/metalpoch/olt-blueprint/traffic/router"
+	"github.com/metalpoch/olt-blueprint/core/router"
 )
 
 var cfg model.Config

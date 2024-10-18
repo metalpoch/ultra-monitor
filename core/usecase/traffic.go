@@ -8,7 +8,7 @@ import (
 	"github.com/metalpoch/olt-blueprint/common/constants"
 	"github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
-	"github.com/metalpoch/olt-blueprint/traffic/repository"
+	"github.com/metalpoch/olt-blueprint/core/repository"
 	"gorm.io/gorm"
 )
 

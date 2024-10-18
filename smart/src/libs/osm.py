@@ -1,4 +1,5 @@
 import time
+
 import requests
 
 
@@ -7,7 +8,7 @@ class Openstreetmap:
         self.latitude = latitude
         self.longitude = longitude
 
-    def location(self) -> dict[str,str]:
+    def location(self) -> dict[str, str]:
         c = 0
         while c < 3:
             c += 1

@@ -6,26 +6,26 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/metalpoch/olt-blueprint/traffic/usecase"
-	"github.com/metalpoch/olt-blueprint/traffic/utils"
+	"github.com/metalpoch/olt-blueprint/core/usecase"
+	"github.com/metalpoch/olt-blueprint/core/utils"
 )
 
-type FeedHandler struct {
-	Usecase usecase.FeedUsecase
+type InfoHandler struct {
+	Usecase usecase.InfoUsecase
 }
 
 // Get device
 //
 //	@Summary		Get data of a device
 //	@Description	get data of a device by ID from database
-//	@Tags			feed
+//	@Tags			info
 //	@Produce		json
 //	@Param			id	path		uint	true	"Device ID"
 //	@Success		200	{object}	model.DeviceResponse
 //	@Failure		400	{object}	object{message=string}
 //	@Failure		500	{object}	object{message=string}
-//	@Router			/feed/device/{id} [get]
-func (hdlr FeedHandler) GetDevice(c fiber.Ctx) error {
+//	@Router			/info/device/{id} [get]
+func (hdlr InfoHandler) GetDevice(c fiber.Ctx) error {
 	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -45,14 +45,14 @@ func (hdlr FeedHandler) GetDevice(c fiber.Ctx) error {
 //
 //	@Summary		Get data of a device
 //	@Description	get data of a device by IP from database
-//	@Tags			feed
+//	@Tags			info
 //	@Produce		json
 //	@Param			id	path		uint	true	"Device ID"
 //	@Success		200	{object}	model.DeviceResponse
 //	@Failure		400	{object}	object{message=string}
 //	@Failure		500	{object}	object{message=string}
-//	@Router			/feed/device/ip/{ip} [get]
-func (hdlr FeedHandler) GetDeviceByIP(c fiber.Ctx) error {
+//	@Router			/info/device/ip/{ip} [get]
+func (hdlr InfoHandler) GetDeviceByIP(c fiber.Ctx) error {
 	ip, err := url.QueryUnescape(c.Params("ip"))
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -72,13 +72,13 @@ func (hdlr FeedHandler) GetDeviceByIP(c fiber.Ctx) error {
 //
 //	@Summary		Get all devices
 //	@Description	get all device ID from database
-//	@Tags			feed
+//	@Tags			info
 //	@Produce		json
 //	@Success		200	{object}	[]model.DeviceLite
 //	@Failure		400	{object}	object{message=string}
 //	@Failure		500	{object}	object{message=string}
-//	@Router			/feed/device/ [get]
-func (hdlr FeedHandler) GetAllDevice(c fiber.Ctx) error {
+//	@Router			/info/device/ [get]
+func (hdlr InfoHandler) GetAllDevice(c fiber.Ctx) error {
 	res, err := hdlr.Usecase.GetAllDevice()
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -91,14 +91,14 @@ func (hdlr FeedHandler) GetAllDevice(c fiber.Ctx) error {
 //
 //	@Summary		Get data of all devices by state
 //	@Description	get data of all devices by state from database
-//	@Tags			feed
+//	@Tags			info
 //	@Produce		json
 //	@Param			state	path		string					true	"State"
 //	@Success		200		{object}	[]model.DeviceResponse
 //	@Failure		400		{object}	object{message=string}
 //	@Failure		500		{object}	object{message=string}
-//	@Router			/feed/device/location/{state} [get]
-func (hdlr FeedHandler) GetDeviceByState(c fiber.Ctx) error {
+//	@Router			/info/device/location/{state} [get]
+func (hdlr InfoHandler) GetDeviceByState(c fiber.Ctx) error {
 	state, err := url.QueryUnescape(c.Params("state"))
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -116,15 +116,15 @@ func (hdlr FeedHandler) GetDeviceByState(c fiber.Ctx) error {
 //
 //	@Summary		Get data of all devices by county
 //	@Description	get data of all devices by county from database
-//	@Tags			feed
+//	@Tags			info
 //	@Produce		json
 //	@Param			state	path		string					true	"State"
 //	@Param			county	path		string					true	"County"
 //	@Success		200		{object}	[]model.DeviceResponse
 //	@Failure		400		{object}	object{message=string}
 //	@Failure		500		{object}	object{message=string}
-//	@Router			/feed/device/location/{state}/{county} [get]
-func (hdlr FeedHandler) GetDeviceByCounty(c fiber.Ctx) error {
+//	@Router			/info/device/location/{state}/{county} [get]
+func (hdlr InfoHandler) GetDeviceByCounty(c fiber.Ctx) error {
 	state, err := url.QueryUnescape(c.Params("state"))
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -147,7 +147,7 @@ func (hdlr FeedHandler) GetDeviceByCounty(c fiber.Ctx) error {
 //
 //	@Summary		Get data of all devices by municipality
 //	@Description	get data of all devices by municipality from database
-//	@Tags			feed
+//	@Tags			info
 //	@Produce		json
 //	@Param			state			path		string					true	"State"
 //	@Param			county			path		string					true	"County"
@@ -155,8 +155,8 @@ func (hdlr FeedHandler) GetDeviceByCounty(c fiber.Ctx) error {
 //	@Success		200				{object}	[]model.DeviceResponse
 //	@Failure		400				{object}	object{message=string}
 //	@Failure		500				{object}	object{message=string}
-//	@Router			/feed/device/location/{state}/{county}/{municipality} [get]
-func (hdlr FeedHandler) GetDeviceByMunicipality(c fiber.Ctx) error {
+//	@Router			/info/device/location/{state}/{county}/{municipality} [get]
+func (hdlr InfoHandler) GetDeviceByMunicipality(c fiber.Ctx) error {
 	state, err := url.QueryUnescape(c.Params("state"))
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -184,14 +184,14 @@ func (hdlr FeedHandler) GetDeviceByMunicipality(c fiber.Ctx) error {
 //
 //	@Summary		Get all data of a interface
 //	@Description	get all data of a interface by ID from database
-//	@Tags			feed
+//	@Tags			info
 //	@Produce		json
 //	@Param			id	path		uint	true	"Interface ID"
 //	@Success		200	{object}	model.InterfaceResponse
 //	@Failure		400	{object}	object{message=string}
 //	@Failure		500	{object}	object{message=string}
-//	@Router			/feed/interface/{id} [get]
-func (hdlr FeedHandler) GetInterface(c fiber.Ctx) error {
+//	@Router			/info/interface/{id} [get]
+func (hdlr InfoHandler) GetInterface(c fiber.Ctx) error {
 	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -209,14 +209,14 @@ func (hdlr FeedHandler) GetInterface(c fiber.Ctx) error {
 //
 //	@Summary		Get all interfaces from a device
 //	@Description	get all interfaces data by device ID from database
-//	@Tags			feed
+//	@Tags			info
 //	@Produce		json
 //	@Param			id	path		uint	true	"Device ID"
 //	@Success		200	{object}	[]model.InterfaceWithoutDevice
 //	@Failure		400	{object}	object{message=string}
 //	@Failure		500	{object}	object{message=string}
-//	@Router			/feed/interface/device/{id} [get]
-func (hdlr FeedHandler) GetInterfacesByDevice(c fiber.Ctx) error {
+//	@Router			/info/interface/device/{id} [get]
+func (hdlr InfoHandler) GetInterfacesByDevice(c fiber.Ctx) error {
 	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -233,13 +233,13 @@ func (hdlr FeedHandler) GetInterfacesByDevice(c fiber.Ctx) error {
 //
 //	@Summary		Get all state
 //	@Description	get all state  from database
-//	@Tags			feed
+//	@Tags			info
 //	@Produce		json
 //	@Success		200	{object}	[]string
 //	@Failure		400	{object}	object{message=string}
 //	@Failure		500	{object}	object{message=string}
-//	@Router			/feed/location/state [get]
-func (hdlr FeedHandler) GetLocationStates(c fiber.Ctx) error {
+//	@Router			/info/location/state [get]
+func (hdlr InfoHandler) GetLocationStates(c fiber.Ctx) error {
 	res, err := hdlr.Usecase.GetLocationStates()
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -252,14 +252,14 @@ func (hdlr FeedHandler) GetLocationStates(c fiber.Ctx) error {
 //
 // @Summary		Get all conties from state
 // @Description	get all conties from state from database
-// @Tags		feed
+// @Tags		info
 // @Produce		json
 // @Param		state	string		string					true	"State"
 // @Success		200		{object}	[]string
 // @Failure		400		{object}	object{message=string}
 // @Failure		500		{object}	object{message=string}
-// @Router		/feed/location/{state} [get]
-func (hdlr FeedHandler) GetLocationCounties(c fiber.Ctx) error {
+// @Router		/info/location/{state} [get]
+func (hdlr InfoHandler) GetLocationCounties(c fiber.Ctx) error {
 	state, err := url.QueryUnescape(c.Params("state"))
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -277,15 +277,15 @@ func (hdlr FeedHandler) GetLocationCounties(c fiber.Ctx) error {
 //
 // @Summary		Get all municipalities from conty & state
 // @Description	get all municipalities from conty & state from database
-// @Tags		feed
+// @Tags		info
 // @Produce		json
 // @Param		state	string		string					true	"State"
 // @Param		county	string		string					true	"County"
 // @Success		200		{object}	[]string
 // @Failure		400		{object}	object{message=string}
 // @Failure		500		{object}	object{message=string}
-// @Router		/feed/location/{state}/{county} [get]
-func (hdlr FeedHandler) GetLocationMunicipalities(c fiber.Ctx) error {
+// @Router		/info/location/{state}/{county} [get]
+func (hdlr InfoHandler) GetLocationMunicipalities(c fiber.Ctx) error {
 	state, err := url.QueryUnescape(c.Params("state"))
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})

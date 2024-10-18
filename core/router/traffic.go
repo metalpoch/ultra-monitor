@@ -3,8 +3,8 @@ package router
 import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
-	"github.com/metalpoch/olt-blueprint/traffic/handler"
-	"github.com/metalpoch/olt-blueprint/traffic/usecase"
+	"github.com/metalpoch/olt-blueprint/core/handler"
+	"github.com/metalpoch/olt-blueprint/core/usecase"
 	"gorm.io/gorm"
 )
 

@@ -6,6 +6,7 @@ from fastapi import FastAPI, HTTPException
 from src import model
 from src.database import Postgres
 from src.libs.chatbox import AI
+from src.libs.osm import Openstreetmap
 from src.libs.tracking import Telegram
 
 load_dotenv()
@@ -22,7 +23,7 @@ async def linear_regression():
 
 
 @app.post("/chatbox")
-async def chatbox(request: model.QueryAI):
+async def chatbox(request: model.QueryAI) -> dict:
     try:
         schemas = db.csv_schemas(conn=db.connect())
         msg = ai.query(schemas=schemas, body=request.message)
@@ -37,7 +38,7 @@ async def chatbox(request: model.QueryAI):
 
 
 @app.post("/telegram")
-async def tracking(req: model.Telegram):
+async def tracking(req: model.Telegram) -> dict:
     try:
         res = telegram.send_message(
             module=req.module, event=req.event, category=req.category, msg=req.message
@@ -48,3 +49,15 @@ async def tracking(req: model.Telegram):
 
     else:
         return {"response": res}
+
+
+@app.get("/location")
+async def location(latitude: float, longitude: float) -> dict:
+    try:
+        res = Openstreetmap(latitude, longitude).location()
+
+    except BaseException as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    else:
+        return res

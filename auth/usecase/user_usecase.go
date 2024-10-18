@@ -34,7 +34,7 @@ func (use userUsecase) Create(newUser *model.NewUser) error {
 	}
 	password, err := utils.HashPassword(newUser.Password)
 	if err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_AUTH,
 			constants.CATEGORY_UTILS,
 			fmt.Sprintf("(userUsecase).Create - utils.HashPassword(%s)", newUser.Password),
@@ -53,7 +53,7 @@ func (use userUsecase) Create(newUser *model.NewUser) error {
 	}
 
 	if err := use.repo.Create(ctx, user); err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_AUTH,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(userUsecase).Create - use.repo.Create(ctx, %v)", user),
@@ -71,7 +71,7 @@ func (use userUsecase) Login(email string, password string) (*model.LoginRespons
 
 	res, err := use.repo.GetUserByEmail(ctx, email)
 	if err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_AUTH,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(userUsecase).Login - use.repo.GetUserByEmail(ctx, %s)", email),
@@ -81,7 +81,7 @@ func (use userUsecase) Login(email string, password string) (*model.LoginRespons
 	}
 
 	if err := utils.CheckPasswordHash(password, res.Password); err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_AUTH,
 			constants.CATEGORY_UTILS,
 			fmt.Sprintf("(userUsecase).Login - utils.CheckPasswordHash(%s, %s)", password, res.Password),
@@ -92,7 +92,7 @@ func (use userUsecase) Login(email string, password string) (*model.LoginRespons
 
 	token, err := utils.CreateJWT(use.secret, res.ID, res.IsAdmin)
 	if err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_AUTH,
 			constants.CATEGORY_UTILS,
 			fmt.Sprintf("(userUsecase).Login - utils.CreateJWT(%x, %d, %t)", use.secret, res.ID, res.IsAdmin),
@@ -119,7 +119,7 @@ func (use userUsecase) GetUser(id uint) (*model.User, error) {
 
 	res, err := use.repo.GetUserByID(ctx, id)
 	if err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_AUTH,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(userUsecase).GetUser - use.repo.GetUserByID(ctx, %d)", id),
@@ -144,7 +144,7 @@ func (use userUsecase) GetAllUsers() ([]*model.FullUser, error) {
 
 	res, err := use.repo.GetAll(ctx)
 	if err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_AUTH,
 			constants.CATEGORY_DATABASE,
 			"(userUsecase).GetAllUsers - use.repo.GetAll(ctx)",
@@ -173,7 +173,7 @@ func (use userUsecase) SoftDelete(id uint) error {
 	defer cancel()
 
 	if err := use.repo.SoftDelete(ctx, id); err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_AUTH,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(userUsecase).SoftDelete - use.repo.SoftDelete(ctx, %d)", id),
@@ -190,7 +190,7 @@ func (use userUsecase) ChangePassword(id uint, user *model.ChangePassword) error
 
 	res, err := use.repo.GetUserByID(ctx, id)
 	if err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_AUTH,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(userUsecase).ChangePassword - use.repo.GetUserByID(ctx, %d)", id),
@@ -200,7 +200,7 @@ func (use userUsecase) ChangePassword(id uint, user *model.ChangePassword) error
 	}
 
 	if err := utils.CheckPasswordHash(user.Password, res.Password); err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_AUTH,
 			constants.CATEGORY_UTILS,
 			fmt.Sprintf("(userUsecase).ChangePassword - utils.CheckPasswordHash(%s, %s)", user.Password, res.Password),
@@ -219,7 +219,7 @@ func (use userUsecase) ChangePassword(id uint, user *model.ChangePassword) error
 	}
 
 	if err := use.repo.ChangePassword(ctx, id, password); err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_AUTH,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(userUsecase).ChangePassword - use.repo.ChangePassword(ctx, %d, %s)", id, password),

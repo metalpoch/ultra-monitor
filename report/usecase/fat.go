@@ -37,7 +37,7 @@ func (use fatUsecase) Add(fat *model.NewFat) error {
 
 	loc, err := osm.LocationByCoord(fat.Latitude, fat.Longitude)
 	if err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_REPORT,
 			constants.CATEGORY_OSM,
 			fmt.Sprintf("(fatUsecase).Add - osm.LocationByCoord(%f, %f)", fat.Latitude, fat.Longitude),
@@ -54,7 +54,7 @@ func (use fatUsecase) Add(fat *model.NewFat) error {
 	err = use.location.Find(ctx, &location)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		if err := use.location.Add(ctx, &location); err != nil {
-			go use.telegram.Notification(
+			go use.telegram.SendMessage(
 				constants.MODULE_REPORT,
 				constants.CATEGORY_DATABASE,
 				fmt.Sprintf("(fatUsecase).Add - use.location.Add(ctx, %v)", location),
@@ -63,7 +63,7 @@ func (use fatUsecase) Add(fat *model.NewFat) error {
 			return err
 		}
 	} else if err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_REPORT,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(fatUsecase).Add - use.location.Find(ctx, %v)", location),
@@ -85,7 +85,7 @@ func (use fatUsecase) Add(fat *model.NewFat) error {
 
 	err = use.fat.Add(ctx, newFat)
 	if err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_REPORT,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(fatUsecase).Add - use.repo.Add(ctx, %v)", newFat),
@@ -102,7 +102,7 @@ func (use fatUsecase) Get(id uint) (*model.Fat, error) {
 
 	res, err := use.fat.Get(ctx, id)
 	if err != nil && err != gorm.ErrRecordNotFound {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_REPORT,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(fatUsecase).Get - use.repo.Get(ctx, %d)", id),
@@ -120,7 +120,7 @@ func (use fatUsecase) GetAll() ([]model.FatResponse, error) {
 
 	res, err := use.fat.GetAll(ctx)
 	if err != nil && err != gorm.ErrRecordNotFound {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_REPORT,
 			constants.CATEGORY_DATABASE,
 			"(fatUsecase).GetAll - use.repo.GetAll(ctx)",
@@ -141,7 +141,7 @@ func (use fatUsecase) Delete(id uint) error {
 
 	err := use.fat.Delete(ctx, id)
 	if err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_REPORT,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(fatUsecase).Delete - use.repo.Delete(ctx, %d)", id),

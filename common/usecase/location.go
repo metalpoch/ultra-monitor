@@ -29,7 +29,7 @@ func (use locationUsecase) Add(location *model.Location) (uint, error) {
 	loc := (*entity.Location)(location)
 	err := use.repo.Add(ctx, loc)
 	if err != nil {
-		use.telegram.Notification(
+		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(interfaceUsecase).Upsert - use.repo.Upsert(ctx, %v)", *(*entity.Location)(location)),
@@ -47,7 +47,7 @@ func (use locationUsecase) FindID(location *model.Location) (uint, error) {
 	loc := (*entity.Location)(location)
 	err := use.repo.Find(ctx, loc)
 	if err != nil {
-		use.telegram.Notification(
+		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(interfaceUsecase).Upsert - use.repo.Upsert(ctx, %v)", *(*entity.Location)(location)),

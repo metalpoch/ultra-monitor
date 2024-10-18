@@ -27,7 +27,7 @@ func (use trafficUsecase) GetTrafficByInterface(id uint, date *model.TranficRang
 
 	res, err := use.repo.GetTrafficByInterface(ctx, id, date)
 	if err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_TRAFFIC,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(trafficUsecase).GetTrafficByInterface - use.repo.GetTrafficByInterface(ctx, %d, %v)", id, date),
@@ -55,7 +55,7 @@ func (use trafficUsecase) GetTrafficByDevice(id uint, date *model.TranficRangeDa
 
 	res, err := use.repo.GetTrafficByDevice(ctx, id, date)
 	if err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_TRAFFIC,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(trafficUsecase).GetTrafficByDevice - use.repo.GetTrafficByDevice(ctx, %d, %v)", id, date),
@@ -83,7 +83,7 @@ func (use trafficUsecase) GetTrafficByFat(id uint, date *model.TranficRangeDate)
 
 	res, err := use.repo.GetTrafficByFat(ctx, id, date)
 	if err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_TRAFFIC,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(trafficUsecase).GetTrafficByFat - use.repo.GetTrafficByFat(ctx, %d, %v)", id, date),
@@ -111,7 +111,7 @@ func (use trafficUsecase) GetTrafficByLocationID(id uint, date *model.TranficRan
 
 	res, err := use.repo.GetTrafficByLocationID(ctx, id, date)
 	if err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_TRAFFIC,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(trafficUsecase).GetTrafficByLocationID - use.repo.GetTrafficByLocationID(ctx, %d, %v)", id, date),
@@ -139,7 +139,7 @@ func (use trafficUsecase) GetTrafficByState(state string, date *model.TranficRan
 
 	res, err := use.repo.GetTrafficByState(ctx, state, date)
 	if err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_TRAFFIC,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(trafficUsecase).GetTrafficByState - use.repo.GetTrafficByState(ctx, %s, %v)", state, date),
@@ -167,7 +167,7 @@ func (use trafficUsecase) GetTrafficByCounty(state, county string, date *model.T
 
 	res, err := use.repo.GetTrafficByCounty(ctx, state, county, date)
 	if err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_TRAFFIC,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(trafficUsecase).GetTrafficByCounty - use.repo.GetTrafficByCounty(ctx, %s, %s, %v)", state, county, date),
@@ -195,7 +195,7 @@ func (use trafficUsecase) GetTrafficByMunicipality(state, county, municipality s
 
 	res, err := use.repo.GetTrafficByMunicipality(ctx, state, county, municipality, date)
 	if err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_TRAFFIC,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(trafficUsecase).GetTrafficByMunicipality - use.repo.GetTrafficByMunicipality(ctx, %s, %s, %v)", state, county, date),

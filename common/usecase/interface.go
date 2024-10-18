@@ -27,7 +27,7 @@ func (use interfaceUsecase) Upsert(element *model.Interface) error {
 	defer cancel()
 	err := use.repo.Upsert(ctx, (*entity.Interface)(element))
 	if err != nil {
-		use.telegram.Notification(
+		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(interfaceUsecase).Upsert - use.repo.Upsert(ctx, %v)", *(*entity.Interface)(element)),
@@ -45,7 +45,7 @@ func (use interfaceUsecase) GetAllByDevice(id uint) ([]*model.Interface, error) 
 
 	res, err := use.repo.GetAllByDevice(ctx, id)
 	if err != nil {
-		use.telegram.Notification(
+		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(interfaceUsecase).GetAllByDevice - use.repo.GetAllByDevice(ctx, %d)", id),
@@ -68,7 +68,7 @@ func (use interfaceUsecase) GetAll() ([]*model.Interface, error) {
 
 	res, err := use.repo.GetAll(ctx)
 	if err != nil {
-		use.telegram.Notification(
+		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			"(interfaceUsecase).GetAll - use.repo.GetAll(ctx)",

@@ -28,7 +28,7 @@ func (use measurementUsecase) Get(id uint) (*model.Measurement, error) {
 
 	measurement := new(entity.Measurement)
 	if err := use.repo.Get(ctx, id, measurement); err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(measurementUsecase).Get - use.repo.Get(ctx, %d, %v)", id, *measurement),
@@ -45,7 +45,7 @@ func (use measurementUsecase) Upsert(measurement *model.Measurement) error {
 	defer cancel()
 	err := use.repo.Upsert(ctx, (*entity.Measurement)(measurement))
 	if err != nil {
-		use.telegram.Notification(
+		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(measurementUsecase).Upsert - use.repo.Upsert(ctx, %v)", *(*entity.Measurement)(measurement)),

@@ -3,31 +3,25 @@ package tracking
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
-
-	"github.com/metalpoch/olt-blueprint/common/constants"
-	"github.com/metalpoch/olt-blueprint/common/model"
 )
 
 type Telegram struct {
-	BotID  string
-	ChatID string
+	URL string
 }
 
-func (t Telegram) Notification(module, category, event string, err error) {
-	url := fmt.Sprintf(constants.TELEGRAM_API_URL, t.BotID)
-	text := fmt.Sprintf(constants.TELEGRAM_HTML_MESSAGE, module, category, event, err)
-	jsonValue, _ := json.Marshal(model.Telegram{
-		ChatID:                t.ChatID,
-		ParseMode:             "HTML",
-		Text:                  text,
-		DisableWebPagePreview: true,
-	})
+type payload struct {
+	module   string
+	category string
+	event    string
+	message  string
+}
 
-	res, err := http.Post(url, "application/json", bytes.NewBuffer(jsonValue))
+func (t Telegram) SendMessage(module, category, event string, err error) {
+	dataJson, _ := json.Marshal(payload{module, category, event, err.Error()})
+	res, err := http.Post(t.URL, "application/json", bytes.NewBuffer(dataJson))
 	if err != nil {
 		log.Println("error to send traking on telegram:", err.Error())
 		return

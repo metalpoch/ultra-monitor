@@ -34,7 +34,7 @@ func (use reportUsecase) Add(rp *model.NewReport) (string, error) {
 	}
 	err := use.repo.Add(ctx, newReport)
 	if err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_REPORT,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(reportUsecase).Add - use.repo.Add(ctx, %v)", newReport),
@@ -51,7 +51,7 @@ func (use reportUsecase) Get(id string) (*model.Report, error) {
 
 	res, err := use.repo.Get(ctx, id)
 	if err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_REPORT,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(reportUsecase).Get - use.repo.Get(ctx, %s)", id),
@@ -68,7 +68,7 @@ func (use reportUsecase) GetReports(query *model.FindReports) ([]*model.ReportRe
 
 	res, err := use.repo.GetReports(ctx, query.Category, query.UserID)
 	if err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_REPORT,
 			constants.CATEGORY_DATABASE,
 			"(reportUsecase).GetReports - use.repo.GetReports(ctx, %s)",
@@ -102,7 +102,7 @@ func (use reportUsecase) GetCategories() ([]*string, error) {
 
 	res, err := use.repo.GetCategories(ctx)
 	if err != nil {
-		go use.telegram.Notification(
+		go use.telegram.SendMessage(
 			constants.MODULE_REPORT,
 			constants.CATEGORY_DATABASE,
 			"(reportUsecase).GetCategories - use.repo.GetCategories(ctx, %s)",

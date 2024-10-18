@@ -28,7 +28,7 @@ func (use trafficUsecase) Add(traffic *model.Traffic) error {
 
 	err := use.repo.Add(ctx, (*entity.Traffic)(traffic))
 	if err != nil {
-		use.telegram.Notification(
+		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(trafficUsecase).Add - use.repo.Add(ctx, %v)", *(*entity.Traffic)(traffic)),

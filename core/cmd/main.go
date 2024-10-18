@@ -33,8 +33,7 @@ func init() {
 
 func main() {
 	telegram := tracking.Telegram{
-		BotID:  cfg.TelegramBotTokenID,
-		ChatID: cfg.TelegramChatID,
+		URL: cfg.SmartModuleURL,
 	}
 
 	db := database.Connect(cfg.DatabaseURI, cfg.IsProduction)

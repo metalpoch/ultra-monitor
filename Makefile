@@ -30,5 +30,5 @@ container-smart:
 	docker build . -t smart  -f ./smart/dockerfile
 
 container-smart-run:
-	docker run --rm -p 8000:8000 --name smart-olt --network smart-network smart  
+	docker run --rm -p 3003:3003 --name olt-blueprint-smart olt-blueprint-smart
 	

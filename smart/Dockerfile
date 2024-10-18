@@ -1,14 +1,12 @@
-FROM python:alpine
+FROM python:3.12-alpine
 
 WORKDIR /app
 
-COPY ./smart/requirements.txt .
-
-RUN python -m venv ./venv
-RUN source ./venv/bin/activate
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY  . .
-EXPOSE 8000
+COPY . .
 
-CMD ["fastapi, run", "./smart/main.py"]
+EXPOSE 3003
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "3003"]

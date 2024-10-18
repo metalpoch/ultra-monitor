@@ -1,18 +1,19 @@
 from os import getenv
 
-import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 
 from src import model
 from src.database import Postgres
 from src.libs.chatbox import AI
+from src.libs.tracking import Telegram
 
 load_dotenv()
 
 app = FastAPI()
 ai = AI(model="gemma2:2b")
 db = Postgres(getenv("URI", ""))
+telegram = Telegram(getenv("TELEGRAM_BOT_ID", ""), getenv("TELEGRAM_CHAT_ID", ""))
 
 
 @app.post("/trend")
@@ -33,3 +34,17 @@ async def chatbox(request: model.QueryAI):
 
     else:
         return {"response": sql}
+
+
+@app.post("/telegram")
+async def tracking(req: model.Telegram):
+    try:
+        res = telegram.send_message(
+            module=req.module, event=req.event, category=req.category, msg=req.message
+        )
+
+    except BaseException as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    else:
+        return {"response": res}

@@ -21,14 +21,14 @@ type trafficController struct {
 	Traffic     commonUsecase.TrafficUsecase
 }
 
-func newTrafficController(db *gorm.DB, telegram tracking.Telegram) *trafficController {
+func newTrafficController(db *gorm.DB, telegram tracking.SmartModule) *trafficController {
 	return &trafficController{
 		Measurement: *usecase.NewMeasurementUsecase(db, telegram),
 		Traffic:     *commonUsecase.NewTrafficUsecase(db, telegram),
 	}
 }
 
-func deviceUpdater(db *gorm.DB, telegram tracking.Telegram, device *model.DeviceWithOID) (bool, error) {
+func deviceUpdater(db *gorm.DB, telegram tracking.SmartModule, device *model.DeviceWithOID) (bool, error) {
 	var isAlive bool
 	checkDevice := &model.Device{
 		ID:          device.ID,
@@ -50,7 +50,7 @@ func deviceUpdater(db *gorm.DB, telegram tracking.Telegram, device *model.Device
 	return isAlive, newDeviceController(db, telegram).Usecase.Check(checkDevice)
 }
 
-func measurements(db *gorm.DB, telegram tracking.Telegram, device *model.DeviceWithOID) error {
+func measurements(db *gorm.DB, telegram tracking.SmartModule, device *model.DeviceWithOID) error {
 	measurementUsecase := newTrafficController(db, telegram).Measurement
 	trafficUsecase := newTrafficController(db, telegram).Traffic
 	var (
@@ -148,7 +148,7 @@ func measurements(db *gorm.DB, telegram tracking.Telegram, device *model.DeviceW
 	return nil
 }
 
-func Scan(db *gorm.DB, telegram tracking.Telegram, devices []*model.DeviceWithOID) {
+func Scan(db *gorm.DB, telegram tracking.SmartModule, devices []*model.DeviceWithOID) {
 
 	for _, d := range devices {
 		go func(d *model.DeviceWithOID) {

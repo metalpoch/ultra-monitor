@@ -15,10 +15,10 @@ import (
 
 type measurementUsecase struct {
 	repo     repository.MeasurementRepository
-	telegram tracking.Telegram
+	telegram tracking.SmartModule
 }
 
-func NewMeasurementUsecase(db *gorm.DB, telegram tracking.Telegram) *measurementUsecase {
+func NewMeasurementUsecase(db *gorm.DB, telegram tracking.SmartModule) *measurementUsecase {
 	return &measurementUsecase{repository.NewMeasurementRepository(db), telegram}
 }
 

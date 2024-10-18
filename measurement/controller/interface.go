@@ -14,11 +14,11 @@ type interfaceController struct {
 	Usecase usecase.InterfaceUsecase
 }
 
-func newInterfaceController(db *gorm.DB, telegram tracking.Telegram) *interfaceController {
+func newInterfaceController(db *gorm.DB, telegram tracking.SmartModule) *interfaceController {
 	return &interfaceController{*usecase.NewInterfaceUsecase(db, telegram)}
 }
 
-func ShowAllInterfaces(db *gorm.DB, telegram tracking.Telegram, deviceID uint, csv bool) error {
+func ShowAllInterfaces(db *gorm.DB, telegram tracking.SmartModule, deviceID uint, csv bool) error {
 	interfaces, err := newInterfaceController(db, telegram).Usecase.GetAllByDevice(deviceID)
 	if err != nil {
 		return err

@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func newUserRouter(server *fiber.App, db *gorm.DB, secret []byte, telegram tracking.Telegram) {
+func newUserRouter(server *fiber.App, db *gorm.DB, secret []byte, telegram tracking.SmartModule) {
 	hdlr := &handler.UserHandler{
 		Usecase: *usecase.NewUserUsecase(db, secret, telegram),
 	}

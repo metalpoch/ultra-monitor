@@ -15,10 +15,10 @@ import (
 
 type locationUsecase struct {
 	repo     repository.LocationRepository
-	telegram tracking.Telegram
+	telegram tracking.SmartModule
 }
 
-func NewLocationUsecase(db *gorm.DB, telegram tracking.Telegram) *locationUsecase {
+func NewLocationUsecase(db *gorm.DB, telegram tracking.SmartModule) *locationUsecase {
 	return &locationUsecase{repository.NewLocationRepository(db), telegram}
 }
 

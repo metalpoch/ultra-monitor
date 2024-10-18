@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-type Telegram struct {
+type SmartModule struct {
 	URL string
 }
 
@@ -19,7 +19,7 @@ type payload struct {
 	message  string
 }
 
-func (t Telegram) SendMessage(module, category, event string, err error) {
+func (t SmartModule) SendMessage(module, category, event string, err error) {
 	dataJson, _ := json.Marshal(payload{module, category, event, err.Error()})
 	res, err := http.Post(t.URL, "application/json", bytes.NewBuffer(dataJson))
 	if err != nil {

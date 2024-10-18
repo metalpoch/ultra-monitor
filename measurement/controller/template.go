@@ -14,23 +14,23 @@ type templateController struct {
 	Usecase usecase.TemplateUsecase
 }
 
-func newTemplateController(db *gorm.DB, telegram tracking.Telegram) *templateController {
+func newTemplateController(db *gorm.DB, telegram tracking.SmartModule) *templateController {
 	return &templateController{Usecase: *usecase.NewTemplateUsecase(db, telegram)}
 }
 
-func AddTemplate(db *gorm.DB, telegram tracking.Telegram, template *model.AddTemplate) error {
+func AddTemplate(db *gorm.DB, telegram tracking.SmartModule, template *model.AddTemplate) error {
 	return newTemplateController(db, telegram).Usecase.Add(template)
 }
 
-func UpdateTemplate(db *gorm.DB, telegram tracking.Telegram, id uint, template *model.AddTemplate) error {
+func UpdateTemplate(db *gorm.DB, telegram tracking.SmartModule, id uint, template *model.AddTemplate) error {
 	return newTemplateController(db, telegram).Usecase.Update(id, template)
 }
 
-func DeleteTemplate(db *gorm.DB, telegram tracking.Telegram, id uint) error {
+func DeleteTemplate(db *gorm.DB, telegram tracking.SmartModule, id uint) error {
 	return newTemplateController(db, telegram).Usecase.Delete(id)
 }
 
-func ShowAllTemplates(db *gorm.DB, telegram tracking.Telegram, csv bool) error {
+func ShowAllTemplates(db *gorm.DB, telegram tracking.SmartModule, csv bool) error {
 	templates, err := newTemplateController(db, telegram).Usecase.GetAll()
 	if err != nil {
 		return err

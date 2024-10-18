@@ -15,10 +15,10 @@ import (
 
 type interfaceUsecase struct {
 	repo     repository.InterfaceRepository
-	telegram tracking.Telegram
+	telegram tracking.SmartModule
 }
 
-func NewInterfaceUsecase(db *gorm.DB, telegram tracking.Telegram) *interfaceUsecase {
+func NewInterfaceUsecase(db *gorm.DB, telegram tracking.SmartModule) *interfaceUsecase {
 	return &interfaceUsecase{repository.NewInterfaceRepository(db), telegram}
 }
 

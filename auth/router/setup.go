@@ -6,6 +6,6 @@ import (
 	"gorm.io/gorm"
 )
 
-func Setup(server *fiber.App, db *gorm.DB, secret []byte, telegram tracking.Telegram) {
+func Setup(server *fiber.App, db *gorm.DB, secret []byte, telegram tracking.SmartModule) {
 	newUserRouter(server, db, secret, telegram)
 }

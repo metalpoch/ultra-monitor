@@ -15,10 +15,10 @@ import (
 
 type reportUsecase struct {
 	repo     repository.ReportRepository
-	telegram tracking.Telegram
+	telegram tracking.SmartModule
 }
 
-func NewReportUsecase(db *gorm.DB, telegram tracking.Telegram) *reportUsecase {
+func NewReportUsecase(db *gorm.DB, telegram tracking.SmartModule) *reportUsecase {
 	return &reportUsecase{repository.NewReportRepository(db), telegram}
 }
 

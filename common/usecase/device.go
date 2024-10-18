@@ -16,10 +16,10 @@ import (
 
 type deviceUsecase struct {
 	repo     repository.DeviceRepository
-	telegram tracking.Telegram
+	telegram tracking.SmartModule
 }
 
-func NewDeviceUsecase(db *gorm.DB, telegram tracking.Telegram) *deviceUsecase {
+func NewDeviceUsecase(db *gorm.DB, telegram tracking.SmartModule) *deviceUsecase {
 	return &deviceUsecase{repository.NewDeviceRepository(db), telegram}
 }
 

@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func newTrafficRouter(server *fiber.App, db *gorm.DB, telegram tracking.Telegram) {
+func newTrafficRouter(server *fiber.App, db *gorm.DB, telegram tracking.SmartModule) {
 	hdlr := handler.TrafficHandler{
 		Usecase: *usecase.NewTrafficUsecase(db, telegram),
 	}

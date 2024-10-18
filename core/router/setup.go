@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func Setup(server *fiber.App, db *gorm.DB, telegram tracking.Telegram) {
+func Setup(server *fiber.App, db *gorm.DB, telegram tracking.SmartModule) {
 	newTrafficRouter(server, db, telegram)
 	newInfoRouter(server, db, telegram)
 }

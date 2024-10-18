@@ -17,11 +17,11 @@ import (
 
 type userUsecase struct {
 	secret   []byte
-	telegram tracking.Telegram
+	telegram tracking.SmartModule
 	repo     repository.UserRepository
 }
 
-func NewUserUsecase(db *gorm.DB, secret []byte, telegram tracking.Telegram) *userUsecase {
+func NewUserUsecase(db *gorm.DB, secret []byte, telegram tracking.SmartModule) *userUsecase {
 	return &userUsecase{secret, telegram, repository.NewUserRepository(db)}
 }
 

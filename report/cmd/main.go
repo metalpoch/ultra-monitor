@@ -11,6 +11,7 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/metalpoch/olt-blueprint/common/database"
 	"github.com/metalpoch/olt-blueprint/common/model"
+	"github.com/metalpoch/olt-blueprint/common/pkg/openstreetmap"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
 	"github.com/metalpoch/olt-blueprint/report/router"
 )
@@ -32,8 +33,12 @@ func init() {
 }
 
 func main() {
-	telegram := tracking.Telegram{
-		URL: cfg.SmartModuleURL,
+	telegram := tracking.SmartModule{
+		URL: cfg.SmartModuleTelegramURL,
+	}
+
+	openstreetmap := openstreetmap.OSM{
+		URL: cfg.SmartModuleOSMURL,
 	}
 
 	db := database.Connect(cfg.DatabaseURI, cfg.IsProduction)
@@ -44,6 +49,6 @@ func main() {
 	})
 
 	server.Use(logger.New())
-	router.Setup(server, db, telegram)
+	router.Setup(server, db, telegram, openstreetmap)
 	server.Listen(":3002")
 }

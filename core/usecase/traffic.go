@@ -14,10 +14,10 @@ import (
 
 type trafficUsecase struct {
 	repo     repository.TrafficRepository
-	telegram tracking.Telegram
+	telegram tracking.SmartModule
 }
 
-func NewTrafficUsecase(db *gorm.DB, telegram tracking.Telegram) *trafficUsecase {
+func NewTrafficUsecase(db *gorm.DB, telegram tracking.SmartModule) *trafficUsecase {
 	return &trafficUsecase{repository.NewTrafficRepository(db), telegram}
 }
 

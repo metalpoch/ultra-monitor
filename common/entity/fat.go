@@ -6,16 +6,16 @@ import (
 
 type Fat struct {
 	ID          uint `gorm:"primaryKey"`
-	OND         string
-	Fat         string `gorm:"uniqueIndex"`
-	Splitter    uint8
-	Address     string
-	Latitude    float64
-	Longitude   float64
-	Location    Location `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	LocationID  uint
-	Interface   Interface `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	InterfaceID uint
+	Splitter    uint8
+	Fat         string    `gorm:"uniqueIndex"`
+	Address     string    `gorm:"uniqueIndex:idx_unique_fat_location"`
+	OND         string    `gorm:"uniqueIndex:idx_unique_fat_location"`
+	Latitude    float64   `gorm:"uniqueIndex:idx_unique_fat_location"`
+	Longitude   float64   `gorm:"uniqueIndex:idx_unique_fat_location"`
+	Location    Location  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Interface   Interface `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }

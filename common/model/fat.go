@@ -8,16 +8,16 @@ import (
 
 type Fat struct {
 	ID          uint
-	OND         string
-	Fat         string
+	LocationID  uint
+	InterfaceID uint
 	Splitter    uint8
+	Fat         string
 	Address     string
+	OND         string
 	Latitude    float64
 	Longitude   float64
 	Location    entity.Location
-	LocationID  uint
 	Interface   entity.Interface
-	InterfaceID uint
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }

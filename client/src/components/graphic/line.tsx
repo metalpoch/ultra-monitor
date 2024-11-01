@@ -57,7 +57,7 @@ export default function Line({ title, canvasID, data }: LineProps) {
   }, []);
 
   return(
-    <div className="min-w-fit w-full px-10 bg-white rounded-xl shadow-2xl flex flex-col justify-center items-center gap-4 lg:py-5 md:py-10 max-sm:py-8">
+    <div className="min-w-fit w-full h-fit px-10 py-10 bg-white rounded-xl flex flex-col justify-center items-center gap-4 lg:py-5 md:py-10 max-sm:py-8">
       <h1 className="self-start text-2xl font-semibold text-gray-700">{title}</h1>
       <section className="w-full h-full">
         <canvas id={canvasID}></canvas>

@@ -3,6 +3,11 @@
 export default {
 	content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
 	theme: {
+		extend: {
+			height: {
+				'100vh': '100vh',
+			},
+		},
 		colors: {
 			gray: {
 				'50': '#FFFFFF',

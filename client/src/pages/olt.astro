@@ -1,0 +1,99 @@
+---
+import Layout from "../layouts/Inside.astro";
+import Filter from "../components/filters/traffic";
+import Graphic from "../components/graphic/line";
+import Navbar from "../layouts/Navbar";
+import { $user } from '../controllers/auth';
+import { Routes } from '../constant/routes';
+import { Tab } from '../constant/tab';
+---
+<Layout title={Tab.OLT}>
+    <main class="w-full h-lvh absolute px-4 py-2 overflow-y-auto">
+        <Navbar user={$user.get()!} pathname={Astro.url.pathname} client:load />
+        <section class="w-full h-fit flex flex-row gap-4">
+            <a class="w-fit h-fit px-8 py-2 bg-blue-600 text-white font-bold rounded-full cursor-default">Tráfico</a>
+            <a class="w-fit h-fit px-8 py-2 bg-blue-800 text-white font-bold rounded-full transition-all duration-300 ease-linear hover:bg-blue-400" href={Routes.OLT_IP}>IP's Activas</a>
+        </section>
+        <section class="w-full h-fit flex flex-row justify-center items-start mt-2 gap-4 max-md:flex-col max-md:items-center">
+            <Filter client:load></Filter>
+            <Graphic title="Tráfico" canvasID="traffic" data={[
+                {
+                    "date": new Date("2024-10-07T20:01:48.525908-04:00"),
+                    "bandwidth_bps": 44,
+                    "in_bps": 54,
+                    "out_bps": 45
+                },
+                {
+                    "date": new Date("2024-10-07T20:02:12.625049-04:00"),
+                    "bandwidth_bps": 44,
+                    "in_bps": 48,
+                    "out_bps": 43
+                },
+                {
+                    "date": new Date("2024-10-07T20:02:12.625049-04:00"),
+                    "bandwidth_bps": 44,
+                    "in_bps": 64,
+                    "out_bps": 53
+                }
+            ]} client:load />
+        </section>
+        <section class="w-full h-fit bg-white mt-2 p-6 rounded-md flex flex-col gap-2">
+            <h1 class="text-2xl text-blue-800 font-bold underline underline-offset-8 decoration-4 rounded-full">Equipo:</h1>
+            <div class="w-full flex flex-row gap-20">
+                <section class="w-fit flex flex-col">
+                    <p class="text-md text-blue-700 font-bold">IP:</p>
+                    <p class="text-md text-blue-700 font-bold">Shell:</p>
+                    <p class="text-md text-blue-700 font-bold">Tarjeta:</p>
+                    <p class="text-md text-blue-700 font-bold">Puerto:</p>
+                </section>
+                <section class="w-fit flex flex-col">
+                    <p class="text-md text-blue-700 font-bold">Estatus:</p>
+                    <p class="text-md text-blue-700 font-bold">Estado:</p>
+                    <p class="text-md text-blue-700 font-bold">Localidad:</p>
+                </section>
+                <section class="w-fit flex flex-col">
+                    <p class="text-md text-blue-700 font-bold">Municipio:</p>
+                    <p class="text-md text-blue-700 font-bold">Parroquia:</p>
+                </section>
+            </div>
+        </section>
+        <section class="w-full h-fit bg-white mt-2 p-4 rounded-md shadow-md">
+            <table class="w-full">
+                <thead>
+                    <tr>
+                        <th class="text-md text-gray-500">Interfaz</th>
+                        <th class="text-md text-gray-500">Ancho de Banda (bps)</th>
+                        <th class="text-md text-gray-500">In (bps)</th>
+                        <th class="text-md text-gray-500">Out (bps)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="text-md text-gray-500">Contenido</td>
+                        <td class="text-md text-gray-500">Contenido</td>
+                        <td class="text-md text-gray-500">Contenido</td>
+                        <td class="text-md text-gray-500">Contenido</td>
+                    </tr>
+                    <tr>
+                        <td class="text-md text-gray-500">Contenido</td>
+                        <td class="text-md text-gray-500">Contenido</td>
+                        <td class="text-md text-gray-500">Contenido</td>
+                        <td class="text-md text-gray-500">Contenido</td>
+                    </tr>
+                    <tr>
+                        <td class="text-md text-gray-500">Contenido</td>
+                        <td class="text-md text-gray-500">Contenido</td>
+                        <td class="text-md text-gray-500">Contenido</td>
+                        <td class="text-md text-gray-500">Contenido</td>
+                    </tr>
+                    <tr>
+                        <td class="text-md text-gray-500">Contenido</td>
+                        <td class="text-md text-gray-500">Contenido</td>
+                        <td class="text-md text-gray-500">Contenido</td>
+                        <td class="text-md text-gray-500">Contenido</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</Layout>

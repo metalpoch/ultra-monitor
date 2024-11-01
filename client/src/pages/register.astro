@@ -1,10 +1,11 @@
 ---
-import Layout from '../layouts/Outside.astro';
-import { isValidEmail, isValidPassword } from '../utils/validation';
-import { Routes } from '../constant/routes';
 import type { Register } from '../models/register';
-import { RegisterController } from '../controllers/register';
+import Layout from '../layouts/Outside.astro';
 import NoticeModal from '../components/modals/notice';
+import { isValidEmail, isValidPassword } from '../utils/validation';
+import { RegisterController } from '../controllers/register';
+import { Routes } from '../constant/routes';
+import { Tab } from '../constant/tab';
 
 const token = Astro.cookies.get('token');
 if (token) return Astro.redirect(Routes.HOME);
@@ -51,7 +52,7 @@ if (Astro.request.method == "POST") {
 	}
 }
 ---
-<Layout title="Registro - OLT">
+<Layout title={Tab.REGISTER}>
 	{modalSuccess.showModal && <NoticeModal showModal={true} title={modalSuccess.title} message={modalSuccess.message} client:load />}
 	{modalError.showModal && <NoticeModal showModal={true} title={modalError.title} message={modalError.message} client:load />}
 	<form id="registerForm" method="POST" class="min-w-fit w-2/6 py-6 px-10 flex flex-col items-center justify-center gap-3 bg-gray-50 rounded-xl max-md:w-2/3">

@@ -16,11 +16,6 @@ export default function TrafficFilter() {
                 <Selector id="state" label="Estado" />
             </section>
             <section className="w-full flex flex-col justify-start gap-3">
-                <h4 className="text-lg text-blue-800 font-bold underline underline-offset-8 decoration-4 rounded-full">Opcional: Ubicación</h4>
-                <Selector id="county" label="Municipio" />
-                <Selector id="municipality" label="Parroquia" />
-            </section>
-            <section className="w-full flex flex-col justify-start gap-3">
                 <h4 className="text-lg text-blue-800 font-bold underline underline-offset-8 decoration-4 rounded-full">Opcional: Equipo</h4>
                 <Selector id="olt" label="OLT" />
                 <div className="w-full flex flex-row gap-3 flex-wrap lg:flex-nowrap">

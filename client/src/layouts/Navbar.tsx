@@ -5,9 +5,10 @@ import React from "react";
 
 interface Props {
     user: User;
+    pathname: string;
 }
 
-export default function Navbar({ user }: Props) {
+export default function Navbar({ user, pathname }: Props) {
 
     const [showMenu, setShowMenu] = useState(false);
     const [showProfile, setShowProfile] = useState(false);
@@ -29,7 +30,7 @@ export default function Navbar({ user }: Props) {
         else if (dropdownButton && dropdown) dropdown.classList.add('hidden');
 
     }, [showMenu, showProfile]);
-
+    
     return(
         <nav className="w-full h-fit py-4 flex flex-row justify-between items-center max-md:justify-end max-md:items-end max-md:px-4 max-md:gap-4">
             <div></div>
@@ -37,20 +38,20 @@ export default function Navbar({ user }: Props) {
                 <img src="/assets/menu.svg" alt="menu" />
             </button>
             <ul id="menu-list" className="flex flex-row justify-evenly gap-4 max-md:w-full max-md:flex-col max-md:items-center max-md:hidden">
-                <li className="w-32 px-1 py-1 flex flex-row justify-center font-light rounded-full transition-all duration-200 ease-in hover:text-gray-50 hover:bg-gray-300">
-                    <a href={Routes.HOME}>Dashboard</a>
+                <li className={`w-32 px-1 py-1 flex flex-row justify-center font-light rounded-full transition-all duration-200 ease-in hover:text-gray-50 hover:bg-gray-300 ${pathname === Routes.HOME ? 'bg-gray-300 text-white' : ''}`}>
+                    <a className="w-full text-center" href={Routes.HOME}>Dashboard</a>
+                </li>
+                <li className={`w-32 px-1 py-1 flex flex-row justify-center font-light rounded-full transition-all duration-200 ease-in hover:text-gray-50 hover:bg-gray-300 ${pathname === Routes.OLT_HOME || pathname === Routes.OLT_IP ? 'bg-gray-300 text-white' : ''}`}>
+                    <a className="w-full text-center" href={Routes.OLT_HOME}>OLT</a>
                 </li>
                 <li className="w-32 px-1 py-1 flex flex-row justify-center font-light rounded-full transition-all duration-200 ease-in hover:text-gray-50 hover:bg-gray-300">
-                    <a href="#">OLT</a>
+                    <a className="w-full text-center" href="#">Tendencia</a>
+                </li>
+                <li className={`w-32 px-1 py-1 flex flex-row justify-center font-light rounded-full transition-all duration-200 ease-in hover:text-gray-50 hover:bg-gray-300 ${pathname === Routes.RODOLFIA ? 'bg-gray-300 text-white' : ''}`}>
+                    <a className="w-full text-center" href={Routes.RODOLFIA}>RodolfIA</a>
                 </li>
                 <li className="w-32 px-1 py-1 flex flex-row justify-center font-light rounded-full transition-all duration-200 ease-in hover:text-gray-50 hover:bg-gray-300">
-                    <a href="#">Tendencia</a>
-                </li>
-                <li className="w-32 px-1 py-1 flex flex-row justify-center font-light rounded-full transition-all duration-200 ease-in hover:text-gray-50 hover:bg-gray-300">
-                    <a href="#">RodolfIA</a>
-                </li>
-                <li className="w-32 px-1 py-1 flex flex-row justify-center font-light rounded-full transition-all duration-200 ease-in hover:text-gray-50 hover:bg-gray-300">
-                    <a href="#">Reportes</a>
+                    <a className="w-full text-center" href="#">Reportes</a>
                 </li>
             </ul>
             <div className="flex flex-col justify-center items-end gap-1 h-10 w-30 px-2">

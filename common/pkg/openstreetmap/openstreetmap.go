@@ -1,6 +1,7 @@
 package openstreetmap
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -24,7 +25,8 @@ type location struct {
 
 func (o OSM) LocationByCoord(lat, lon float64) (location, error) {
 	var result location
-	url := fmt.Sprintf("%s/reverse?lat=%f&lon=%f&format=json", o.URL, lat, lon)
+	url := fmt.Sprintf("%s/?latitude=%f&longitude=%f", o.URL, lat, lon)
+
 	res, err := http.Get(url)
 	if err != nil {
 		log.Println("error to find coord/osm_id:", err.Error())
@@ -42,6 +44,10 @@ func (o OSM) LocationByCoord(lat, lon float64) (location, error) {
 	if err != nil {
 		log.Println("error to unmarshal response:", err.Error())
 		return result, err
+	}
+
+	if result.State == "" {
+		return result, errors.New("error location not found")
 	}
 
 	return result, nil

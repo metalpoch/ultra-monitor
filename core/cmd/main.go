@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 
 	"github.com/goccy/go-json"
@@ -44,9 +45,9 @@ func main() {
 	})
 
 	server.Use(logger.New())
+	server.Use(cors.New())
 
 	router.Setup(server, db, telegram)
 
 	server.Listen(":3001")
-
 }

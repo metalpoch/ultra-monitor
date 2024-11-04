@@ -5,6 +5,7 @@ import "github.com/metalpoch/olt-blueprint/common/model"
 type InfoUsecase interface {
 	GetDevice(id uint) (*model.Device, error)
 	GetDeviceByIP(ip string) (*model.Device, error)
+	GetDeviceBySysname(sysname string) (*model.Device, error)
 	GetAllDevice() ([]*model.DeviceLite, error)
 	GetDeviceByState(state string) ([]*model.DeviceLite, error)
 	GetDeviceByCounty(state, county string) ([]*model.DeviceLite, error)

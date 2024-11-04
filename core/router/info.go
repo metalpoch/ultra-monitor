@@ -15,6 +15,7 @@ func newInfoRouter(server *fiber.App, db *gorm.DB, telegram tracking.SmartModule
 
 	server.Get("/info/device/", hdlr.GetAllDevice)
 	server.Get("/info/device/ip/:ip", hdlr.GetDeviceByIP)
+	server.Get("/info/device/sysname/:sysname", hdlr.GetDeviceBySysname)
 	server.Get("/info/device/:id", hdlr.GetDevice)
 	server.Get("/info/device/location/:state", hdlr.GetDeviceByState)
 	server.Get("/info/device/location/:state/:county", hdlr.GetDeviceByCounty)

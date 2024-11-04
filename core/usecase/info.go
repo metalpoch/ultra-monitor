@@ -55,6 +55,23 @@ func (use infoUsecase) GetDeviceByIP(ip string) (*model.Device, error) {
 	return (*model.Device)(res), err
 }
 
+func (use infoUsecase) GetDeviceBySysname(sysname string) (*model.Device, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	res, err := use.repo.GetDeviceBySysname(ctx, sysname)
+	if err != nil {
+		go use.telegram.SendMessage(
+			constants.MODULE_TRAFFIC,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(feedUsecase).GetDeviceBySysname - use.repo.GetDeviceBySysname(ctx, %s)", sysname),
+			err,
+		)
+		return nil, err
+	}
+
+	return (*model.Device)(res), err
+}
+
 func (use infoUsecase) GetAllDevice() ([]*model.DeviceLite, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -208,7 +225,7 @@ func (use infoUsecase) GetInterfacesByDevice(id uint) ([]*model.InterfaceLite, e
 		go use.telegram.SendMessage(
 			constants.MODULE_TRAFFIC,
 			constants.CATEGORY_DATABASE,
-			fmt.Sprintf("(feedUsecase).GetInterface - use.repo.GetInterface(ctx, %d)", id),
+			fmt.Sprintf("(feedUsecase).GetInterfacesByDevice - use.repo.GetInterface(ctx, %d)", id),
 			err,
 		)
 		return nil, err
@@ -248,7 +265,7 @@ func (use infoUsecase) GetInterfacesByDeviceAndPorts(id uint, shell, card, port 
 		go use.telegram.SendMessage(
 			constants.MODULE_TRAFFIC,
 			constants.CATEGORY_DATABASE,
-			fmt.Sprintf("(feedUsecase).GetInterface - use.repo.GetInterfacesByDeviceAndPorts(ctx, %d, %s)", id, pattern),
+			fmt.Sprintf("(feedUsecase).GetInterfacesByDeviceAndPorts - use.repo.GetInterfacesByDeviceAndPorts(ctx, %d, %s)", id, pattern),
 			err,
 		)
 		return nil, err

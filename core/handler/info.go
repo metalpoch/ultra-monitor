@@ -44,7 +44,7 @@ func (hdlr InfoHandler) GetDevice(c fiber.Ctx) error {
 
 // Get device by IP
 //
-//	@Summary		Get data of a device
+//	@Summary	Get data of a device
 //	@Description	get data of a device by IP from database
 //	@Tags			info
 //	@Produce		json
@@ -60,6 +60,33 @@ func (hdlr InfoHandler) GetDeviceByIP(c fiber.Ctx) error {
 	}
 
 	device, err := hdlr.Usecase.GetDeviceByIP(ip)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res := utils.DeviceResponse(device)
+
+	return c.JSON(res)
+}
+
+// Get device by SysName
+//
+//	@Summary	Get data of a device
+//	@Description	get data of a device by sysname from database
+//	@Tags			info
+//	@Produce		json
+//	@Param			id	path		uint	true	"Device ID"
+//	@Success		200	{object}	model.DeviceResponse
+//	@Failure		400	{object}	object{message=string}
+//	@Failure		500	{object}	object{message=string}
+//	@Router			/info/device/sysname/{sysname} [get]
+func (hdlr InfoHandler) GetDeviceBySysname(c fiber.Ctx) error {
+	sysname, err := url.QueryUnescape(c.Params("sysname"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	device, err := hdlr.Usecase.GetDeviceBySysname(sysname)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

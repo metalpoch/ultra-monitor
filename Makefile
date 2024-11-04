@@ -10,7 +10,7 @@ dev-report:
 build:
 	go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o ./dist/olt-blueprint-auth ./auth/cmd/main.go && echo -e "\e[1;32mcreated\e[0m was created the binary olt-blueprint-auth"
 	go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o ./dist/olt-blueprint-report ./report/cmd/main.go && echo -e "\e[1;32mcreated\e[0m was created the binary olt-blueprint-report"
-	go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o ./dist/olt-blueprint-core ./core/cmd/main.go && echo -e "\e[1;32mcreated\e[0m was created the binary olt-blueprint-traffic"
+	go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o ./dist/olt-blueprint-core ./core/cmd/main.go && echo -e "\e[1;32mcreated\e[0m was created the binary olt-blueprint-core"
 	go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o ./dist/olt-blueprint-measurement ./measurement/cmd/main.go && echo -e "\e[1;32mcreated\e[0m was created the binary olt-blueprint-measurement"
 
 measurement-build-cli:

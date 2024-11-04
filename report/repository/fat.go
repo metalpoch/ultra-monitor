@@ -25,6 +25,12 @@ func (repo fatRepository) Get(ctx context.Context, id uint) (*entity.Fat, error)
 	return f, err
 }
 
+func (repo fatRepository) GetByFat(ctx context.Context, fat string) (*entity.Fat, error) {
+	f := new(entity.Fat)
+	err := repo.db.WithContext(ctx).Where("fat = ?", fat).First(f).Error
+	return f, err
+}
+
 func (repo fatRepository) GetAll(ctx context.Context) ([]*entity.Fat, error) {
 	var f []*entity.Fat
 	err := repo.db.WithContext(ctx).

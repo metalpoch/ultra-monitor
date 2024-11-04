@@ -37,6 +37,21 @@ func (use fatUsecase) Add(fat *model.NewFat) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	r, err := use.fat.GetByFat(ctx, fat.Fat)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		go use.telegram.SendMessage(
+			constants.MODULE_REPORT,
+			constants.CATEGORY_OSM,
+			fmt.Sprintf("(fatUsecase).Add - osm.LocationByCoord(%f, %f)", fat.Latitude, fat.Longitude),
+			err,
+		)
+		return err
+	}
+
+	if r.ID > 0 {
+		return gorm.ErrDuplicatedKey
+	}
+
 	loc, err := use.openstreetmap.LocationByCoord(fat.Latitude, fat.Longitude)
 	if err != nil {
 		go use.telegram.SendMessage(

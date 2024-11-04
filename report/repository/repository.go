@@ -11,6 +11,7 @@ type FatRepository interface {
 	Get(ctx context.Context, id uint) (*entity.Fat, error)
 	Delete(ctx context.Context, id uint) error
 	GetAll(ctx context.Context) ([]*entity.Fat, error)
+	GetByFat(ctx context.Context, fat string) (*entity.Fat, error)
 }
 
 type ReportRepository interface {

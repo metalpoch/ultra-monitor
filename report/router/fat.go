@@ -13,7 +13,6 @@ func newFatRouter(server *fiber.App, db *gorm.DB, telegram tracking.SmartModule,
 	hdlr := handler.FatHandler{
 		Usecase: *usecase.NewFatUsecase(db, telegram, openstreetmap),
 	}
-
 	server.Post("/fat/", hdlr.Add)
 	server.Get("/fat/", hdlr.GetAll)
 	server.Delete("/fat/:id", hdlr.Delete)

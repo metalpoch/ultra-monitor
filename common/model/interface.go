@@ -39,3 +39,9 @@ type InterfaceLite struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
+
+type GponPort struct {
+	Shell *uint8 `query:"shell" validate:"required,lte=0"`
+	Card  *uint8 `query:"card" validate:"required_with=Port"`
+	Port  *uint8 `query:"port"`
+}

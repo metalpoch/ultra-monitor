@@ -82,6 +82,12 @@ func (repo infoRepository) GetInterfacesByDevice(ctx context.Context, id uint) (
 	return ifaces, err
 }
 
+func (repo infoRepository) GetInterfacesByDeviceAndPorts(ctx context.Context, id uint, pattern string) ([]*entity.Interface, error) {
+	var ifaces []*entity.Interface
+	err := repo.db.WithContext(ctx).Where("device_id = ? AND if_name LIKE ?", id, pattern).Find(&ifaces).Error
+	return ifaces, err
+}
+
 func (repo infoRepository) GetLocationStates(ctx context.Context) ([]*string, error) {
 	var l []*string
 	err := repo.db.WithContext(ctx).Model(&entity.Location{}).Select("DISTINCT state").Pluck("state", &l).Error

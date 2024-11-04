@@ -230,6 +230,46 @@ func (use infoUsecase) GetInterfacesByDevice(id uint) ([]*model.InterfaceLite, e
 	return interfaces, err
 }
 
+func (use infoUsecase) GetInterfacesByDeviceAndPorts(id uint, shell, card, port *uint8) ([]*model.InterfaceLite, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	pattern := fmt.Sprintf("%%GPON %d", *shell)
+	if card != nil {
+		pattern = fmt.Sprintf("%s/%d", pattern, *card)
+	}
+	if port != nil {
+		pattern = fmt.Sprintf("%s/%d", pattern, *port)
+	}
+	pattern += "%%"
+
+	res, err := use.repo.GetInterfacesByDeviceAndPorts(ctx, id, pattern)
+	if err != nil {
+		go use.telegram.SendMessage(
+			constants.MODULE_TRAFFIC,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(feedUsecase).GetInterface - use.repo.GetInterfacesByDeviceAndPorts(ctx, %d, %s)", id, pattern),
+			err,
+		)
+		return nil, err
+	}
+
+	var interfaces []*model.InterfaceLite
+	for _, i := range res {
+		interfaces = append(interfaces, &model.InterfaceLite{
+			ID:        i.ID,
+			IfIndex:   i.IfIndex,
+			IfName:    i.IfName,
+			IfDescr:   i.IfDescr,
+			IfAlias:   i.IfAlias,
+			CreatedAt: i.CreatedAt,
+			UpdatedAt: i.UpdatedAt,
+		})
+	}
+
+	return interfaces, err
+}
+
 func (use infoUsecase) GetLocationStates() ([]*string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

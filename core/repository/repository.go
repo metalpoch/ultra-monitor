@@ -16,6 +16,7 @@ type InfoRepository interface {
 	GetDeviceByMunicipality(ctx context.Context, state, county, municipality string) ([]*entity.Device, error)
 	GetInterface(ctx context.Context, id uint) (*entity.Interface, error)
 	GetInterfacesByDevice(ctx context.Context, id uint) ([]*entity.Interface, error)
+	GetInterfacesByDeviceAndPorts(ctx context.Context, id uint, pattern string) ([]*entity.Interface, error)
 	GetLocationStates(ctx context.Context) ([]*string, error)
 	GetLocationCounties(ctx context.Context, state string) ([]*string, error)
 	GetLocationMunicipalities(ctx context.Context, state, county string) ([]*string, error)

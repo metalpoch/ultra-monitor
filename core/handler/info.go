@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/core/usecase"
 	"github.com/metalpoch/olt-blueprint/core/utils"
 )
@@ -222,6 +223,38 @@ func (hdlr InfoHandler) GetInterfacesByDevice(c fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 	res, err := hdlr.Usecase.GetInterfacesByDevice(uint(id))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+// Get interfaces of a device
+//
+//	@Summary		Get all interfaces from a device
+//	@Description	get all interfaces data by device ID from database
+//	@Tags			info
+//	@Produce		json
+//	@Param			path			uint				true	"Device ID"
+//	@Param			shell	query		uint8				true	"Shell GPON"
+//	@Param			card	query		uint8					"Card GPON"
+//	@Param			port	query		uint8					"PORT GPON"
+//	@Success		200	{object}	[]model.InterfaceWithoutDevice
+//	@Failure		400	{object}	object{message=string}
+//	@Failure		500	{object}	object{message=string}
+//	@Router			/info/interface/device/{id}/find [get]
+func (hdlr InfoHandler) GetInterfacesByDeviceAndPorts(c fiber.Ctx) error {
+	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	query := new(model.GponPort)
+	if err := c.Bind().Query(query); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	res, err := hdlr.Usecase.GetInterfacesByDeviceAndPorts(uint(id), query.Shell, query.Card, query.Port)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

@@ -20,7 +20,7 @@ type TrafficHandler struct {
 // @Description	get traffic by interface ID
 // @Tags		traffic
 // @Produce		json
-// @Param		id			path		uint					true	"Interface ID"
+// @Param		id		path		uint					true	"Interface ID"
 // @Param		init_date	query		time.Time				true	"Start date for traffic range"
 // @Param		end_date	query		time.Time				true	"End date for traffic range"
 // @Success		200			{object}	[]model.Traffic

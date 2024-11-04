@@ -11,6 +11,7 @@ type InfoUsecase interface {
 	GetDeviceByMunicipality(state, county, municipality string) ([]*model.DeviceLite, error)
 	GetInterface(id uint) (*model.Interface, error)
 	GetInterfacesByDevice(id uint) ([]*model.InterfaceLite, error)
+	GetInterfacesByDeviceAndPorts(id uint, shell *uint8, card, port *uint8) ([]*model.InterfaceLite, error)
 	GetLocationStates() ([]*string, error)
 	GetLocationCounties(state string) ([]*string, error)
 	GetLocationMunicipalities(state, county string) ([]*string, error)

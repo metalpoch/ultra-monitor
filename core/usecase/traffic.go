@@ -22,7 +22,7 @@ func NewTrafficUsecase(db *gorm.DB, telegram tracking.SmartModule) *trafficUseca
 }
 
 func (use trafficUsecase) GetTrafficByInterface(id uint, date *model.TranficRangeDate) ([]*model.TrafficResponse, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
 
 	res, err := use.repo.GetTrafficByInterface(ctx, id, date)
@@ -50,7 +50,7 @@ func (use trafficUsecase) GetTrafficByInterface(id uint, date *model.TranficRang
 }
 
 func (use trafficUsecase) GetTrafficByDevice(id uint, date *model.TranficRangeDate) ([]*model.TrafficResponse, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
 
 	res, err := use.repo.GetTrafficByDevice(ctx, id, date)
@@ -78,7 +78,7 @@ func (use trafficUsecase) GetTrafficByDevice(id uint, date *model.TranficRangeDa
 }
 
 func (use trafficUsecase) GetTrafficByFat(id uint, date *model.TranficRangeDate) ([]*model.TrafficResponse, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
 
 	res, err := use.repo.GetTrafficByFat(ctx, id, date)
@@ -106,7 +106,7 @@ func (use trafficUsecase) GetTrafficByFat(id uint, date *model.TranficRangeDate)
 }
 
 func (use trafficUsecase) GetTrafficByLocationID(id uint, date *model.TranficRangeDate) ([]*model.TrafficResponse, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
 
 	res, err := use.repo.GetTrafficByLocationID(ctx, id, date)
@@ -134,7 +134,7 @@ func (use trafficUsecase) GetTrafficByLocationID(id uint, date *model.TranficRan
 }
 
 func (use trafficUsecase) GetTrafficByState(state string, date *model.TranficRangeDate) ([]*model.TrafficResponse, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
 
 	res, err := use.repo.GetTrafficByState(ctx, state, date)
@@ -162,7 +162,7 @@ func (use trafficUsecase) GetTrafficByState(state string, date *model.TranficRan
 }
 
 func (use trafficUsecase) GetTrafficByCounty(state, county string, date *model.TranficRangeDate) ([]*model.TrafficResponse, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
 
 	res, err := use.repo.GetTrafficByCounty(ctx, state, county, date)
@@ -190,7 +190,7 @@ func (use trafficUsecase) GetTrafficByCounty(state, county string, date *model.T
 }
 
 func (use trafficUsecase) GetTrafficByMunicipality(state, county, municipality string, date *model.TranficRangeDate) ([]*model.TrafficResponse, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
 
 	res, err := use.repo.GetTrafficByMunicipality(ctx, state, county, municipality, date)

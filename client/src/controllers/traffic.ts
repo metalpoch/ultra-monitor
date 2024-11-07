@@ -2,8 +2,8 @@ import { TrafficService } from "../services/traffic";
 import type { Measurement } from "../models/measurement";
 
 export class TrafficController {
-    static async getDevice(deviceID: number, initialDate: string, endDate: string): Promise<Measurement[]> {
-        const response = await TrafficService.getDevice(deviceID, initialDate, endDate);
+    static async getDevice(deviceID: number, initialDate: string, endDate: string, initialTime: string = "00:00", endTime: string = "23:59"): Promise<Measurement[]> {
+        const response = await TrafficService.getDevice(deviceID, initialDate, endDate, initialTime, endTime);
         if (response.status === 200) {
             let newDataTraffic : Measurement[] = [];
             let dataTraffic = response.info as Measurement[];
@@ -23,8 +23,8 @@ export class TrafficController {
         }
     }
 
-    static async getInterface(interfaceID: number, initialDate: string, endDate: string): Promise<Measurement[]> {
-        const response = await TrafficService.getInterface(interfaceID, initialDate, endDate);
+    static async getInterface(interfaceID: number, initialDate: string, endDate: string, initialTime: string = "00:00:00", endTime: string = "23:59:59"): Promise<Measurement[]> {
+        const response = await TrafficService.getInterface(interfaceID, initialDate, endDate, initialTime, endTime);
         if (response.status === 200) {
             let newDataTraffic : Measurement[] = [];
             let dataTraffic = response.info as Measurement[];
@@ -44,8 +44,8 @@ export class TrafficController {
         }
     }
 
-    static async getState(state: string, initialDate: string, endDate: string): Promise<Measurement[]> {
-        const response = await TrafficService.getState(state, initialDate, endDate);
+    static async getState(state: string, initialDate: string, endDate: string, initialTime: string = "00:00:00", endTime: string = "23:59:59"): Promise<Measurement[]> {
+        const response = await TrafficService.getState(state, initialDate, endDate, initialTime, endTime);
         if (response.status === 200) {
             let newDataTraffic : Measurement[] = [];
             let dataTraffic = response.info as Measurement[];
@@ -65,8 +65,8 @@ export class TrafficController {
         }
     }
 
-    static async getCounty(state: string, county: string, initialDate: string, endDate: string): Promise<Measurement[]> {
-        const response = await TrafficService.getCounty(state, county, initialDate, endDate);
+    static async getCounty(state: string, county: string, initialDate: string, endDate: string, initialTime: string = "00:00:00", endTime: string = "23:59:59"): Promise<Measurement[]> {
+        const response = await TrafficService.getCounty(state, county, initialDate, endDate, initialTime, endTime);
         if (response.status === 200) {
             let newDataTraffic : Measurement[] = [];
             let dataTraffic = response.info as Measurement[];
@@ -86,8 +86,8 @@ export class TrafficController {
         }
     }
 
-    static async getMunicipality(state: string, county: string, municipality: string, initialDate: string, endDate: string): Promise<Measurement[]> {
-        const response = await TrafficService.getMunicipality(state, county, municipality, initialDate, endDate);
+    static async getMunicipality(state: string, county: string, municipality: string, initialDate: string, endDate: string, initialTime: string = "00:00:00", endTime: string = "23:59:59"): Promise<Measurement[]> {
+        const response = await TrafficService.getMunicipality(state, county, municipality, initialDate, endDate, initialTime, endTime);
         if (response.status === 200) {
             let newDataTraffic : Measurement[] = [];
             let dataTraffic = response.info as Measurement[];

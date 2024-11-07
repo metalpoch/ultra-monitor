@@ -1,5 +1,6 @@
 import CalendarSelectorComponent from "../selector/calendar";
 import BasicSelectorComponent from "../selector/basic";
+import TimeSelectorComponent from "../selector/time";
 import React from "react";
 import { useState, useEffect } from "react";
 import { DeviceController } from "../../controllers/device";
@@ -30,6 +31,8 @@ export default function TrafficFilterComponent(content: Props) {
     const [device, setDevice] = useState<Device>();
     const [fromDate, setFromDate] = useState<string>();
     const [toDate, setToDate] = useState<string>();
+    const [fromTime, setFromTime] = useState<string>();
+    const [toTime, setToTime] = useState<string>();
     const [state, setState] = useState<string>();
     const [county, setCounty] = useState<string>();
     const [municipality, setMunicipality] = useState<string>();
@@ -42,6 +45,8 @@ export default function TrafficFilterComponent(content: Props) {
                 optionFilter: optionFilter,
                 fromDate: fromDate,
                 toDate: toDate,
+                fromTime: fromTime,
+                toTime: toTime,
                 device: device,
                 card: card,
                 port: port,
@@ -60,11 +65,19 @@ export default function TrafficFilterComponent(content: Props) {
 
     const handlerFromDateChange = (newDate: string) => {
         setFromDate(newDate);
-        
     };
 
     const handlerToDateChange = (newDate: string) => {
         setToDate(newDate);
+    };
+
+    const handlerFromTimeChange = (newTime: string) => {
+        console.log("newTime", newTime);
+        setFromTime(newTime);        
+    };
+
+    const handlerToTimeChange = (newTime: string) => {
+        setToTime(newTime);
     };
 
     const handlerStateChange = async (newState: string) => {
@@ -171,6 +184,10 @@ export default function TrafficFilterComponent(content: Props) {
                 <div className="w-full flex flex-row gap-3 flex-wrap lg:flex-nowrap max-sm:flex-col max-sm:gap-3">
                     <CalendarSelectorComponent id="fromDate" label="Desde" onChange={handlerFromDateChange} />
                     <CalendarSelectorComponent id="toDate" label="Hasta" onChange={handlerToDateChange} />
+                </div>
+                <div className="w-full flex flex-row gap-3 flex-wrap lg:flex-nowrap max-sm:flex-col max-sm:gap-3">
+                    <TimeSelectorComponent id="fromDate" label="Desde" onChange={handlerFromTimeChange} />
+                    <TimeSelectorComponent id="toDate" label="Hasta" onChange={handlerToTimeChange} />
                 </div>
             </section>
             {optionFilter === "equipment" && <section className="w-full flex flex-col justify-start gap-3">

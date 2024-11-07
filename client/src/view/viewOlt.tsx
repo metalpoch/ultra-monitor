@@ -25,28 +25,31 @@ export default function ViewOLT() {
         setLoadingData(LoadStatus.LOADING);
         setInfoType(filters.optionFilter);
         if (filters.fromDate && filters.toDate) {
+            let traffic: Measurement[] = [];
             if (filters.optionFilter === Strings.EQUIPMENT) {
                 if (filters.device && filters.card && filters.port) {
                     let info: Info = { device: filters.device, card: filters.card, port: filters.port }
                     setInfo(info);
                     const interface_ = await DeviceController.getInterface(filters.device.id, filters.card, filters.port);
                     if (interface_) {
-                        const traffic = await TrafficController.getInterface(interface_.id, filters.fromDate, filters.toDate);
+                        if (filters.fromTime && filters.toTime) traffic = await TrafficController.getInterface(interface_.id, filters.fromDate, filters.toDate, filters.fromTime, filters.toTime);
+                        else traffic = await TrafficController.getInterface(interface_.id, filters.fromDate, filters.toDate);
                         if (traffic) setDataTraffic(traffic);
                         setLoadingData(LoadStatus.LOADED);
                     }
                 } else if (filters.device) {
                     let info: Info = { device: filters.device }
                     setInfo(info);
-                    const traffic = await TrafficController.getDevice(filters.device.id, filters.fromDate, filters.toDate);
+                    if (filters.fromTime && filters.toTime) traffic = await TrafficController.getDevice(filters.device.id, filters.fromDate, filters.toDate, filters.fromTime, filters.toTime);
+                    else traffic = await TrafficController.getDevice(filters.device.id, filters.fromDate, filters.toDate);
                     if (traffic) setDataTraffic(traffic);
-                    console.log("traffic", traffic);
                     setLoadingData(LoadStatus.LOADED);
                 }
             } else if (filters.optionFilter === Strings.LOCATION) {
                 if (filters.state && filters.county && filters.municipality) {
                     let info: Info
-                    const traffic = await TrafficController.getMunicipality(filters.state, filters.county, filters.municipality, filters.fromDate, filters.toDate);
+                    if (filters.fromTime && filters.toTime) traffic = await TrafficController.getMunicipality(filters.state, filters.county, filters.municipality, filters.fromDate, filters.toDate, filters.fromTime, filters.toTime);
+                    else traffic = await TrafficController.getMunicipality(filters.state, filters.county, filters.municipality, filters.fromDate, filters.toDate);
                     const devices = await DeviceController.getAllDevicesByMunicipality(filters.state, filters.county, filters.municipality);
                     if (traffic) setDataTraffic(traffic);
                     if (devices) info = { state: filters.state, county: filters.county, municipality: filters.municipality, otherDevices: devices }
@@ -56,13 +59,15 @@ export default function ViewOLT() {
                 } else if (filters.state && filters.county) {
                     let info: Info = { state: filters.state, county: filters.county }
                     setInfo(info);
-                    const traffic = await TrafficController.getCounty(filters.state, filters.county, filters.fromDate, filters.toDate);
+                    if (filters.fromTime && filters.toTime) traffic = await TrafficController.getCounty(filters.state, filters.county, filters.fromDate, filters.toDate, filters.fromTime, filters.toTime);
+                    else traffic = await TrafficController.getCounty(filters.state, filters.county, filters.fromDate, filters.toDate);
                     if (traffic) setDataTraffic(traffic);
                     setLoadingData(LoadStatus.LOADED);
                 } else if (filters.state) {
                     let info: Info = { state: filters.state }
                     setInfo(info);
-                    const traffic = await TrafficController.getState(filters.state, filters.fromDate, filters.toDate);
+                    if (filters.fromTime && filters.toTime) traffic = await TrafficController.getState(filters.state, filters.fromDate, filters.toDate, filters.fromTime, filters.toTime);
+                    else traffic = await TrafficController.getState(filters.state, filters.fromDate, filters.toDate);
                     if (traffic) setDataTraffic(traffic);
                     setLoadingData(LoadStatus.LOADED);
                 }

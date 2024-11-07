@@ -5,41 +5,69 @@ import { sortInterfacesByDate, sortInterfacesByBandwidth, sortInterfacesByIn, so
 import type { Measurement } from "../../models/measurement";
 import type { SortTraffic } from "../../types/sortTraffic";
 import type { LoadingStateValue } from "../../types/loadingState";
+import { unit } from "../../utils/transform";
 
 interface Props {
     loading: LoadingStateValue;
     data: Measurement[];
 }
 
+interface DataTraffic {
+    date: string;
+    time: string
+    bandwidth: string;
+    in: string;
+    out: string;
+}
+
 export default function TrafficTableComponent(content: Props) {
     
-    const [interfaces, setInterfaces] = useState<Measurement[]>([]);
+    const [interfaces, setInterfaces] = useState<DataTraffic[]>([]);
+
+    const transformData = (data: Measurement[]): DataTraffic[] => {
+        let dataTraffic: DataTraffic[] = [];
+        data.map((interface_: Measurement) => {
+            let newInterface: DataTraffic = {
+                date: `${interface_.date.getFullYear().toString()}-${interface_.date.getMonth().toString().padStart(2, '0')}-${interface_.date.getDate().toString().padStart(2, '0')}`,
+                time: `${interface_.date.toString().split(" ")[4]}`,
+                bandwidth: unit(interface_.bandwidth_bps),
+                in: unit(interface_.in_bps),
+                out: unit(interface_.out_bps)
+            }
+            dataTraffic.push(newInterface);
+        });
+        return dataTraffic;
+    }
 
     const sortByBandwidth = () => {
         if (content.data?.length > 0) {
             let sortedInterfaces = sortInterfacesByBandwidth(content.data);
-            setInterfaces([...sortedInterfaces]);
+            let dataTraffic = transformData(sortedInterfaces);
+            setInterfaces([...dataTraffic]);
         }
     }
 
     const sortByIn = () => {
         if (content.data?.length > 0) {
             let sortedInterfaces = sortInterfacesByIn(content.data);
-            setInterfaces([...sortedInterfaces]);
+            let dataTraffic = transformData(sortedInterfaces);
+            setInterfaces([...dataTraffic]);
         }
     }
 
     const sortByOut = () => {
         if (content.data?.length > 0) {
             let sortedInterfaces = sortInterfacesByOut(content.data);
-            setInterfaces([...sortedInterfaces]);
+            let dataTraffic = transformData(sortedInterfaces);
+            setInterfaces([...dataTraffic]);
         }
     }
     
     const sortByDate = () => {
         if (content.data?.length > 0) {
             let sortedInterfaces = sortInterfacesByDate(content.data);
-            setInterfaces([...sortedInterfaces]);
+            let dataTraffic = transformData(sortedInterfaces);
+            setInterfaces([...dataTraffic]);
         }
     }
 
@@ -52,7 +80,7 @@ export default function TrafficTableComponent(content: Props) {
     }
 
     useEffect(() => {
-        setInterfaces(content.data);
+        setInterfaces(transformData(content.data));
     }, [content.data]);
 
     return(<>
@@ -102,13 +130,13 @@ export default function TrafficTableComponent(content: Props) {
                             </tr>
                         </thead>
                         <tbody>
-                            {interfaces.map((interface_: Measurement, index: number) => (
+                            {interfaces.map((interface_: DataTraffic, index: number) => (
                                 <tr key={index} className="border-b border-gray-100">
-                                    <td className="py-2 text-md text-center text-gray-500">{interface_.bandwidth_bps}</td>
-                                    <td className="py-2 text-md text-center text-gray-500">{interface_.in_bps}</td>
-                                    <td className="py-2 text-md text-center text-gray-500">{interface_.out_bps}</td>
-                                    <td className="py-2 text-md text-center text-gray-500">{`${interface_.date.getFullYear().toString()}-${interface_.date.getMonth().toString().padStart(2, '0')}-${interface_.date.getDate().toString().padStart(2, '0')}`}</td>
-                                    <td className="py-2 text-md text-center text-gray-500">{interface_.date.toString().split(" ")[4]}</td>
+                                    <td className="py-2 text-md text-center text-gray-500">{interface_.bandwidth}</td>
+                                    <td className="py-2 text-md text-center text-gray-500">{interface_.in}</td>
+                                    <td className="py-2 text-md text-center text-gray-500">{interface_.out}</td>
+                                    <td className="py-2 text-md text-center text-gray-500">{interface_.date}</td>
+                                    <td className="py-2 text-md text-center text-gray-500">{interface_.time}</td>
                                 </tr>
                             ))}
                         </tbody>

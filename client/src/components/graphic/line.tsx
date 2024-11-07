@@ -1,6 +1,7 @@
 import { Chart } from 'chart.js/auto';
 import { useEffect } from 'react';
 import { LoadStatus } from '../../constant/loadStatus';
+import { unit } from '../../utils/transform';
 import type { Measurement } from '../../models/measurement';
 import type { LoadingStateValue } from '../../types/loadingState';
 import SpinnerBasicComponent from '../spinner/basic';
@@ -40,10 +41,7 @@ export default function LineGraphComponent({ loading, title, canvasID, data }: L
         data: {
           labels: data.map((measurement: Measurement) => {
             let currentDate = new Date(measurement.date);
-            return `${currentDate.getDate()
-                .toString()
-                .padStart(2, '0')}/${currentDate.getMonth()
-                .toString().padStart(2, '0')}/${currentDate.getFullYear()}`;
+            return `${currentDate.getDate().toString().padStart(2, '0')}/${currentDate.getMonth().toString().padStart(2, '0')}/${currentDate.getFullYear()} ${currentDate.getHours().toString().padStart(2, '0')}:${currentDate.getMinutes().toString().padStart(2, '0')}`;
           }),
           datasets: [
             {
@@ -65,7 +63,8 @@ export default function LineGraphComponent({ loading, title, canvasID, data }: L
               data: data.map((measurement: Measurement) => measurement.bandwidth_bps),
               fill: false,
               borderColor: 'rgb(75, 25, 200)',
-              tension: 0.1
+              tension: 0.1, 
+              hidden: true
             },
           ]
         },
@@ -75,7 +74,17 @@ export default function LineGraphComponent({ loading, title, canvasID, data }: L
                   position: 'bottom',
                   align: 'center',
               }
-          }
+          },
+          scales: {
+            x: { display: true },
+            y: {
+              ticks: {
+                callback: (value) => {
+                  if (typeof value === 'number') return unit(value);
+                },
+              },
+            },
+          },
         }
       });
     }

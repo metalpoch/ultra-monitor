@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 
 interface Props {
     showModal: boolean;
@@ -7,28 +7,21 @@ interface Props {
 
 }
 
-export default function AlertModal({ showModal, title, message }: Props) {
+export default function NoticeModalComponent({ showModal, title, message }: Props) {
 
     const handlerAccept = () => {
         document.getElementById('modal-state')?.classList.add('hidden');
     }
 
-    const handlerCancel = () => {
-        document.getElementById('modal-state')?.classList.add('hidden');
-    }
-
     useEffect(() => {
         const modalAccept = document.getElementById('modal-accept');
-        const modalCancel = document.getElementById('modal-cancel');
         const modalState = document.getElementById('modal-state');
 
-        if (modalAccept && modalCancel && modalState) {
+        if (modalAccept && modalState) {
             modalAccept.addEventListener('click', handlerAccept);
-            modalCancel.addEventListener('click', handlerCancel);
 
             if (showModal) modalState.classList.remove('hidden');
             else modalState.classList.add('hidden');
-            
         }
 
     }, [showModal]);
@@ -51,7 +44,6 @@ export default function AlertModal({ showModal, title, message }: Props) {
                         </section>
                         <section className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                             <button id="modal-accept" type="button" className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-all ease-linear duration-200 hover:bg-blue-700 sm:ml-3 sm:w-auto">Aceptar</button>
-                            <button id="modal-cancel" type="button" className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-all ease-linear duration-200 hover:bg-gray-500 hover:text-white sm:mt-0 sm:w-auto">Cancel</button>
                         </section>
                     </div>
                 </div>

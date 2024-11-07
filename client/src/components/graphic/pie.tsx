@@ -9,7 +9,7 @@ interface PieProps {
     data?: Measurement[];
 }
 
-export default function Pie({ title, canvasID, data }: PieProps) {
+export default function PieGraphComponent({ title, canvasID, data }: PieProps) {
         
     useEffect(() => {
         const canvas = document.getElementById(canvasID) as HTMLCanvasElement;

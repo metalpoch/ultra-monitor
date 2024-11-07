@@ -1,19 +1,19 @@
 ---
-import Navbar from '../layouts/Navbar';
-import Layout from '../layouts/Inside.astro';
+import NavbarLayout from '../layouts/Navbar';
+import BackgroundLayout from '../layouts/Inside.astro';
 import { Routes } from '../constant/routes';
-import { $user } from '../controllers/auth';
+import { user } from '../controllers/auth';
 
 const token = Astro.cookies.get('token');
 if (!token) return Astro.redirect(Routes.LOGIN);
 ---
-<Layout title="Perfil - OLT">
-    <Navbar user={$user.get()!} client:load/>
+<BackgroundLayout title="Perfil - OLT">
+    <NavbarLayout user={user.get()!} pathname={Astro.url.pathname} client:load/>
 	<main class="w-full h-full absolute flex justify-center">
 		<div class="w-1/2 h-1/2 py-6 flex flex-col items-center">
 			<h1 class="text-black">Contenido de Perfil</h1>
 		</div>
 	</main>
-</Layout>
+</BackgroundLayout>
 <style>
 </style>

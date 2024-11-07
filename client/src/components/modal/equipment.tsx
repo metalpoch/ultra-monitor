@@ -1,16 +1,17 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { Device } from '../../models/device';
 
 interface Props {
     showModal: boolean;
-    title: string;
-    message: string;
-
+    device: Device;
+    onClick?: () => void;
 }
 
-export default function NoticeModal({ showModal, title, message }: Props) {
+export default function InfoEquipmentModalComponent(content: Props) {
 
     const handlerAccept = () => {
         document.getElementById('modal-state')?.classList.add('hidden');
+        if (content.onClick) content.onClick();
     }
 
     useEffect(() => {
@@ -20,11 +21,11 @@ export default function NoticeModal({ showModal, title, message }: Props) {
         if (modalAccept && modalState) {
             modalAccept.addEventListener('click', handlerAccept);
 
-            if (showModal) modalState.classList.remove('hidden');
+            if (content.showModal) modalState.classList.remove('hidden');
             else modalState.classList.add('hidden');
         }
 
-    }, [showModal]);
+    }, [content.showModal]);
 
     return(
         <div id="modal-state" className="absolute z-10" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -35,9 +36,21 @@ export default function NoticeModal({ showModal, title, message }: Props) {
                         <section className="bg-gray-50 px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                             <div className="sm:flex sm:items-start">
                                 <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                                    <h3 className="text-base font-semibold leading-6 text-gray-900" id="modal-title">{title}</h3>
-                                    <div className="mt-2">
-                                        <p className="text-sm text-gray-500">{message}</p>
+                                    <h3 className="text-2xl font-semibold leading-6 text-blue-700" id="modal-title">{content.device.sysname}</h3>
+                                    <div className="mt-4">
+                                        {content.device.ip && <p className="text-base text-blue-800 font-bold">IP:
+                                            <span className='text-gray-800'> {content.device.ip}</span>
+                                        </p>}
+                                        {content.device.community && <p className="text-base text-blue-800 font-bold">Comunidad:
+                                            <span className='text-gray-800'> {content.device.community}</span>
+                                        </p>}
+                                        <p className="text-base text-blue-800 font-bold">Estatus:
+                                            <span className={`${content.device.is_alive ? "text-green-600" : "text-red-600"}`}> {content.device.is_alive ? "Activo" : "Inactivo"}</span>
+                                        </p>
+                                        {content.device.syslocation && <p className="text-base text-blue-800 font-bold">Localidad:
+                                            <span className='text-gray-800'> {content.device.syslocation}</span>
+                                        </p>}
+                                        {content.device.last_check && <p className="mt-2 text-xs text-gray-400 font-semibold">Última Revisión del Equipo: {content.device.last_check.toString().split("T")[0]} {content.device.last_check.toString().split("T")[1].split(".")[0]}</p>}
                                     </div>
                                 </div>
                             </div>

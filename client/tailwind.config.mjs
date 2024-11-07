@@ -3,11 +3,6 @@
 export default {
 	content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
 	theme: {
-		extend: {
-			height: {
-				'100vh': '100vh',
-			},
-		},
 		colors: {
 			gray: {
 				'50': '#FFFFFF',
@@ -48,6 +43,19 @@ export default {
 				'800': '#A0141D',
 				'900': '#84181F',
 				'950': '#48070B',
+			},
+			green: {
+				'50': '#F2FDF0',
+				'100': '#E1FCDC',
+				'200': '#C3F7BB',
+				'300': '#93EF86',
+				'400': '#5BDF49',
+				'500': '#34C421',
+				'600': '#25A415',
+				'700': '#218015',
+				'800': '#1E6516',
+				'900': '#1A5314',
+				'950': '#082E05',
 			},
 			black: "#000000",
 			white: "#FFFFFF",

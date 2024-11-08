@@ -2,10 +2,12 @@ package tracking
 
 import (
 	"bytes"
-	"encoding/json"
 	"io"
 	"log"
 	"net/http"
+	"strings"
+
+	"github.com/goccy/go-json"
 )
 
 type SmartModule struct {
@@ -13,22 +15,30 @@ type SmartModule struct {
 }
 
 type payload struct {
-	module   string
-	category string
-	event    string
-	message  string
+	Module   string `json:"module"`
+	Category string `json:"category"`
+	Event    string `json:"event"`
+	Message  string `json:"message"`
 }
 
-func (t SmartModule) SendMessage(module, category, event string, err error) {
-	dataJson, _ := json.Marshal(payload{module, category, event, err.Error()})
-	res, err := http.Post(t.URL, "application/json", bytes.NewBuffer(dataJson))
+func (this SmartModule) SendMessage(module, category, event string, err error) {
+	escapedMessage := strings.ReplaceAll(err.Error(), "\"", "\\\"")
+	dataJson, err := json.Marshal(payload{Module: module, Category: category, Event: event, Message: escapedMessage})
 	if err != nil {
-		log.Println("error to send traking on telegram:", err.Error())
+		log.Println("Error al serializar JSON:", err)
+		return
+	}
+
+	res, err := http.Post(this.URL, "application/json", bytes.NewBuffer(dataJson))
+	if err != nil {
+		log.Println("Error al enviar tracking a Telegram:", err)
 		return
 	}
 	defer res.Body.Close()
 
-	if _, err := io.ReadAll(res.Body); err != nil {
-		log.Println("error to read tracking telegram response:", err.Error())
+	if res.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(res.Body)
+		log.Printf("Error: %s - Response: %s", res.Status, string(body))
+		return
 	}
 }

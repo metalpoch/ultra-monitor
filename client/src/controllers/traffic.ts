@@ -23,7 +23,7 @@ export class TrafficController {
         }
     }
 
-    static async getInterface(interfaceID: number, initialDate: string, endDate: string, initialTime: string = "00:00:00", endTime: string = "23:59:59"): Promise<Measurement[]> {
+    static async getInterface(interfaceID: number, initialDate: string, endDate: string, initialTime: string = "00:00", endTime: string = "23:59"): Promise<Measurement[]> {
         const response = await TrafficService.getInterface(interfaceID, initialDate, endDate, initialTime, endTime);
         if (response.status === 200) {
             let newDataTraffic : Measurement[] = [];
@@ -44,7 +44,7 @@ export class TrafficController {
         }
     }
 
-    static async getState(state: string, initialDate: string, endDate: string, initialTime: string = "00:00:00", endTime: string = "23:59:59"): Promise<Measurement[]> {
+    static async getState(state: string, initialDate: string, endDate: string, initialTime: string = "00:00", endTime: string = "23:59"): Promise<Measurement[]> {
         const response = await TrafficService.getState(state, initialDate, endDate, initialTime, endTime);
         if (response.status === 200) {
             let newDataTraffic : Measurement[] = [];
@@ -65,7 +65,7 @@ export class TrafficController {
         }
     }
 
-    static async getCounty(state: string, county: string, initialDate: string, endDate: string, initialTime: string = "00:00:00", endTime: string = "23:59:59"): Promise<Measurement[]> {
+    static async getCounty(state: string, county: string, initialDate: string, endDate: string, initialTime: string = "00:00", endTime: string = "23:59"): Promise<Measurement[]> {
         const response = await TrafficService.getCounty(state, county, initialDate, endDate, initialTime, endTime);
         if (response.status === 200) {
             let newDataTraffic : Measurement[] = [];
@@ -86,7 +86,7 @@ export class TrafficController {
         }
     }
 
-    static async getMunicipality(state: string, county: string, municipality: string, initialDate: string, endDate: string, initialTime: string = "00:00:00", endTime: string = "23:59:59"): Promise<Measurement[]> {
+    static async getMunicipality(state: string, county: string, municipality: string, initialDate: string, endDate: string, initialTime: string = "00:00", endTime: string = "23:59"): Promise<Measurement[]> {
         const response = await TrafficService.getMunicipality(state, county, municipality, initialDate, endDate, initialTime, endTime);
         if (response.status === 200) {
             let newDataTraffic : Measurement[] = [];

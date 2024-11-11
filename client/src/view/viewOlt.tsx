@@ -81,7 +81,7 @@ export default function ViewOLT() {
                 {/* <a className="w-fit h-fit px-8 py-2 bg-blue-800 text-white font-bold rounded-full transition-all duration-300 ease-linear hover:bg-blue-400" href={Routes.OLT_IP}>IP's Activas</a> */}
             </section>
             <section className="w-full h-fit max-h-fit flex flex-col lg:flex-row flex-nowrap gap-2">
-                <TrafficFilterComponent onClick={handlerTraffic} onClickOptionFilter={handlerOptionFilterChange} />
+                <TrafficFilterComponent loading={loadingData} onClick={handlerTraffic} onClickOptionFilter={handlerOptionFilterChange} />
                 <LineGraphicComponent loading={loadingData} title="Tráfico" canvasID="traffic" data={dataTraffic} />
             </section>
             <section>

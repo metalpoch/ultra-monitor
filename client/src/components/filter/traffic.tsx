@@ -1,15 +1,17 @@
 import CalendarSelectorComponent from "../selector/calendar";
 import BasicSelectorComponent from "../selector/basic";
-import TimeSelectorComponent from "../selector/time";
 import React from "react";
 import { useState, useEffect } from "react";
 import { DeviceController } from "../../controllers/device";
 import { LocationController } from "../../controllers/location";
 import { Strings } from "../../constant/strings";
+import { LoadStatus } from "../../constant/loadStatus";
 import type { FilterOptions } from "../../models/filter";
 import type { Device } from "../../models/device";
+import type { LoadingStateValue } from "../../types/loadingState";
 
 interface Props {
+    loading: LoadingStateValue;
     onClick: (filters: FilterOptions) => void;
     onClickOptionFilter?: (option: string) => void;
 }
@@ -39,7 +41,7 @@ export default function TrafficFilterComponent(content: Props) {
     const [port, setPort] = useState<number>();
 
     const handlerSearchFilter = async () => {
-        if (filterAvailable) {
+        if (filterAvailable && content.loading !== LoadStatus.LOADING) {
             let filter: FilterOptions = {
                 optionFilter: optionFilter,
                 fromDate: fromDate,
@@ -184,7 +186,7 @@ export default function TrafficFilterComponent(content: Props) {
                 <BasicSelectorComponent id="county" label="Municipio" options={counties} onChange={handlerCountyChange} />
                 <BasicSelectorComponent id="municipality" label="Parroquia" options={municipalities} onChange={handlerMunicipalityChange} />
             </section>}
-            <button type="button" id="filterButton" onClick={handlerSearchFilter} className={`w-fit h-fit px-8 py-2 ${filterAvailable ? "bg-blue-700" : "bg-gray-300"} text-white font-bold rounded-full transition-all duration-300 ease-linear ${filterAvailable ? "hover:bg-blue-900" : ""}`}> Filtrar </button>
+            <button type="button" id="filterButton" onClick={handlerSearchFilter} className={`w-fit h-fit px-8 py-2 ${(filterAvailable && content.loading !== LoadStatus.LOADING) ? "bg-blue-700" : "bg-gray-300"} text-white font-bold rounded-full transition-all duration-300 ease-linear ${(filterAvailable && content.loading !== LoadStatus.LOADING) ? "hover:bg-blue-900" : ""}`}> Filtrar </button>
         </div>
     );
 }

@@ -21,6 +21,7 @@ export default function TrafficFilterComponent(content: Props) {
 
     // DATA COLLECTED (FILTER OPTIONS)
     const [devices, setDevices] = useState<string[]>([]);
+    const [ODNs, setODNs] = useState<string[]>([]);
     const [cards, setCards] = useState<number[]>([]);
     const [ports, setPorts] = useState<number[]>([]);
     const [states, setStates] = useState<string[]>([]);
@@ -31,8 +32,6 @@ export default function TrafficFilterComponent(content: Props) {
     const [device, setDevice] = useState<Device>();
     const [fromDate, setFromDate] = useState<string>();
     const [toDate, setToDate] = useState<string>();
-    const [fromTime, setFromTime] = useState<string>();
-    const [toTime, setToTime] = useState<string>();
     const [state, setState] = useState<string>();
     const [county, setCounty] = useState<string>();
     const [municipality, setMunicipality] = useState<string>();
@@ -45,8 +44,6 @@ export default function TrafficFilterComponent(content: Props) {
                 optionFilter: optionFilter,
                 fromDate: fromDate,
                 toDate: toDate,
-                fromTime: fromTime,
-                toTime: toTime,
                 device: device,
                 card: card,
                 port: port,
@@ -71,21 +68,10 @@ export default function TrafficFilterComponent(content: Props) {
         setToDate(newDate);
     };
 
-    const handlerFromTimeChange = (newTime: string) => {
-        console.log("newTime", newTime);
-        setFromTime(newTime);        
-    };
-
-    const handlerToTimeChange = (newTime: string) => {
-        setToTime(newTime);
-    };
-
     const handlerStateChange = async (newState: string) => {
-        if (newState === Strings.EMPTYSELECTION) {
-            setState(undefined);
-            setCounties([]);
-            setMunicipalities([]);
-        }
+        setMunicipalities([]);
+        setCounties([]);
+        if (newState === Strings.EMPTYSELECTION) setState(undefined);
         else {
             setState(newState);
             let currentCounties = await LocationController.getCounties(newState);
@@ -112,11 +98,10 @@ export default function TrafficFilterComponent(content: Props) {
     };
 
     const handlerDeviceChange = async (newAcronym: string) => {
-        if (newAcronym === Strings.EMPTYSELECTION) {
-            setDevice(undefined);
-            setCards([]);
-            setPorts([]);
-        } else {
+        setCards([]);
+        setPorts([]);
+        if (newAcronym === Strings.EMPTYSELECTION) setDevice(undefined);
+        else {
             let currentDevice = await DeviceController.getDeviceBySysname(newAcronym);
             if (currentDevice) {
                 setDevice(currentDevice)
@@ -185,13 +170,10 @@ export default function TrafficFilterComponent(content: Props) {
                     <CalendarSelectorComponent id="fromDate" label="Desde" onChange={handlerFromDateChange} />
                     <CalendarSelectorComponent id="toDate" label="Hasta" onChange={handlerToDateChange} />
                 </div>
-                <div className="w-full flex flex-row gap-3 flex-wrap lg:flex-nowrap max-sm:flex-col max-sm:gap-3">
-                    <TimeSelectorComponent id="fromDate" label="Desde" onChange={handlerFromTimeChange} />
-                    <TimeSelectorComponent id="toDate" label="Hasta" onChange={handlerToTimeChange} />
-                </div>
             </section>
             {optionFilter === "equipment" && <section className="w-full flex flex-col justify-start gap-3">
                 <BasicSelectorComponent id="olt" label="OLT" options={devices} onChange={handlerDeviceChange} />
+                <BasicSelectorComponent id="odn" label="ODN" options={ODNs} onChange={handlerDeviceChange} />
                 <div className="w-full flex flex-row gap-3 flex-wrap lg:flex-nowrap">
                     <BasicSelectorComponent id="card" label="Tarjeta" options={cards} onChange={handlerCardChange} />
                     <BasicSelectorComponent id="port" label="Puerto" options={ports} onChange={handlerPortChange} />

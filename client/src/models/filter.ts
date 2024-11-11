@@ -4,8 +4,6 @@ export interface FilterOptions {
     optionFilter: string;
     fromDate: string | undefined;
     toDate: string | undefined;
-    fromTime?: string | undefined;
-    toTime?: string | undefined;
     device: Device | undefined;
     card: number | undefined;
     port: number | undefined;

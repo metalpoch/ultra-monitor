@@ -32,24 +32,21 @@ export default function ViewOLT() {
                     setInfo(info);
                     const interface_ = await DeviceController.getInterface(filters.device.id, filters.card, filters.port);
                     if (interface_) {
-                        if (filters.fromTime && filters.toTime) traffic = await TrafficController.getInterface(interface_.id, filters.fromDate, filters.toDate, filters.fromTime, filters.toTime);
-                        else traffic = await TrafficController.getInterface(interface_.id, filters.fromDate, filters.toDate);
+                        traffic = await TrafficController.getInterface(interface_.id, filters.fromDate, filters.toDate);
                         if (traffic) setDataTraffic(traffic);
                         setLoadingData(LoadStatus.LOADED);
                     }
                 } else if (filters.device) {
                     let info: Info = { device: filters.device }
                     setInfo(info);
-                    if (filters.fromTime && filters.toTime) traffic = await TrafficController.getDevice(filters.device.id, filters.fromDate, filters.toDate, filters.fromTime, filters.toTime);
-                    else traffic = await TrafficController.getDevice(filters.device.id, filters.fromDate, filters.toDate);
+                    traffic = await TrafficController.getDevice(filters.device.id, filters.fromDate, filters.toDate);
                     if (traffic) setDataTraffic(traffic);
                     setLoadingData(LoadStatus.LOADED);
                 }
             } else if (filters.optionFilter === Strings.LOCATION) {
                 if (filters.state && filters.county && filters.municipality) {
                     let info: Info
-                    if (filters.fromTime && filters.toTime) traffic = await TrafficController.getMunicipality(filters.state, filters.county, filters.municipality, filters.fromDate, filters.toDate, filters.fromTime, filters.toTime);
-                    else traffic = await TrafficController.getMunicipality(filters.state, filters.county, filters.municipality, filters.fromDate, filters.toDate);
+                    traffic = await TrafficController.getMunicipality(filters.state, filters.county, filters.municipality, filters.fromDate, filters.toDate);
                     const devices = await DeviceController.getAllDevicesByMunicipality(filters.state, filters.county, filters.municipality);
                     if (traffic) setDataTraffic(traffic);
                     if (devices) info = { state: filters.state, county: filters.county, municipality: filters.municipality, otherDevices: devices }
@@ -59,15 +56,13 @@ export default function ViewOLT() {
                 } else if (filters.state && filters.county) {
                     let info: Info = { state: filters.state, county: filters.county }
                     setInfo(info);
-                    if (filters.fromTime && filters.toTime) traffic = await TrafficController.getCounty(filters.state, filters.county, filters.fromDate, filters.toDate, filters.fromTime, filters.toTime);
-                    else traffic = await TrafficController.getCounty(filters.state, filters.county, filters.fromDate, filters.toDate);
+                    traffic = await TrafficController.getCounty(filters.state, filters.county, filters.fromDate, filters.toDate);
                     if (traffic) setDataTraffic(traffic);
                     setLoadingData(LoadStatus.LOADED);
                 } else if (filters.state) {
                     let info: Info = { state: filters.state }
                     setInfo(info);
-                    if (filters.fromTime && filters.toTime) traffic = await TrafficController.getState(filters.state, filters.fromDate, filters.toDate, filters.fromTime, filters.toTime);
-                    else traffic = await TrafficController.getState(filters.state, filters.fromDate, filters.toDate);
+                    traffic = await TrafficController.getState(filters.state, filters.fromDate, filters.toDate);
                     if (traffic) setDataTraffic(traffic);
                     setLoadingData(LoadStatus.LOADED);
                 }
@@ -100,7 +95,7 @@ export default function ViewOLT() {
                     <EquipmentInfoComponent loading={loadingData} info={info} />
                 }
                 {infoType && infoType === Strings.LOCATION &&
-                    <EquipmentInfoComponent loading={loadingData} info={info} />
+                    <LocationInfoComponent loading={loadingData} info={info} />
                 }
             </section>
             <section>

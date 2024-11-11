@@ -62,7 +62,7 @@ export default function EquipmentInfoComponent(content: Props) {
                         }
                     </section>
                 </>}
-                {content.info.otherDevices && <>
+                {content.info.otherDevices && content.info.otherDevices.length > 0 && <>
                     <h2 className="text-2xl text-blue-800 font-semibold">Equipos OLT pertenecientes:</h2>
                     <section className="w-full max-h-80 flex flex-row flex-wrap gap-2 overflow-y-auto">
                         {content.info.otherDevices.map((device: Device, index: number) => (

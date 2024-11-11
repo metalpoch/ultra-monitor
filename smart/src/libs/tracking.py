@@ -1,29 +1,36 @@
+from datetime import datetime
+
 import requests
 
 
 class Telegram:
-    def __init__(self, bot_id: str, chat_id: str) -> None:
+    def __init__(
+        self, bot_id: str, chat_id: str, disable_notification: bool = True
+    ) -> None:
         self.chat_id = chat_id
         self.bot_id = bot_id
+        self.disable_notification = disable_notification
 
     def __send_message_payload(
         self, module: str, category: str, event: str, msg: str
     ) -> dict[str, str | bool]:
-        text = f"""<b>Tracker Error</b>
+        text = f"""<pre><code class="language-Tracker Error">
+📅 Date: {datetime.now().strftime("%d/%m/%Y %H:%M:%S")}
 
-<b>🧩 Module:</b> {module}
+🧩 Module: {module}
 
-<b>🗃 Category:</b> {category}
+🗃 Category: {category}
 
-<b>⚠ Event:</b> {event}
+💬 Message: {msg}
 
-<b>💬 Message:</b> {msg}"""
+⚠ Event: {event}</code></pre>"""
 
         return {
             "text": text,
             "parse_mode": "HTML",
             "chat_id": self.chat_id,
             "disable_web_page_preview": True,
+            "disable_notification": self.disable_notification,
         }
 
     def send_message(self, module: str, category: str, event: str, msg: str) -> dict:

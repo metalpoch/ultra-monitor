@@ -34,7 +34,7 @@ func NewFatUsecase(db *gorm.DB, telegram tracking.SmartModule, openstreetmap ope
 }
 
 func (use fatUsecase) Add(fat *model.NewFat) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	r, err := use.fat.GetByFat(ctx, fat.Fat)
@@ -132,7 +132,7 @@ func (use fatUsecase) Get(id uint) (*model.Fat, error) {
 }
 
 func (use fatUsecase) GetAll() ([]model.FatResponse, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	res, err := use.fat.GetAll(ctx)

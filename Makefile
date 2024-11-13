@@ -7,6 +7,7 @@ dev-core:
 dev-report:
 	CONFIG_JSON=./config.json go run ./report/cmd/main.go
 
+
 build:
 	go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o ./dist/olt-blueprint-auth ./auth/cmd/main.go && echo -e "\e[1;32mcreated\e[0m was created the binary olt-blueprint-auth"
 	go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o ./dist/olt-blueprint-report ./report/cmd/main.go && echo -e "\e[1;32mcreated\e[0m was created the binary olt-blueprint-report"
@@ -18,6 +19,9 @@ measurement-build-cli:
 
 container-run:
 	docker-compose up
+
+container-report: 
+	docker build . -t olt-blueprint-report --progress=plain -f ./report/Dockerfile
 
 container-measurement:
 	docker build . -t olt-blueprint-cli --progress=plain -f ./measurement/Dockerfile

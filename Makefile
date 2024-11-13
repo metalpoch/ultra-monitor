@@ -20,6 +20,12 @@ measurement-build-cli:
 container-run:
 	docker-compose up
 
+container-auth: 
+	docker build . -t olt-blueprint-auth --progress=plain -f ./auth/Dockerfile
+
+container-core: 
+	docker build . -t olt-blueprint-core --progress=plain -f ./core/Dockerfile
+
 container-report: 
 	docker build . -t olt-blueprint-report --progress=plain -f ./report/Dockerfile
 

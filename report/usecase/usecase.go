@@ -4,8 +4,8 @@ import "github.com/metalpoch/olt-blueprint/common/model"
 
 type FatUsecase interface {
 	Add(fat *model.NewFat) error
-	Get(id uint) (*model.Fat, error)
-	GetAll() ([]model.FatResponse, error)
+	Get(id uint) (*model.FatResponse, error)
+	GetAll(page *model.Page) ([]*model.FatResponse, error)
 	Delete(id uint) error
 }
 

@@ -6,7 +6,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/report/usecase"
-	"github.com/metalpoch/olt-blueprint/report/utils"
 )
 
 type FatHandler struct {
@@ -62,7 +61,7 @@ func (hdlr FatHandler) Get(c fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{})
 	}
 
-	return c.JSON(utils.FatResponse(fat))
+	return c.JSON(fat)
 }
 
 // Get all Fats
@@ -76,7 +75,11 @@ func (hdlr FatHandler) Get(c fiber.Ctx) error {
 //	@Failure		500	{object}	object{error=string}
 //	@Router			/fat/ [get]
 func (hdlr FatHandler) GetAll(c fiber.Ctx) error {
-	fats, err := hdlr.Usecase.GetAll()
+	page := new(model.Page)
+	if err := c.Bind().Query(page); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	fats, err := hdlr.Usecase.GetAll(page)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

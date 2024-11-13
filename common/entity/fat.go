@@ -5,17 +5,35 @@ import (
 )
 
 type Fat struct {
-	ID          uint `gorm:"primaryKey"`
-	LocationID  uint
-	InterfaceID uint
-	Splitter    uint8
-	Fat         string    `gorm:"uniqueIndex"`
-	Address     string    `gorm:"uniqueIndex:idx_unique_fat_location"`
-	OND         string    `gorm:"uniqueIndex:idx_unique_fat_location"`
-	Latitude    float64   `gorm:"uniqueIndex:idx_unique_fat_location"`
-	Longitude   float64   `gorm:"uniqueIndex:idx_unique_fat_location"`
-	Location    Location  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	Interface   Interface `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID         uint `gorm:"primaryKey"`
+	LocationID uint
+	Splitter   uint8
+	Latitude   float64 `gorm:"uniqueIndex:idx_unique_fat_location"`
+	Longitude  float64 `gorm:"uniqueIndex:idx_unique_fat_location"`
+	Address    string  `gorm:"uniqueIndex:idx_unique_fat_location"`
+	Fat        string
+	OND        string
+	Location   Location `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+}
+
+type FatResponse struct {
+	ID             uint
+	FatInterfaceID uint
+	InterfaceID    uint
+	DeviceID       uint
+	LocationID     uint
+	Splitter       uint8
+	Latitude       float64
+	Longitude      float64
+	Address        string
+	Fat            string
+	OND            string
+	FatInterface   FatInterface
+	Location       Location
+	Interface      Interface
+	Device         Device
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }

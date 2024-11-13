@@ -33,6 +33,7 @@ func Connect(uri string, isProduction bool) *gorm.DB {
 		entity.Traffic{},
 		entity.Measurement{},
 		entity.Fat{},
+		entity.FatInterface{},
 		entity.Report{},
 	); err != nil {
 		log.Fatalln(err)

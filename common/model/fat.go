@@ -7,19 +7,18 @@ import (
 )
 
 type Fat struct {
-	ID          uint
-	LocationID  uint
-	InterfaceID uint
-	Splitter    uint8
-	Fat         string
-	Address     string
-	OND         string
-	Latitude    float64
-	Longitude   float64
-	Location    entity.Location
-	Interface   entity.Interface
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID           uint
+	LocationID   uint
+	Splitter     uint8
+	Latitude     float64
+	Longitude    float64
+	Address      string
+	Fat          string
+	OND          string
+	Location     entity.Location
+	FatInterface entity.FatInterface
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 type NewFat struct {

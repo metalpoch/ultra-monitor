@@ -1,43 +1,46 @@
 package utils
 
-import "github.com/metalpoch/olt-blueprint/common/model"
+import (
+	"github.com/metalpoch/olt-blueprint/common/entity"
+	"github.com/metalpoch/olt-blueprint/common/model"
+)
 
-func FatResponse(f *model.Fat) model.FatResponse {
-	return model.FatResponse{
-		ID:        f.ID,
-		OND:       f.OND,
-		Fat:       f.Fat,
-		Splitter:  f.Splitter,
-		Address:   f.Address,
-		Latitude:  f.Latitude,
-		Longitude: f.Longitude,
+func FatResponse(fi *entity.FatInterface) *model.FatResponse {
+	return &model.FatResponse{
+		ID:        fi.FatID,
+		OND:       fi.Fat.OND,
+		Fat:       fi.Fat.Fat,
+		Splitter:  fi.Fat.Splitter,
+		Address:   fi.Fat.Address,
+		Latitude:  fi.Fat.Latitude,
+		Longitude: fi.Fat.Longitude,
 		Interface: model.InterfaceLite{
-			ID:        f.Interface.ID,
-			IfIndex:   f.Interface.IfIndex,
-			IfName:    f.Interface.IfName,
-			IfDescr:   f.Interface.IfDescr,
-			IfAlias:   f.Interface.IfAlias,
-			CreatedAt: f.Interface.CreatedAt,
-			UpdatedAt: f.Interface.UpdatedAt,
+			ID:        fi.Interface.ID,
+			IfIndex:   fi.Interface.IfIndex,
+			IfName:    fi.Interface.IfName,
+			IfDescr:   fi.Interface.IfDescr,
+			IfAlias:   fi.Interface.IfAlias,
+			CreatedAt: fi.Interface.CreatedAt,
+			UpdatedAt: fi.Interface.UpdatedAt,
 		},
 		Device: model.DeviceLite{
-			ID:          f.Interface.Device.ID,
-			IP:          f.Interface.Device.IP,
-			SysName:     f.Interface.Device.SysName,
-			SysLocation: f.Interface.Device.SysLocation,
-			IsAlive:     f.Interface.Device.IsAlive,
-			LastCheck:   f.Interface.Device.LastCheck,
-			CreatedAt:   f.Interface.Device.CreatedAt,
-			UpdatedAt:   f.Interface.Device.UpdatedAt,
+			ID:          fi.Interface.Device.ID,
+			IP:          fi.Interface.Device.IP,
+			SysName:     fi.Interface.Device.SysName,
+			SysLocation: fi.Interface.Device.SysLocation,
+			IsAlive:     fi.Interface.Device.IsAlive,
+			LastCheck:   fi.Interface.Device.LastCheck,
+			CreatedAt:   fi.Interface.Device.CreatedAt,
+			UpdatedAt:   fi.Interface.Device.UpdatedAt,
 		},
 		Location: model.Location{
-			ID:           f.Location.ID,
-			State:        f.Location.State,
-			County:       f.Location.County,
-			Municipality: f.Location.Municipality,
+			ID:           fi.Fat.Location.ID,
+			State:        fi.Fat.Location.State,
+			County:       fi.Fat.Location.County,
+			Municipality: fi.Fat.Location.Municipality,
 		},
-		CreatedAt: f.CreatedAt,
-		UpdatedAt: f.UpdatedAt,
+		CreatedAt: fi.Fat.CreatedAt,
+		UpdatedAt: fi.Fat.UpdatedAt,
 	}
 }
 

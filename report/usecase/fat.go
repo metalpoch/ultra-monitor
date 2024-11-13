@@ -20,6 +20,7 @@ import (
 type fatUsecase struct {
 	fat           repository.FatRepository
 	location      commonRepository.LocationRepository
+	interf        commonRepository.InterfaceRepository
 	telegram      tracking.SmartModule
 	openstreetmap openstreetmap.OSM
 }
@@ -28,84 +29,127 @@ func NewFatUsecase(db *gorm.DB, telegram tracking.SmartModule, openstreetmap ope
 	return &fatUsecase{
 		fat:           repository.NewFatRepository(db),
 		location:      commonRepository.NewLocationRepository(db),
+		interf:        commonRepository.NewInterfaceRepository(db),
 		telegram:      telegram,
 		openstreetmap: openstreetmap,
 	}
 }
 
 func (use fatUsecase) Add(fat *model.NewFat) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
+	var (
+		interfaceID uint
+		fatID       uint
+	)
 
-	r, err := use.fat.GetByFat(ctx, fat.Fat)
+	// Find interfaceID
+	i, err := use.interf.Get(ctx, fat.InterfaceID)
+	if err != nil {
+		go use.telegram.SendMessage(
+			constants.MODULE_REPORT,
+			constants.CATEGORY_OSM,
+			fmt.Sprintf("(fatUsecase).Add - use.interf.Get(ctx, %d)", fat.InterfaceID),
+			err,
+		)
+		return err
+	}
+	interfaceID = i.ID
+
+	// Find FatID
+	f, err := use.fat.GetFatByLocation(ctx, fat.Address, fat.Latitude, fat.Longitude)
 	if err != nil && err != gorm.ErrRecordNotFound {
 		go use.telegram.SendMessage(
 			constants.MODULE_REPORT,
 			constants.CATEGORY_OSM,
-			fmt.Sprintf("(fatUsecase).Add - osm.LocationByCoord(%f, %f)", fat.Latitude, fat.Longitude),
+			fmt.Sprintf(
+				"(fatUsecase).Add - use.fat.GetFatByLocation(ctx, %s, %s, %f, %f)",
+				fat.Fat,
+				fat.Address,
+				fat.Latitude,
+				fat.Longitude,
+			),
 			err,
 		)
 		return err
+	} else {
+		fatID = f.ID
 	}
 
-	if r.ID > 0 {
-		return gorm.ErrDuplicatedKey
-	}
-
-	loc, err := use.openstreetmap.LocationByCoord(fat.Latitude, fat.Longitude)
-	if err != nil {
-		go use.telegram.SendMessage(
-			constants.MODULE_REPORT,
-			constants.CATEGORY_OSM,
-			fmt.Sprintf("(fatUsecase).Add - osm.LocationByCoord(%f, %f)", fat.Latitude, fat.Longitude),
-			err,
-		)
-		return err
-	}
-	location := entity.Location{
-		State:        loc.State,
-		County:       loc.County,
-		Municipality: loc.Municipality,
-	}
-
-	err = use.location.Find(ctx, &location)
+	// Create fat and Find/Create location
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		if err := use.location.Add(ctx, &location); err != nil {
+		var locationID uint
+		loc, err := use.openstreetmap.LocationByCoord(fat.Latitude, fat.Longitude)
+		if err != nil {
 			go use.telegram.SendMessage(
 				constants.MODULE_REPORT,
-				constants.CATEGORY_DATABASE,
-				fmt.Sprintf("(fatUsecase).Add - use.location.Add(ctx, %v)", location),
+				constants.CATEGORY_OSM,
+				fmt.Sprintf("(fatUsecase).Add - osm.LocationByCoord(%f, %f)", fat.Latitude, fat.Longitude),
 				err,
 			)
 			return err
 		}
-	} else if err != nil {
-		go use.telegram.SendMessage(
-			constants.MODULE_REPORT,
-			constants.CATEGORY_DATABASE,
-			fmt.Sprintf("(fatUsecase).Add - use.location.Find(ctx, %v)", location),
-			err,
-		)
-		return err
+
+		location := entity.Location{
+			State:        loc.State,
+			County:       loc.County,
+			Municipality: loc.Municipality,
+		}
+		err = use.location.Find(ctx, &location)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			if err := use.location.Add(ctx, &location); err != nil {
+				go use.telegram.SendMessage(
+					constants.MODULE_REPORT,
+					constants.CATEGORY_DATABASE,
+					fmt.Sprintf("(fatUsecase).Add - use.location.Add(ctx, %v)", location),
+					err,
+				)
+				return err
+			}
+			locationID = location.ID
+		} else if err != nil {
+			go use.telegram.SendMessage(
+				constants.MODULE_REPORT,
+				constants.CATEGORY_DATABASE,
+				fmt.Sprintf("(fatUsecase).Add - use.location.Find(ctx, %v)", location),
+				err,
+			)
+			return err
+		} else {
+			locationID = location.ID
+		}
+
+		newFat := &entity.Fat{
+			OND:        fat.ODN,
+			Fat:        fat.Fat,
+			Splitter:   fat.Splitter,
+			Address:    fat.Address,
+			Latitude:   fat.Latitude,
+			Longitude:  fat.Longitude,
+			LocationID: locationID,
+		}
+
+		err = use.fat.Add(ctx, newFat)
+		if err != nil {
+			go use.telegram.SendMessage(
+				constants.MODULE_REPORT,
+				constants.CATEGORY_DATABASE,
+				fmt.Sprintf("(fatUsecase).Add - use.repo.Add(ctx, %v)", newFat),
+				err,
+			)
+			return err
+		}
+
+		fatID = newFat.ID
 	}
 
-	newFat := &entity.Fat{
-		OND:         fat.ODN,
-		Fat:         fat.Fat,
-		Splitter:    fat.Splitter,
-		Address:     fat.Address,
-		Latitude:    fat.Latitude,
-		Longitude:   fat.Longitude,
-		InterfaceID: fat.InterfaceID,
-		LocationID:  location.ID,
-	}
-
-	err = use.fat.Add(ctx, newFat)
+	newFatInterface := &entity.FatInterface{FatID: fatID, InterfaceID: interfaceID}
+	err = use.fat.AddInterface(ctx, newFatInterface)
 	if err != nil {
 		go use.telegram.SendMessage(
 			constants.MODULE_REPORT,
 			constants.CATEGORY_DATABASE,
-			fmt.Sprintf("(fatUsecase).Add - use.repo.Add(ctx, %v)", newFat),
+			fmt.Sprintf("(fatUsecase).Add - use.repo.AddInterface(ctx, %v)", *newFatInterface),
 			err,
 		)
 	}
@@ -113,7 +157,7 @@ func (use fatUsecase) Add(fat *model.NewFat) error {
 	return err
 }
 
-func (use fatUsecase) Get(id uint) (*model.Fat, error) {
+func (use fatUsecase) Get(id uint) (*model.FatResponse, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -128,14 +172,14 @@ func (use fatUsecase) Get(id uint) (*model.Fat, error) {
 		return nil, err
 	}
 
-	return (*model.Fat)(res), nil
+	return utils.FatResponse(res), nil
 }
 
-func (use fatUsecase) GetAll() ([]model.FatResponse, error) {
+func (use fatUsecase) GetAll(page *model.Page) ([]*model.FatResponse, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	res, err := use.fat.GetAll(ctx)
+	res, err := use.fat.GetAll(ctx, page.Num, page.Size)
 	if err != nil && err != gorm.ErrRecordNotFound {
 		go use.telegram.SendMessage(
 			constants.MODULE_REPORT,
@@ -145,9 +189,9 @@ func (use fatUsecase) GetAll() ([]model.FatResponse, error) {
 		)
 		return nil, err
 	}
-	var fats []model.FatResponse
+	var fats []*model.FatResponse
 	for _, e := range res {
-		fats = append(fats, utils.FatResponse((*model.Fat)(e)))
+		fats = append(fats, utils.FatResponse(e))
 	}
 	return fats, err
 }

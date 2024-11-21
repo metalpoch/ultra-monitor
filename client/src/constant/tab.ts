@@ -4,5 +4,6 @@ export const Tab = {
     HOME: "Dashboard - OLT Blueprint",
     OLT: "OLT - OLT Blueprint",
     RODOLFIA: "RodolfIA - OLT Blueprint",
+    REPORTS: "Reportes - OLT Blueprint",
     PROFILE: "Perfil - OLT Blueprint",
 }

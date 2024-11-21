@@ -6,5 +6,6 @@ export const Routes = {
     OLT_IP: "/olt-ip",
     RODOLFIA: "/rodolfia",
     PROFILE: "/profile",
+    REPORTS: "/reports",
     LOGOUT: "/logout"
 }

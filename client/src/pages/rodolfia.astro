@@ -5,7 +5,6 @@ import ChatIAComponent from "../components/ia/chat";
 import { IAController } from "../controllers/ia";
 import { user } from '../controllers/auth';
 import { Tab } from "../constant/tab";
-import { atom } from "nanostores";
 
 interface Props {
     question: string;
@@ -42,9 +41,9 @@ export async function IAComponent(content: Props) {
         const inputIA = document.getElementById('questionIA') as HTMLTextAreaElement;
         let questionIA = inputIA.value;
         if (questionIA) {
+            console.log(questionIA);
             IAComponent({ question: questionIA });
             inputIA.value = '';
         }
     });
-
 </script>

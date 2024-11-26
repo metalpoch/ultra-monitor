@@ -3,17 +3,134 @@ import BackgroundLayout from '../layouts/Inside.astro';
 import NavbarLayout from '../layouts/Navbar';
 import { Tab } from '../constant/tab';
 import { user } from '../controllers/auth';
+import { TypeReports } from '../constant/reports';
+
 ---
 <BackgroundLayout title={Tab.REPORTS}>
 	<main class="w-full h-lvh absolute px-4 py-2 overflow-y-auto">
 		<NavbarLayout user={user.get()!} pathname={Astro.url.pathname} client:load/>
-        <div class="w-full h-fit lg:h-5/6 bg-red-300 flex flex-col lg:flex-row lg:justify-between">
-            <section class="w-full h-fit lg:w-96 lg:h-full bg-green-300 p-6">
-                <h1 class="text-2xl text-white font-semibold">Reportes</h1>
+        <div class="w-full h-fit lg:h-5/6 flex flex-col lg:flex-row lg:justify-between">
+            <section class="w-full h-fit lg:w-96 lg:h-full bg-blue-700 p-6 rounded-l-xl">
+                <h1 class="text-3xl text-white font-semibold mb-3">Reportes</h1>
+                <ul class="w-full flex flex-col gap-2">
+                    <li id={TypeReports.CATASTRE} class="bg-gray-100 px-6 py-2 rounded-full text-gray-500 font-semibold transition-all ease-linear duration-300 hover:bg-blue-900 hover:text-white">{TypeReports.CATASTRE}</li>
+                    <li id={TypeReports.ASF} class="bg-gray-100 px-6 py-2 rounded-full text-gray-500 font-semibold transition-all ease-linear duration-300 hover:bg-blue-900 hover:text-white">{TypeReports.ASF}</li>
+                    <li id={TypeReports.NAVIGATION} class="bg-gray-100 px-6 py-2 rounded-full text-gray-500 font-semibold transition-all ease-linear duration-300 hover:bg-blue-900 hover:text-white">{TypeReports.NAVIGATION}</li>
+                </ul>
             </section>
-            <section class="w-full h-fit lg:h-full bg-blue-400">
-                <h2>Titulo</h2>
+            <section id="info-default" class="w-full h-fit lg:h-full bg-gray-55 p-6 rounded-r-xl flex flex-col items-center justify-center">
+                <h2 class="text-2xl text-gray-300 font-semibold mb-3">Seleccione un reporte para cargar</h2>
+            </section>
+            <section id={`info-${TypeReports.CATASTRE}`} class="hidden w-full h-fit lg:h-full bg-gray-55 rounded-r-xl flex-col items-start justify-start">
+                <div class="w-full h-full p-6">
+                    <h2 class="text-2xl text-gray-700 font-semibold mb-3">{TypeReports.CATASTRE}</h2>
+                    <p>Es un archivo necesario para la actualización de equipos OLT. Necesario para agregar o actualizar información de los equipos OLT almacenados en la base de datos.</p>
+                    <p>Contiene:</p>
+                    <ul class="list-disc px-10">
+                        <li>IP del equipo</li>
+                        <li>Puertos</li>
+                        <li>Tarjetas</li>
+                        <li>Información de los FATs</li>
+                        <li>Latitud y longitud de la ubicación física</li>
+                        <li>Y más...</li>
+                    </ul>
+                </div>
+                <div class="w-full h-fit bg-blue-900 flex flex-col justify-center items-center py-8">
+                    <div class="w-full h-fit flex flex-row justify-center items-center gap-3 py-2">
+                        <h2 class="text-xl text-white font-semibold">Subir archivo</h2>
+                        <input type="file" class="text-md text-white" />
+                    </div>
+                    <button class="w-fit h-fit bg-blue-700 text-white font-semibold rounded-full px-10 py-2 transition-all ease-linear duration-300 hover:bg-green-700">Subir</button>
+                </div>
+            </section>
+            <section id={`info-${TypeReports.ASF}`} class="hidden w-full h-fit lg:h-full bg-gray-55 rounded-r-xl flex-col items-start justify-start">
+                <div class="w-full h-full p-6">
+                    <h2 class="text-2xl text-gray-700 font-semibold mb-3">{TypeReports.ASF}</h2>
+                    <p>...</p>
+                </div>
+                <div class="w-full h-fit bg-blue-900 flex flex-col justify-center items-center py-8">
+                    <div class="w-full h-fit flex flex-row justify-center items-center gap-3 py-2">
+                        <h2 class="text-xl text-white font-semibold">Subir archivo</h2>
+                        <input type="file" class="text-md text-white" />
+                    </div>
+                    <button class="w-fit h-fit bg-blue-700 text-white font-semibold rounded-full px-10 py-2 transition-all ease-linear duration-300 hover:bg-green-700">Subir</button>
+                </div>
+            </section>
+            <section id={`info-${TypeReports.NAVIGATION}`} class="hidden w-full h-fit lg:h-full bg-gray-55 rounded-r-xl flex-col items-start justify-start">
+                <div class="w-full h-full p-6">
+                    <h2 class="text-2xl text-gray-700 font-semibold mb-3">{TypeReports.NAVIGATION}</h2>
+                    <p>Es un archivo que permite obtener en el momento la totalización de usuarios categorizados por sus estatus de navegación.</p>
+                    <p>Contiene:</p>
+                    <ul class="list-disc px-10">
+                        <li>Estado</li>
+                        <li>IP</li>
+                        <li>Clientes Totales Navegando</li>
+                        <li>Clientes Totales No Navegando</li>
+                        <li>Y más...</li>
+                    </ul>
+                    <p>Para obtener este archivo es necesario suministrarle dos archivos con:</p>
+                    <ul class="list-disc px-10">
+                        <li>Lista de todos los agregadores con sus SVLAN y sus CVLAN correspondiente</li>
+                        <li>Lista de todos los clientes de OLT con sus SVLAN y sus CVLAN correspondiente</li>
+                    </ul>
+                </div>
+                <div class="w-full h-fit bg-blue-900 flex flex-col justify-center items-center py-6">
+                    <div class="w-full h-fit flex flex-row justify-center items-center gap-3 py-2">
+                        <h2 class="text-xl text-white font-semibold">Subir archivo de Agregadores</h2>
+                        <input type="file" class="text-md text-white" />
+                    </div>
+                    <div class="w-full h-fit flex flex-row justify-center items-center gap-3 py-2">
+                        <h2 class="text-xl text-white font-semibold">Subir archivo de Clientes</h2>
+                        <input type="file" class="text-md text-white" />
+                    </div>
+                    <button class="w-fit h-fit bg-blue-700 text-white font-semibold rounded-full px-10 py-2 transition-all ease-linear duration-300 hover:bg-green-700">Subir</button>
+                </div>
             </section>
         </div>
 	</main>
 </BackgroundLayout>
+<script>
+    import { TypeReports } from '../constant/reports';
+
+    const infoDefault = document.getElementById('info-default');
+    const infoCastrate = document.getElementById(`info-${TypeReports.CATASTRE}`);
+    const infoAsf = document.getElementById(`info-${TypeReports.ASF}`);
+    const infoNavigation = document.getElementById(`info-${TypeReports.NAVIGATION}`);
+
+    document.getElementById(TypeReports.CATASTRE)?.addEventListener('click', () => {
+        infoDefault?.classList.remove('flex');
+        infoDefault?.classList.add('hidden');
+        infoAsf?.classList.remove('flex');
+        infoAsf?.classList.add('hidden');
+        infoNavigation?.classList.remove('flex');
+        infoNavigation?.classList.add('hidden');
+
+        infoCastrate?.classList.remove('hidden');
+        infoCastrate?.classList.add('flex');
+    });
+
+    document.getElementById(TypeReports.ASF)?.addEventListener('click', () => {
+        infoDefault?.classList.remove('flex');
+        infoDefault?.classList.add('hidden');
+        infoCastrate?.classList.remove('flex');
+        infoCastrate?.classList.add('hidden');
+        infoNavigation?.classList.remove('flex');
+        infoNavigation?.classList.add('hidden');
+        
+        infoAsf?.classList.remove('hidden');
+        infoAsf?.classList.add('flex');
+    });
+
+    document.getElementById(TypeReports.NAVIGATION)?.addEventListener('click', () => {
+        infoDefault?.classList.remove('flex');
+        infoDefault?.classList.add('hidden');
+        infoCastrate?.classList.remove('flex');
+        infoCastrate?.classList.add('hidden');
+        infoAsf?.classList.remove('flex');
+        infoAsf?.classList.add('hidden');
+
+        infoNavigation?.classList.remove('hidden');
+        infoNavigation?.classList.add('flex');
+        
+    });
+</script>

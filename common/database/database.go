@@ -35,6 +35,7 @@ func Connect(uri string, isProduction bool) *gorm.DB {
 		entity.Fat{},
 		entity.FatInterface{},
 		entity.Report{},
+		entity.Location{},
 	); err != nil {
 		log.Fatalln(err)
 	}

@@ -120,7 +120,7 @@ func (use fatUsecase) Add(fat *model.NewFat) error {
 		}
 
 		newFat := &entity.Fat{
-			OND:        fat.ODN,
+			ODN:        fat.ODN,
 			Fat:        fat.Fat,
 			Splitter:   fat.Splitter,
 			Address:    fat.Address,

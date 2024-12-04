@@ -12,7 +12,7 @@ type Fat struct {
 	Longitude  float64 `gorm:"uniqueIndex:idx_unique_fat_location"`
 	Address    string  `gorm:"uniqueIndex:idx_unique_fat_location"`
 	Fat        string
-	OND        string
+	ODN        string
 	Location   Location `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
@@ -29,7 +29,7 @@ type FatResponse struct {
 	Longitude      float64
 	Address        string
 	Fat            string
-	OND            string
+	ODN            string
 	FatInterface   FatInterface
 	Location       Location
 	Interface      Interface

@@ -9,6 +9,7 @@ import (
 	"github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
 	"github.com/metalpoch/olt-blueprint/core/repository"
+	"github.com/metalpoch/olt-blueprint/core/utils"
 	"gorm.io/gorm"
 )
 
@@ -336,4 +337,151 @@ func (use infoUsecase) GetLocationMunicipalities(state, county string) ([]*strin
 	}
 
 	return res, err
+}
+
+func (use infoUsecase) GetODN(odn string) ([]*model.Fat, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+	defer cancel()
+
+	res, err := use.repo.GetODN(ctx, odn)
+
+	if err != nil {
+		go use.telegram.SendMessage(
+			constants.MODULE_TRAFFIC,
+			constants.CATEGORY_DATABASE,
+			"(feedUsecase).GetODN - use.repo.GetODN(ctx, %d)",
+			err,
+		)
+		return nil, err
+	}
+
+	var fats []*model.Fat
+
+	for _, f := range res {
+		fat, err := use.repo.GetFat(ctx, f.FatID)
+		if err != nil {
+			go use.telegram.SendMessage(
+				constants.MODULE_TRAFFIC,
+				constants.CATEGORY_DATABASE,
+				"(feedUsecase).GetODN - use.repo.GetODN(ctx, %d)",
+				err,
+			)
+			return nil, err
+		}
+		// inter, err := use.repo.GetInterface(ctx, f.InterfaceID)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// device, err := use.repo.GetDevice(ctx, inter.DeviceID)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// location, err := use.repo.GetLocation(ctx, fat.LocationID)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		temp := utils.FatResponse21(f, fat)
+
+		fats = append(fats, temp)
+	}
+
+	return fats, err
+}
+
+func (use infoUsecase) GetODNStates(state string) ([]*string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetODNStates(ctx, state)
+	if err != nil {
+		go use.telegram.SendMessage(
+			constants.MODULE_TRAFFIC,
+			constants.CATEGORY_DATABASE,
+			"(feedUsecase).GetODNStates - use.repo.GetODNStates(ctx, %d)",
+			err,
+		)
+		return nil, err
+	}
+	return res, err
+
+}
+
+func (use infoUsecase) GetODNStatesContries(state, country string) ([]*string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetODNStatesContries(ctx, state, country)
+	if err != nil {
+		go use.telegram.SendMessage(
+			constants.MODULE_TRAFFIC,
+			constants.CATEGORY_DATABASE,
+			"(feedUsecase).GetODNStatesContries - use.repo.GetODNStatesContries(ctx, %d)",
+			err,
+		)
+		return nil, err
+	}
+	return res, err
+
+}
+
+func (use infoUsecase) GetODNStatesContriesMunicipality(state, country, municipality string) ([]*string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetODNStatesContriesMunicipality(ctx, state, country, municipality)
+	if err != nil {
+		go use.telegram.SendMessage(
+			constants.MODULE_TRAFFIC,
+			constants.CATEGORY_DATABASE,
+			"(feedUsecase).GetODNStatesContriesMunicipality - use.repo.GetODNStatesContriesMunicipality(ctx, %d)",
+			err,
+		)
+		return nil, err
+	}
+	return res, err
+}
+
+func (use infoUsecase) GetODNDevice(id uint) ([]*string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetODNDevice(ctx, id)
+	if err != nil {
+		go use.telegram.SendMessage(
+			constants.MODULE_TRAFFIC,
+			constants.CATEGORY_DATABASE,
+			"(feedUsecase).GetODNDevice - use.repo.GetODNDevice(ctx, %d)",
+			err,
+		)
+		return nil, err
+	}
+	return res, err
+}
+
+func (use infoUsecase) GetODNDevicePort(id uint, shell *uint8, card, port *uint8) ([]*string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	pattern := fmt.Sprintf("%%GPON %d", *shell)
+	if card != nil {
+		pattern = fmt.Sprintf("%s/%d", pattern, *card)
+	}
+	if port != nil {
+		pattern = fmt.Sprintf("%s/%d", pattern, *port)
+	}
+	pattern += "%%"
+
+	res, err := use.repo.GetODNDevicePort(ctx, id, pattern)
+	if err != nil {
+		go use.telegram.SendMessage(
+			constants.MODULE_TRAFFIC,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(feedUsecase).GetODNDevicePort - use.repo.GetODNDevicePort(ctx, %d, %s)", id, pattern),
+			err,
+		)
+		return nil, err
+	}
+
+	return res, err
+
 }

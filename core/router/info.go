@@ -28,4 +28,11 @@ func newInfoRouter(server *fiber.App, db *gorm.DB, telegram tracking.SmartModule
 	server.Get("/info/location/state", hdlr.GetLocationStates)
 	server.Get("/info/location/:state", hdlr.GetLocationCounties)
 	server.Get("/info/location/:state/:county", hdlr.GetLocationMunicipalities)
+
+	server.Get("/info/odn/:odn", hdlr.GetODN)
+	server.Get("/info/odn/state/:state", hdlr.GetODNStates)
+	server.Get("/info/odn/country/:state/:country", hdlr.GetODNStatesContries)
+	server.Get("/info/odn/municipality/:state/:country/:municipality", hdlr.GetODNStatesContries)
+	server.Get("/info/odn/device/:id", hdlr.GetODNDevice)
+	server.Get("/info/odn/device/scp/:id/find", hdlr.GetODNDevicePort)
 }

@@ -21,6 +21,14 @@ type InfoRepository interface {
 	GetLocationStates(ctx context.Context) ([]*string, error)
 	GetLocationCounties(ctx context.Context, state string) ([]*string, error)
 	GetLocationMunicipalities(ctx context.Context, state, county string) ([]*string, error)
+	GetLocation(ctx context.Context, id uint) (*entity.Location, error)
+	GetFat(ctx context.Context, id uint) (*entity.Fat, error)
+	GetODN(ctx context.Context, odn string) ([]*entity.FatInterface, error)
+	GetODNStates(ctx context.Context, state string) ([]*string, error)
+	GetODNStatesContries(ctx context.Context, state, country string) ([]*string, error)
+	GetODNStatesContriesMunicipality(ctx context.Context, state, country, municipality string) ([]*string, error)
+	GetODNDevice(ctx context.Context, id uint) ([]*string, error)
+	GetODNDevicePort(ctx context.Context, id uint, pattern string) ([]*string, error)
 }
 
 type TrafficRepository interface {

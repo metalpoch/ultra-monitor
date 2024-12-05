@@ -131,7 +131,7 @@ func (repo infoRepository) GetLocation(ctx context.Context, id uint) (*entity.Lo
 func (repo infoRepository) GetFat(ctx context.Context, id uint) (*entity.Fat, error) {
 	f := new(entity.Fat)
 
-	err := repo.db.First(f, id).Error
+	err := repo.db.WithContext(ctx).First(f, id).Error
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +141,9 @@ func (repo infoRepository) GetFat(ctx context.Context, id uint) (*entity.Fat, er
 func (repo infoRepository) GetODN(ctx context.Context, odn string) ([]*entity.FatInterface, error) {
 	var fats []*entity.FatInterface
 
-	err := repo.db.Joins("JOIN fats ON fats.id = fat_interfaces.fat_id").
+	err := repo.db.
+		WithContext(ctx).
+		Joins("JOIN fats ON fats.id = fat_interfaces.fat_id").
 		Where("fats.odn = ?", odn).
 		Find(&fats).Error
 	if err != nil {
@@ -154,7 +156,9 @@ func (repo infoRepository) GetODN(ctx context.Context, odn string) ([]*entity.Fa
 func (repo infoRepository) GetODNStates(ctx context.Context, state string) ([]*string, error) {
 	var onds []*string
 
-	err := repo.db.Model(&entity.Fat{}).
+	err := repo.db.
+		WithContext(ctx).
+		Model(&entity.Fat{}).
 		Joins("JOIN locations ON fats.location_id = locations.id").
 		Where("locations.state = ?", state).
 		Distinct().
@@ -171,7 +175,9 @@ func (repo infoRepository) GetODNStates(ctx context.Context, state string) ([]*s
 func (repo infoRepository) GetODNStatesContries(ctx context.Context, state, country string) ([]*string, error) {
 	var onds []*string
 
-	err := repo.db.Model(&entity.Fat{}).
+	err := repo.db.
+		WithContext(ctx).
+		Model(&entity.Fat{}).
 		Joins("JOIN locations ON fats.location_id = locations.id").
 		Where("locations.state = ? AND locations.county = ?", state, country).
 		Distinct().
@@ -186,7 +192,9 @@ func (repo infoRepository) GetODNStatesContries(ctx context.Context, state, coun
 func (repo infoRepository) GetODNStatesContriesMunicipality(ctx context.Context, state, country, municipality string) ([]*string, error) {
 	var onds []*string
 
-	err := repo.db.Model(&entity.Fat{}).
+	err := repo.db.
+		WithContext(ctx).
+		Model(&entity.Fat{}).
 		Joins("JOIN locations ON fats.location_id = locations.id").
 		Where("locations.state = ? AND locations.county = ? AND locations.municipality",
 			state, country, municipality).
@@ -202,7 +210,9 @@ func (repo infoRepository) GetODNStatesContriesMunicipality(ctx context.Context,
 func (repo infoRepository) GetODNDevice(ctx context.Context, id uint) ([]*string, error) {
 	var odn []*string
 
-	err := repo.db.Model(&entity.Interface{}).
+	err := repo.db.
+		WithContext(ctx).
+		Model(&entity.Interface{}).
 		Where("device_id = ?", id).
 		Joins("INNER JOIN fat_interfaces ON interfaces.id = fat_interfaces.interface_id").
 		Joins("INNER JOIN fats ON fat_interfaces.fat_id = fats.id").
@@ -219,7 +229,8 @@ func (repo infoRepository) GetODNDevice(ctx context.Context, id uint) ([]*string
 func (repo infoRepository) GetODNDevicePort(ctx context.Context, id uint, pattern string) ([]*string, error) {
 	var odn []*string
 
-	err := repo.db.Model(&entity.Interface{}).
+	err := repo.db.WithContext(ctx).
+		Model(&entity.Interface{}).
 		Where("device_id = ? AND if_name LIKE ?", id, pattern).
 		Joins("INNER JOIN fat_interfaces ON interfaces.id = fat_interfaces.interface_id").
 		Joins("INNER JOIN fats ON fat_interfaces.fat_id = fats.id").

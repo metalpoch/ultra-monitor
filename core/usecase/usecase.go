@@ -16,7 +16,7 @@ type InfoUsecase interface {
 	GetLocationStates() ([]*string, error)
 	GetLocationCounties(state string) ([]*string, error)
 	GetLocationMunicipalities(state, county string) ([]*string, error)
-	GetODN(odn string) ([]*model.Fat, error)
+	GetODN(odn string) ([]*model.FatResponse, error)
 	GetODNStates(state string) ([]*string, error)
 	GetODNStatesContries(state, country string) ([]*string, error)
 	GetODNStatesContriesMunicipality(state, country, municipality string) ([]*string, error)

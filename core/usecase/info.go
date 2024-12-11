@@ -339,8 +339,8 @@ func (use infoUsecase) GetLocationMunicipalities(state, county string) ([]*strin
 	return res, err
 }
 
-func (use infoUsecase) GetODN(odn string) ([]*model.Fat, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+func (use infoUsecase) GetODN(odn string) ([]*model.FatResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
 	res, err := use.repo.GetODN(ctx, odn)
@@ -355,7 +355,7 @@ func (use infoUsecase) GetODN(odn string) ([]*model.Fat, error) {
 		return nil, err
 	}
 
-	var fats []*model.Fat
+	var fats []*model.FatResponse
 
 	for _, f := range res {
 		fat, err := use.repo.GetFat(ctx, f.FatID)
@@ -368,19 +368,37 @@ func (use infoUsecase) GetODN(odn string) ([]*model.Fat, error) {
 			)
 			return nil, err
 		}
-		// inter, err := use.repo.GetInterface(ctx, f.InterfaceID)
-		// if err != nil {
-		// 	return nil, err
-		// }
-		// device, err := use.repo.GetDevice(ctx, inter.DeviceID)
-		// if err != nil {
-		// 	return nil, err
-		// }
-		// location, err := use.repo.GetLocation(ctx, fat.LocationID)
-		// if err != nil {
-		// 	return nil, err
-		// }
-		temp := utils.FatResponse21(f, fat)
+		inter, err := use.repo.GetInterface(ctx, f.InterfaceID)
+		if err != nil {
+			go use.telegram.SendMessage(
+				constants.MODULE_TRAFFIC,
+				constants.CATEGORY_DATABASE,
+				"(feedUsecase).GetODN - use.repo.GetODN(ctx, %d)",
+				err,
+			)
+			return nil, err
+		}
+		device, err := use.repo.GetDevice(ctx, inter.DeviceID)
+		if err != nil {
+			go use.telegram.SendMessage(
+				constants.MODULE_TRAFFIC,
+				constants.CATEGORY_DATABASE,
+				"(feedUsecase).GetODN - use.repo.GetODN(ctx, %d)",
+				err,
+			)
+			return nil, err
+		}
+		location, err := use.repo.GetLocation(ctx, fat.LocationID)
+		if err != nil {
+			go use.telegram.SendMessage(
+				constants.MODULE_TRAFFIC,
+				constants.CATEGORY_DATABASE,
+				"(feedUsecase).GetODN - use.repo.GetODN(ctx, %d)",
+				err,
+			)
+			return nil, err
+		}
+		temp := utils.FatResponse2(inter, fat, device, location)
 
 		fats = append(fats, temp)
 	}

@@ -161,7 +161,7 @@ export default function TrafficFilterComponent(content: Props) {
     }, [fromDate, toDate, device, card, port, state, county, municipality]);
 
     return (
-        <div className="min-w-fit w-full h-2/3 max-h-fit p-6 bg-white flex flex-col items-center justify-center gap-4 self-center rounded-xl lg:self-start md:w-1/2 max-sm:w-full max-sm:gap-3">
+        <div className="min-w-fit w-full h-2/3 max-h-fit p-6 bg-white flex flex-col items-center justify-center gap-4 self-center rounded-xl lg:self-start md:w-fit max-sm:w-full max-sm:gap-3">
             <h3 className="text-2xl text-blue-800 text-center font-bold lg:self-start">Búsqueda por</h3>
             <section className="w-full flex flex-row justify-center items-center lg:justify-start gap-3">
                 <button type="button" onClick={() => handlerOptionFilterChange(Strings.EQUIPMENT)} className={`w-fit h-fit px-6 py-1 ${optionFilter === Strings.EQUIPMENT ? "bg-blue-600" : "bg-blue-900"} text-white font-bold rounded-full transition-all duration-300 ease-linear ${optionFilter === Strings.EQUIPMENT ? "" : "hover:bg-blue-500"}`}>Equipo</button>

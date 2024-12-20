@@ -8,7 +8,7 @@ import (
 func FatResponse(fi *entity.FatInterface) *model.FatResponse {
 	return &model.FatResponse{
 		ID:        fi.FatID,
-		OND:       fi.Fat.OND,
+		ODN:       fi.Fat.ODN,
 		Fat:       fi.Fat.Fat,
 		Splitter:  fi.Fat.Splitter,
 		Address:   fi.Fat.Address,

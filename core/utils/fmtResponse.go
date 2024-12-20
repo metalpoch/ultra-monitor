@@ -1,6 +1,9 @@
 package utils
 
-import "github.com/metalpoch/olt-blueprint/common/model"
+import (
+	"github.com/metalpoch/olt-blueprint/common/entity"
+	"github.com/metalpoch/olt-blueprint/common/model"
+)
 
 func DeviceResponse(device *model.Device) model.DeviceResponse {
 	return model.DeviceResponse{
@@ -37,5 +40,44 @@ func InterfaceResponse(i *model.Interface) model.InterfaceResponse {
 		Template:  model.Template(i.Device.Template),
 		CreatedAt: i.CreatedAt,
 		UpdatedAt: i.UpdatedAt,
+	}
+}
+
+func FatResponse2(i *entity.Interface, f *entity.Fat, d *entity.Device, l *entity.Location) *model.FatResponse {
+	return &model.FatResponse{
+		ID:        f.ID,
+		ODN:       f.ODN,
+		Fat:       f.Fat,
+		Splitter:  f.Splitter,
+		Address:   f.Address,
+		Latitude:  f.Latitude,
+		Longitude: f.Longitude,
+		Interface: model.InterfaceLite{
+			ID:        i.ID,
+			IfIndex:   i.IfIndex,
+			IfName:    i.IfName,
+			IfDescr:   i.IfDescr,
+			IfAlias:   i.IfAlias,
+			CreatedAt: i.CreatedAt,
+			UpdatedAt: i.UpdatedAt,
+		},
+		Device: model.DeviceLite{
+			ID:          d.ID,
+			IP:          d.IP,
+			SysName:     d.SysName,
+			SysLocation: d.SysLocation,
+			IsAlive:     d.IsAlive,
+			LastCheck:   d.LastCheck,
+			CreatedAt:   d.CreatedAt,
+			UpdatedAt:   d.UpdatedAt,
+		},
+		Location: model.Location{
+			ID:           l.ID,
+			State:        l.State,
+			County:       l.County,
+			Municipality: l.Municipality,
+		},
+		CreatedAt: f.CreatedAt,
+		UpdatedAt: f.UpdatedAt,
 	}
 }

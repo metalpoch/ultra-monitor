@@ -220,3 +220,34 @@ func (hdlr TrafficHandler) GetByMunicipaly(c fiber.Ctx) error {
 
 	return c.JSON(res)
 }
+
+// Traffic by ODN
+//
+// @Summary		Get a array of ODN traffic in a range date
+// @Description	get traffic by ODN name
+// @Tags		traffic
+// @Produce		json
+// @Param		odn		path		string					true	"ODN"
+// @Param		init_date	query		time.Time				true	"Start date for traffic range"
+// @Param		end_date	query		time.Time				true	"End date for traffic range"
+// @Success		200			{object}	[]model.Traffic
+// @Failure		400			{object}	object{message=string}
+// @Failure		500			{object}	object{message=string}
+// @Router		/traffic/interface/{id} [get]
+func (hdlr TrafficHandler) GetTrafficByODN(c fiber.Ctx) error {
+	odn, err := url.QueryUnescape(c.Params("odn"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	query := new(model.TranficRangeDate)
+	if err := c.Bind().Query(query); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	res, err := hdlr.Usecase.GetTrafficByODN(odn, query)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}

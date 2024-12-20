@@ -16,6 +16,12 @@ type InfoUsecase interface {
 	GetLocationStates() ([]*string, error)
 	GetLocationCounties(state string) ([]*string, error)
 	GetLocationMunicipalities(state, county string) ([]*string, error)
+	GetODN(odn string) ([]*model.FatResponse, error)
+	GetODNStates(state string) ([]*string, error)
+	GetODNStatesContries(state, country string) ([]*string, error)
+	GetODNStatesContriesMunicipality(state, country, municipality string) ([]*string, error)
+	GetODNDevice(id uint) ([]*string, error)
+	GetODNDevicePort(id uint, shell *uint8, card, port *uint8) ([]*string, error)
 }
 
 type TrafficUsecase interface {
@@ -26,4 +32,5 @@ type TrafficUsecase interface {
 	GetTrafficByState(state string, date *model.TranficRangeDate) ([]*model.TrafficResponse, error)
 	GetTrafficByCounty(state, county string, date *model.TranficRangeDate) ([]*model.TrafficResponse, error)
 	GetTrafficByMunicipality(state, county, municipality string, date *model.TranficRangeDate) ([]*model.TrafficResponse, error)
+	GetTrafficByODN(odn string, date *model.TranficRangeDate) ([]*model.TrafficResponse, error)
 }

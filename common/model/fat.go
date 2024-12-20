@@ -2,8 +2,6 @@ package model
 
 import (
 	"time"
-
-	"github.com/metalpoch/olt-blueprint/common/entity"
 )
 
 type Fat struct {
@@ -14,9 +12,8 @@ type Fat struct {
 	Longitude    float64
 	Address      string
 	Fat          string
-	OND          string
-	Location     entity.Location
-	FatInterface entity.FatInterface
+	ODN          string
+	FatInterface uint
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
@@ -33,7 +30,7 @@ type NewFat struct {
 
 type FatResponse struct {
 	ID        uint `json:"id"`
-	OND       string
+	ODN       string
 	Fat       string        `json:"fat"`
 	Splitter  uint8         `json:"splitter"`
 	Address   string        `json:"address"`

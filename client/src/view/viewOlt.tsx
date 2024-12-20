@@ -43,6 +43,14 @@ export default function ViewOLT() {
                     if (traffic) setDataTraffic(traffic);
                     setLoadingData(LoadStatus.LOADED);
                 }
+            } else if (filters.optionFilter === Strings.ODN) {
+                if (filters.device && filters.odn) {
+                    let info: Info = { device: filters.device, odn: filters.odn }
+                    setInfo(info);
+                    traffic = await TrafficController.getOdn(filters.device.id, filters.odn, filters.fromDate, filters.toDate);
+                    if (traffic) setDataTraffic(traffic);
+                    setLoadingData(LoadStatus.LOADED);
+                }
             } else if (filters.optionFilter === Strings.LOCATION) {
                 if (filters.state && filters.county && filters.municipality) {
                     let info: Info
@@ -85,13 +93,13 @@ export default function ViewOLT() {
                 <LineGraphicComponent loading={loadingData} title="Tráfico" canvasID="traffic" data={dataTraffic} />
             </section>
             <section>
-                {!infoType && optionFilter === Strings.EQUIPMENT &&
+                {!infoType && (optionFilter === Strings.EQUIPMENT || optionFilter === Strings.ODN) &&
                     <EquipmentInfoComponent loading={loadingData} info={info} />
                 }
                 {!infoType && optionFilter === Strings.LOCATION &&
                     <LocationInfoComponent loading={loadingData} info={info} />
                 }
-                {infoType && infoType === Strings.EQUIPMENT &&
+                {infoType && (infoType === Strings.EQUIPMENT || optionFilter === Strings.ODN) &&
                     <EquipmentInfoComponent loading={loadingData} info={info} />
                 }
                 {infoType && infoType === Strings.LOCATION &&

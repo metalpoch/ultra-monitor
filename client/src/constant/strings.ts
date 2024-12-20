@@ -2,5 +2,6 @@ export const Strings = {
     EMPTYSELECTION: "---",
     GPON: "GPON",
     EQUIPMENT: "equipment",
-    LOCATION: "location"
+    LOCATION: "location",
+    ODN: "odn",
 }

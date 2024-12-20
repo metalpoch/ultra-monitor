@@ -8,4 +8,5 @@ export interface Info {
     county?: string;
     municipality?: string;
     otherDevices?: Device[];
+    odn?: string;
 }

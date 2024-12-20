@@ -4,6 +4,7 @@ import React from "react";
 import { useState, useEffect } from "react";
 import { DeviceController } from "../../controllers/device";
 import { LocationController } from "../../controllers/location";
+import { OdnController } from "../../controllers/odn";
 import { Strings } from "../../constant/strings";
 import { LoadStatus } from "../../constant/loadStatus";
 import type { FilterOptions } from "../../models/filter";
@@ -23,7 +24,7 @@ export default function TrafficFilterComponent(content: Props) {
 
     // DATA COLLECTED (FILTER OPTIONS)
     const [devices, setDevices] = useState<string[]>([]);
-    const [ODNs, setODNs] = useState<string[]>([]);
+    const [odns, setOdns] = useState<string[]>([]);
     const [cards, setCards] = useState<number[]>([]);
     const [ports, setPorts] = useState<number[]>([]);
     const [states, setStates] = useState<string[]>([]);
@@ -32,6 +33,7 @@ export default function TrafficFilterComponent(content: Props) {
 
     // DATA SELECTED (FILTER SELECTION)
     const [device, setDevice] = useState<Device>();
+    const [odn, setOdn] = useState<string>();
     const [fromDate, setFromDate] = useState<string>();
     const [toDate, setToDate] = useState<string>();
     const [state, setState] = useState<string>();
@@ -51,7 +53,8 @@ export default function TrafficFilterComponent(content: Props) {
                 port: port,
                 state: state,
                 county: county,
-                municipality: municipality
+                municipality: municipality,
+                odn: odn
             }
             content.onClick(filter);
         }
@@ -102,15 +105,31 @@ export default function TrafficFilterComponent(content: Props) {
     const handlerDeviceChange = async (newAcronym: string) => {
         setCards([]);
         setPorts([]);
+        setOdns([]);
         if (newAcronym === Strings.EMPTYSELECTION) setDevice(undefined);
         else {
             let currentDevice = await DeviceController.getDeviceBySysname(newAcronym);
-            if (currentDevice) {
-                setDevice(currentDevice)
-                let currentCards = await DeviceController.getAllCardNumbers(currentDevice.id);
-                setCards(currentCards);
-            } else setCards([]);
+            console.log(currentDevice);
+            if (optionFilter === Strings.EQUIPMENT) {
+                if (currentDevice) {
+                    setDevice(currentDevice)
+                    let currentCards = await DeviceController.getAllCardNumbers(currentDevice.id);
+                    setCards(currentCards);
+                } else setCards([]);
+            } else if (optionFilter === Strings.ODN) {
+                if (currentDevice) {
+                    setDevice(currentDevice)
+                    let currentODNs = await OdnController.getOdnByDevice(currentDevice.id);
+                    console.log(currentODNs);
+                    setOdns(currentODNs);
+                } else setOdns([]);
+            }
         }
+    };
+
+    const handlerOdnChange = async (newOdn: string) => {
+        if (newOdn === Strings.EMPTYSELECTION) setOdn(undefined);
+        else setOdn(newOdn);
     };
 
     const handlerCardChange = async (newCard: number) => {
@@ -153,18 +172,22 @@ export default function TrafficFilterComponent(content: Props) {
                 if (device && !card && !port) setFilterAvailable(true);
                 else if (!port) setFilterAvailable(false);
                 else if (device && card && port) setFilterAvailable(true);
+            } else if (optionFilter === Strings.ODN) {
+                if (!odn) setFilterAvailable(false);
+                else if (device && odn) setFilterAvailable(true);
             } else if (optionFilter === Strings.LOCATION) {
                 if (!state && !county && !municipality) setFilterAvailable(false);
                 else setFilterAvailable(true);
             }
         } else setFilterAvailable(false);
-    }, [fromDate, toDate, device, card, port, state, county, municipality]);
+    }, [fromDate, toDate, device, card, port, state, county, municipality, odn]);
 
     return (
         <div className="min-w-fit w-full h-2/3 max-h-fit p-6 bg-white flex flex-col items-center justify-center gap-4 self-center rounded-xl lg:self-start md:w-fit max-sm:w-full max-sm:gap-3">
             <h3 className="text-2xl text-blue-800 text-center font-bold lg:self-start">Búsqueda por</h3>
             <section className="w-full flex flex-row justify-center items-center lg:justify-start gap-3">
                 <button type="button" onClick={() => handlerOptionFilterChange(Strings.EQUIPMENT)} className={`w-fit h-fit px-6 py-1 ${optionFilter === Strings.EQUIPMENT ? "bg-blue-600" : "bg-blue-900"} text-white font-bold rounded-full transition-all duration-300 ease-linear ${optionFilter === Strings.EQUIPMENT ? "" : "hover:bg-blue-500"}`}>Equipo</button>
+                <button type="button" onClick={() => handlerOptionFilterChange(Strings.ODN)} className={`w-fit h-fit px-6 py-1 ${optionFilter === Strings.ODN ? "bg-blue-600" : "bg-blue-900"} text-white font-bold rounded-full transition-all duration-300 ease-linear ${optionFilter === Strings.ODN ? "" : "hover:bg-blue-500"}`}>ODN</button>
                 <button type="button" onClick={() => handlerOptionFilterChange(Strings.LOCATION)} className={`w-fit h-fit px-6 py-1 ${optionFilter === Strings.LOCATION ? "bg-blue-600" : "bg-blue-900"} text-white font-bold rounded-full transition-all duration-300 ease-linear ${optionFilter === Strings.LOCATION ? "" : "hover:bg-blue-500"}`}>Ubicación</button>
             </section>
             <section className="w-full flex flex-col justify-start gap-3">
@@ -173,15 +196,18 @@ export default function TrafficFilterComponent(content: Props) {
                     <CalendarSelectorComponent id="toDate" label="Hasta" onChange={handlerToDateChange} />
                 </div>
             </section>
-            {optionFilter === "equipment" && <section className="w-full flex flex-col justify-start gap-3">
+            {optionFilter === Strings.EQUIPMENT && <section className="w-full flex flex-col justify-start gap-3">
                 <BasicSelectorComponent id="olt" label="OLT" options={devices} onChange={handlerDeviceChange} />
-                <BasicSelectorComponent id="odn" label="ODN" options={ODNs} onChange={handlerDeviceChange} />
                 <div className="w-full flex flex-row gap-3 flex-wrap lg:flex-nowrap">
                     <BasicSelectorComponent id="card" label="Tarjeta" options={cards} onChange={handlerCardChange} />
                     <BasicSelectorComponent id="port" label="Puerto" options={ports} onChange={handlerPortChange} />
                 </div>
             </section>}
-            {optionFilter === "location" && <section className="w-full flex flex-col justify-start gap-3">
+            {optionFilter === Strings.ODN && <section className="w-full flex flex-col justify-start gap-3">
+                <BasicSelectorComponent id="olt" label="OLT" options={devices} onChange={handlerDeviceChange} />
+                <BasicSelectorComponent id="odn" label="ODN" options={odns} onChange={handlerOdnChange} />
+            </section>}
+            {optionFilter === Strings.LOCATION && <section className="w-full flex flex-col justify-start gap-3">
                 <BasicSelectorComponent id="state" label="Estado" options={states} onChange={handlerStateChange} />
                 <BasicSelectorComponent id="county" label="Municipio" options={counties} onChange={handlerCountyChange} />
                 <BasicSelectorComponent id="municipality" label="Parroquia" options={municipalities} onChange={handlerMunicipalityChange} />

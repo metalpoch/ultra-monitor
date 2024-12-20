@@ -10,4 +10,5 @@ export interface FilterOptions {
     state: string | undefined;
     county: string | undefined;
     municipality: string | undefined;
+    odn: string | undefined;
 }

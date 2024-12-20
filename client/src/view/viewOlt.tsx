@@ -47,7 +47,7 @@ export default function ViewOLT() {
                 if (filters.device && filters.odn) {
                     let info: Info = { device: filters.device, odn: filters.odn }
                     setInfo(info);
-                    traffic = await TrafficController.getOdn(filters.device.id, filters.odn, filters.fromDate, filters.toDate);
+                    traffic = await TrafficController.getOdn(filters.odn, filters.fromDate, filters.toDate);
                     if (traffic) setDataTraffic(traffic);
                     setLoadingData(LoadStatus.LOADED);
                 }

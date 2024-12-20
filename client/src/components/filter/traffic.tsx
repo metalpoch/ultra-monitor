@@ -109,7 +109,6 @@ export default function TrafficFilterComponent(content: Props) {
         if (newAcronym === Strings.EMPTYSELECTION) setDevice(undefined);
         else {
             let currentDevice = await DeviceController.getDeviceBySysname(newAcronym);
-            console.log(currentDevice);
             if (optionFilter === Strings.EQUIPMENT) {
                 if (currentDevice) {
                     setDevice(currentDevice)
@@ -120,7 +119,6 @@ export default function TrafficFilterComponent(content: Props) {
                 if (currentDevice) {
                     setDevice(currentDevice)
                     let currentODNs = await OdnController.getOdnByDevice(currentDevice.id);
-                    console.log(currentODNs);
                     setOdns(currentODNs);
                 } else setOdns([]);
             }

@@ -47,22 +47,25 @@ export default function LineGraphComponent({ loading, title, canvasID, data }: L
             {
               label: 'In',
               data: data.map((measurement: Measurement) => measurement.in_bps),
-              fill: false,
-              borderColor: 'rgb(75, 192, 25)',
+              fill: true,
+              borderColor: 'rgb(205, 7, 7)',
+              backgroundColor: 'rgba(205, 7, 7, 0.4)',
               tension: 0.1
             },
             {
               label: 'Out',
               data: data.map((measurement: Measurement) => measurement.out_bps),
-              fill: false,
-              borderColor: 'rgb(75, 192, 192)',
+              fill: true,
+              borderColor: 'rgb(32, 35, 229)',
+              backgroundColor: 'rgba(32, 35, 229, 0.4)',
               tension: 0.1
             },
             {
               label: 'Bandwith',
               data: data.map((measurement: Measurement) => measurement.bandwidth_bps),
-              fill: false,
-              borderColor: 'rgb(75, 25, 200)',
+              fill: true,
+              borderColor: 'rgb(32, 229, 77)',
+              backgroundColor: 'rgba(32, 229, 77, 0.4)',
               tension: 0.1, 
               hidden: true
             },

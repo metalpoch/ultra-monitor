@@ -107,8 +107,8 @@ export class TrafficController {
         }
     }
 
-    static async getOdn(deviceID: number, odn: string, initialDate: string, endDate: string, initialTime: string = "00:00", endTime: string = "23:59"): Promise<Measurement[]> {
-        const response = await TrafficService.getOdn(deviceID, odn, initialDate, endDate, initialTime, endTime);
+    static async getOdn(odn: string, initialDate: string, endDate: string, initialTime: string = "00:00", endTime: string = "23:59"): Promise<Measurement[]> {
+        const response = await TrafficService.getOdn(odn, initialDate, endDate, initialTime, endTime);
         if (response.status === 200) {
             let newDataTraffic : Measurement[] = [];
             let dataTraffic = response.info as Measurement[];

@@ -19,4 +19,5 @@ func newTrafficRouter(server *fiber.App, db *gorm.DB, telegram tracking.SmartMod
 	server.Get("/traffic/location/:state", hdlr.GetByState)
 	server.Get("/traffic/location/:state/:county", hdlr.GetByCounty)
 	server.Get("/traffic/location/:state/:county/:municipality", hdlr.GetByMunicipaly)
+	server.Get("/traffic/odn/:odn", hdlr.GetTrafficByODN)
 }

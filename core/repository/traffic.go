@@ -119,3 +119,19 @@ func (repo trafficRepository) GetTrafficByMunicipality(ctx context.Context, stat
 
 	return traffic, err
 }
+
+func (repo trafficRepository) GetTrafficByODN(ctx context.Context, odn string, date *model.TranficRangeDate) ([]*entity.Traffic, error) {
+	var traffic []*entity.Traffic
+	err := repo.db.WithContext(ctx).
+		Model(&entity.Traffic{}).
+		Select("date, SUM(\"in\") AS \"in\", SUM(out) AS out, SUM(bandwidth) as bandwidth").
+		Joins("JOIN fat_interfaces ON fat_interfaces.interface_id = traffics.interface_id").
+		Joins("JOIN fats ON fats.id = fat_interfaces.fat_id").
+		Where("fats.odn = ? AND traffics.date BETWEEN ? AND ?", odn, date.InitDate, date.EndDate).
+		Group("date").
+		Order("date").
+		Find(&traffic).
+		Error
+
+	return traffic, err
+}

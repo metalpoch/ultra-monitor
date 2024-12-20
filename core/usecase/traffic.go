@@ -216,3 +216,31 @@ func (use trafficUsecase) GetTrafficByMunicipality(state, county, municipality s
 
 	return traffics, err
 }
+
+func (use trafficUsecase) GetTrafficByODN(odn string, date *model.TranficRangeDate) ([]*model.TrafficResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+	defer cancel()
+
+	res, err := use.repo.GetTrafficByODN(ctx, odn, date)
+	if err != nil {
+		go use.telegram.SendMessage(
+			constants.MODULE_TRAFFIC,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(trafficUsecase).GetTrafficByODN - use.repo.GetTrafficByODN(ctx, %s, %v)", odn, date),
+			err,
+		)
+		return nil, err
+	}
+
+	traffics := []*model.TrafficResponse{}
+	for _, e := range res {
+		traffics = append(traffics, &model.TrafficResponse{
+			Date:      e.Date,
+			Bandwidth: e.Bandwidth,
+			In:        e.In,
+			Out:       e.Out,
+		})
+	}
+
+	return traffics, err
+}

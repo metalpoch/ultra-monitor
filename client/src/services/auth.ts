@@ -1,7 +1,7 @@
 import type { Auth } from "../models/auth";
 import { ErrorHandler } from "../lib/errors";
 
-export class AuthHandler {
+export class AuthService {
     private static url: string = import.meta.env.PUBLIC_API_AUTH;
 
     static async login(data: Auth): Promise<{ status: (number | null), info: (any | ErrorHandler) }> {

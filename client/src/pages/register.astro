@@ -1,10 +1,11 @@
 ---
-import Layout from '../layouts/Outside.astro';
+import BackgroundLayout from '../layouts/Outside.astro';
+import NoticeModalComponent from '../components/modal/notice';
 import { isValidEmail, isValidPassword } from '../utils/validation';
-import { Routes } from '../constant/routes';
-import type { Register } from '../models/register';
 import { RegisterController } from '../controllers/register';
-import NoticeModal from '../components/modals/notice';
+import { Routes } from '../constant/routes';
+import { Tab } from '../constant/tab';
+import type { Register } from '../models/register';
 
 const token = Astro.cookies.get('token');
 if (token) return Astro.redirect(Routes.HOME);
@@ -51,9 +52,9 @@ if (Astro.request.method == "POST") {
 	}
 }
 ---
-<Layout title="Registro - OLT">
-	{modalSuccess.showModal && <NoticeModal showModal={true} title={modalSuccess.title} message={modalSuccess.message} client:load />}
-	{modalError.showModal && <NoticeModal showModal={true} title={modalError.title} message={modalError.message} client:load />}
+<BackgroundLayout title={Tab.REGISTER}>
+	{modalSuccess.showModal && <NoticeModalComponent showModal={true} title={modalSuccess.title} message={modalSuccess.message} client:load />}
+	{modalError.showModal && <NoticeModalComponent showModal={true} title={modalError.title} message={modalError.message} client:load />}
 	<form id="registerForm" method="POST" class="min-w-fit w-2/6 py-6 px-10 flex flex-col items-center justify-center gap-3 bg-gray-50 rounded-xl max-md:w-2/3">
 		<h2 class="mb-2 text-center text-4xl text-blue-600 font-semibold max-md:text-3xl max-sm:text-2xl">Registro</h2>
 		<div class="w-fit">
@@ -107,7 +108,7 @@ if (Astro.request.method == "POST") {
 			</h5>
 		</section>
 	</form>
-</Layout>
+</BackgroundLayout>
 <style>
 	.inputGroup input {
 		font-size: 100%;

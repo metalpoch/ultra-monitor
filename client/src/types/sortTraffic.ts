@@ -1,0 +1,1 @@
+export type SortTraffic = "date" | "bandwidth" | "in" | "out";

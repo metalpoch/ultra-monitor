@@ -1,0 +1,13 @@
+---
+import Layout from '../layouts/Inside.astro';
+import Navbar from '../layouts/Navbar';
+import { user } from '../controllers/auth';
+import { Tab } from '../constant/tab';
+import ViewOLT from '../view/viewOlt';
+---
+<Layout title={Tab.OLT}>
+    <main class="w-full h-lvh absolute px-4 py-2 overflow-y-auto">
+        <Navbar user={user.get()!} pathname={Astro.url.pathname} client:load />
+        <ViewOLT client:load/>
+    </main>
+</Layout>

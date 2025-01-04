@@ -1,7 +1,7 @@
 import type { Register } from "../models/register";
 import { ErrorHandler } from "../lib/errors";
 
-export class RegisterHandler {
+export class RegisterService {
     private static url: string = import.meta.env.PUBLIC_API_AUTH;
 
     static async newUser(data: Register): Promise<{ status: (number | null), info: (null | ErrorHandler) }> {

@@ -1,7 +1,7 @@
 ---
 import { ViewTransitions } from 'astro:transitions';
 import Navbar from "./Navbar";
-import { $user } from '../controllers/auth';
+import { user } from '../controllers/auth';
 /**FONTS */
 import '@fontsource/kanit/300.css';
 import '@fontsource/kanit/400.css';
@@ -27,14 +27,14 @@ const { title } = Astro.props;
 		<ViewTransitions />
 	</head>
 	<body class="font-kanit">
-		<div class="w-full h-full relative bg-gradient-to-b from-gray-100 to-gray-50">
-			<Navbar user={$user.get()!} client:load />
+		<main class="w-full h-screen relative bg-gradient-to-b from-gray-100 to-gray-50">
+			<!-- <Navbar user={user.get()!} client:load /> -->
 			<slot />
 			<svg class="-z-10">
 				<defs></defs>
 				<path fill="#035089"></path>
 			</svg>
-		</div>
+		</main>
 	</body>
 	<script>
 		var WIDTH = window.innerWidth;

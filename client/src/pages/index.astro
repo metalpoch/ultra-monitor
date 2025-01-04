@@ -1,10 +1,11 @@
 ---
-import Layout from '../layouts/Outside.astro';
+import BackgroundLayout from '../layouts/Outside.astro';
+import NoticeModalComponent from '../components/modal/notice';
 import { isValidEmail, isValidPassword } from '../utils/validation';
-import { Routes } from '../constant/routes';
 import { AuthController } from '../controllers/auth';
 import { FailedMessage } from '../constant/message';
-import NoticeModal from '../components/modals/notice';
+import { Routes } from '../constant/routes';
+import { Tab } from '../constant/tab';
 
 const token = Astro.cookies.get('token');
 if (token) return Astro.redirect(Routes.HOME);
@@ -38,8 +39,8 @@ if (Astro.request.method == "POST") {
 	}
 }
 ---
-<Layout title="Inicio de Sesión - OLT">
-	{modalError.showModal && <NoticeModal showModal={true} title={modalError.title} message={modalError.message} client:load />}
+<BackgroundLayout title={Tab.LOGIN}>
+	{modalError.showModal && <NoticeModalComponent showModal={true} title={modalError.title} message={modalError.message} client:load />}
 	<form id="loginForm" method="POST" class="min-w-fit w-2/6 py-10 px-10 flex flex-col items-center justify-center gap-4 bg-gray-50 rounded-xl max-md:w-2/3">
 		<h2 class="mb-2 text-center text-4xl text-blue-600 font-semibold max-md:text-3xl max-sm:text-2xl">Inicio de Sesión</h2>
 		<div class="w-fit">
@@ -64,7 +65,7 @@ if (Astro.request.method == "POST") {
 			</h5>
 		</section>
 	</form>
-</Layout>
+</BackgroundLayout>
 <style>
 	.inputGroup input {
 		font-size: 100%;

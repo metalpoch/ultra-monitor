@@ -1,4 +1,5 @@
 import re
+from typing import Sequence
 
 import ollama
 
@@ -12,7 +13,7 @@ class AI:
     This class allows for creating prompts and querying the specified model.
     """
 
-    def __init__(self, model: str) -> None:
+    def __init__(self, model: str, schemas: str) -> None:
         """
         Initializes the AI class with the given model.
 
@@ -20,24 +21,22 @@ class AI:
             model (str): The name of the artificial intelligence model to use.
         """
         self.model = model
+        self.messages = [
+            {
+                "role": "system",
+                "content": f"{constants.PROMPT_1}\n```csv\n{schemas}\n```",
+            },
+            {
+                "role": "system",
+                "content": constants.PROMPT_2,
+            },
+            {
+                "role": "system",
+                "content": constants.PROMPT_3,
+            },
+        ]
 
-    def __create_prompt(self, schemas: str, body: str) -> str:
-        """
-        Creates a formatted prompt for querying the model.
-
-        Args:
-            schemas (str): Schemas in CSV format to be included in the prompt.
-            body (str): Additional content to be included in the prompt.
-
-        Returns:
-            str: The complete prompt that will be sent to the model.
-        """
-        p1 = f"{constants.PROMPT_1}\n\n```csv\n{schemas}\n```\n"
-        p2 = f"{constants.PROMPT_2}\n"
-        p3 = f"\n{constants.PROMPT_3}"
-        return p1 + p2 + body + p3
-
-    def query(self, schemas: str, body: str) -> str:
+    def query(self, body: str) -> str:
         """
         Queries the model using the provided schemas and body content.
 
@@ -48,14 +47,12 @@ class AI:
         Returns:
             str: The response from the model to the executed query.
         """
-        res = ollama.chat(
-            model=self.model,
-            messages=[
-                {
-                    "role": "user",
-                    "content": self.__create_prompt(schemas=schemas, body=body),
-                }
-            ],
+        self.messages.append({"role": "user", "content": body})
+
+        sequence = self.messages  # type: Sequence
+        res = ollama.chat(model=self.model, messages=sequence)
+        self.messages.append(
+            {"role": "assistant", "content": res["message"]["content"]}
         )
         return res["message"]["content"]
 

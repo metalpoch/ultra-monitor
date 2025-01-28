@@ -1,5 +1,4 @@
 import psycopg2
-from psycopg2.extensions import connection
 
 from src import constants
 
@@ -19,26 +18,16 @@ class Postgres:
         Args:
             uri (str): The connection URI for the PostgreSQL database.
         """
-        self.uri = uri
-
-    def connect(self) -> connection:
-        """
-        Establishes a connection to the PostgreSQL database.
-
-        Returns:
-            connection: A connection object to the PostgreSQL database.
-
-        Raises:
-            psycopg2.Error: If there is an error while connecting to the database.
-        """
         try:
-            conn_dict = psycopg2.connect(self.uri)
+            self.uri = uri
+            self.conn = psycopg2.connect(uri)
         except psycopg2.Error as e:
             raise e
-        else:
-            return conn_dict
 
-    def csv_schemas(self, conn: connection) -> str:
+    def close(self) -> None:
+        self.conn.close()
+
+    def csv_schemas(self) -> str:
         """
         Retrieves the database schema information and formats it as a CSV string.
 
@@ -52,7 +41,7 @@ class Postgres:
             str: A CSV string containing table, column, type, and relation information.
         """
         csv = "table,column,type,relation"
-        cursor = conn.cursor()
+        cursor = self.conn.cursor()
         cursor.execute(constants.SQL_INFORMATION_SCHEMA)
 
         for res in cursor.fetchall():
@@ -68,3 +57,16 @@ class Postgres:
             csv += f"\n{table},{column_name},{column_type},{relation}"
 
         return csv
+
+    def execute_sql(self, query: str) -> list[dict]:
+        results = []
+        cursor = self.conn.cursor()
+        cursor.execute(query)
+
+        column_name = [desc[0] for desc in cursor.description]  # type: ignore
+
+        rows = cursor.fetchall()
+        for row in rows:
+            results.append(dict(zip(column_name, row)))
+
+        return results

@@ -23,17 +23,14 @@ WHERE
 ORDER BY c.table_name
 """
 
-PROMPT_1 = "Eres un experto en bases de datos Postgresql con mas de 5 años de experiencia, el schema de la base de datos es como el que se muestra en el siguiente csv:"
-
-PROMPT_2 = "El cliente indiciará una instrucción en lenguaje natural, como experto debes transformarlo en un script sql que sea capaz de dar respuesta a la pregunta del cliente de la manera mas acertada posible, la pregunta del cliente es: "
-
-PROMPT_3 = """
-Recuerda solo debes usar el schema que se te ha indicado.
-La respuesta que debes dar es solo el script sql nada mas que eso
+PROMPT_1 = """Eres un experto en bases de datos Postgresql con mas de 5 años de experiencia, el schema de la base de datos es como el que se muestra en el siguiente csv:
 """
 
-PROMPT_4 = "Eres un experto en bases de datos Postgresql con mas de 5 años de experiencia, tu trabajo es verificar si el siguiente codigo sql contiene alguna de las siguientes instrucciones: INSERT, UPDATE, DELETE, REVOKE, DROP TABLE, ALTER TABLE, CREATE TABLE. El codigo SQL que debes revisar es: "
+PROMPT_2 = """
+Recuerda solo debes usar el schema que se te ha indicado, sin olvidar usar la sentencia inner en caso de trabajar con varias tablas.
+La respuesta que debes dar es solo la sentencia sql, nada mas que eso.
+"""
 
-PROMPT_5 = "La respuesta que debes dar es un True si contiene alguna de las instrucciones y False si no contiene ninguna."
-
-PROMPT_6 = "Solo debes responder True o False segun sea el caso nasa mas."
+PROMPT_3 = """
+El cliente indiciará una instrucción en lenguaje natural, como experto debes transformarlo en una sentencia sql que sea capaz de dar respuesta a la pregunta del cliente de la manera mas acertada posible, No olvides que la respuesta que debes dar es solo la sentencia SQL y cuando el cliente se refiera a entrante quiere hacer referencia a los datos in, y si es saliente out. No olvides el inner en la sentenia SQL.
+"""

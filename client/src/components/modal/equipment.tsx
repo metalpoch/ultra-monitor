@@ -1,13 +1,20 @@
+import { DeviceSchema } from '../../schemas/device';
 import React, { useEffect } from 'react';
-import { Device } from '../../models/device';
 
-interface Props {
+/**
+ * @interface Data required for the device information modal.
+ * 
+ * @param {boolean} showModal if the modal is visible.
+ * @param {DeviceSchema} device OLT device information.
+ * @param {() => void} onClick Callback to handle the click on the accept button.
+ */
+interface ModalProps {
     showModal: boolean;
-    device: Device;
+    device: DeviceSchema;
     onClick?: () => void;
 }
 
-export default function InfoEquipmentModalComponent(content: Props) {
+export default function DeviceInfoModalComponent(content: ModalProps) {
 
     const handlerAccept = () => {
         document.getElementById('modal-state')?.classList.add('hidden');

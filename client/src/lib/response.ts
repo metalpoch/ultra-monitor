@@ -1,5 +1,8 @@
 import { ErrorHandler } from "./errors";
 
+/**
+ * Handler for responses to API requests.
+ */
 export class ResponseHandler {
     public success!: boolean;
     public message!: string;

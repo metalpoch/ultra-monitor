@@ -5,7 +5,7 @@ import { isValidEmail, isValidPassword } from '../utils/validation';
 import { RegisterController } from '../controllers/register';
 import { Routes } from '../constant/routes';
 import { Tab } from '../constant/tab';
-import type { Register } from '../models/register';
+import type { Register } from '../schemas/register';
 
 const token = Astro.cookies.get('token');
 if (token) return Astro.redirect(Routes.HOME);

@@ -1,12 +1,19 @@
 import React from "react";
 
-interface Props {
+/**
+ * @interface Data required for the time selector.
+ * 
+ * @param {any} id ID of the selector.
+ * @param {string} label Label of the selector.
+ * @param {(newDate: string) => void} onChange Callback to handle the change of the selector.
+ */
+interface TimeProps {
     id: any;
     label: string;
     onChange?: (newDate: string) => void;
 }
 
-export default function TimeSelectorComponent(content: Props) {
+export default function TimeSelectorComponent(content: TimeProps) {
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (content.onChange) content.onChange(event.target.value);

@@ -1,3 +1,6 @@
+/**
+ * Schema of an user.
+ */
 export interface User {
     p00: number;
     email: string;

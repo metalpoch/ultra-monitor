@@ -1,4 +1,4 @@
-import type { Register } from "../models/register";
+import type { Register } from "../schemas/register";
 import { RegisterHandler } from "../handlers/register";
 import { SuccessMessage, FailedMessage } from "../constant/message";
 import { ResponseHandler } from "../lib/response";

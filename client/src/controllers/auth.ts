@@ -2,15 +2,25 @@ import { AuthService } from "../services/auth";
 import { ErrorHandler } from "../lib/errors";
 import { ResponseHandler } from "../lib/response";
 import { FailedMessage } from "../constant/message";
-import type { Auth } from "../models/auth";
-import type { User } from "../models/user";
+import type { AuthSchema } from "../schemas/auth";
+import type { User } from "../schemas/user";
 import { atom } from "nanostores";
 
 export const user = atom<User | null>(null);
 
+/**
+ * @class Controller for authentication of the application.
+ */
 export class AuthController {
+    
+    /**
+     * Login to the application.
+     * 
+     * @param {string} email User's email.
+     * @param {string} password User's password.
+     */
     static async login(email: string, password: string): Promise<ResponseHandler> {
-        const data: Auth = {
+        const data: AuthSchema = {
             email: email,
             password: password
         }

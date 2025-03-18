@@ -1,13 +1,19 @@
 import React, { useEffect } from 'react';
 
-interface Props {
+/**
+ * @interface Data required for the notice modal.
+ * 
+ * @param {boolean} showModal if the modal is visible.
+ * @param {string} title Title of the modal.
+ * @param {string} message Message of the modal.
+ */
+interface ModalProps {
     showModal: boolean;
     title: string;
     message: string;
-
 }
 
-export default function NoticeModalComponent({ showModal, title, message }: Props) {
+export default function NoticeModalComponent({ showModal, title, message }: ModalProps) {
 
     const handlerAccept = () => {
         document.getElementById('modal-state')?.classList.add('hidden');

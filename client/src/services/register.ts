@@ -1,4 +1,4 @@
-import type { Register } from "../models/register";
+import type { Register } from "../schemas/register";
 import { ErrorHandler } from "../lib/errors";
 
 export class RegisterService {

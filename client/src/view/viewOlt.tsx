@@ -3,32 +3,31 @@ import LineGraphicComponent from "../components/graphic/line";
 import TrafficTableComponent from '../components/tables/traffic';
 import EquipmentInfoComponent from '../components/info/equipment';
 import LocationInfoComponent from '../components/info/location';
-import React, { useState } from "react";
-import { Routes } from '../constant/routes';
 import { Strings } from '../constant/strings';
 import { LoadStatus } from '../constant/loadStatus';
 import { TrafficController } from '../controllers/traffic';
 import { DeviceController } from "../controllers/device";
 import type { LoadingStateValue } from '../types/loadingState';
-import type { Measurement } from '../models/measurement';
-import type { FilterOptions } from '../models/filter';
-import type { Info } from '../models/info';
+import type { MeasurementSchema } from '../schemas/measurement';
+import type { FilterOptionSchema } from '../schemas/filter';
+import type { InfoSchema } from '../schemas/info';
+import React, { useState } from "react";
 
 export default function ViewOLT() {
     const [loadingData, setLoadingData] = useState<LoadingStateValue>(LoadStatus.EMPTY);
-    const [dataTraffic, setDataTraffic] = useState<Measurement[]>([]);
+    const [dataTraffic, setDataTraffic] = useState<MeasurementSchema[]>([]);
     const [optionFilter, setOptionFilter] = useState<string>(Strings.EQUIPMENT);
     const [infoType, setInfoType] = useState<string>();
-    const [info, setInfo] = useState<Info>();
+    const [info, setInfo] = useState<InfoSchema>();
 
-    const handlerTraffic = async (filters: FilterOptions) => {
+    const handlerTraffic = async (filters: FilterOptionSchema) => {
         setLoadingData(LoadStatus.LOADING);
         setInfoType(filters.optionFilter);
         if (filters.fromDate && filters.toDate) {
-            let traffic: Measurement[] = [];
+            let traffic: MeasurementSchema[] = [];
             if (filters.optionFilter === Strings.EQUIPMENT) {
                 if (filters.device && filters.card && filters.port) {
-                    let info: Info = { device: filters.device, card: filters.card, port: filters.port }
+                    let info: InfoSchema = { device: filters.device, card: filters.card, port: filters.port }
                     setInfo(info);
                     const interface_ = await DeviceController.getInterface(filters.device.id, filters.card, filters.port);
                     if (interface_) {
@@ -37,7 +36,7 @@ export default function ViewOLT() {
                         setLoadingData(LoadStatus.LOADED);
                     }
                 } else if (filters.device) {
-                    let info: Info = { device: filters.device }
+                    let info: InfoSchema = { device: filters.device }
                     setInfo(info);
                     traffic = await TrafficController.getDevice(filters.device.id, filters.fromDate, filters.toDate);
                     if (traffic) setDataTraffic(traffic);
@@ -45,7 +44,7 @@ export default function ViewOLT() {
                 }
             } else if (filters.optionFilter === Strings.ODN) {
                 if (filters.device && filters.odn) {
-                    let info: Info = { device: filters.device, odn: filters.odn }
+                    let info: InfoSchema = { device: filters.device, odn: filters.odn }
                     setInfo(info);
                     traffic = await TrafficController.getOdn(filters.odn, filters.fromDate, filters.toDate);
                     if (traffic) setDataTraffic(traffic);
@@ -53,7 +52,7 @@ export default function ViewOLT() {
                 }
             } else if (filters.optionFilter === Strings.LOCATION) {
                 if (filters.state && filters.county && filters.municipality) {
-                    let info: Info
+                    let info: InfoSchema
                     traffic = await TrafficController.getMunicipality(filters.state, filters.county, filters.municipality, filters.fromDate, filters.toDate);
                     const devices = await DeviceController.getAllDevicesByMunicipality(filters.state, filters.county, filters.municipality);
                     if (traffic) setDataTraffic(traffic);
@@ -62,13 +61,13 @@ export default function ViewOLT() {
                     setInfo(info);
                     setLoadingData(LoadStatus.LOADED);
                 } else if (filters.state && filters.county) {
-                    let info: Info = { state: filters.state, county: filters.county }
+                    let info: InfoSchema = { state: filters.state, county: filters.county }
                     setInfo(info);
                     traffic = await TrafficController.getCounty(filters.state, filters.county, filters.fromDate, filters.toDate);
                     if (traffic) setDataTraffic(traffic);
                     setLoadingData(LoadStatus.LOADED);
                 } else if (filters.state) {
-                    let info: Info = { state: filters.state }
+                    let info: InfoSchema = { state: filters.state }
                     setInfo(info);
                     traffic = await TrafficController.getState(filters.state, filters.fromDate, filters.toDate);
                     if (traffic) setDataTraffic(traffic);

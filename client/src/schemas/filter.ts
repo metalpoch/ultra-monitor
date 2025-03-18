@@ -1,10 +1,13 @@
-import type { Device } from "./device";
+import type { DeviceSchema } from "./device";
 
-export interface FilterOptions {
+/**
+ * Schema of traffic filter options.
+ */
+export interface FilterOptionSchema {
     optionFilter: string;
     fromDate: string | undefined;
     toDate: string | undefined;
-    device: Device | undefined;
+    device: DeviceSchema | undefined;
     card: number | undefined;
     port: number | undefined;
     state: string | undefined;

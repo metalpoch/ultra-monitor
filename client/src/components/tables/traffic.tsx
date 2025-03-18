@@ -1,17 +1,33 @@
 import SpinnerBasicComponent from "../spinner/basic";
-import React, { useState, useEffect } from "react";
 import { LoadStatus } from "../../constant/loadStatus";
 import { sortInterfacesByDate, sortInterfacesByBandwidth, sortInterfacesByIn, sortInterfacesByOut } from "../../utils/sort";
-import type { Measurement } from "../../models/measurement";
+import { getUnit, mbpsToGbps } from "../../utils/transform";
+import type { MeasurementSchema } from "../../schemas/measurement";
 import type { SortTraffic } from "../../types/sortTraffic";
 import type { LoadingStateValue } from "../../types/loadingState";
-import { unit } from "../../utils/transform";
+import React, { useState, useEffect } from "react";
 
-interface Props {
+/**
+ * @interface Data required for the traffic table.
+ * 
+ * @param {LoadingStateValue} loading Loading state of the table component.
+ * @param {MeasurementSchema[]} data Data of the table.
+ */
+interface TrafficProps {
     loading: LoadingStateValue;
-    data: Measurement[];
+    data: MeasurementSchema[];
 }
 
+
+/**
+ * @interface Data required for the traffic table.
+ * 
+ * @param {string} date Date of the traffic.
+ * @param {string} time Time of the traffic.
+ * @param {string} bandwidth Bandwidth of the traffic.
+ * @param {string} in In of the traffic.
+ * @param {string} out Out of the traffic.
+ */
 interface DataTraffic {
     date: string;
     time: string
@@ -20,25 +36,35 @@ interface DataTraffic {
     out: string;
 }
 
-export default function TrafficTableComponent(content: Props) {
+export default function TrafficTableComponent(content: TrafficProps) {
     
     const [interfaces, setInterfaces] = useState<DataTraffic[]>([]);
 
-    const transformData = (data: Measurement[]): DataTraffic[] => {
+    /**
+     * Transform the data of the traffic to data available for the table.
+     * 
+     * @param {MeasurementSchema[]} data Data of the traffic.
+     * @returns {DataTraffic[]} Data of the traffic to the table.
+     */
+    const transformData = (data: MeasurementSchema[]): DataTraffic[] => {
         let dataTraffic: DataTraffic[] = [];
-        data.map((interface_: Measurement) => {
+        data.map((interface_: MeasurementSchema) => {
             let newInterface: DataTraffic = {
-                date: `${interface_.date.getFullYear().toString()}-${interface_.date.getMonth().toString().padStart(2, '0')}-${interface_.date.getDate().toString().padStart(2, '0')}`,
-                time: `${interface_.date.toString().split(" ")[4]}`,
-                bandwidth: unit(interface_.bandwidth_bps),
-                in: unit(interface_.in_bps),
-                out: unit(interface_.out_bps)
+                date: `${interface_.date.toString().split("T")[0]}`,
+                time: `${interface_.date.toString().split("T")[1].split(".")[0]}`,
+                bandwidth: getUnit(interface_.bandwidth_bps),
+                in: getUnit(interface_.in_bps),
+                out: getUnit(interface_.out_bps)
             }
             dataTraffic.push(newInterface);
         });
         return dataTraffic;
     }
 
+
+    /**
+     * Sort the data of the traffic by bandwidth.
+     */
     const sortByBandwidth = () => {
         if (content.data?.length > 0) {
             let sortedInterfaces = sortInterfacesByBandwidth(content.data);
@@ -47,6 +73,10 @@ export default function TrafficTableComponent(content: Props) {
         }
     }
 
+
+    /**
+     * Sort the data of the traffic by in.
+     */
     const sortByIn = () => {
         if (content.data?.length > 0) {
             let sortedInterfaces = sortInterfacesByIn(content.data);
@@ -55,6 +85,10 @@ export default function TrafficTableComponent(content: Props) {
         }
     }
 
+
+    /**
+     * Sort the data of the traffic by out.
+     */
     const sortByOut = () => {
         if (content.data?.length > 0) {
             let sortedInterfaces = sortInterfacesByOut(content.data);
@@ -63,6 +97,10 @@ export default function TrafficTableComponent(content: Props) {
         }
     }
     
+
+    /**
+     * Sort the data of the traffic by date.
+     */
     const sortByDate = () => {
         if (content.data?.length > 0) {
             let sortedInterfaces = sortInterfacesByDate(content.data);
@@ -71,6 +109,10 @@ export default function TrafficTableComponent(content: Props) {
         }
     }
 
+
+    /**
+     * Handler to sort the data to the table.
+     */
     const handlerSort = (event: React.MouseEvent<HTMLSelectElement>) => {
         let option = event.currentTarget.value as SortTraffic;
         if (option === "date") sortByDate();

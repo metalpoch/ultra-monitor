@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { User } from '../models/user.ts';
+import type { User } from '../schemas/user.ts';
 import { Routes } from "../constant/routes";
 import React from "react";
 

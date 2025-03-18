@@ -1,3 +1,6 @@
+/**
+ * @constant Titles of each page tab
+ */
 export const Tab = {
     LOGIN: "Inicio Sesión - OLT Blueprint",
     REGISTER: "Registro - OLT Blueprint",

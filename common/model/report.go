@@ -14,6 +14,7 @@ type Report struct {
 	Category         string
 	OriginalFilename string
 	ContentType      string
+	Basepath         string
 	Filepath         string
 	User             entity.User
 	UserID           uint
@@ -25,6 +26,7 @@ type Report struct {
 type NewReport struct {
 	Category         string `form:"category"`
 	UserID           uint   `form:"user_id"`
+	Basepath         string
 	OriginalFilename string
 	ContentType      string
 	File             *multipart.FileHeader `form:"file"`

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/metalpoch/olt-blueprint/common/constants"
 	"gorm.io/gorm"
 )
 
@@ -14,6 +13,7 @@ type Report struct {
 	Category         string
 	OriginalFilename string
 	ContentType      string
+	Basepath         string
 	Filepath         string
 	User             User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	UserID           uint
@@ -24,6 +24,6 @@ type Report struct {
 
 func (rp *Report) BeforeCreate(tx *gorm.DB) (err error) {
 	rp.ID = uuid.New()
-	rp.Filepath = path.Join(constants.BASE_FILEPATH, rp.ID.String())
+	rp.Filepath = path.Join(rp.Basepath, rp.ID.String())
 	return
 }

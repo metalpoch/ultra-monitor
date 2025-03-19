@@ -17,4 +17,5 @@ type Config struct {
 	SmartModuleOSMURL      string `json:"smart_module_osm_url"`
 	CacheURI               string `json:"cache_uri"`
 	SecretKey              string `json:"secret_key"`
+	StaticReportDirectory  string `json:"static_report_directory"`
 }

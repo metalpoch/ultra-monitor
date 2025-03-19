@@ -30,6 +30,7 @@ func (use reportUsecase) Add(rp *model.NewReport) (string, error) {
 	newReport := &entity.Report{
 		UserID:           rp.UserID,
 		Category:         rp.Category,
+		Basepath:         rp.Basepath,
 		ContentType:      rp.File.Header.Get("Content-Type"),
 		OriginalFilename: rp.File.Filename,
 	}

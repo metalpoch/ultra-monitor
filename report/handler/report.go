@@ -6,14 +6,14 @@ import (
 	"path/filepath"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/metalpoch/olt-blueprint/common/constants"
 	"github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/report/usecase"
 	"github.com/metalpoch/olt-blueprint/report/utils"
 )
 
 type ReportHandler struct {
-	Usecase usecase.ReportUsecase
+	Usecase         usecase.ReportUsecase
+	ReportDirectory string
 }
 
 // Save Report
@@ -39,13 +39,14 @@ func (hdlr ReportHandler) Add(c fiber.Ctx) error {
 	if err := utils.IsValidReport(f.Header.Get("Content-Type")); err != nil {
 		return c.Status(fiber.StatusUnsupportedMediaType).JSON(fiber.Map{"error": err.Error()})
 	}
+	newReport.Basepath = hdlr.ReportDirectory
 	newReport.File = f
 	id, err := hdlr.Usecase.Add(newReport)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	if err := c.SaveFile(f, path.Join(constants.BASE_FILEPATH, id)); err != nil {
+	if err := c.SaveFile(f, path.Join(hdlr.ReportDirectory, id)); err != nil {
 		hdlr.Usecase.Delete(id)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

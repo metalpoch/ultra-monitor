@@ -18,5 +18,3 @@ const (
 	CATEGORY_UTILS    string = "Utilities"
 	CATEGORY_OSM      string = "OpenStreetMap"
 )
-
-const BASE_FILEPATH string = "./report/data/"

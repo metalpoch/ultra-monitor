@@ -58,8 +58,8 @@ func (repo trafficRepository) GetTrafficByLocationID(ctx context.Context, id uin
 	err := repo.db.WithContext(ctx).
 		Model(&entity.Traffic{}).
 		Select("date, SUM(\"in\") AS \"in\", SUM(out) AS out, SUM(bandwidth) as bandwidth").
-		Joins("JOIN interfaces as i ON i.id = traffics.interface_id").
-		Joins("JOIN fats as f ON f.interface_id = i.id").
+		Joins("JOIN fat_interfaces ON fat_interfaces.interface_id = traffics.interface_id").
+		Joins("JOIN fats ON fats.id = fat_interfaces.fat_id").
 		Where("f.location_id = ? AND traffics.date BETWEEN ? AND ?", id, date.InitDate, date.EndDate).
 		Group("date").
 		Order("date").
@@ -74,9 +74,9 @@ func (repo trafficRepository) GetTrafficByState(ctx context.Context, state strin
 	err := repo.db.WithContext(ctx).
 		Model(&entity.Traffic{}).
 		Select("date, SUM(\"in\") AS \"in\", SUM(out) AS out, SUM(bandwidth) as bandwidth").
-		Joins("JOIN interfaces as i ON i.id = traffics.interface_id").
-		Joins("JOIN fats as f ON f.interface_id = i.id").
-		Joins("JOIN locations as l ON l.id = f.location_id").
+		Joins("JOIN fat_interfaces ON fat_interfaces.interface_id = traffics.interface_id").
+		Joins("JOIN fats ON fats.id = fat_interfaces.fat_id").
+		Joins("JOIN locations as l ON l.id = fats.location_id").
 		Where("l.state = ? AND traffics.date BETWEEN ? AND ?", state, date.InitDate, date.EndDate).
 		Group("date").
 		Order("date").
@@ -91,9 +91,9 @@ func (repo trafficRepository) GetTrafficByCounty(ctx context.Context, state, cou
 	err := repo.db.WithContext(ctx).
 		Model(&entity.Traffic{}).
 		Select("date, SUM(\"in\") AS \"in\", SUM(out) AS out, SUM(bandwidth) as bandwidth").
-		Joins("JOIN interfaces as i ON i.id = traffics.interface_id").
-		Joins("JOIN fats as f ON f.interface_id = i.id").
-		Joins("JOIN locations as l ON l.id = f.location_id").
+		Joins("JOIN fat_interfaces ON fat_interfaces.interface_id = traffics.interface_id").
+		Joins("JOIN fats ON fats.id = fat_interfaces.fat_id").
+		Joins("JOIN locations as l ON l.id = fats.location_id").
 		Where("l.state = ? AND l.county = ? AND traffics.date BETWEEN ? AND ?", state, county, date.InitDate, date.EndDate).
 		Group("date").
 		Order("date").
@@ -108,9 +108,9 @@ func (repo trafficRepository) GetTrafficByMunicipality(ctx context.Context, stat
 	err := repo.db.WithContext(ctx).
 		Model(&entity.Traffic{}).
 		Select("date, SUM(\"in\") AS \"in\", SUM(out) AS out, SUM(bandwidth) as bandwidth").
-		Joins("JOIN interfaces as i ON i.id = traffics.interface_id").
-		Joins("JOIN fats as f ON f.interface_id = i.id").
-		Joins("JOIN locations as l ON l.id = f.location_id").
+		Joins("JOIN fat_interfaces ON fat_interfaces.interface_id = traffics.interface_id").
+		Joins("JOIN fats ON fats.id = fat_interfaces.fat_id").
+		Joins("JOIN locations as l ON l.id = fats.location_id").
 		Where("l.state = ? AND l.county = ? AND l.municipality = ? AND traffics.date BETWEEN ? AND ?", state, county, municipality, date.InitDate, date.EndDate).
 		Group("date").
 		Order("date").

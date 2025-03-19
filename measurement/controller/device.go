@@ -15,15 +15,15 @@ type deviceController struct {
 	Usecase usecase.DeviceUsecase
 }
 
-func newDeviceController(db *gorm.DB, telegram tracking.Telegram) *deviceController {
+func newDeviceController(db *gorm.DB, telegram tracking.SmartModule) *deviceController {
 	return &deviceController{Usecase: *usecase.NewDeviceUsecase(db, telegram)}
 }
 
-func AddDevice(db *gorm.DB, telegram tracking.Telegram, device *model.AddDevice) error {
+func AddDevice(db *gorm.DB, telegram tracking.SmartModule, device *model.AddDevice) error {
 	return newDeviceController(db, telegram).Usecase.Add(device)
 }
 
-func ShowAllDevices(db *gorm.DB, telegram tracking.Telegram, csv bool) ([]model.Device, error) {
+func ShowAllDevices(db *gorm.DB, telegram tracking.SmartModule, csv bool) ([]model.Device, error) {
 	devices, err := newDeviceController(db, telegram).Usecase.GetAll()
 	if err != nil {
 		return nil, err
@@ -68,14 +68,14 @@ func ShowAllDevices(db *gorm.DB, telegram tracking.Telegram, csv bool) ([]model.
 	return nil, nil
 }
 
-func GetDeviceWithOIDRows(db *gorm.DB, telegram tracking.Telegram) ([]*model.DeviceWithOID, error) {
+func GetDeviceWithOIDRows(db *gorm.DB, telegram tracking.SmartModule) ([]*model.DeviceWithOID, error) {
 	return newDeviceController(db, telegram).Usecase.GetDeviceWithOIDRows()
 }
 
-func UpdateDevice(db *gorm.DB, telegram tracking.Telegram, id uint, device *model.AddDevice) error {
+func UpdateDevice(db *gorm.DB, telegram tracking.SmartModule, id uint, device *model.AddDevice) error {
 	return newDeviceController(db, telegram).Usecase.Update(id, device)
 }
 
-func DeleteDevice(db *gorm.DB, telegram tracking.Telegram, id uint) error {
+func DeleteDevice(db *gorm.DB, telegram tracking.SmartModule, id uint) error {
 	return newDeviceController(db, telegram).Usecase.Delete(id)
 }

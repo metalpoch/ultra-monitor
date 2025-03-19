@@ -7,6 +7,7 @@
 *.dll
 *.so
 *.dylib
+dist/
 update/dist/
 auth/dist/
 measurement/dist/

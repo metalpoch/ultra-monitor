@@ -30,12 +30,18 @@ type InterfaceResponse struct {
 	UpdatedAt time.Time
 }
 
-type InterfaceWithoutDevice struct {
-	ID        uint
-	IfIndex   uint
-	IfName    string
-	IfDescr   string
-	IfAlias   string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+type InterfaceLite struct {
+	ID        uint      `json:"id"`
+	IfIndex   uint      `json:"ifindex"`
+	IfName    string    `json:"ifname"`
+	IfDescr   string    `json:"ifDescr"`
+	IfAlias   string    `json:"ifAlias"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type GponPort struct {
+	Shell *uint8 `query:"shell" validate:"required,lte=0"`
+	Card  *uint8 `query:"card" validate:"required_with=Port"`
+	Port  *uint8 `query:"port"`
 }

@@ -11,10 +11,10 @@ func (v *StructValidator) Validate(out any) error {
 }
 
 type Config struct {
-	IsProduction       bool   `json:"is_production"`
-	DatabaseURI        string `json:"db_uri"`
-	CacheURI           string `json:"cache_uri"`
-	SecretKey          string `json:"secret_key"`
-	TelegramChatID     string `json:"telegram_chat_id"`
-	TelegramBotTokenID string `json:"telegram_bot_token_id"`
+	IsProduction           bool   `json:"is_production"`
+	DatabaseURI            string `json:"db_uri"`
+	SmartModuleTelegramURL string `json:"smart_module_telegram_url"`
+	SmartModuleOSMURL      string `json:"smart_module_osm_url"`
+	CacheURI               string `json:"cache_uri"`
+	SecretKey              string `json:"secret_key"`
 }

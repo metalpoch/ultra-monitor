@@ -32,9 +32,8 @@ func init() {
 }
 
 func main() {
-	telegram := tracking.Telegram{
-		BotID:  cfg.TelegramBotTokenID,
-		ChatID: cfg.TelegramChatID,
+	telegram := tracking.SmartModule{
+		URL: cfg.SmartModuleTelegramURL,
 	}
 
 	app := &cli.App{

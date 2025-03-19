@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/metalpoch/olt-blueprint/auth/entity"
+	"github.com/metalpoch/olt-blueprint/common/entity"
 )
 
 type UserRepository interface {

@@ -15,10 +15,10 @@ import (
 
 type templateUsecase struct {
 	repo     repository.TemplateRepository
-	telegram tracking.Telegram
+	telegram tracking.SmartModule
 }
 
-func NewTemplateUsecase(db *gorm.DB, telegram tracking.Telegram) *templateUsecase {
+func NewTemplateUsecase(db *gorm.DB, telegram tracking.SmartModule) *templateUsecase {
 	return &templateUsecase{repository.NewTemplateRepository(db), telegram}
 }
 
@@ -35,7 +35,7 @@ func (use templateUsecase) Add(template *model.AddTemplate) error {
 
 	err := use.repo.Add(ctx, newTemplate)
 	if err != nil {
-		use.telegram.Notification(
+		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(templateUsecase).Add - use.repo.Add(ctx, %v)", newTemplate),
@@ -52,7 +52,7 @@ func (use templateUsecase) Update(id uint, template *model.AddTemplate) error {
 
 	e, err := use.repo.Get(ctx, id)
 	if err != nil {
-		use.telegram.Notification(
+		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(templateUsecase).Update - use.repo.Get(ctx, %d)", id),
@@ -76,7 +76,7 @@ func (use templateUsecase) Update(id uint, template *model.AddTemplate) error {
 
 	err = use.repo.Update(ctx, e)
 	if err != nil {
-		use.telegram.Notification(
+		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(templateUsecase).Update - use.repo.Update(ctx, %v)", e),
@@ -93,7 +93,7 @@ func (use templateUsecase) Delete(id uint) error {
 
 	err := use.repo.Delete(ctx, id)
 	if err != nil {
-		use.telegram.Notification(
+		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(templateUsecase).Delete - use.repo.Delete(ctx, %v)", id),
@@ -110,7 +110,7 @@ func (use templateUsecase) GetByID(id uint) (model.Template, error) {
 
 	e, err := use.repo.Get(ctx, id)
 	if err != nil {
-		use.telegram.Notification(
+		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(templateUsecase).GetByID - use.repo.Get(ctx, %d)", id),
@@ -137,7 +137,7 @@ func (use templateUsecase) GetAll() ([]model.Template, error) {
 	res, err := use.repo.GetAll(ctx)
 
 	if err != nil {
-		use.telegram.Notification(
+		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			"(templateUsecase).GetAll - use.repo.GetAll(ctx)",

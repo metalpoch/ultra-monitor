@@ -16,10 +16,10 @@ import (
 
 type deviceUsecase struct {
 	repo     repository.DeviceRepository
-	telegram tracking.Telegram
+	telegram tracking.SmartModule
 }
 
-func NewDeviceUsecase(db *gorm.DB, telegram tracking.Telegram) *deviceUsecase {
+func NewDeviceUsecase(db *gorm.DB, telegram tracking.SmartModule) *deviceUsecase {
 	return &deviceUsecase{repository.NewDeviceRepository(db), telegram}
 }
 
@@ -30,7 +30,7 @@ func (use deviceUsecase) Add(device *model.AddDevice) error {
 	var isAlive bool
 	info, err := snmp.GetInfo(device.IP, device.Community)
 	if err != nil {
-		use.telegram.Notification(
+		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_SNMP,
 			fmt.Sprintf("(deviceUsecase).Add - snmp.GetInfo(%s, %s)", device.IP, device.Community),
@@ -53,7 +53,7 @@ func (use deviceUsecase) Add(device *model.AddDevice) error {
 
 	err = use.repo.Add(ctx, newDevice)
 	if err != nil {
-		use.telegram.Notification(
+		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(deviceUsecase).Add - use.repo.Add(ctx, %v)", *newDevice),
@@ -69,7 +69,7 @@ func (use deviceUsecase) Update(id uint, device *model.AddDevice) error {
 
 	e, err := use.repo.GetByID(ctx, id)
 	if err != nil {
-		use.telegram.Notification(
+		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(deviceUsecase).Update - use.repo.Get(ctx, %d)", id),
@@ -90,7 +90,7 @@ func (use deviceUsecase) Update(id uint, device *model.AddDevice) error {
 
 	err = use.repo.Update(ctx, e)
 	if err != nil {
-		use.telegram.Notification(
+		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(deviceUsecase).Update - use.repo.Update(ctx, %v)", e),
@@ -107,7 +107,7 @@ func (use deviceUsecase) Delete(id uint) error {
 
 	err := use.repo.Delete(ctx, id)
 	if err != nil {
-		use.telegram.Notification(
+		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(deviceUsecase).Add - use.repo.Delete(ctx, %v)", id),
@@ -123,7 +123,7 @@ func (use deviceUsecase) Check(device *model.Device) error {
 	defer cancel()
 	err := use.repo.Check(ctx, (*entity.Device)(device))
 	if err != nil {
-		use.telegram.Notification(
+		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(deviceUsecase).Check - use.repo.Check(ctx, %v)", *(*entity.Device)(device)),
@@ -140,7 +140,7 @@ func (use deviceUsecase) GetByID(id uint) (*model.Device, error) {
 
 	e, err := use.repo.GetByID(ctx, id)
 	if err != nil {
-		use.telegram.Notification(
+		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(deviceUsecase).GetByID - use.repo.GetByID(ctx, %d)\n", id),
@@ -157,7 +157,7 @@ func (use deviceUsecase) GetAll() ([]*model.Device, error) {
 
 	res, err := use.repo.GetAll(ctx)
 	if err != nil {
-		use.telegram.Notification(
+		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			"(deviceUsecase).GetAll - use.repo.GetAll(ctx)",
@@ -179,7 +179,7 @@ func (use deviceUsecase) GetDeviceWithOIDRows() ([]*model.DeviceWithOID, error) 
 
 	res, err := use.repo.GetDevicesWithTemplate(ctx)
 	if err != nil {
-		use.telegram.Notification(
+		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			"(deviceUsecase).GetDeviceWithOIDRows - use.repo.GetDevicesWithTemplate(ctx)",

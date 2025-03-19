@@ -15,10 +15,10 @@ import (
 
 type trafficUsecase struct {
 	repo     repository.TrafficRepository
-	telegram tracking.Telegram
+	telegram tracking.SmartModule
 }
 
-func NewTrafficUsecase(db *gorm.DB, telegram tracking.Telegram) *trafficUsecase {
+func NewTrafficUsecase(db *gorm.DB, telegram tracking.SmartModule) *trafficUsecase {
 	return &trafficUsecase{repository.NewTrafficRepository(db), telegram}
 }
 
@@ -28,7 +28,7 @@ func (use trafficUsecase) Add(traffic *model.Traffic) error {
 
 	err := use.repo.Add(ctx, (*entity.Traffic)(traffic))
 	if err != nil {
-		use.telegram.Notification(
+		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(trafficUsecase).Add - use.repo.Add(ctx, %v)", *(*entity.Traffic)(traffic)),
@@ -36,60 +36,4 @@ func (use trafficUsecase) Add(traffic *model.Traffic) error {
 		)
 	}
 	return err
-}
-
-func (use trafficUsecase) GetTrafficByInterface(id uint, date *model.TranficRangeDate) ([]*model.TrafficResponse, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	res, err := use.repo.GetTrafficByInterface(ctx, id, date)
-	if err != nil {
-		go use.telegram.Notification(
-			constants.MODULE_UPDATE,
-			constants.CATEGORY_DATABASE,
-			fmt.Sprintf("(trafficUsecase).GetTrafficByInterface - use.repo.GetTrafficByInterface(ctx, %d, %v)", id, date),
-			err,
-		)
-		return nil, err
-	}
-
-	traffics := []*model.TrafficResponse{}
-	for _, e := range res {
-		traffics = append(traffics, &model.TrafficResponse{
-			Date:      e.Date,
-			Bandwidth: e.Bandwidth,
-			In:        e.In,
-			Out:       e.Out,
-		})
-	}
-
-	return traffics, err
-}
-
-func (use trafficUsecase) GetTrafficByDevice(id uint, date *model.TranficRangeDate) ([]*model.TrafficResponse, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	res, err := use.repo.GetTrafficByDevice(ctx, id, date)
-	if err != nil {
-		go use.telegram.Notification(
-			constants.MODULE_UPDATE,
-			constants.CATEGORY_DATABASE,
-			fmt.Sprintf("(trafficUsecase).GetTrafficByDevice - use.repo.GetTrafficByDevice(ctx, %d, %v)", id, date),
-			err,
-		)
-		return nil, err
-	}
-
-	traffics := []*model.TrafficResponse{}
-	for _, e := range res {
-		traffics = append(traffics, &model.TrafficResponse{
-			Date:      e.Date,
-			Bandwidth: e.Bandwidth,
-			In:        e.In,
-			Out:       e.Out,
-		})
-	}
-
-	return traffics, err
 }

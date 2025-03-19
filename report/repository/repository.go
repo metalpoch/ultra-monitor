@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/metalpoch/olt-blueprint/common/entity"
 )
 
@@ -21,4 +22,5 @@ type ReportRepository interface {
 	Get(ctx context.Context, id string) (*entity.Report, error)
 	GetReports(ctx context.Context, category string, user_id uint) ([]*entity.Report, error)
 	GetCategories(ctx context.Context) ([]*string, error)
+	Delete(ctx context.Context, id uuid.UUID) error
 }

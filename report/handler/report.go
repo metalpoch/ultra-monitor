@@ -46,6 +46,7 @@ func (hdlr ReportHandler) Add(c fiber.Ctx) error {
 	}
 
 	if err := c.SaveFile(f, path.Join(constants.BASE_FILEPATH, id)); err != nil {
+		hdlr.Usecase.Delete(id)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 

@@ -1,3 +1,6 @@
+/**
+ * @constant Routes of the application.
+ */
 export const Routes = {
     LOGIN: "/",
     REGISTER: "/register",

@@ -1,12 +1,12 @@
 import { useEffect } from 'react';
 import { Chart } from 'chart.js/auto';
-import type { Measurement } from '../../models/measurement';
+import type { MeasurementSchema } from '../../schemas/measurement';
 import React from 'react';
 
 interface PieProps {
     title: string;
     canvasID: string;
-    data?: Measurement[];
+    data?: MeasurementSchema[];
 }
 
 export default function PieGraphComponent({ title, canvasID, data }: PieProps) {
@@ -18,13 +18,13 @@ export default function PieGraphComponent({ title, canvasID, data }: PieProps) {
             new Chart(canvas, {
                 type: 'pie',
                 data: {
-                    labels: data.map((measurement: Measurement) => {
+                    labels: data.map((measurement: MeasurementSchema) => {
                         let currentDate = new Date(measurement.date);
                         return `${currentDate.getDate().toString().padStart(2, '0')}/${currentDate.getMonth().toString().padStart(2, '0')}/${currentDate.getFullYear()}`;
                     }),
                     datasets: [{
                         label: 'Count',
-                        data: data.map((measurement: Measurement) => measurement.out_bps),
+                        data: data.map((measurement: MeasurementSchema) => measurement.out_bps),
                     }]
                 },
                 options: {

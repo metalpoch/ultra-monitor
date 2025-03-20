@@ -1,3 +1,6 @@
+/**
+ * Schema of template of an OLT device.
+ */
 export interface Template {
     ID: number,
     Name: string,

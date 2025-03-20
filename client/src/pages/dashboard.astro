@@ -2,7 +2,6 @@
 import NavbarLayout from '../layouts/Navbar';
 import BackgroundLayout from '../layouts/Inside.astro';
 import { user } from '../controllers/auth';
-import { Routes } from '../constant/routes';
 import { Tab } from '../constant/tab';
 
 // const token = Astro.cookies.get('token');
@@ -13,5 +12,3 @@ import { Tab } from '../constant/tab';
 		<NavbarLayout user={user.get()!} pathname={Astro.url.pathname} client:load/>
 	</main>
 </BackgroundLayout>
-<style>
-</style>

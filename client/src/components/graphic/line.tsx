@@ -1,52 +1,68 @@
+import SpinnerBasicComponent from '../spinner/basic';
 import { Chart } from 'chart.js/auto';
 import { useEffect } from 'react';
 import { LoadStatus } from '../../constant/loadStatus';
-import { unit } from '../../utils/transform';
-import type { Measurement } from '../../models/measurement';
+import { getUnit } from '../../utils/transform';
+import type { MeasurementSchema } from '../../schemas/measurement';
 import type { LoadingStateValue } from '../../types/loadingState';
-import SpinnerBasicComponent from '../spinner/basic';
 import React from 'react';
 
+/**
+ * @interface Data required for the line graph.
+ * 
+ * @param {LoadingStateValue} loading Loading state of the graph component.
+ * @param {string} title Title of the graph.
+ * @param {string} canvasID ID of the canvas.
+ * @param {MeasurementSchema[]} data Data of the graph.
+ */
 interface LineProps {
   loading: LoadingStateValue;
   title: string;
   canvasID: string;
-  data: Measurement[];
+  data: MeasurementSchema[];
 }
 
-export default function LineGraphComponent({ loading, title, canvasID, data }: LineProps) {
+export default function LineGraphComponent(content: LineProps) {
 
+  /**
+   * Message when no search has been done.
+   */
   const ViewWaitingData = () => {
     return(<h1 className="text-2xl font-semibold text-gray-300 text-center">Sin búsqueda</h1>);
   }
-
+  
+  /**
+   * Message when there is no data to show.
+   */
   const ViewWithoutData = () => {
     return(<h1 className="text-2xl font-semibold text-gray-300 text-center">No se encontró información para gráficar</h1>);
   }
 
+  /**
+   * Render the chart when data is available.
+   */
   const ViewData = () => {
     return (
       <>
-        <h1 className="self-start text-2xl font-semibold text-gray-700">{title}</h1>
-        <canvas id={canvasID}></canvas>
+        <h1 className="self-start text-2xl font-semibold text-gray-700">{content.title}</h1>
+        <canvas id={content.canvasID}></canvas>
       </>
     )
   }
 
   useEffect(() => {
-    const canvas = document.getElementById(canvasID) as HTMLCanvasElement;
+    const canvas = document.getElementById(content.canvasID) as HTMLCanvasElement;
     if (canvas) {
       new Chart(canvas, {
         type: 'line',
         data: {
-          labels: data.map((measurement: Measurement) => {
-            let currentDate = new Date(measurement.date);
-            return `${currentDate.getDate().toString().padStart(2, '0')}/${currentDate.getMonth().toString().padStart(2, '0')}/${currentDate.getFullYear()} ${currentDate.getHours().toString().padStart(2, '0')}:${currentDate.getMinutes().toString().padStart(2, '0')}`;
+          labels: content.data.map((measurement: MeasurementSchema) => {
+            return `${measurement.date.split("T")[0].replaceAll("-", "/")} ${measurement.date.split("T")[1].split(".")[0]}`;
           }),
           datasets: [
             {
               label: 'In',
-              data: data.map((measurement: Measurement) => measurement.in_bps),
+              data: content.data.map((measurement: MeasurementSchema) => measurement.in_bps),
               fill: true,
               borderColor: 'rgb(205, 7, 7)',
               backgroundColor: 'rgba(205, 7, 7, 0.4)',
@@ -54,7 +70,7 @@ export default function LineGraphComponent({ loading, title, canvasID, data }: L
             },
             {
               label: 'Out',
-              data: data.map((measurement: Measurement) => measurement.out_bps),
+              data: content.data.map((measurement: MeasurementSchema) => measurement.out_bps),
               fill: true,
               borderColor: 'rgb(32, 35, 229)',
               backgroundColor: 'rgba(32, 35, 229, 0.4)',
@@ -62,7 +78,7 @@ export default function LineGraphComponent({ loading, title, canvasID, data }: L
             },
             {
               label: 'Bandwith',
-              data: data.map((measurement: Measurement) => measurement.bandwidth_bps),
+              data: content.data.map((measurement: MeasurementSchema) => measurement.bandwidth_bps),
               fill: true,
               borderColor: 'rgb(32, 229, 77)',
               backgroundColor: 'rgba(32, 229, 77, 0.4)',
@@ -83,7 +99,7 @@ export default function LineGraphComponent({ loading, title, canvasID, data }: L
             y: {
               ticks: {
                 callback: (value) => {
-                  if (typeof value === 'number') return unit(value);
+                  return getUnit(Number(value));
                 },
               },
             },
@@ -91,15 +107,15 @@ export default function LineGraphComponent({ loading, title, canvasID, data }: L
         }
       });
     }
-  }, [data]);
+  }, [content.data]);
 
   return (
     <div className="w-full lg:w-5/6 max-w-full min-h-96 px-4 py-6 bg-white rounded-xl flex flex-col justify-center items-center gap-4">
-      {loading === LoadStatus.EMPTY && ViewWaitingData()}
-      {loading === LoadStatus.LOADING && <SpinnerBasicComponent />}
-      {loading === LoadStatus.LOADED && data && data.length > 0 && ViewData()}
-      {loading === LoadStatus.LOADED && data && data.length <= 0 && ViewWithoutData()}
-      {loading === LoadStatus.LOADED && !data && ViewWithoutData()}
+      {content.loading === LoadStatus.EMPTY && ViewWaitingData()}
+      {content.loading === LoadStatus.LOADING && <SpinnerBasicComponent />}
+      {content.loading === LoadStatus.LOADED && content.data && content.data.length > 0 && ViewData()}
+      {content.loading === LoadStatus.LOADED && content.data && content.data.length <= 0 && ViewWithoutData()}
+      {content.loading === LoadStatus.LOADED && !content.data && ViewWithoutData()}
     </div>
   );
 }

@@ -1,9 +1,18 @@
 import { ErrorHandler } from "../lib/errors";
 
+/**
+ * @class Handler of all inteface requests for the API.
+ */
 export class InterfaceService {
     private static url: string = import.meta.env.PUBLIC_API_CORE;
 
-    static async getInterfacesByCard(deviceID: number, shell: number = 0): Promise<{ status: (number | null), info: (any | ErrorHandler) }> {
+    /**
+     * Request API to get all interfaces by a shell of an OLT device.
+     * 
+     * @param {number} deviceID OLT device ID.
+     * @param {number} shell OLT device shell.
+     */
+    static async getInterfacesByShell(deviceID: number, shell: number = 0): Promise<{ status: (number | null), info: (any | ErrorHandler) }> {
         try {
             const response = await fetch(`${this.url}/info/interface/device/${deviceID}/find?shell=${shell}`, {
                 method: 'GET'
@@ -15,7 +24,15 @@ export class InterfaceService {
         }
     }
 
-    static async getInterfacesByPort(deviceID: number, card: number, shell: number = 0): Promise<{ status: (number | null), info: (any | ErrorHandler) }> {
+
+    /**
+     * Request API to get all interfaces by card of an OLT device.
+     * 
+     * @param {number} deviceID OLT device ID.
+     * @param {number} card OLT device card.
+     * @param {number} shell OLT device shell.
+     */
+    static async getInterfacesByCard(deviceID: number, card: number, shell: number = 0): Promise<{ status: (number | null), info: (any | ErrorHandler) }> {
         try {
             const response = await fetch(`${this.url}/info/interface/device/${deviceID}/find?shell=${shell}&card=${card}`, {
                 method: 'GET'
@@ -27,7 +44,16 @@ export class InterfaceService {
         }
     }
 
-    static async getInterfaces(deviceID: number, card: number, port: number, shell: number = 0): Promise<{ status: (number | null), info: (any | ErrorHandler) }> {
+
+    /**
+     * Request API to get all interfaces by port of an OLT device.
+     * 
+     * @param {number} deviceID OLT device ID.
+     * @param {number} card OLT device card.
+     * @param {number} port OLT device port.
+     * @param {number} shell OLT device shell.
+     */
+    static async getInterfacesByPort(deviceID: number, card: number, port: number, shell: number = 0): Promise<{ status: (number | null), info: (any | ErrorHandler) }> {
         try {
             const response = await fetch(`${this.url}/info/interface/device/${deviceID}/find?shell=${shell}&card=${card}&port=${port}`, {
                 method: 'GET'
@@ -39,6 +65,12 @@ export class InterfaceService {
         }
     }
 
+
+    /**
+     * Request API to get all information about an interface by its ID.
+     * 
+     * @param {number} id Interface ID.
+     */
     static async getInterfaceByID(id: number): Promise<{ status: (number | null), info: (any | ErrorHandler) }> {
         try {
             const response = await fetch(`${this.url}/info/interface/${id}`, {

@@ -1,6 +1,9 @@
 import type { Template } from "./template";
 
-export interface Device {
+/**
+ * Schema of a OLT device.
+ */
+export interface DeviceSchema {
     id: number,
     ip: string,
     community: string,

@@ -1,27 +1,33 @@
-import React, { useState } from "react";
 import SpinnerBasicComponent from "../spinner/basic";
 import InfoEquipmentModalComponent from "../modal/equipment";
-import { Device } from "../../models/device";
 import { LoadStatus } from "../../constant/loadStatus";
-import type { Info } from "../../models/info";
+import { DeviceSchema } from "../../schemas/device";
+import type { InfoSchema } from "../../schemas/info";
 import type { LoadingStateValue } from "../../types/loadingState";
+import React, { useState } from "react";
 
-interface Props {
+/**
+ * @interface Data required for the location info component.
+ * 
+ * @param {LoadingStateValue} loading Loading state of the info component.
+ * @param {InfoSchema} info Information about location.
+ */
+interface LocationInfoProps {
     loading: LoadingStateValue;
-    info?: Info;
+    info?: InfoSchema;
 }
 
-export default function EquipmentInfoComponent(content: Props) {
+export default function LocationInfoComponent(content: LocationInfoProps) {
 
     const [showInfoModal, setShowInfoModal] = useState<boolean>(false);
-    const [deviceSelected, setDeviceSelected] = useState<Device>();
+    const [deviceSelected, setDeviceSelected] = useState<DeviceSchema>();
 
     const handlerHiddenInfoModal = () => {
         setShowInfoModal(false);
         setDeviceSelected(undefined);
     }
 
-    const handlerShowInfoModal = (device: Device) => {
+    const handlerShowInfoModal = (device: DeviceSchema) => {
         setShowInfoModal(true);
         setDeviceSelected(device);
     }
@@ -65,7 +71,7 @@ export default function EquipmentInfoComponent(content: Props) {
                 {content.info.otherDevices && content.info.otherDevices.length > 0 && <>
                     <h2 className="text-2xl text-blue-800 font-semibold">Equipos OLT pertenecientes:</h2>
                     <section className="w-full max-h-80 flex flex-row flex-wrap gap-2 overflow-y-auto">
-                        {content.info.otherDevices.map((device: Device, index: number) => (
+                        {content.info.otherDevices.map((device: DeviceSchema, index: number) => (
                             <button type="button" key={index} onClick={() => {handlerShowInfoModal(device)}} className={`w-fit h-fit flex flex-row items-center gap-2 rounded-md ${device.is_alive ? "bg-green-700": "bg-red-700"} px-4 py-1`}>
                                 <h3 className="text-xl text-white font-semibold">{device.sysname}</h3>                            
                             </button>

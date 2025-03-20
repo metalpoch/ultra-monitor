@@ -1,4 +1,7 @@
-export interface Interface {
+/**
+ * Schema of an interface.
+ */
+export interface InterfaceSchema {
     id: number,
     ifindex: number,
     ifname: string,

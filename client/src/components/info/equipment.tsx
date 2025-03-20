@@ -1,15 +1,21 @@
-import React from "react";
 import SpinnerBasicComponent from "../spinner/basic";
 import { LoadStatus } from "../../constant/loadStatus";
-import type { Info } from "../../models/info";
+import type { InfoSchema } from "../../schemas/info";
 import type { LoadingStateValue } from "../../types/loadingState";
+import React from "react";
 
-interface Props {
+/**
+ * @interface Data required for the equipment info.
+ * 
+ * @param {LoadingStateValue} loading Loading state of the info component.
+ * @param {InfoSchema} info Information of the OLT device.
+ */
+interface DeviceInfoProps {
     loading: LoadingStateValue;
-    info?: Info;
+    info?: InfoSchema;
 }
 
-export default function EquipmentInfoComponent(content: Props) {
+export default function DeviceInfoComponent(content: DeviceInfoProps) {
     return(<>
         {content.loading === LoadStatus.EMPTY && 
             <div className="w-full min-h-52 bg-white p-6 rounded-md flex flex-col justify-center items-center">

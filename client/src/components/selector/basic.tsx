@@ -1,13 +1,21 @@
 import React, { useEffect } from "react";
 
-interface Props {
+/**
+ * @interface Data required for the basic selector.
+ * 
+ * @param {any} id ID of the selector.
+ * @param {string} label Label of the selector.
+ * @param {any[]} options List of options of the selector.
+ * @param {(newValue: any) => void} onChange Callback to handle the change of the selector.
+ */
+interface SelectorProps {
     id: any;
     label: string;
     options: any[];
     onChange?: (newValue: any) => void;
 }
 
-export default function BasicSelectorComponent(content: Props) {
+export default function BasicSelectorComponent(content: SelectorProps) {
 
     const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         if (content.onChange && event.target.value) content.onChange(event.target.value);

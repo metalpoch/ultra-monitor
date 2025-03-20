@@ -58,12 +58,9 @@ if (Astro.request.method == "POST") {
 			{errors.password && <small class="px-2 text-sm text-red-600 font-normal">{errors.password}</small>}
 		</div>
 		<button class="w-fit px-4 py-1 bg-blue-600 rounded-full text-lg text-gray-50 font-semibold transition-all duration-200 ease-in hover:bg-blue-700 max-sm:text-base max-sm:rounded-lg">Iniciar Sesión</button>
-		<section class="flex flex-col items-center justify-center">
+		<!-- <section class="flex flex-col items-center justify-center">
 			<a class="text-center text-sm text-blue-400 font-light transition-all duration-200 ease-in hover:text-blue-700" href="#">¿Olvidaste tu contraseña?</a>
-			<h5 class="text-center text-sm text-blue-500 font-light">¿No tienes una cuenta? 
-				<a class="text-blue-400 font-normal transition-all duration-200 ease-in hover:text-blue-700" href={Routes.REGISTER}>Registrate</a>
-			</h5>
-		</section>
+		</section> -->
 	</form>
 </BackgroundLayout>
 <style>

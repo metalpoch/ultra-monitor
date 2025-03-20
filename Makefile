@@ -36,9 +36,8 @@ container-measurement-cli:
 	docker run --rm -v ./config.json:/app/config.json --name olt-blueprint-cli -e CONFIG_JSON='/app/config.json' olt-blueprint-cli
 
 container-smart:
-	cd smart
-	docker build . -t smart  -f ./smart/dockerfile
+	docker build . -t olt-blueprint-smart --progress=plain -f ./smart/Dockerfile
 
 container-smart-run:
 	docker run --rm -p 3003:3003 --name olt-blueprint-smart olt-blueprint-smart
-	
+

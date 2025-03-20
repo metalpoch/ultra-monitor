@@ -39,5 +39,5 @@ container-smart:
 	docker build . -t olt-blueprint-smart --progress=plain -f ./smart/Dockerfile
 
 container-smart-run:
-	docker run --rm -p 3003:3003 --name olt-blueprint-smart olt-blueprint-smart
+	docker run --rm -p 3003:3003 --network host --name olt-blueprint-smart olt-blueprint-smart
 

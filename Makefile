@@ -11,7 +11,7 @@ build:
 	go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o ./dist/olt-blueprint-auth ./auth/cmd/main.go
 	go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o ./dist/olt-blueprint-report ./report/cmd/main.go
 	go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o ./dist/olt-blueprint-core ./core/cmd/main.go
-	go build -a -ldflags "-linkmode external -extldflags '-static' -s -w" -o ./dist/olt-blueprint-measurement ./measurement/cmd/main.go
+	CGO_ENABLED=0 go build -o ./dist/olt-blueprint-measurement ./measurement/cmd
 
 build-img-containers:
 	docker build . -t olt-blueprint-auth --progress=plain -f ./auth/Dockerfile

@@ -40,3 +40,5 @@ go.work.sum
 mocks/
 data/
 .go-version
+config.develop.json
+config.product.json

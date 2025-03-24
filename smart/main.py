@@ -2,6 +2,7 @@ from os import getenv
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 from src import model
 from src.database import Postgres
@@ -11,17 +12,24 @@ from src.libs.tracking import Telegram
 
 load_dotenv()
 
-app = FastAPI()
-db = Postgres(getenv("URI", ""))
 telegram = Telegram(getenv("TELEGRAM_BOT_ID", ""), getenv("TELEGRAM_CHAT_ID", ""))
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Permite todos los orígenes
+    allow_credentials=True,
+    allow_methods=["*"],  # Permite todos los métodos HTTP
+    allow_headers=["*"],  # Permite todos los headers
+)
+db = Postgres(getenv("URI", ""))
 
 
-@app.post("/trend/")
+@app.post("/trend")
 async def linear_regression():
     return {"msg": "fooziman"}
 
 
-@app.post("/chatbox/")
+@app.post("/chatbox")
 async def chatbox(request: model.QueryAI) -> dict:
     count = 0
     ai = AI(model="gemma2:2b", schemas=db.csv_schemas())
@@ -49,7 +57,7 @@ async def chatbox(request: model.QueryAI) -> dict:
             return {"response": res, "sql": sql}
 
 
-@app.post("/telegram/")
+@app.post("/telegram")
 async def tracking(req: model.Telegram) -> dict:
     try:
         res = telegram.send_message(

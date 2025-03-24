@@ -36,6 +36,7 @@ async def chatbox(request: model.QueryAI) -> dict:
     while True:
         try:
             res = db.execute_sql(sql)
+            db.close()
         except BaseException as e:
             prompt = f"acabo de recibir el siguiente error\n{type(e).__name__}: {str(e)}\n puedes darme la sentencia sql correcta? responde solo con la sentencia sql"
             msg = ai.query(prompt)

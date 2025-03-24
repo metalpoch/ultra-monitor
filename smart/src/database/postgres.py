@@ -24,9 +24,6 @@ class Postgres:
         except psycopg2.Error as e:
             raise e
 
-    def close(self) -> None:
-        self.conn.close()
-
     def csv_schemas(self) -> str:
         """
         Retrieves the database schema information and formats it as a CSV string.
@@ -43,7 +40,7 @@ class Postgres:
         csv = "table,column,type,relation"
         cursor = self.conn.cursor()
         cursor.execute(constants.SQL_INFORMATION_SCHEMA)
-
+    
         for res in cursor.fetchall():
             table, column_name, column_type, relation = res
             if table == "users":

@@ -23,11 +23,11 @@ func MeasurementToEntitys(date time.Time, measurements snmp.MapSnmp) []*entity.M
 			f := fields[i]
 			switch f {
 			case "bw":
-				row.Bandwidth = uint(measurements[f][ifIndex].(int))
+				row.Bandwidth = uint64(measurements[f][ifIndex].(int))
 			case "out":
-				row.Out = uint(measurements[f][ifIndex].(int))
+				row.Out = uint64(measurements[f][ifIndex].(int))
 			case "in":
-				row.In = uint(measurements[f][ifIndex].(int))
+				row.In = uint64(measurements[f][ifIndex].(int))
 			}
 		}
 		fmt.Println(row)
@@ -76,11 +76,11 @@ func SnmpElements(deviceID uint, date time.Time, snmp snmp.MapSnmp) ([]*commonMo
 			} else {
 				switch f {
 				case "bw":
-					m.Bandwidth = uint(snmp[f][ifIndex].(int))
+					m.Bandwidth = uint64(snmp[f][ifIndex].(int))
 				case "out":
-					m.Out = uint(snmp[f][ifIndex].(int))
+					m.Out = uint64(snmp[f][ifIndex].(int))
 				case "in":
-					m.In = uint(snmp[f][ifIndex].(int))
+					m.In = uint64(snmp[f][ifIndex].(int))
 				}
 			}
 		}

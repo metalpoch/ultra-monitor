@@ -10,7 +10,7 @@ type Measurement struct {
 	Interface   entity.Interface
 	InterfaceID uint
 	Date        time.Time
-	Bandwidth   uint
-	In          uint
-	Out         uint
+	Bandwidth   uint64
+	In          uint64
+	Out         uint64
 }

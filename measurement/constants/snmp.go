@@ -14,5 +14,5 @@ const (
 	BANDWIDTH          string = "bw"
 	IN                 string = "in"
 	OUT                string = "out"
-	OVERFLOW_COUNTER64 uint   = (1 << 64) - 1
+	OVERFLOW_COUNTER64 uint64 = 1<<64 - 1
 )

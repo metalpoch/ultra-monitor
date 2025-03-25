@@ -24,9 +24,7 @@ export default function ChatIAComponent() {
     const [data, setData] = useState<DataIAProps[]>([]);
 
     const handlerLoading = (status: boolean = false) => {
-        setTimeout(() => {
-            setLoading(status);
-        }, 1000);
+        setLoading(status);
     }
 
     useEffect(() => {
@@ -40,7 +38,7 @@ export default function ChatIAComponent() {
 
     return (<>
         {!loading && data && data.length <= 1 && 
-            <div className="w-full h-full bg-gray-55 rounded-xl shadow-xl flex flex-col items-center justify-center">
+            <div className="w-full h-full bg-gray-55 rounded-xl shadow-xl flex flex-col items-center justify-center drop-shadow-[1px_1px_2px_rgba(0,0,0,0.25)]">
                 <h2 className="text-2xl text-blue-700 font-bold">Hola, usuario</h2>
             </div>
         }
@@ -48,9 +46,8 @@ export default function ChatIAComponent() {
             <div className="w-full h-full max-h-full overflow-y-auto bg-gray-55 rounded-xl shadow-xl flex flex-col px-6 py-8">
                 {data.map((consult: DataIAProps, index: number) => (
                     <section key={index}>
-                        {consult.question && <h2 className="text-2xl text-gray-700 font-bold">{consult.question}</h2>}
+                        {consult.question && consult.answer && <h2 className="text-2xl text-gray-700 font-bold">{consult.question}</h2>}
                         {consult.question && consult.answer && <p className='text-base text-gray-700 px-4'>{consult.answer}</p>}
-                        {consult.question && !consult.answer && <p className='text-base text-gray-700 px-4'>Oh no! No se pudo obtener respuesta a tu pregunta</p>}
                     </section>
                 ))}
             </div>

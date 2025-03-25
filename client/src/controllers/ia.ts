@@ -17,12 +17,17 @@ export class IAController {
      * @param {string} question Text of the question.
      */
     static async postQuestion(question: string): Promise<void> {
+        let currentQuestion: QuestionIASchema = { message: question }
         loadingIA.set(true);
         questionIA.set(question);
-        let currentQuestion: QuestionIASchema = { message: question }
-        let response = await IAService.postQuestion(currentQuestion)
+
+        const response = await IAService.postQuestion(currentQuestion);
+        console.log(question);
+        console.log(response);
+
         if (response.status === 200) {
-            answerIA.set(response.info.answer);
+            let answer = response.info.response;
+            answerIA.set(answer);
             loadingIA.set(false);
         } else {
             answerIA.set("No se pudo responder a tu pregunta. Inténtalo más tarde.");

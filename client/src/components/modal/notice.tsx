@@ -11,12 +11,14 @@ interface ModalProps {
     showModal: boolean;
     title: string;
     message: string;
+    onClick?: () => void;
 }
 
-export default function NoticeModalComponent({ showModal, title, message }: ModalProps) {
+export default function NoticeModalComponent(props: ModalProps) {
 
     const handlerAccept = () => {
         document.getElementById('modal-state')?.classList.add('hidden');
+        if (props.onClick) props.onClick();
     }
 
     useEffect(() => {
@@ -26,11 +28,11 @@ export default function NoticeModalComponent({ showModal, title, message }: Moda
         if (modalAccept && modalState) {
             modalAccept.addEventListener('click', handlerAccept);
 
-            if (showModal) modalState.classList.remove('hidden');
+            if (props.showModal) modalState.classList.remove('hidden');
             else modalState.classList.add('hidden');
         }
 
-    }, [showModal]);
+    }, [props.showModal]);
 
     return(
         <div id="modal-state" className="absolute z-10" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -41,15 +43,21 @@ export default function NoticeModalComponent({ showModal, title, message }: Moda
                         <section className="bg-gray-50 px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                             <div className="sm:flex sm:items-start">
                                 <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                                    <h3 className="text-base font-semibold leading-6 text-gray-900" id="modal-title">{title}</h3>
+                                    <h3 className="text-base font-semibold leading-6 text-gray-900" id="modal-title">{props.title}</h3>
                                     <div className="mt-2">
-                                        <p className="text-sm text-gray-500">{message}</p>
+                                        <p className="text-sm text-gray-500">{props.message}</p>
                                     </div>
                                 </div>
                             </div>
                         </section>
                         <section className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                            <button id="modal-accept" type="button" className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-all ease-linear duration-200 hover:bg-blue-700 sm:ml-3 sm:w-auto">Aceptar</button>
+                            <button 
+                                id="modal-accept" 
+                                type="button" 
+                                className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-all ease-linear duration-200 hover:bg-blue-700 sm:ml-3 sm:w-auto"
+                            >
+                                Aceptar
+                            </button>
                         </section>
                     </div>
                 </div>

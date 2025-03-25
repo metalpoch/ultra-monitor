@@ -4,7 +4,11 @@ import NavbarLayout from '../layouts/Navbar';
 import { Tab } from '../constant/tab';
 import { TypeReports } from '../constant/reports';
 import { user } from '../controllers/auth';
+import { Routes } from '../constant/routes';
 import InputFileComponent from '../components/input/file';
+
+const token = Astro.cookies.get('token');
+if (!token) return Astro.redirect(Routes.LOGIN);
 
 ---
 <BackgroundLayout title={Tab.REPORTS}>

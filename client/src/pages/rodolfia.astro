@@ -2,9 +2,13 @@
 import BackgroundLayout from "../layouts/Inside.astro";
 import NavbarLayout from "../layouts/Navbar";
 import ChatIAComponent from "../components/ia/chat";
+import { Routes } from '../constant/routes';
 import { IAController } from "../controllers/ia";
 import { user } from '../controllers/auth';
 import { Tab } from "../constant/tab";
+
+const token = Astro.cookies.get('token');
+if (!token) return Astro.redirect(Routes.LOGIN);
 
 interface Props {
     question: string;

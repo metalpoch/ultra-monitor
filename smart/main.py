@@ -42,18 +42,23 @@ async def chatbox(request: model.QueryAI) -> dict:
         raise HTTPException(status_code=400, detail=str(e))
 
     while True:
-        try:
-            res = db.execute_sql(sql)
-        except BaseException as e:
-            prompt = f"acabo de recibir el siguiente error\n{type(e).__name__}: {str(e)}\n puedes darme la sentencia sql correcta? responde solo con la sentencia sql"
-            msg = ai.query(prompt)
-            sql = ai.sql_extract(msg)
-            print(count, sql)  # for dev
-            if count == 3:
-                raise HTTPException(status_code=400, detail=msg)
-            count += 1
-        else:
+        res, err = db.execute_sql(sql)
+        if err is not None:
             return {"response": res, "sql": sql}
+
+        prompt = f"""
+        acabo de recibir el siguiente error
+        {type(err).__name__}: {str(err)}
+        puedes darme la sentencia sql correcta? responde solo con la sentencia sql
+        """
+
+        msg = ai.query(prompt)
+        sql = ai.sql_extract(msg)
+
+        if count == 3:
+            raise HTTPException(status_code=400, detail=msg)
+
+        count += 1
 
 
 @app.post("/telegram")

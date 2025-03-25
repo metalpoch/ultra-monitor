@@ -1,3 +1,5 @@
+from os import error
+
 import psycopg2
 
 from src import constants
@@ -40,7 +42,7 @@ class Postgres:
         csv = "table,column,type,relation"
         cursor = self.conn.cursor()
         cursor.execute(constants.SQL_INFORMATION_SCHEMA)
-    
+
         for res in cursor.fetchall():
             table, column_name, column_type, relation = res
             if table == "users":
@@ -55,10 +57,16 @@ class Postgres:
 
         return csv
 
-    def execute_sql(self, query: str) -> list[dict]:
+    def execute_sql(
+        self, query: str
+    ) -> tuple[list[dict], BaseException] | tuple[list[dict], None]:
         results = []
         cursor = self.conn.cursor()
-        cursor.execute(query)
+        try:
+            cursor.execute(query)
+        except BaseException as e:
+            self.conn.rollback()
+            return results, e
 
         column_name = [desc[0] for desc in cursor.description]  # type: ignore
 
@@ -66,4 +74,4 @@ class Postgres:
         for row in rows:
             results.append(dict(zip(column_name, row)))
 
-        return results
+        return results, None

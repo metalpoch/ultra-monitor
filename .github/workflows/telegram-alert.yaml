@@ -15,7 +15,7 @@ jobs:
       event: ${{ github.event_name }} on ${{ github.ref_name }}
       sha: ${{ github.sha }}
       commit: ${{ github.event.head_commit.message }}
-      author: ${{ github.event.pusher.name }}
+      author: ${{ github.actor }}
       authorURL: https://github.com/${{ github.event.pusher.name }}
       url: https://github.com/${{ github.repository }}
     name: Telegram Alert

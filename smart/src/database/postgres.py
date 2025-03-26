@@ -74,7 +74,7 @@ class Postgres:
         for row in rows:
             results.append(dict(zip(column_name, row)))
 
-        return results
+        return results, None
 
     def execute_fet(self, query: str, params: tuple = ()) -> list:
         try:

@@ -9,6 +9,9 @@ from src.database import Postgres
 from src.libs.chatbox import AI
 from src.libs.osm import Openstreetmap
 from src.libs.tracking import Telegram
+from src.libs.linear_regression import RegressionLineal
+from src.utils import execute, change
+
 
 load_dotenv()
 
@@ -25,8 +28,15 @@ db = Postgres(getenv("URI", ""))
 
 
 @app.post("/trend")
-async def linear_regression():
-    return {"msg": "fooziman"}
+async def linear_regression(sysname: str, future_month: int):
+    id = execute.sys_name_to_id(db, sysname)
+    trends = []
+    response = execute.trends(db, id)
+    for trend in response:
+        new_trend = change.create_trend(trend[0],trend[1],trend[4],trend[3],trend[2])
+        trends.append(new_trend)
+    out, in_ = RegressionLineal.run_procress(trends, future_month)
+    return {"out_trend": out, "in_trend": in_}
 
 
 @app.post("/chatbox")

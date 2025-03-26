@@ -8,9 +8,10 @@ import (
 	"gorm.io/gorm"
 )
 
-func newReportRouter(server *fiber.App, db *gorm.DB, telegram tracking.SmartModule) {
+func newReportRouter(server *fiber.App, db *gorm.DB, telegram tracking.SmartModule, reportDirectory string) {
 	hdlr := handler.ReportHandler{
-		Usecase: *usecase.NewReportUsecase(db, telegram),
+		Usecase:         *usecase.NewReportUsecase(db, telegram),
+		ReportDirectory: reportDirectory,
 	}
 
 	server.Post("/report/", hdlr.Add)

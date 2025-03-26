@@ -4,7 +4,7 @@ WORKDIR /workspace
 
 COPY go.work.sum ./
 COPY go.work ./
-COPY config.json ./
+COPY config.product.json ./
 COPY core/go.mod ./core/go.mod
 COPY report/go.mod ./report/go.mod
 COPY measurement/go.mod ./measurement/go.mod
@@ -13,9 +13,9 @@ COPY common/ ./common/
 COPY auth/ ./auth/
 
 WORKDIR /workspace/auth
-ENV CONFIG_JSON=/workspace/config.json
+ENV CONFIG_JSON=/workspace/config.product.json
 
-RUN  CGO_ENABLED=0 GOOS=linux go build -a -ldflags "-s -w" -o ./main ./cmd/main.go
+RUN CGO_ENABLED=0 go build -o ./main ./cmd/main.go
 EXPOSE 3001
 
 CMD ["./main"]

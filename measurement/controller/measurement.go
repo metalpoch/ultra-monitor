@@ -92,7 +92,6 @@ func measurements(db *gorm.DB, telegram tracking.SmartModule, device *model.Devi
 			mu.Lock()
 			result[f] = res
 			mu.Unlock()
-
 		}(name, oid)
 	}
 	wg.Wait()
@@ -133,14 +132,14 @@ func measurements(db *gorm.DB, telegram tracking.SmartModule, device *model.Devi
 			continue
 		}
 
-		diffTime := uint(m.Date.Sub(old_m.Date).Seconds())
+		diffTime := uint64(m.Date.Sub(old_m.Date).Seconds())
 
 		if err := trafficUsecase.Add(&model.Traffic{
 			InterfaceID: id,
 			Date:        m.Date,
 			Bandwidth:   m.Bandwidth,
-			In:          utils.BytesToBbps(old_m.In, m.In, diffTime),
-			Out:         utils.BytesToBbps(old_m.Out, m.Out, diffTime),
+			In:          utils.BytesToBbps(old_m.In, m.In, m.Bandwidth, diffTime),
+			Out:         utils.BytesToBbps(old_m.Out, m.Out, m.Bandwidth, diffTime),
 		}); err != nil {
 			log.Println("error saving the traffic:", err.Error())
 		}
@@ -149,7 +148,6 @@ func measurements(db *gorm.DB, telegram tracking.SmartModule, device *model.Devi
 }
 
 func Scan(db *gorm.DB, telegram tracking.SmartModule, devices []*model.DeviceWithOID) {
-
 	for _, d := range devices {
 		go func(d *model.DeviceWithOID) {
 			if ok, err := deviceUpdater(db, telegram, d); err != nil {
@@ -165,6 +163,5 @@ func Scan(db *gorm.DB, telegram tracking.SmartModule, devices []*model.DeviceWit
 				return
 			}
 		}(d)
-
 	}
 }

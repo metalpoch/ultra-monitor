@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/metalpoch/olt-blueprint/common/entity"
 	"gorm.io/gorm"
 )
@@ -46,4 +47,8 @@ func (repo reportRepository) GetReports(ctx context.Context, category string, us
 	err := query.Find(&rp).Error
 
 	return rp, err
+}
+
+func (repo reportRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	return repo.db.WithContext(ctx).Delete(&entity.Report{}, id).Error
 }

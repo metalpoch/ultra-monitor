@@ -52,6 +52,6 @@ func main() {
 	server.Use(logger.New())
 	server.Use(cors.New())
 
-	router.Setup(server, db, telegram, openstreetmap)
+	router.Setup(server, db, telegram, openstreetmap, cfg.StaticReportDirectory)
 	server.Listen(":3002")
 }

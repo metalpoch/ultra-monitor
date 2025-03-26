@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/metalpoch/olt-blueprint/common/constants"
 	"github.com/metalpoch/olt-blueprint/common/entity"
 	"github.com/metalpoch/olt-blueprint/common/model"
@@ -29,6 +30,7 @@ func (use reportUsecase) Add(rp *model.NewReport) (string, error) {
 	newReport := &entity.Report{
 		UserID:           rp.UserID,
 		Category:         rp.Category,
+		Basepath:         rp.Basepath,
 		ContentType:      rp.File.Header.Get("Content-Type"),
 		OriginalFilename: rp.File.Filename,
 	}
@@ -111,4 +113,31 @@ func (use reportUsecase) GetCategories() ([]*string, error) {
 	}
 
 	return res, err
+}
+
+func (use reportUsecase) Delete(id string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	parsedUUID, err := uuid.Parse(id)
+	if err != nil {
+		go use.telegram.SendMessage(
+			constants.MODULE_REPORT,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(reportUsecase).Get - use.repo.Get(ctx, %s)", id),
+			err,
+		)
+	}
+
+	err = use.repo.Delete(ctx, parsedUUID)
+	if err != nil {
+		go use.telegram.SendMessage(
+			constants.MODULE_REPORT,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(reportUsecase).Get - use.repo.Delete(ctx, %s)", parsedUUID),
+			err,
+		)
+	}
+
+	return err
 }

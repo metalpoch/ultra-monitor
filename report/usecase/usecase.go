@@ -14,4 +14,5 @@ type ReportUsecase interface {
 	Get(id string) (*model.Report, error)
 	GetReports(query *model.FindReports) ([]*model.ReportResponse, error)
 	GetCategories() ([]*string, error)
+	Delete(id string) error
 }

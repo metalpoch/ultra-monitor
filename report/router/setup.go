@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func Setup(server *fiber.App, db *gorm.DB, telegram tracking.SmartModule, openstreetmap openstreetmap.OSM) {
+func Setup(server *fiber.App, db *gorm.DB, telegram tracking.SmartModule, openstreetmap openstreetmap.OSM, reportDirectory string) {
 	newFatRouter(server, db, telegram, openstreetmap)
-	newReportRouter(server, db, telegram)
+	newReportRouter(server, db, telegram, reportDirectory)
 }

@@ -45,7 +45,16 @@ if (!token) return Astro.redirect(Routes.LOGIN);
             <section id={`info-${TypeReports.ASF}`} class="hidden w-full h-fit lg:h-full bg-gray-55 flex-col items-start justify-start max-md:rounded-b-xl lg:rounded-r-xl">
                 <div class="w-full h-full p-6">
                     <h2 class="text-2xl text-gray-700 font-semibold mb-3">{TypeReports.ASF}</h2>
-                    <p>...</p>
+                    <p>Este archivo contiene la información de todos los clientes abonados para los equipos OLT.</p>
+                    <p>Contiene:</p>
+                    <ul class="list-disc px-10">
+                        <li>Nombre del cliente</li>
+                        <li>Cédula del cliente</li>
+                        <li>CVLAN</li>
+                        <li>SVLAN del agregador</li>
+                        <li>IP OLT</li>
+                        <li>Y más...</li>
+                    </ul>
                 </div>
                 <InputFileComponent user={user.get()!} type=`${TypeReports.ASF}` client:load />
             </section>

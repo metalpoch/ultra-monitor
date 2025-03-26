@@ -22,7 +22,7 @@ export default function FileInputComponent(props: FileProps) {
     }
 
     const handlerFile = (event: any) => {
-        let file = event.target.files[0];
+        let file = event.target.files;
         if (file) setFile(file);
     }
 

@@ -22,15 +22,15 @@ def year(year: str):
     try:
         year = int(year)
         if year < 2023 or int(datetime.now().strftime("%Y")) < year:
-            raise Exception("Error: El mes debe ser un número entre 1 y 12.")
+            raise Exception("Error: Year must be greater than 2023.")
         month = int(month)
         if month > 12 or month < 1:
-            raise Exception("Error: El mes debe ser un número entre 1 y 12.")
+            raise Exception("Error: Month must be a number between 1 and 12.")
     except ValueError:
-        print("Error: El año y el mes deben ser un números enteros.")
+        print("Error: Year and month must be integers.")
         exit(1)
     except Exception:
-        print(f"Error: Datos ingresados inválidos.")
+        print(f"Error: Invalid data entered.")
         exit(1)
 
     
@@ -100,15 +100,15 @@ def month(year: str, month: str):
     try:
         year = int(year)
         if year < 2023 or int(datetime.now().strftime("%Y")) < year:
-            raise Exception("Error: El mes debe ser un número entre 1 y 12.")
+            raise Exception("Error: Year must be greater than 2023.")
         month = int(month)
         if month > 12 or month < 1:
-            raise Exception("Error: El mes debe ser un número entre 1 y 12.")
+            raise Exception("Error: Month must be a number between 1 and 12.")
     except ValueError:
-        print("Error: El año y el mes deben ser un números enteros.")
+        print("Error: Year and month must be integers.")
         exit(1)
     except Exception:
-        print(f"Error: Datos ingresados inválidos.")
+        print(f"Error: Invalid data entered.")
         exit(1)
 
     db = Postgres(getenv("URI", ""))
@@ -134,7 +134,7 @@ def month(year: str, month: str):
                 break
 
             print(
-                f"Mes {i+1}= {datetime.now().hour}:{datetime.now().minute}:{datetime.now().second}"
+                f"Month {i+1}= {datetime.now().hour}:{datetime.now().minute}:{datetime.now().second}"
             )
 
             while day < months[i] + 1:
@@ -150,20 +150,20 @@ def month(year: str, month: str):
             trends.append(new_trend)
 
             print(
-                f"Fin del Mes {i+1}= {datetime.now().hour}:{datetime.now().minute}:{datetime.now().second}"
+                f"End month {i+1}= {datetime.now().hour}:{datetime.now().minute}:{datetime.now().second}"
             )
 
             i = i + 1
             day = 1
             peak_out_by_days = []
         print(
-            f"Fin del Device {j}= {datetime.now().hour}:{datetime.now().minute}:{datetime.now().second}"
+            f"End Device {j}= {datetime.now().hour}:{datetime.now().minute}:{datetime.now().second}"
         )
         
         
         status_response = execute.new_trend(db, trends)
-        if status_response == True: print(f"Insertado: {j}\n")
-        else: print(f"No insertado: {j}\n")
+        if status_response == True: print(f"The device was inserted correctly: {j}\n")
+        else: print(f"The device was not inserted correctly: {j}\n")
         trends = []
 
     db.close()

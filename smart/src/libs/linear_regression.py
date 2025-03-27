@@ -15,16 +15,16 @@ class RegressionLineal:
             random_state=123,
         )
 
-        modelo = LinearRegression()
-        modelo.fit(X_train, y_train)
+        model = LinearRegression()
+        model.fit(X_train, y_train)
 
-        y_pred = modelo.predict(X_test)
+        y_pred = model.predict(X_test)
 
         mse = mean_squared_error(y_test, y_pred)
 
-        nuevo_mes = pd.DataFrame({"Month": [month]})
-        predicciones = modelo.predict(nuevo_mes)
-        return mse, predicciones
+        new_month = pd.DataFrame({"Month": [month]})
+        predictions = model.predict(new_month)
+        return mse, predictions
 
     @staticmethod
     def get_in(df_interface, month: int):
@@ -35,16 +35,16 @@ class RegressionLineal:
             random_state=123,
         )
 
-        modelo = LinearRegression()
-        modelo.fit(X_train, y_train)
+        model = LinearRegression()
+        model.fit(X_train, y_train)
 
-        y_pred = modelo.predict(X_test)
+        y_pred = model.predict(X_test)
 
         mse = mean_squared_error(y_test, y_pred)
 
-        nuevo_mes = pd.DataFrame({"Month": [month]})
-        predicciones = modelo.predict(nuevo_mes)
-        return mse, predicciones
+        new_month = pd.DataFrame({"Month": [month]})
+        predictions = model.predict(new_month)
+        return mse, predictions
 
     @staticmethod
     def run_procress(trends: list, month: int):
@@ -64,13 +64,13 @@ class RegressionLineal:
         out = []
         in_ = []
 
-        mseIn, prediccionIn = RegressionLineal.get_in(df, month)
+        mseIn, predictionsIn = RegressionLineal.get_in(df, month)
         in_.append(
-            {"mse": mseIn, "prediccion": gbits_to_bits(float(prediccionIn[0][0]))}
+            {"mse": mseIn, "predictions": gbits_to_bits(float(predictionsIn[0][0]))}
         )
-        mseOut, prediccionOut = RegressionLineal.get_out(df, month)
+        mseOut, predictionsOut = RegressionLineal.get_out(df, month)
         out.append(
-            {"mse": mseOut, "prediccion": gbits_to_bits(float(prediccionOut[0][0]))}
+            {"mse": mseOut, "predictions": gbits_to_bits(float(predictionsOut[0][0]))}
         )
 
         return out, in_

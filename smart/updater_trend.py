@@ -1,79 +1,175 @@
 from datetime import datetime
 from os import getenv
 
+import click
 from dotenv import load_dotenv
 
-import src.utils.change as change
-import src.utils.date as d
-import src.utils.execute as ex
+from src.utils import execute, date, change
 from src.database import Postgres
 
 load_dotenv()
 
-db = Postgres(getenv("URI", ""))
-
-lisdevice = []
-g = ex.Device_id(db)
-for p in g:
-    lisdevice.append(p[0])
-lisdevice.remove(18)  # para dev
-
-datenow = datetime.now()
-monthnow = datenow.month
-
-year = 2025
-meses = d.dias_por_mes(year)
-day = 1
-listten = []
-list_dayout = []
-i = 0
+@click.group()
+def cli():
+    """
+    """
+    pass
 
 
-for j in lisdevice:
-    print(
-        f"Device {j}= {datetime.now().hour}:{datetime.now().minute}:{datetime.now().second}"
-    )
-    deviceId = j
-    for i in range(len(meses)):
-        if i == monthnow - 1:
-            break
+@cli.command(help="Gets the data from the traffic by year, processed and inserted.")
+@click.option("--year", required=True, help="Year to be processed.")
+def year(year: str):
+    try:
+        year = int(year)
+        if year < 2023 or int(datetime.now().strftime("%Y")) < year:
+            raise Exception("Error: Year must be greater than 2023.")
+        month = int(month)
+        if month > 12 or month < 1:
+            raise Exception("Error: Month must be a number between 1 and 12.")
+    except ValueError:
+        print("Error: Year and month must be integers.")
+        exit(1)
+    except Exception:
+        print(f"Error: Invalid data entered.")
+        exit(1)
 
-        print(
-            f"Mes {i+1}= {datetime.now().hour}:{datetime.now().minute}:{datetime.now().second}"
-        )
-
-        while day < meses[i] + 1:
-            init, end = d.Transform_date(year, i + 1, day)
-            p = ex.Id_Device_to_traffic(db, deviceId, init, end)
-            out = change.Respone_to_dict(p)
-            list_dayout.append(out)
-            day = day + 1
-        flag1, flag2, flag3 = change.Sum_Month(list_dayout)
-        o = change.Create_tendencia(
-            deviceId, d.New_date(year, i + 1, 1), flag2, flag1, flag3
-        )
-        listten.append(o)
-
-        print(
-            f"Fin del Mes {i+1}= {datetime.now().hour}:{datetime.now().minute}:{datetime.now().second}"
-        )
-
-        i = i + 1
-        day = 1
-        list_dayout = []
-    print(
-        f"Fin del Device {j}= {datetime.now().hour}:{datetime.now().minute}:{datetime.now().second}"
-    )
     
-    
-    op=ex.NewTendecia(db,listten)
-    if op==True:
-        print(f"Insertado: {j}")
-        print()
-    else:
-        print(f"No insertado: {j}")
-        print()
-    listten=[]
-db.close()
+    db = Postgres(getenv("URI", ""))
+    devices = []
+
+    res_devices = execute.device_id(db)
+    for device in res_devices:
+        devices.append(device[0])
+
+    date_now = datetime.now()
+    month_now = date_now.month
+    months = date.day_per_month(year)
+    day = 1
+    trends = []
+    peak_out_by_days = []
+
+    for j in devices:
+        print(
+            f"Device {j}= {datetime.now().hour}:{datetime.now().minute}:{datetime.now().second}"
+        )
+        device_id = j
+        for i in range(0, len(months)):
+            if i == month_now - 1:
+                break
+
+            print(
+                f"Mes {i+1}= {datetime.now().hour}:{datetime.now().minute}:{datetime.now().second}"
+            )
+
+            while day < months[i] + 1:
+                init, end = date.transform_date(year=year, month=(i + 1), day=day)
+                traffic_by_device = execute.id_device_to_traffic(db, device_id, init, end)
+                out = change.response_to_dict(traffic_by_device)
+                peak_out_by_days.append(out)
+                day = day + 1
+            sum_in, sum_out, sum_bandwidth = change.sum_month(peak_out_by_days)
+            new_trend = change.create_trend(
+                device_id, date.new_date(year, i + 1, 1), sum_out, sum_in, sum_bandwidth
+            )
+            trends.append(new_trend)
+
+            print(
+                f"Fin del Mes {i+1}= {datetime.now().hour}:{datetime.now().minute}:{datetime.now().second}"
+            )
+
+            i = i + 1
+            day = 1
+            peak_out_by_days = []
+        print(
+            f"Fin del Device {j}= {datetime.now().hour}:{datetime.now().minute}:{datetime.now().second}"
+        )
+        
+        
+        status_response = execute.new_trend(db, trends)
+        if status_response == True: print(f"Insertado: {j}\n")
+        else: print(f"No insertado: {j}\n")
+        trends = []
+
+    db.close()
+
+
+@cli.command(help="Gets the data from the traffic by month, processed and inserted.")
+@click.option("--year", required=True, help="Year to be processed.")
+@click.option("--month", required=True, help="Month to be processed.")
+def month(year: str, month: str):
+    try:
+        year = int(year)
+        if year < 2023 or int(datetime.now().strftime("%Y")) < year:
+            raise Exception("Error: Year must be greater than 2023.")
+        month = int(month)
+        if month > 12 or month < 1:
+            raise Exception("Error: Month must be a number between 1 and 12.")
+    except ValueError:
+        print("Error: Year and month must be integers.")
+        exit(1)
+    except Exception:
+        print(f"Error: Invalid data entered.")
+        exit(1)
+
+    db = Postgres(getenv("URI", ""))
+    devices = []
+
+    res_devices = execute.device_id(db)
+    for device in res_devices:
+        devices.append(device[0])
+
+    months = date.day_per_month(year)
+    day = 1
+    trends = []
+    peak_out_by_days = []
+    i = month - 1
+
+    for j in devices:
+        print(
+            f"Device {j}= {datetime.now().hour}:{datetime.now().minute}:{datetime.now().second}"
+        )
+        device_id = j
+        for i in range(len(months)):
+            if i == month:
+                break
+
+            print(
+                f"Month {i+1}= {datetime.now().hour}:{datetime.now().minute}:{datetime.now().second}"
+            )
+
+            while day < months[i] + 1:
+                init, end = date.transform_date(year=year, month=month, day=day)
+                traffic_by_device = execute.id_device_to_traffic(db, device_id, init, end)
+                out = change.response_to_dict(traffic_by_device)
+                peak_out_by_days.append(out)
+                day = day + 1
+            sum_in, sum_out, sum_bandwidth = change.sum_month(peak_out_by_days)
+            new_trend = change.create_trend(
+                device_id, date.new_date(year, month, 1), sum_out, sum_in, sum_bandwidth
+            )
+            trends.append(new_trend)
+
+            print(
+                f"End month {i+1}= {datetime.now().hour}:{datetime.now().minute}:{datetime.now().second}"
+            )
+
+            i = i + 1
+            day = 1
+            peak_out_by_days = []
+        print(
+            f"End Device {j}= {datetime.now().hour}:{datetime.now().minute}:{datetime.now().second}"
+        )
+        
+        
+        status_response = execute.new_trend(db, trends)
+        if status_response == True: print(f"The device was inserted correctly: {j}\n")
+        else: print(f"The device was not inserted correctly: {j}\n")
+        trends = []
+
+    db.close()
+
+
+if __name__ == "__main__":
+    cli()
     
     

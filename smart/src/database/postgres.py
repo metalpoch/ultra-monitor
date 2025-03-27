@@ -76,7 +76,7 @@ class Postgres:
 
         return results, None
 
-    def execute_fet(self, query: str, params: tuple = ()) -> list:
+    def execute_fetch(self, query: str, params: tuple = ()) -> list:
         try:
             with self.conn.cursor() as cur:
                 cur.execute(query, params)

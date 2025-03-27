@@ -2,8 +2,13 @@
 import BackgroundLayout from '../layouts/Inside.astro';
 import NavbarLayout from '../layouts/Navbar';
 import { Tab } from '../constant/tab';
-import { user } from '../controllers/auth';
 import { TypeReports } from '../constant/reports';
+import { user } from '../controllers/auth';
+import { Routes } from '../constant/routes';
+import InputFileComponent from '../components/input/file';
+
+const token = Astro.cookies.get('token');
+if (!token) return Astro.redirect(Routes.LOGIN);
 
 ---
 <BackgroundLayout title={Tab.REPORTS}>
@@ -35,26 +40,23 @@ import { TypeReports } from '../constant/reports';
                         <li>Y más...</li>
                     </ul>
                 </div>
-                <div class="min-w-fit w-full h-fit bg-blue-900 flex flex-col justify-center items-center py-8 max-md:rounded-b-xl lg:rounded-br-xl">
-                    <div class="w-full h-fit flex flex-col justify-center items-center gap-3 py-2 lg:flex-row">
-                        <h2 class="text-xl text-white font-semibold">Subir archivo</h2>
-                        <input type="file" class="w-48 text-md text-white" />
-                    </div>
-                    <button class="w-fit h-fit bg-blue-700 text-white font-semibold rounded-full px-10 py-2 transition-all ease-linear duration-300 hover:bg-green-700">Subir</button>
-                </div>
+                <InputFileComponent user={user.get()!} type=`${TypeReports.CATASTRE}` client:load />
             </section>
             <section id={`info-${TypeReports.ASF}`} class="hidden w-full h-fit lg:h-full bg-gray-55 flex-col items-start justify-start max-md:rounded-b-xl lg:rounded-r-xl">
                 <div class="w-full h-full p-6">
                     <h2 class="text-2xl text-gray-700 font-semibold mb-3">{TypeReports.ASF}</h2>
-                    <p>...</p>
+                    <p>Este archivo contiene la información de todos los clientes abonados para los equipos OLT.</p>
+                    <p>Contiene:</p>
+                    <ul class="list-disc px-10">
+                        <li>Nombre del cliente</li>
+                        <li>Cédula del cliente</li>
+                        <li>CVLAN</li>
+                        <li>SVLAN del agregador</li>
+                        <li>IP OLT</li>
+                        <li>Y más...</li>
+                    </ul>
                 </div>
-                <div class="w-full h-fit bg-blue-900 flex flex-col justify-center items-center py-8 max-md:rounded-b-xl lg:rounded-br-xl">
-                    <div class="w-full h-fit flex flex-col justify-center items-center gap-3 py-2 lg:flex-row">
-                        <h2 class="text-xl text-white font-semibold">Subir archivo</h2>
-                        <input type="file" class="w-48 text-md text-white" />
-                    </div>
-                    <button class="w-fit h-fit bg-blue-700 text-white font-semibold rounded-full px-10 py-2 transition-all ease-linear duration-300 hover:bg-green-700">Subir</button>
-                </div>
+                <InputFileComponent user={user.get()!} type=`${TypeReports.ASF}` client:load />
             </section>
             <section id={`info-${TypeReports.NAVIGATION}`} class="hidden w-full h-fit lg:h-full bg-gray-55 flex-col items-start justify-start max-md:rounded-b-xl lg:rounded-r-xl">
                 <div class="w-full h-full p-6">
@@ -74,17 +76,7 @@ import { TypeReports } from '../constant/reports';
                         <li>Lista de todos los clientes de OLT con sus SVLAN y sus CVLAN correspondiente</li>
                     </ul>
                 </div>
-                <div class="w-full min-w-fit h-fit bg-blue-900 flex flex-col justify-center items-center py-6 max-md:rounded-b-xl lg:rounded-br-xl">
-                    <div class="w-full h-fit flex flex-col justify-center items-center gap-3 py-2 lg:flex-row">
-                        <h2 class="text-xl text-white font-semibold">Subir archivo de Agregadores</h2>
-                        <input type="file" class="w-48 text-md text-white" />
-                    </div>
-                    <div class="w-full h-fit flex flex-col justify-center items-center gap-3 py-2 lg:flex-row">
-                        <h2 class="text-xl text-white font-semibold">Subir archivo de Clientes</h2>
-                        <input type="file" class="w-48 text-md text-white" />
-                    </div>
-                    <button class="w-fit h-fit bg-blue-700 text-white font-semibold rounded-full px-10 py-2 transition-all ease-linear duration-300 hover:bg-green-700">Subir</button>
-                </div>
+                <InputFileComponent user={user.get()!} type=`${TypeReports.NAVIGATION}` client:load />
             </section>
         </div>
 	</main>
@@ -131,6 +123,5 @@ import { TypeReports } from '../constant/reports';
 
         infoNavigation?.classList.remove('hidden');
         infoNavigation?.classList.add('flex');
-        
     });
 </script>

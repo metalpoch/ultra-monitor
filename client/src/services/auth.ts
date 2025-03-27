@@ -15,15 +15,17 @@ export class AuthService {
      */
     static async login(body: AuthSchema): Promise<{ status: (number | null), info: (any | ErrorHandler) }> {
         try {
-            const response = await fetch(`${this.url}/auth/login`, {
+            const response = await fetch(`${this.url}/api/auth/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify(body)
             });
-            const token = await response.json();
-            if (response.status === 200) return { status: response.status, info: token }
+            if (response.status === 200) {
+                const data = await response.json();
+                return { status: response.status, info: data }
+            }
             else return { status: response.status, info: new ErrorHandler(response.status, response.statusText) }
         } catch (err) {
             return { status: null, info: new ErrorHandler(500, (err as Error).name + ": " + (err as Error).message) }

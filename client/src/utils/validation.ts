@@ -18,7 +18,8 @@ export function isValidEmail(email: string): boolean {
  * @returns {boolean} True if the password is valid, false otherwise.
  */
 export function isValidPassword(password: string): boolean {
-    const regex = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
+    // const regex = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
     password = password.trim();
-    return password.length >= 7 && regex.test(password);
+    // return password.length >= 0 && regex.test(password);
+    return password.length >= 0;
 }

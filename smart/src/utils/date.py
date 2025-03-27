@@ -1,42 +1,42 @@
 from datetime import datetime
 
 
-def Transform_date(year, month, day):
-    newday = ""
-    newmonth = ""
+def transform_date(year, month, day):
+    new_day = ""
+    new_month = ""
     if day < 10:
-        newday = "0" + str(day)
+        new_day = "0" + str(day)
     else:
-        newday = str(day)
+        new_day = str(day)
     if month < 10:
-        newmonth = "0" + str(month)
+        new_month = "0" + str(month)
     else:
-        newmonth = str(day)
-    init = f"{year}-{newmonth}-{newday}T00:00:00-04:00"
-    end = f"{year}-{newmonth}-{newday}T23:59:59-04:00"
+        new_month = str(day)
+    init = f"{year}-{new_month}-{new_day}T00:00:00-04:00"
+    end = f"{year}-{new_month}-{new_day}T23:59:59-04:00"
 
     return init, end
 
 
-def New_date(year, month, day):
-    newday = ""
-    newmonth = ""
+def new_date(year, month, day):
+    new_day = ""
+    new_month = ""
     if day < 10:
-        newday = "0" + str(day)
+        new_day = "0" + str(day)
     else:
-        newday = str(day)
+        new_day = str(day)
     if month < 10:
-        newmonth = "0" + str(month)
+        new_month = "0" + str(month)
     else:
-        newmonth = str(day)
-    init = f"{year}-{newmonth}-{newday}T00:00:00-04:00"
+        new_month = str(day)
+    init = f"{year}-{new_month}-{new_day}T00:00:00-04:00"
     return datetime.fromisoformat(init)
 
 
-def dias_por_mes(año):
-    dias_mes = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+def day_per_month(year):
+    months = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
-    if (año % 4 == 0 and año % 100 != 0) or año % 400 == 0:
-        dias_mes[1] = 29  # Febrero tiene 29 días en año bisiesto
+    if (year % 4 == 0 and year % 100 != 0) or year % 400 == 0:
+        months[1] = 29
 
-    return dias_mes
+    return months

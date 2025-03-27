@@ -2,9 +2,13 @@
 import BackgroundLayout from "../layouts/Inside.astro";
 import NavbarLayout from "../layouts/Navbar";
 import ChatIAComponent from "../components/ia/chat";
+import { Routes } from '../constant/routes';
 import { IAController } from "../controllers/ia";
 import { user } from '../controllers/auth';
 import { Tab } from "../constant/tab";
+
+const token = Astro.cookies.get('token');
+if (!token) return Astro.redirect(Routes.LOGIN);
 
 interface Props {
     question: string;
@@ -41,7 +45,6 @@ export async function IAComponent(content: Props) {
         const inputIA = document.getElementById('questionIA') as HTMLTextAreaElement;
         let questionIA = inputIA.value;
         if (questionIA) {
-            console.log(questionIA);
             IAComponent({ question: questionIA });
             inputIA.value = '';
         }

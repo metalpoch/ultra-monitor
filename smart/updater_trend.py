@@ -129,9 +129,7 @@ def month(year: str, month: str):
             f"Device {j}= {datetime.now().hour}:{datetime.now().minute}:{datetime.now().second}"
         )
         device_id = j
-        for i in range(len(months)):
-            if i == month:
-                break
+        while i!= month:
 
             print(
                 f"Month {i+1}= {datetime.now().hour}:{datetime.now().minute}:{datetime.now().second}"
@@ -165,6 +163,7 @@ def month(year: str, month: str):
         if status_response == True: print(f"The device was inserted correctly: {j}\n")
         else: print(f"The device was not inserted correctly: {j}\n")
         trends = []
+        i = month - 1
 
     db.close()
 

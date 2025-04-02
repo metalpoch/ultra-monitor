@@ -86,8 +86,8 @@ def year(year: str):
         
         
         status_response = execute.new_trend(db, trends)
-        if status_response == True: print(f"Insertado: {j}\n")
-        else: print(f"No insertado: {j}\n")
+        if status_response == True: print(f"The device was inserted correctly: {j}\n")
+        else: print(f"The device was not inserted correctly: {j}\n")
         trends = []
 
     db.close()

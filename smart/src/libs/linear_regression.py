@@ -52,11 +52,11 @@ class RegressionLineal:
         for trend in trends:
             data.append(
                 {
-                    "Device": trend.Device_Id,
+                    "Device": trend.device_id,
                     "Month": trend.date.month,
-                    "Out": bits_to_gbits(trend.Out),
-                    "In": bits_to_gbits(trend.In),
-                    "Bandwidth": bits_to_gbits(trend.Bandwidth),
+                    "Out": bits_to_gbits(trend.out),
+                    "In": bits_to_gbits(trend.in_),
+                    "Bandwidth": bits_to_gbits(trend.bandwidth),
                 }
             )
 

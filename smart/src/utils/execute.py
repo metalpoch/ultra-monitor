@@ -18,7 +18,7 @@ def sys_name_to_id(db, name: str):
         WHERE sys_name = %s;
     """
     params = (name,)
-    r = db.execute_fet(query, params)
+    r = db.execute_fetch(query, params)
     return r[0][0]
 
 
@@ -71,5 +71,5 @@ def trends(db, id):
     SELECT * FROM trends WHERE device_id=%s
     """
     params = (id,)
-    r = db.execute_fet(query, params)
+    r = db.execute_fetch(query, params)
     return r

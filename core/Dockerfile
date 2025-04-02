@@ -14,6 +14,6 @@ WORKDIR /app/core
 
 RUN CGO_ENABLED=0 go build -o ./main ./cmd/main.go
 
-EXPOSE 3000
+EXPOSE 3001
 
 CMD ["./main"]

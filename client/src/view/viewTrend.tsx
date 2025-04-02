@@ -60,7 +60,7 @@ export default function ViewTrend() {
     }, [oltSelect])
 
     return(
-        <main className='w-full h-full flex flex-col gap-4 md:flex-row md:gap-1 md:justify-center md:max-h-[800px]'>
+        <main className={`w-full ${trend.length <= 0 ? 'h-full' : 'h-fit'} flex flex-col gap-4 md:flex-row md:gap-1 md:justify-center md:max-h-[800px]`}>
             {error && <NoticeModalComponent showModal={true} title='Error al obtener la predicción' message='No se pudo obtener la predicción del tráfico del OLT seleccionado. Por favor, inténtelo de nuevo más tarde.' onClick={() => setError(false)} />}
             <section id='filter' className='w-96 h-fit p-6 bg-gray-50 rounded-md flex flex-col justify-center gap-2'>
                 <h1 className='text-xl font-bold text-blue-800'>Tendencia de</h1>

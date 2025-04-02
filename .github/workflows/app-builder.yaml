@@ -51,5 +51,5 @@ jobs:
             *🔑 SHA:* `${{ github.sha }}`\n\n
             *📝 Commit:* `${{ github.event.head_commit.message }}`\n\n
             *🔗 Links:*\n
-            \t\t\t[🗃 Repository](https://github.com/${{ github.repository }})\n
+            \t\t\t[🗃 Ver cambios](https://github.com/${{ github.repository }}/commit/${{ github.sha }})\n
             \t\t\t[📦 Releases](https://ghcr.io/${{ github.repository }})"

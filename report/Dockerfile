@@ -9,10 +9,10 @@ COPY common/ ./common/
 COPY report/ ./report/
 COPY go.work.sum ./
 COPY go.work ./
-COPY config.json ./
+COPY config.product.json ./
 
 WORKDIR /workspace/report
-ENV CONFIG_JSON=/workspace/config.json
+ENV CONFIG_JSON=/workspace/config.product.json
 
 RUN  CGO_ENABLED=0 GOOS=linux go build -a -ldflags "-s -w" -o ./main ./cmd/main.go
 EXPOSE 3002

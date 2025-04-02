@@ -1,11 +1,8 @@
 FROM node:lts-alpine3.20
 
-# Crear un directorio para la aplicación
-RUN mkdir /app
-WORKDIR /app
+WORKDIR /workspace
 
-# Copiar los archivos de la aplicación
-COPY . .
+COPY client/ .
 
 # Instalar las dependencias
 RUN npm install

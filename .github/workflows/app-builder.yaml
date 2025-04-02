@@ -21,18 +21,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Clear Docker builder cache
-        run: |
-          docker builder prune -af
-
-      - name: Verify files
-        run: |
-          ls -la
-          ls -la auth/
-          
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:

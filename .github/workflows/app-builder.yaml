@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        module: ["auth", "core", "report", "measurement", "client"]
+        module: ["auth", "core", "report", "measurement", "client", "smart"]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -46,10 +46,11 @@ jobs:
           bot-token-id: ${{ secrets.BOT_TOKEN_ID }}
           chat-id: ${{ secrets.CHAT_ID }}
           disable-web-page-preview: true
-          text: "*New App Build*\n\n
+          text: "*Docker Imagen Builder*\n\n
+            *📦 Module:* `${{ matrix.module }}`\n\n
             *🎟 Event:* `${{ github.event_name }} on ${{ github.ref_name }}`\n\n
             *🔑 SHA:* `${{ github.sha }}`\n\n
             *📝 Commit:* `${{ github.event.head_commit.message }}`\n\n
             *🔗 Links:*\n
-            \t\t\t[🗃 Ver cambios](https://github.com/${{ github.repository }}/commit/${{ github.sha }})\n
-            \t\t\t[📦 Releases](https://ghcr.io/${{ github.repository }})"
+            \t\t\t\t[🗃 Changes](https://github.com/${{ github.repository }}/commit/${{ github.sha }})\n
+            \t\t\t\t[📦 Releases](ghcr.io/${{ github.repository }}/${{ matrix.module }})"

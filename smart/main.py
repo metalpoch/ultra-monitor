@@ -1,4 +1,5 @@
 from os import getenv
+import json
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -36,7 +37,10 @@ async def linear_regression(sysname: str, future_month: int):
         new_trend = change.create_trend(trend[0],trend[1],trend[4],trend[3],trend[2])
         trends.append(new_trend)
     out, in_ = RegressionLineal.run_procress(trends, future_month)
-    return {"out_trend": out, "in_trend": in_}
+    response_dict=[]
+    for i in trends:
+        response_dict.append({"month":i.date.month,"in":i.in_,"out":i.out})
+    return {"months":response_dict,"out_trend": out, "in_trend": in_}
 
 
 @app.post("/chatbox")

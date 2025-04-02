@@ -9,21 +9,19 @@ export function getMonthString(month: number): string {
 }
 
 /**
- * Get the past year.
+ * Get the month.
  */
-export function getPastYear(): number {
-    const now = new Date();
-    const year = now.getFullYear() - 1;
-    return year;
-}
+export function getMonth(): string {
+    let pastMonth: string;
+    const currentDate = new Date();
 
-/**
- * Get the past month.
- */
-export function getPastMonth(): number {
-    const now = new Date();
-    let month = now.getMonth();
-    if (month == 0) month = 12;
-    if (month == 1) month = 1;
-    return month;
+    let month = currentDate.getMonth() + 1;
+    if (month == 13) month = 1;
+
+    let day = currentDate.getDay() - 1;
+    if (day < 20) month = month + 1;
+
+    if (month <= 9) pastMonth = `0${month}`;
+    else pastMonth = `${month}`;
+    return pastMonth;
 }

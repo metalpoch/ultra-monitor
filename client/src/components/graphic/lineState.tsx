@@ -3,8 +3,7 @@ import { Chart } from 'chart.js/auto';
 import { useEffect, useRef } from 'react';
 import { LoadStatus } from '../../constant/loadStatus';
 import { getUnit } from '../../utils/transform';
-import { getMonthString } from '../../utils/date';
-import type { TrendGraphSchema } from '../../schemas/trend';
+import type { StateTrafficSchema } from '../../schemas/measurement';
 import type { LoadingStateValue } from '../../types/loadingState';
 import React from 'react';
 
@@ -20,10 +19,10 @@ interface LineProps {
   loading: LoadingStateValue;
   title: string;
   canvasID: string;
-  data: TrendGraphSchema[];
+  data: StateTrafficSchema[];
 }
 
-export default function LineTrendGraphComponent(content: LineProps) {
+export default function LineTrafficStateGraphComponent(content: LineProps) {
   const chartRef = useRef<Chart | null>(null);
 
   /**
@@ -52,20 +51,9 @@ export default function LineTrendGraphComponent(content: LineProps) {
     )
   }
 
-  const getTrafficReal= () => {
-    let total = content.data.length - 1;
-    let i = 0;
-    let data: TrendGraphSchema[] = [];
-    while (i < total) {
-      data.push(content.data[i]);
-      i++;
-    }
-    return data;
-  }
 
   useEffect(() => {
     const canvas = document.getElementById(content.canvasID) as HTMLCanvasElement;
-    const traffic = getTrafficReal();
 
     if (chartRef.current) {
       chartRef.current.destroy();
@@ -75,40 +63,32 @@ export default function LineTrendGraphComponent(content: LineProps) {
       chartRef.current = new Chart(canvas, {
         type: 'line',
         data: {
-          labels: content.data.map((trend: TrendGraphSchema) => {
-            return `${getMonthString(trend.month)}`;
+          labels: content.data.map((traffic: StateTrafficSchema) => {
+            return traffic.state;
           }),
           datasets: [
             {
               label: 'In',
-              data: traffic.map((trend: TrendGraphSchema) => trend.in),
+              data: content.data.map((traffic: StateTrafficSchema) => traffic.in_bps),
               fill: true,
               borderColor: 'rgb(205, 7, 7)',
               backgroundColor: 'rgba(205, 7, 7, 0.4)',
             },
             {
               label: 'Out',
-              data: traffic.map((trend: TrendGraphSchema) => trend.out),
+              data: content.data.map((traffic: StateTrafficSchema) => traffic.out_bps),
               fill: true,
               borderColor: 'rgb(32, 35, 229)',
               backgroundColor: 'rgba(32, 35, 229, 0.4)',
             },
             {
-              label: 'In Trend',
-              data: content.data.map((trend: TrendGraphSchema) => trend.in),
+              label: 'Bandwith',
+              data: content.data.map((traffic: StateTrafficSchema) => traffic.bandwidth_bps),
               fill: true,
-              borderColor: 'rgb(205, 7, 7)',
-              backgroundColor: 'rgba(205, 7, 7, 0.4)',
-              borderDash: [5, 5]
-            },
-            {
-              label: 'Out Trend',
-              data: content.data.map((trend: TrendGraphSchema) => trend.out),
-              fill: true,
-              borderColor: 'rgb(32, 35, 229)',
-              backgroundColor: 'rgba(32, 35, 229, 0.4)',
-              borderDash: [5, 5]
-            },
+              borderColor: 'rgb(32, 229, 77)',
+              backgroundColor: 'rgba(32, 229, 77, 0.4)',
+              hidden: true
+            }
           ]
         },
         options: {

@@ -1,6 +1,6 @@
 import { TrendService } from "../services/trend";
 import { TrendSchema, TrendGraphSchema, MonthTrafficTrendSchema } from "../schemas/trend";
-import { getPastMonth } from "../utils/date";
+import { getMonth } from "../utils/date";
 
 export class TrendController {
     /**
@@ -10,22 +10,25 @@ export class TrendController {
      * @returns {TrendGraphSchema[]} Trend of the OLT device.
      */
     static async getTrend(olt: string): Promise<TrendGraphSchema[]> {
-        const monthConsult = getPastMonth();
+        const monthConsult = getMonth();
         const response = await TrendService.getTrend(olt, monthConsult);
         if (response.status === 200 && response.data) {
             let trend: TrendSchema = response.data;
+
+            console.log(trend);
+            
             let trends: TrendGraphSchema[] = [];
             trend.months.map((traffic: MonthTrafficTrendSchema) => {
                 let currentTraffic: TrendGraphSchema = {
-                    month: traffic.month,
+                    month: traffic.month - 1,
                     in: traffic.in,
                     out: traffic.out
                 }
                 trends.push(currentTraffic);
             });
             let newTrafficTrend: TrendGraphSchema = {
-                month: new Date().getMonth() + 1,
-                in: trend.out_trend[0].predictions,
+                month: new Date().getMonth(),
+                in: trend.in_trend[0].predictions,
                 out: trend.out_trend[0].predictions
             }
             trends.push(newTrafficTrend);

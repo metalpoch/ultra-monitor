@@ -13,9 +13,9 @@ export class TrendService {
      * @param {string} sysname OLT acronym.
      * @param {number} month Month to consult.
      */
-    static async getTrend(sysname: string, month: number): Promise<{ status: (number | null), data: (TrendSchema | null), err: (ErrorHandler | null) }> {
+    static async getTrend(sysname: string, month: string): Promise<{ status: (number | null), data: (TrendSchema | null), err: (ErrorHandler | null) }> {
         try {
-            const response = await fetch(`${this.url}/trend?sys_name=${sysname}&future_month=${month}`, {
+            const response = await fetch(`${this.url}/trend?sysname=${sysname}&future_month=${month}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

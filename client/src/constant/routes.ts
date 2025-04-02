@@ -7,6 +7,7 @@ export const Routes = {
     HOME: "/dashboard",
     OLT_HOME: "/olt",
     OLT_IP: "/olt-ip",
+    TREND: "/trend",
     RODOLFIA: "/rodolfia",
     PROFILE: "/profile",
     REPORTS: "/reports",

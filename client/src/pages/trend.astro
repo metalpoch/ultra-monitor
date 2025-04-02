@@ -1,0 +1,17 @@
+---
+import NavbarLayout from '../layouts/Navbar';
+import BackgroundLayout from '../layouts/Inside.astro';
+import ViewTrend from '../view/viewTrend';
+import { Routes } from '../constant/routes';
+import { user } from '../controllers/auth';
+import { Tab } from '../constant/tab';
+
+const token = Astro.cookies.get('token');
+if (!token) return Astro.redirect(Routes.LOGIN);
+---
+<BackgroundLayout title={Tab.HOME}>
+	<main class="w-full h-lvh absolute px-4 py-2 overflow-y-auto">
+		<NavbarLayout user={user.get()!} pathname={Astro.url.pathname} client:load />
+        <ViewTrend client:load />
+	</main>
+</BackgroundLayout>

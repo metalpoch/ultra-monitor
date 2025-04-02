@@ -45,7 +45,7 @@ export default function Navbar({ user, pathname }: Props) {
                     <a className="w-full text-center" href={Routes.OLT_HOME}>OLT</a>
                 </li>
                 <li className="w-32 px-1 py-1 flex flex-row justify-center font-light rounded-full transition-all duration-200 ease-in hover:text-gray-50 hover:bg-gray-300">
-                    <a className="w-full text-center" href="#">Tendencia</a>
+                    <a className="w-full text-center" href={Routes.TREND}>Tendencia</a>
                 </li>
                 <li className={`w-32 px-1 py-1 flex flex-row justify-center font-light rounded-full transition-all duration-200 ease-in hover:text-gray-50 hover:bg-gray-300 ${pathname === Routes.RODOLFIA ? 'bg-gray-300 text-white' : ''}`}>
                     <a className="w-full text-center" href={Routes.RODOLFIA}>RodolfIA</a>

@@ -75,3 +75,19 @@ class Postgres:
             results.append(dict(zip(column_name, row)))
 
         return results, None
+
+    def execute_fetch(self, query: str, params: tuple = ()) -> list:
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(query, params)
+                return cur.fetchall()
+        except psycopg2.Error as e:
+            raise e
+
+    def execute_commit(self, query: str, params: tuple = ()):
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(query, params)
+                self.conn.commit()
+        except psycopg2.Error as e:
+            raise e

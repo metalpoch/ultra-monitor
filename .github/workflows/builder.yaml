@@ -32,7 +32,8 @@ jobs:
       - name: Build and push Docker image for ${{ matrix.module }}
         uses: docker/build-push-action@v6
         with:
-          context: ./${{ matrix.module }}
+          context: .
+          file: ./${{ matrix.module }}/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository }}/${{ matrix.module }}:latest

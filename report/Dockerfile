@@ -7,7 +7,6 @@ COPY core/go.mod ./core/go.mod
 COPY measurement/go.mod ./measurement/go.mod
 COPY common/ ./common/
 COPY report/ ./report/
-COPY go.work.sum ./
 COPY go.work ./
 
 WORKDIR /app/report

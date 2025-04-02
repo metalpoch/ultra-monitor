@@ -2,7 +2,6 @@ FROM golang:1.22.3-alpine
 
 WORKDIR /app
 
-COPY go.work.sum ./
 COPY go.work ./
 COPY auth/go.mod ./auth/go.mod
 COPY report/go.mod ./report/go.mod

@@ -2,6 +2,9 @@ FROM golang:1.22.3-alpine
 
 WORKDIR /app
 
+RUN ls -la /  # Verifica qué hay en la raíz del contexto
+RUN ls -la /app  # Verifica qué hay en el WORKDIR
+
 COPY go.work.sum ./
 COPY go.work ./
 COPY auth/go.mod ./auth/go.mod

@@ -14,9 +14,6 @@ export class TrendController {
         const response = await TrendService.getTrend(olt, monthConsult);
         if (response.status === 200 && response.data) {
             let trend: TrendSchema = response.data;
-
-            console.log(trend);
-            
             let trends: TrendGraphSchema[] = [];
             trend.months.map((traffic: MonthTrafficTrendSchema) => {
                 let currentTraffic: TrendGraphSchema = {

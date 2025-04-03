@@ -1,15 +1,48 @@
 ---
 import NavbarLayout from '../layouts/Navbar';
 import BackgroundLayout from '../layouts/Inside.astro';
+import LineTrafficStateGraphComponent from '../components/graphic/lineState';
+import LineGraphComponent from '../components/graphic/line';
+import { DashboardController } from '../controllers/dashboard';
+import { LoadStatus } from '../constant/loadStatus';
 import { Routes } from '../constant/routes';
 import { user } from '../controllers/auth';
 import { Tab } from '../constant/tab';
 
 const token = Astro.cookies.get('token');
 if (!token) return Astro.redirect(Routes.LOGIN);
+
+let loadingOneGraph = LoadStatus.EMPTY;
+loadingOneGraph = LoadStatus.LOADING;
+const trafficState = await DashboardController.getTrafficState();
+loadingOneGraph = LoadStatus.LOADED;
+
+let loadingTwoGraph = LoadStatus.EMPTY;
+loadingTwoGraph	= LoadStatus.LOADING;
+const dataTwoGraph = [];
+loadingTwoGraph = LoadStatus.LOADED;
+
+let loadingThreeGraph = LoadStatus.EMPTY;
+loadingThreeGraph = LoadStatus.LOADING;
+let dataThreeGraph = [];
+loadingThreeGraph = LoadStatus.LOADED;
+
+let loadingfourGraph = LoadStatus.EMPTY;
+loadingfourGraph = LoadStatus.LOADING;
+let dataFourGraph = [];
+loadingfourGraph = LoadStatus.LOADED;
+
 ---
 <BackgroundLayout title={Tab.HOME}>
-	<main class="w-full h-lvh absolute px-4 py-2 overflow-y-auto">
+	<main class="w-full h-full absolute px-4 py-2 overflow-y-auto flex flex-col gap-2">
 		<NavbarLayout user={user.get()!} pathname={Astro.url.pathname} client:load/>
+		<section id="first-graph" class="w-full h-fit max-h-fit flex flex-col flex-nowrap gap-4 md:flex-row md:gap-1">
+			<LineTrafficStateGraphComponent loading={loadingOneGraph} title="Trafico por Estado" canvasID="traffic-state" data={trafficState} client:load />
+			<LineGraphComponent loading={loadingTwoGraph} title="Trafico por Estado" canvasID="traffic-two" data={dataTwoGraph} client:load />
+		</section>
+		<section id="second-graph" class="w-full flex flex-col gap-4 md:flex-row md:gap-1">
+			<LineGraphComponent loading={loadingThreeGraph} title="Trafico por Estado" canvasID="traffic-three" data={dataThreeGraph} client:load />
+			<LineGraphComponent loading={loadingfourGraph} title="Trafico por Estado" canvasID="traffic-four" data={dataFourGraph} client:load />
+		</section>
 	</main>
 </BackgroundLayout>

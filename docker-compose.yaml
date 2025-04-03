@@ -3,13 +3,21 @@ services:
     image: postgres:alpine3.20
     container_name: postgres-olt
     restart: always
-    shm_size: 256mb # set shared memory limit when using docker-compose
+    shm_size: 256mb
     environment:
       POSTGRES_PASSWORD: example
     ports:
       - 5432:5432
     networks:
-      - chatbot-network
+      - olt-blueprint-network
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
 
   cache:
     image: redis:alpine3.20
@@ -17,10 +25,76 @@ services:
     restart: always
     ports:
       - 6379:6379
-    command: "redis-server --loglevel warning --requirepass AsuntosPresidenciales"
+    command: "redis-server --loglevel warning --requirepass example"
     volumes:
-      - ./data:/data/redis.conf
+      - ./redis-data:/data/redis.conf
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+
+  olt-blueprint-front:
+    image: ghcr.io/metalpoch/olt-blueprint/client
+    container_name: olt-blueprint-front
+    restart: unless-stopped
+    volumes:
+      - ./.env:/app/.env:ro
+    ports:
+      - 4321:4321
+
+  olt-blueprint-auth:
+    image: ghcr.io/metalpoch/olt-blueprint/auth
+    container_name: olt-blueprint-auth
+    restart: unless-stopped
+    volumes:
+      - ./config.json:/app/config.json:ro
+    environment:
+      - CONFIG_JSON=/app/config.json
+    ports:
+      - 3000:3000
+
+  olt-blueprint-core:
+    image: ghcr.io/metalpoch/olt-blueprint/core
+    container_name: olt-blueprint-core
+    restart: unless-stopped
+    volumes:
+      - ./config.json:/app/config.json:ro
+    environment:
+      - CONFIG_JSON=/app/config.json
+    ports:
+      - 3001:3001
+
+  olt-blueprint-report:
+    image: ghcr.io/metalpoch/olt-blueprint/report
+    container_name: olt-blueprint-report
+    restart: unless-stopped
+    volumes:
+      - ./config.json:/app/config.json:ro
+    environment:
+      - CONFIG_JSON=/app/config.json
+    ports:
+      - 3002:3002
+
+  olt-blueprint-smart:
+    image: ghcr.io/metalpoch/olt-blueprint/smart
+    container_name: olt-blueprint-smart
+    restart: unless-stopped
+    volumes:
+      - ./.env:/app/.env:ro
+    ports:
+      - 3003:3003
+
+  olt-blueprint-measurement:
+    image: ghcr.io/metalpoch/olt-blueprint/measurement
+    container_name: olt-blueprint-measurement
+    restart: unless-stopped
+    volumes:
+      - ./config.json:/app/config.json:ro
+    environment:
+      - CONFIG_JSON=/app/config.json
       
 networks:
-  chatbot-network:
-    name: chatbot-network
+  olt-blueprint-network:
+    name: olt-blueprint-network

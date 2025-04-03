@@ -1,0 +1,56 @@
+name: App Builder
+
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push-images:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: ["auth", "core", "report", "measurement", "client", "smart"]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: https://ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image for ${{ matrix.module }}
+        uses: docker/build-push-action@v6
+        with:
+          context: . 
+          file: ./${{ matrix.module }}/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/${{ matrix.module }}:latest
+            ghcr.io/${{ github.repository }}/${{ matrix.module }}:${{ github.sha }}
+
+      - name: Telegram Alert
+        id: telegram
+        uses: metalpoch/telegram-alerts-action@v1
+        with:
+          bot-token-id: ${{ secrets.BOT_TOKEN_ID }}
+          chat-id: ${{ secrets.CHAT_ID }}
+          disable-web-page-preview: true
+          text: "*Docker Imagen Builder*\n\n
+            *📦 Module:* `${{ matrix.module }}`\n\n
+            *🎟 Event:* `${{ github.event_name }} on ${{ github.ref_name }}`\n\n
+            *🔑 SHA:* `${{ github.sha }}`\n\n
+            *📝 Commit:* `${{ github.event.head_commit.message }}`\n\n
+            *🔗 Links:*\n
+            \t\t\t\t[🗃 Changes](https://github.com/${{ github.repository }}/commit/${{ github.sha }})\n
+            \t\t\t\t[📦 Releases](ghcr.io/${{ github.repository }}/${{ matrix.module }})"

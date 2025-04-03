@@ -18,7 +18,7 @@ build-img-containers:
 	docker build . -t olt-blueprint-core --progress=plain -f ./core/Dockerfile
 	docker build . -t olt-blueprint-front --progress=plain -f ./client/Dockerfile
 	docker build . -t olt-blueprint-report --progress=plain -f ./report/Dockerfile
-	docker build . -t olt-blueprint-measurement --progress=plain -f ./measurement/Dockerfile
+	#docker build . -t olt-blueprint-measurement --progress=plain -f ./measurement/Dockerfile
 
 container-run:
 	docker-compose up

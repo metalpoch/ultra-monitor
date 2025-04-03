@@ -91,3 +91,7 @@ class Postgres:
                 self.conn.commit()
         except psycopg2.Error as e:
             raise e
+
+    def close(self) -> None:
+        if hasattr(self, self.conn):
+            self.conn.close()

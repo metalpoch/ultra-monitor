@@ -93,5 +93,5 @@ class Postgres:
             raise e
 
     def close(self) -> None:
-        if hasattr(self, self.conn):
+        if hasattr(self, "conn"):
             self.conn.close()

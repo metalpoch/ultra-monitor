@@ -18,6 +18,8 @@ jobs:
     strategy:
       matrix:
         module: ["auth", "core", "report", "measurement", "client", "smart"]
+    outputs:
+      matrix_results: ${{ steps.set-outputs.outputs.matrix_results }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -40,36 +42,40 @@ jobs:
             ghcr.io/${{ github.repository }}/${{ matrix.module }}:latest
             ghcr.io/${{ github.repository }}/${{ matrix.module }}:${{ github.sha }}
 
-      - name: Set build status for summary
+      - name: Set outputs
+        id: set-outputs
+        if: always()
         run: |
-          if ${{ success() }}; then
-            echo "${{ matrix.module }}=success" >> $GITHUB_ENV
-          else
-            echo "${{ matrix.module }}=failure" >> $GITHUB_ENV
-          fi
+          echo "${{ matrix.module }}=${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "matrix_results=${{ matrix.module }}=${{ job.status }}" >> $GITHUB_OUTPUT
 
   send-summary:
     needs: build-and-push-images
     runs-on: ubuntu-latest
     steps:
-      - name: Get build results
-        id: get-results
-        run: |
-          echo "module_results=$(echo '${{ toJSON(needs.build-and-push-images.outputs) }}' | jq -c 'to_entries | map({key: .key, value: .value})')" >> $GITHUB_OUTPUT
-      
       - name: Create Telegram message
         id: create-message
         run: |
+          # Parse the matrix results from the previous job
+          IFS=',' read -ra results <<< "${{ join(needs.build-and-push-images.outputs.matrix_results, ',') }}"
+          
+          declare -A status_map
+          for result in "${results[@]}"; do
+            IFS='=' read -r module status <<< "$result"
+            status_map["$module"]="$status"
+          done
+          
+          # Create the message
           message="*Docker Images Builder Summary*\n\n"
           message+="*🎟 Event:* \`${{ github.event_name }} on ${{ github.ref_name }}\`\n\n"
           message+="*🔑 SHA:* \`${{ github.sha }}\`\n\n"
           message+="*📝 Commit:* \`${{ github.event.head_commit.message }}\`\n\n"
           message+="*📦 Modules Build Status:*\n"
           
+          # Add status for each module
           modules=("auth" "core" "report" "measurement" "client" "smart")
           for module in "${modules[@]}"; do
-            status=$(echo "${{ toJSON(needs.build-and-push-images.result) }}" | jq -r ".$module")
-            if [ "$status" == "success" ]; then
+            if [[ "${status_map[$module]}" == "success" ]]; then
               message+="✅ $module\n"
             else
               message+="❌ $module\n"

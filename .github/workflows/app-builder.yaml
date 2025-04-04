@@ -30,6 +30,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image for ${{ matrix.module }}
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: . 
@@ -38,31 +39,53 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}/${{ matrix.module }}:latest
             ghcr.io/${{ github.repository }}/${{ matrix.module }}:${{ github.sha }}
-          continue-on-error: true
-          
-      - name: Save build result
-        run: |
-          echo "${{ matrix.module }}=$([[ ${{ steps.build_module.outcome }} == 'success' ]] && echo '✅' || echo '❌')" >> $GITHUB_ENV
 
-  notify:
+      - name: Set build status for summary
+        run: |
+          if ${{ success() }}; then
+            echo "${{ matrix.module }}=success" >> $GITHUB_ENV
+          else
+            echo "${{ matrix.module }}=failure" >> $GITHUB_ENV
+          fi
+
+  send-summary:
     needs: build-and-push-images
     runs-on: ubuntu-latest
     steps:
-      - name: Generate checklist message
+      - name: Get build results
+        id: get-results
         run: |
-          for module in auth core report measurement client smart; do
-            status=$(printenv | grep "^${module}=" | cut -d= -f2)
-            echo "- ${module}: ${status}" >> checklist.txt
+          echo "module_results=$(echo '${{ toJSON(needs.build-and-push-images.outputs) }}' | jq -c 'to_entries | map({key: .key, value: .value})')" >> $GITHUB_OUTPUT
+      
+      - name: Create Telegram message
+        id: create-message
+        run: |
+          message="*Docker Images Builder Summary*\n\n"
+          message+="*🎟 Event:* \`${{ github.event_name }} on ${{ github.ref_name }}\`\n\n"
+          message+="*🔑 SHA:* \`${{ github.sha }}\`\n\n"
+          message+="*📝 Commit:* \`${{ github.event.head_commit.message }}\`\n\n"
+          message+="*📦 Modules Build Status:*\n"
+          
+          modules=("auth" "core" "report" "measurement" "client" "smart")
+          for module in "${modules[@]}"; do
+            status=$(echo "${{ toJSON(needs.build-and-push-images.result) }}" | jq -r ".$module")
+            if [ "$status" == "success" ]; then
+              message+="✅ $module\n"
+            else
+              message+="❌ $module\n"
+            fi
           done
+          
+          message+="\n*🔗 Links:*\n"
+          message+="\t[🗃 Changes](https://github.com/${{ github.repository }}/commit/${{ github.sha }})\n"
+          message+="\t[📦 Packages](https://github.com/${{ github.repository }}/pkgs/container/)"
+          
+          echo "message=$message" >> $GITHUB_OUTPUT
 
-      - name: Send Telegram Notification
-        id: telegram
+      - name: Send Telegram notification
         uses: metalpoch/telegram-alerts-action@v1
         with:
           bot-token-id: ${{ secrets.BOT_TOKEN_ID }}
           chat-id: ${{ secrets.CHAT_ID }}
           disable-web-page-preview: true
-          text: |
-            *Docker Image Build Summary*\n\n
-            $(cat checklist.txt)\n\n
-            *🔗 Links:* [Releases](https://ghcr.io/${{ github.repository }})
+          text: ${{ steps.create-message.outputs.message }}

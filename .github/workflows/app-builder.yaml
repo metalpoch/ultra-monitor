@@ -38,19 +38,31 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}/${{ matrix.module }}:latest
             ghcr.io/${{ github.repository }}/${{ matrix.module }}:${{ github.sha }}
+          continue-on-error: true
+          
+      - name: Save build result
+        run: |
+          echo "${{ matrix.module }}=$([[ ${{ steps.build_module.outcome }} == 'success' ]] && echo '✅' || echo '❌')" >> $GITHUB_ENV
 
-      - name: Telegram Alert
+  notify:
+    needs: build-and-push-images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate checklist message
+        run: |
+          for module in auth core report measurement client smart; do
+            status=$(printenv | grep "^${module}=" | cut -d= -f2)
+            echo "- ${module}: ${status}" >> checklist.txt
+          done
+
+      - name: Send Telegram Notification
         id: telegram
         uses: metalpoch/telegram-alerts-action@v1
         with:
           bot-token-id: ${{ secrets.BOT_TOKEN_ID }}
           chat-id: ${{ secrets.CHAT_ID }}
           disable-web-page-preview: true
-          text: "*Docker Imagen Builder*\n\n
-            *📦 Module:* `${{ matrix.module }}`\n\n
-            *🎟 Event:* `${{ github.event_name }} on ${{ github.ref_name }}`\n\n
-            *🔑 SHA:* `${{ github.sha }}`\n\n
-            *📝 Commit:* `${{ github.event.head_commit.message }}`\n\n
-            *🔗 Links:*\n
-            \t\t\t\t[🗃 Changes](https://github.com/${{ github.repository }}/commit/${{ github.sha }})\n
-            \t\t\t\t[📦 Releases](ghcr.io/${{ github.repository }}/${{ matrix.module }})"
+          text: |
+            *Docker Image Build Summary*\n\n
+            $(cat checklist.txt)\n\n
+            *🔗 Links:* [Releases](https://ghcr.io/${{ github.repository }})

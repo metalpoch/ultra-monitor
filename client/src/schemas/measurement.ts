@@ -7,3 +7,13 @@ export interface MeasurementSchema {
     in_bps: number;
     out_bps: number;
 }
+
+/**
+ * Schema of a measurement of traffic to a state.
+ */
+export interface StateTrafficSchema {
+    state: string;
+    bandwidth_bps: number;
+    in_bps: number;
+    out_bps: number;
+}

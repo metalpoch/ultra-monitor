@@ -3,7 +3,7 @@ name: Telegram Alert
 on:
   push:
     branches:
-      - "**"
+      - dev
   pull_request:
     branches:
       - main
@@ -15,7 +15,7 @@ jobs:
       event: ${{ github.event_name }} on ${{ github.ref_name }}
       sha: ${{ github.sha }}
       commit: ${{ github.event.head_commit.message }}
-      author: ${{ github.actor }}
+      author: ${{ github.event.pull_request.user.login || github.actor }}
       authorURL: https://github.com/${{ github.event.pusher.name }}
       url: https://github.com/${{ github.repository }}
     name: Telegram Alert
@@ -34,4 +34,5 @@ jobs:
             *🔑 SHA:* `${{ env.sha }}`\n\n
             *🗃️ Commit:* `${{ env.commit }}`\n\n
             *👤 Author:* [${{ env.author }}](${{ env.authorURL }})\n\n
-            *🌐 URL:* [Github](${{env.url}})"
+            *🔗 Links:*\n
+            \t\t\t[🗃 Ver cambios](https://github.com/${{ github.repository }}/commit/${{ github.sha }})"

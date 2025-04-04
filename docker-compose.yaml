@@ -76,7 +76,7 @@ services:
     environment:
       - CONFIG_JSON=/app/config.json
     ports:
-      - 3002:3002
+      - 3004:3002
 
   olt-blueprint-smart:
     image: ghcr.io/metalpoch/olt-blueprint/smart

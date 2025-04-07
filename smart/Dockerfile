@@ -1,21 +1,14 @@
 FROM python:3.12-alpine
 
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    gcc \
-    g++ \
-    python3-dev \
-    libatlas-base-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-
 WORKDIR /app
+
+RUN apk add --no-cache g++ python3-dev py3-pip make
 
 COPY ./smart/ .
 
 RUN pip install --upgrade pip
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 EXPOSE 3003
 

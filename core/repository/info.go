@@ -43,7 +43,8 @@ func (repo infoRepository) GetDeviceByState(ctx context.Context, state string) (
 	var devices []*entity.Device
 	err := repo.db.WithContext(ctx).
 		Joins("JOIN interfaces ON devices.id = interfaces.device_id").
-		Joins("JOIN fats ON interfaces.id = fats.interface_id").
+		Joins("JOIN fat_interfaces AS fi ON interfaces.id = fi.interface_id").
+		Joins("JOIN fats ON fats.id = fi.fat_id").
 		Joins("JOIN locations ON fats.location_id = locations.id").
 		Select("DISTINCT devices.id, devices.ip, devices.sys_name", "devices.sys_location", "devices.is_alive", "devices.last_check", "devices.created_at", "devices.updated_at").
 		Where("locations.state = ?", state).
@@ -56,7 +57,8 @@ func (repo infoRepository) GetDeviceByCounty(ctx context.Context, state, county 
 	var devices []*entity.Device
 	err := repo.db.WithContext(ctx).
 		Joins("JOIN interfaces ON devices.id = interfaces.device_id").
-		Joins("JOIN fats ON interfaces.id = fats.interface_id").
+		Joins("JOIN fat_interfaces AS fi ON interfaces.id = fi.interface_id").
+		Joins("JOIN fats ON fats.id = fi.fat_id").
 		Joins("JOIN locations ON fats.location_id = locations.id").
 		Select("DISTINCT devices.id, devices.ip, devices.sys_name", "devices.sys_location", "devices.is_alive", "devices.last_check", "devices.created_at", "devices.updated_at").
 		Where("locations.state = ? AND locations.county = ?", state, county).
@@ -68,7 +70,8 @@ func (repo infoRepository) GetDeviceByMunicipality(ctx context.Context, state, c
 	var devices []*entity.Device
 	err := repo.db.WithContext(ctx).
 		Joins("JOIN interfaces ON devices.id = interfaces.device_id").
-		Joins("JOIN fats ON interfaces.id = fats.interface_id").
+		Joins("JOIN fat_interfaces AS fi ON interfaces.id = fi.interface_id").
+		Joins("JOIN fats ON fats.id = fi.fat_id").
 		Joins("JOIN locations ON fats.location_id = locations.id").
 		Select("DISTINCT devices.id, devices.ip, devices.sys_name", "devices.sys_location", "devices.is_alive", "devices.last_check", "devices.created_at", "devices.updated_at").
 		Where("locations.state = ? AND locations.county = ? AND locations.municipality = ?", state, county, municipality).
@@ -121,11 +124,9 @@ func (repo infoRepository) GetLocationMunicipalities(ctx context.Context, state,
 }
 
 func (repo infoRepository) GetLocation(ctx context.Context, id uint) (*entity.Location, error) {
-
 	d := new(entity.Location)
 	err := repo.db.WithContext(ctx).First(d, id).Error
 	return d, err
-
 }
 
 func (repo infoRepository) GetFat(ctx context.Context, id uint) (*entity.Fat, error) {
@@ -164,7 +165,6 @@ func (repo infoRepository) GetODNStates(ctx context.Context, state string) ([]*s
 		Distinct().
 		Pluck("fats.odn", &onds).
 		Error
-
 	if err != nil {
 		return nil, err
 	}
@@ -189,6 +189,7 @@ func (repo infoRepository) GetODNStatesContries(ctx context.Context, state, coun
 
 	return onds, nil
 }
+
 func (repo infoRepository) GetODNStatesContriesMunicipality(ctx context.Context, state, country, municipality string) ([]*string, error) {
 	var onds []*string
 
@@ -207,6 +208,7 @@ func (repo infoRepository) GetODNStatesContriesMunicipality(ctx context.Context,
 
 	return onds, nil
 }
+
 func (repo infoRepository) GetODNDevice(ctx context.Context, id uint) ([]*string, error) {
 	var odn []*string
 
@@ -237,7 +239,6 @@ func (repo infoRepository) GetODNDevicePort(ctx context.Context, id uint, patter
 		Distinct().
 		Pluck("fats.odn", &odn).
 		Error
-
 	if err != nil {
 		return nil, err
 	}

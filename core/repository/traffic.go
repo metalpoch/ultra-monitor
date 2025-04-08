@@ -135,3 +135,32 @@ func (repo trafficRepository) GetTrafficByODN(ctx context.Context, odn string, d
 
 	return traffic, err
 }
+
+func (repo trafficRepository) GetTotalTrafficByState(ctx context.Context, ids []uint, month string) (*model.TrafficState, error) {
+	var trafficByState *model.TrafficState
+	err := repo.db.WithContext(ctx).
+		Model(&entity.Trend{}).
+		Select("SUM(bandwidth) AS bandwidth, SUM(\"in\") AS \"in\", SUM(out) AS out").
+		Where("device_id IN (?) AND Extract(MONTH FROM date) = ?", ids, month).
+		Scan(&trafficByState).
+		Error
+	return trafficByState, err
+}
+
+func (repo trafficRepository) GetTotalTrafficByState_N(ctx context.Context, date *model.TranficRangeDate, n int8) ([]*model.TrafficStateN, error) {
+	var trafficByStateN []*model.TrafficStateN
+	err := repo.db.WithContext(ctx).
+		Model(&entity.Traffic{}).
+		Select("l.state as state, SUM(traffics.\"in\") AS \"in\", SUM(traffics.out) AS out, SUM(traffics.bandwidth) AS bandwidth").
+		Joins("JOIN interfaces ON interfaces.id = traffics.interface_id").
+		Joins("JOIN fat_interfaces ON fat_interfaces.interface_id = interfaces.id").
+		Joins("JOIN fats ON fats.id = fat_interfaces.fat_id").
+		Joins("JOIN locations as l ON l.id = fats.location_id").
+		Where("traffics.date BETWEEN ? AND ?", date.InitDate, date.EndDate).
+		Group("l.state").
+		Order("out DESC").
+		Limit(int(n)).
+		Find(&trafficByStateN).
+		Error
+	return trafficByStateN, err
+}

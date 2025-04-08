@@ -40,4 +40,6 @@ type TrafficRepository interface {
 	GetTrafficByCounty(ctx context.Context, state, county string, date *model.TranficRangeDate) ([]*entity.Traffic, error)
 	GetTrafficByMunicipality(ctx context.Context, state, county, municipality string, date *model.TranficRangeDate) ([]*entity.Traffic, error)
 	GetTrafficByODN(ctx context.Context, odn string, date *model.TranficRangeDate) ([]*entity.Traffic, error)
+	GetTotalTrafficByState(ctx context.Context, id []uint, month string) (*model.TrafficState, error)
+	GetTotalTrafficByState_N(ctx context.Context, date *model.TranficRangeDate, n int8) ([]*model.TrafficStateN, error)
 }

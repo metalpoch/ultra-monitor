@@ -33,4 +33,6 @@ type TrafficUsecase interface {
 	GetTrafficByCounty(state, county string, date *model.TranficRangeDate) ([]*model.TrafficResponse, error)
 	GetTrafficByMunicipality(state, county, municipality string, date *model.TranficRangeDate) ([]*model.TrafficResponse, error)
 	GetTrafficByODN(odn string, date *model.TranficRangeDate) ([]*model.TrafficResponse, error)
+	GetTotalTrafficByState(month string) ([]*model.TrafficState, error)
+	GetTotalTrafficByState_N(date *model.TranficRangeDate, n int8) ([]*model.TrafficStateN, error)
 }

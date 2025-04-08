@@ -251,3 +251,58 @@ func (hdlr TrafficHandler) GetTrafficByODN(c fiber.Ctx) error {
 
 	return c.JSON(res)
 }
+
+// Traffic by State
+//
+// @Summary		Get a array of state traffic per device
+// @Description	get traffic by state per device
+// @Tags		traffic
+// @Produce		json
+// @Success		200			{object}	[]model.TrafficState
+// @Failure		400			{object}	object{message=string}
+// @Failure		500			{object}	object{message=string}
+// @Router		/traffic/interface/{id} [get]
+func (hdlr TrafficHandler) GetTotalTrafficByState(c fiber.Ctx) error {
+	month, err := url.QueryUnescape(c.Params("month"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	res, err := hdlr.Usecase.GetTotalTrafficByState(month)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+// Traffic by State
+//
+// @Summary		Get a array of state traffic per device
+// @Description	get traffic by state per device
+// @Tags		traffic
+// @Produce		json
+// @Success		200			{object}	[]model.TrafficState
+// @Failure		400			{object}	object{message=string}
+// @Failure		500			{object}	object{message=string}
+// @Router		/traffic/interface/{id} [get]
+func (hdlr TrafficHandler) GetTotalTrafficByState_N(c fiber.Ctx) error {
+	n, err := url.QueryUnescape(c.Params("n"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	n_int, err := strconv.ParseInt(n, 10, 8)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	query := new(model.TranficRangeDate)
+	if err := c.Bind().Query(query); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	res, err := hdlr.Usecase.GetTotalTrafficByState_N(query, int8(n_int))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}

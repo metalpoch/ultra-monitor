@@ -71,3 +71,12 @@ class AI:
         pattern = r"```sql(.*?)```"
         result = re.search(pattern, msg, re.DOTALL)
         return "" if not result else result.group(1).replace("\n", " ").strip()
+
+    def rephrase_output(self, response: list[dict]) -> str:
+        messages = [
+            {"role": "system", "content": constants.REPHRASE_PROMPT},
+            {"role": "user", "content": f"{response}"},
+        ]
+
+        res = ollama.chat(model=self.model, messages=messages)
+        return res["message"]["content"]

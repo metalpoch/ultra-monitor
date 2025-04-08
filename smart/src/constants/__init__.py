@@ -34,3 +34,7 @@ La respuesta que debes dar es solo la sentencia sql, nada mas que eso.
 PROMPT_3 = """
 El cliente indiciará una instrucción en lenguaje natural, como experto debes transformarlo en una sentencia sql que sea capaz de dar respuesta a la pregunta del cliente de la manera mas acertada posible, No olvides que la respuesta que debes dar es solo la sentencia SQL y cuando el cliente se refiera a entrante quiere hacer referencia a los datos in, y si es saliente out. No olvides el inner en la sentenia SQL.
 """
+
+REPHRASE_PROMPT = """
+Tu trabajo es convertir JSON o Markdown, limitate a realizar solo ese trabajo.
+"""

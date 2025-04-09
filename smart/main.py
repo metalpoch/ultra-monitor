@@ -6,6 +6,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from src import model
+from src import constants
 from src.database import Postgres
 from src.libs.chatbox import AI
 from src.libs.linear_regression import RegressionLineal
@@ -15,6 +16,7 @@ from src.utils import change, execute
 
 
 load_dotenv()
+
 
 telegram = Telegram(getenv("TELEGRAM_BOT_ID", ""), getenv("TELEGRAM_CHAT_ID", ""))
 app = FastAPI()
@@ -26,6 +28,8 @@ app.add_middleware(
     allow_headers=["*"],  # Permite todos los headers
 )
 db = Postgres(getenv("URI", ""))
+
+SQL_SYSTEM_PROMPT = f"{constants.PROMPT_1}\n```csv\n{db.csv_schemas()}\n```\n{constants.PROMPT_2}\n{constants.PROMPT_3}"
 
 
 @app.post("/trend")
@@ -47,41 +51,22 @@ async def linear_regression(sysname: str, future_month: int):
 
 @app.post("/chatbox")
 async def chatbox(request: model.QueryAI) -> dict:
-    # count = 0
-    ai = AI(model="gemma2:2b", schemas=db.csv_schemas())
+    ai_sql = AI(model="gemma2:2b", system_prompt=SQL_SYSTEM_PROMPT)
+    ai_output = AI(model="gemma2:2b", system_prompt=constants.REPHRASE_PROMPT)
 
     try:
-        msg = ai.query(request.message)
-        sql = ai.sql_extract(msg)
+        msg = ai_sql.query(request.message)
+        sql = ai_sql.sql_extract(msg)
+
+        res, err = db.execute_sql(sql)
+        if err is not None:
+            raise HTTPException(status_code=400, detail=msg)
+
+        output = ai_output.query(f"{res}")
+        return {"output": output}
 
     except BaseException as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-    res, err = db.execute_sql(sql)
-    if err is not None:
-        raise HTTPException(status_code=400, detail=msg)
-
-    output = ai.rephrase_output(res)
-    return {"output": output, "json_response": res, "sql": sql}
-
-    # while True:
-    #     res, err = db.execute_sql(sql)
-    #     if err is not None:
-    #         return {"response": res, "sql": sql}
-
-    #     prompt = f"""
-    #     acabo de recibir el siguiente error
-    #     {type(err).__name__}: {str(err)}
-    #     puedes darme la sentencia sql correcta? responde solo con la sentencia sql
-    #     """
-
-    #     msg = ai.query(prompt)
-    #     sql = ai.sql_extract(msg)
-
-    #     if count == 3:
-    #         raise HTTPException(status_code=400, detail=msg)
-
-    #     count += 1
 
 
 @app.post("/telegram")

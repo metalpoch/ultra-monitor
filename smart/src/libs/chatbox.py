@@ -3,8 +3,6 @@ from typing import Sequence
 
 import ollama
 
-from src import constants
-
 
 class AI:
     """
@@ -13,7 +11,7 @@ class AI:
     This class allows for creating prompts and querying the specified model.
     """
 
-    def __init__(self, model: str, schemas: str) -> None:
+    def __init__(self, model: str, system_prompt: str) -> None:
         """
         Initializes the AI class with the given model.
 
@@ -21,20 +19,7 @@ class AI:
             model (str): The name of the artificial intelligence model to use.
         """
         self.model = model
-        self.messages = [
-            {
-                "role": "system",
-                "content": f"{constants.PROMPT_1}\n```csv\n{schemas}\n```",
-            },
-            {
-                "role": "system",
-                "content": constants.PROMPT_2,
-            },
-            {
-                "role": "system",
-                "content": constants.PROMPT_3,
-            },
-        ]
+        self.messages = [{"role": "system", "content": system_prompt}]
 
     def query(self, body: str) -> str:
         """
@@ -48,7 +33,6 @@ class AI:
             str: The response from the model to the executed query.
         """
         self.messages.append({"role": "user", "content": body})
-
         sequence = self.messages  # type: Sequence
         res = ollama.chat(model=self.model, messages=sequence)
         self.messages.append(
@@ -71,12 +55,3 @@ class AI:
         pattern = r"```sql(.*?)```"
         result = re.search(pattern, msg, re.DOTALL)
         return "" if not result else result.group(1).replace("\n", " ").strip()
-
-    def rephrase_output(self, response: list[dict]) -> str:
-        messages = [
-            {"role": "system", "content": constants.REPHRASE_PROMPT},
-            {"role": "user", "content": f"{response}"},
-        ]
-
-        res = ollama.chat(model=self.model, messages=messages)
-        return res["message"]["content"]

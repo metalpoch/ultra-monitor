@@ -30,6 +30,7 @@ type InfoRepository interface {
 	GetODNDevice(ctx context.Context, id uint) ([]*string, error)
 	GetODNDevicePort(ctx context.Context, id uint, pattern string) ([]*string, error)
 	GetAllODN(ctx context.Context) ([]*string, error)
+	GetDevicesByOND(ctx context.Context, odn string) ([]*uint, error)
 }
 
 type TrafficRepository interface {
@@ -42,4 +43,5 @@ type TrafficRepository interface {
 	GetTrafficByMunicipality(ctx context.Context, state, county, municipality string, date *model.TranficRangeDate) ([]*entity.Traffic, error)
 	GetTrafficByODN(ctx context.Context, odn string, date *model.TranficRangeDate) ([]*entity.Traffic, error)
 	GetTotalTrafficByState(ctx context.Context, ids []uint, month string) (*model.TrafficState, error)
+	GetTotalTrafficByODN(ctx context.Context, ids []uint, month string) (*model.TrafficODN, error)
 }

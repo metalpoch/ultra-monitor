@@ -1,5 +1,5 @@
 package model
 
-type LocationsDevice struct {
+type RedisDevice struct {
 	Devices []uint `redis:"devices"`
 }

@@ -3,22 +3,12 @@ import BackgroundLayout from "../layouts/Inside.astro";
 import NavbarLayout from "../layouts/Navbar";
 import ChatIAComponent from "../components/ia/chat";
 import { Routes } from '../constant/routes';
-import { IAController } from "../controllers/ia";
 import { user } from '../controllers/auth';
 import { Tab } from "../constant/tab";
 
 const token = Astro.cookies.get('token');
 if (!token) return Astro.redirect(Routes.LOGIN);
 
-interface Props {
-    question: string;
-}
-
-export async function IAComponent(content: Props) {
-    if (content.question) {
-        await IAController.postQuestion(content.question);
-    }
-}
 ---
 <BackgroundLayout title={Tab.RODOLFIA}>
     <main class="w-full h-lvh absolute px-4 py-2 overflow-y-auto">
@@ -38,15 +28,15 @@ export async function IAComponent(content: Props) {
     </main>
 </BackgroundLayout>
 <script>
-    import { IAComponent } from "./rodolfia.astro";
+    import { IAController } from "../controllers/ia";
 
     const buttonMessage = document.getElementById('sendQuestionIA') as HTMLButtonElement;
-    buttonMessage.addEventListener('click', () => {
+    buttonMessage.addEventListener('click', async () => {
         const inputIA = document.getElementById('questionIA') as HTMLTextAreaElement;
         let questionIA = inputIA.value;
         if (questionIA) {
-            IAComponent({ question: questionIA });
             inputIA.value = '';
+        await IAController.postQuestion(questionIA);
         }
     });
 </script>

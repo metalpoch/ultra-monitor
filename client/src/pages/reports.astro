@@ -40,7 +40,7 @@ if (!token) return Astro.redirect(Routes.LOGIN);
                         <li>Y más...</li>
                     </ul>
                 </div>
-                <InputFileComponent user={user.get()!} type=`${TypeReports.CATASTRE}` client:load />
+                <InputFileComponent client:load />
             </section>
             <section id={`info-${TypeReports.ASF}`} class="hidden w-full h-fit lg:h-full bg-gray-55 flex-col items-start justify-start max-md:rounded-b-xl lg:rounded-r-xl">
                 <div class="w-full h-full p-6">
@@ -56,7 +56,7 @@ if (!token) return Astro.redirect(Routes.LOGIN);
                         <li>Y más...</li>
                     </ul>
                 </div>
-                <InputFileComponent user={user.get()!} type=`${TypeReports.ASF}` client:load />
+                <InputFileComponent client:load />
             </section>
             <section id={`info-${TypeReports.NAVIGATION}`} class="hidden w-full h-fit lg:h-full bg-gray-55 flex-col items-start justify-start max-md:rounded-b-xl lg:rounded-r-xl">
                 <div class="w-full h-full p-6">
@@ -76,7 +76,7 @@ if (!token) return Astro.redirect(Routes.LOGIN);
                         <li>Lista de todos los clientes de OLT con sus SVLAN y sus CVLAN correspondiente</li>
                     </ul>
                 </div>
-                <InputFileComponent user={user.get()!} type=`${TypeReports.NAVIGATION}` client:load />
+                <InputFileComponent client:load />
             </section>
         </div>
 	</main>

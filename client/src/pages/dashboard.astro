@@ -15,6 +15,7 @@ if (!token) return Astro.redirect(Routes.LOGIN);
 let loadingOneGraph = LoadStatus.EMPTY;
 loadingOneGraph = LoadStatus.LOADING;
 const trafficState = await DashboardController.getTrafficState();
+console.log(trafficState);
 loadingOneGraph = LoadStatus.LOADED;
 
 let loadingTwoGraph = LoadStatus.EMPTY;

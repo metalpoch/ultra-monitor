@@ -17,3 +17,13 @@ export interface StateTrafficSchema {
     in_bps: number;
     out_bps: number;
 }
+
+/**
+ * Schema of a measurement of traffic to a odn.
+ */
+export interface OdnTrafficSchema {
+    state: string;
+    bandwidth_bps: number;
+    in_bps: number;
+    out_bps: number;
+}

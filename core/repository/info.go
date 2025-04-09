@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/metalpoch/olt-blueprint/common/entity"
+	"github.com/metalpoch/olt-blueprint/common/model"
 	"gorm.io/gorm"
 )
 
@@ -243,4 +244,27 @@ func (repo infoRepository) GetODNDevicePort(ctx context.Context, id uint, patter
 		return nil, err
 	}
 	return odn, err
+}
+
+func (repo infoRepository) GetAllODN(ctx context.Context) ([]*string, error) {
+	var l []*string
+	err := repo.db.WithContext(ctx).Model(&entity.Fat{}).Select("DISTINCT odn").Pluck("odn", &l).Error
+	return l, err
+}
+
+func (repo infoRepository) GetDevicesByOND(ctx context.Context, odn string) ([]*uint, error) {
+	var ids []*uint
+	result := repo.db.Model(&model.Device{}).
+		Select("devices.id").
+		Joins("INNER JOIN interfaces ON devices.id = interfaces.device_id").
+		Joins("INNER JOIN fat_interfaces ON interfaces.id = fat_interfaces.interface_id").
+		Joins("INNER JOIN fats ON fat_interfaces.fat_id = fats.id").
+		Where("fats.odn = ?", odn).
+		Pluck("devices.id", &ids)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return ids, nil
 }

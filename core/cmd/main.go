@@ -14,6 +14,7 @@ import (
 	"github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
 	"github.com/metalpoch/olt-blueprint/core/router"
+	"github.com/metalpoch/olt-blueprint/core/utils"
 )
 
 var cfg model.Config
@@ -43,11 +44,12 @@ func main() {
 		JSONEncoder:     json.Marshal,
 		JSONDecoder:     json.Unmarshal,
 	})
+	redis := utils.NewRedisClient(cfg.CacheURI)
 
 	server.Use(logger.New())
 	server.Use(cors.New())
 
-	router.Setup(server, db, telegram)
+	router.Setup(server, db, telegram, redis)
 
 	server.Listen(":3001")
 }

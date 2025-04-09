@@ -392,21 +392,145 @@ func (use trafficUsecase) GetTotalTrafficByState(month string) ([]*model.Traffic
 	return traffics, err
 }
 
-func (use trafficUsecase) GetTotalTrafficByState_N(date *model.TranficRangeDate, n int8) ([]*model.TrafficStateN, error) {
-
+func (use trafficUsecase) GetTotalTrafficByState_N(month string, n int) ([]*model.TrafficState, error) {
+	var traffics []*model.TrafficState
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
 
-	res, err := use.repo.GetTotalTrafficByState_N(ctx, date, n)
+	//Pregunta por todos los estados almacenados en la base de datos
+	states, err := use.repoinfo.GetLocationStates(ctx)
 	if err != nil {
 		go use.telegram.SendMessage(
 			constants.MODULE_TRAFFIC,
 			constants.CATEGORY_DATABASE,
-			fmt.Sprintf("(trafficUsecase).GetTrafficByODN - use.repo.GetTrafficByODN(ctx, %s, %d)", date, n),
+			"(trafficUsecase).GetTotalTrafficByState - use.repoinfo.GetLocationStates(ctx)",
 			err,
 		)
 		return nil, err
 	}
+	//Recorre la lista de estados
+	for _, state := range states {
+		//Verifica si existe el estado en redis
+		exist := utils.VerifyExistence(use.redis, *state, ctx)
+		if exist {
+			//Si existe, obtiene el json con  los ids de todos los devices para ese estado
+			retrievedData, err := use.redis.Get(ctx, *state).Result()
+			if err != nil {
+				go use.telegram.SendMessage(
+					constants.MODULE_TRAFFIC,
+					constants.CATEGORY_DATABASE,
+					"(trafficUsecase).GetTotalTrafficByState - use.repoinfo.GetLocationStates(ctx)",
+					err,
+				)
+				return nil, err
+			}
+			//Parsea el json obtenido a un objeto LocationsDevice
+			var retrievedLocations core.LocationsDevice
+			retrievedLocations, err = utils.DeserializeModel(retrievedData)
+			if err != nil {
+				go use.telegram.SendMessage(
+					constants.MODULE_TRAFFIC,
+					constants.CATEGORY_DATABASE,
+					"(trafficUsecase).GetTotalTrafficByState - use.repoinfo.GetLocationStates(ctx)",
+					err,
+				)
+				return nil, err
+			}
+			//Pregunta por el total de trafico por device para ese estado
+			res, err := use.repo.GetTotalTrafficByState(ctx, retrievedLocations.Devices, month)
+			if err != nil {
+				go use.telegram.SendMessage(
+					constants.MODULE_TRAFFIC,
+					constants.CATEGORY_DATABASE,
+					"(trafficUsecase).GetTrafficByODN - use.repo.GetTrafficByODN(ctx)",
+					err,
+				)
+				return nil, err
+			}
+			res.State = *state
+			traffics = append(traffics, res)
+		} else {
+			//Si no existe, pregunta a la base de datos por los ids de todos los devices para ese estado
+			var devices []uint
+			devicesEntity, err := use.repoinfo.GetDeviceByState(ctx, *state)
+			if err != nil {
+				go use.telegram.SendMessage(
+					constants.MODULE_TRAFFIC,
+					constants.CATEGORY_DATABASE,
+					"(trafficUsecase).GetTrafficByODN - use.repo.GetTrafficByODN(ctx)",
+					err,
+				)
+				return nil, err
+			}
+			if devicesEntity == nil {
+				continue
+			}
+			for _, deviceEntity := range devicesEntity {
+				devices = append(devices, deviceEntity.ID)
+			}
+			//Crea un objeto LocationsDevice con los ids de todos los devices para ese estado
+			locationsDevices := core.LocationsDevice{
+				Devices: devices,
+			}
+			//Parsea el objeto LocationsDevice a json
+			jsonData, err := utils.SerializeModel(locationsDevices)
+			if err != nil {
+				go use.telegram.SendMessage(
+					constants.MODULE_TRAFFIC,
+					constants.CATEGORY_DATABASE,
+					"(trafficUsecase).GetTrafficByODN - use.repo.GetTrafficByODN(ctx)",
+					err,
+				)
+				return nil, err
+			}
+			//Guarda el json en redis
+			err = use.redis.Set(ctx, *state, jsonData, time.Hour*24).Err()
+			if err != nil {
+				go use.telegram.SendMessage(
+					constants.MODULE_TRAFFIC,
+					constants.CATEGORY_DATABASE,
+					"(trafficUsecase).GetTrafficByODN - use.repo.GetTrafficByODN(ctx)",
+					err,
+				)
+				return nil, err
+			}
+			//Repite el mismo proceso para extraer los ids de todos los devices para ese estado
+			retrievedData, err := use.redis.Get(ctx, *state).Result()
+			if err != nil {
+				go use.telegram.SendMessage(
+					constants.MODULE_TRAFFIC,
+					constants.CATEGORY_DATABASE,
+					"(trafficUsecase).GetTotalTrafficByState - use.repoinfo.GetLocationStates(ctx)",
+					err,
+				)
+				return nil, err
+			}
+			var retrievedLocations core.LocationsDevice
+			retrievedLocations, err = utils.DeserializeModel(retrievedData)
+			if err != nil {
+				go use.telegram.SendMessage(
+					constants.MODULE_TRAFFIC,
+					constants.CATEGORY_DATABASE,
+					"(trafficUsecase).GetTotalTrafficByState - use.repoinfo.GetLocationStates(ctx)",
+					err,
+				)
+				return nil, err
+			}
+			res, err := use.repo.GetTotalTrafficByState(ctx, retrievedLocations.Devices, month)
+			if err != nil {
+				go use.telegram.SendMessage(
+					constants.MODULE_TRAFFIC,
+					constants.CATEGORY_DATABASE,
+					"(trafficUsecase).GetTrafficByODN - use.repo.GetTrafficByODN(ctx)",
+					err,
+				)
+				return nil, err
+			}
+			res.State = *state
+			traffics = append(traffics, res)
+		}
+	}
 
-	return res, err
+	topN := utils.SortTrafficStatesByOut(traffics, n)
+	return topN, err
 }

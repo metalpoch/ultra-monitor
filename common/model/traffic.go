@@ -33,10 +33,3 @@ type TrafficState struct {
 	Out       uint64 `json:"out_bps"`
 	Bandwidth uint64 `json:"bandwidth_bps"`
 }
-
-type TrafficStateN struct {
-	State     string  `json:"state"`
-	In        float64 `json:"in_bps"`
-	Out       float64 `json:"out_bps"`
-	Bandwidth float64 `json:"bandwidth_bps"`
-}

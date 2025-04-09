@@ -286,6 +286,10 @@ func (hdlr TrafficHandler) GetTotalTrafficByState(c fiber.Ctx) error {
 // @Failure		500			{object}	object{message=string}
 // @Router		/traffic/interface/{id} [get]
 func (hdlr TrafficHandler) GetTotalTrafficByState_N(c fiber.Ctx) error {
+	month, err := url.QueryUnescape(c.Params("month"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
 	n, err := url.QueryUnescape(c.Params("n"))
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -295,11 +299,7 @@ func (hdlr TrafficHandler) GetTotalTrafficByState_N(c fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	query := new(model.TranficRangeDate)
-	if err := c.Bind().Query(query); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-	res, err := hdlr.Usecase.GetTotalTrafficByState_N(query, int8(n_int))
+	res, err := hdlr.Usecase.GetTotalTrafficByState_N(month, int(n_int))
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

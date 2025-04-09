@@ -244,3 +244,9 @@ func (repo infoRepository) GetODNDevicePort(ctx context.Context, id uint, patter
 	}
 	return odn, err
 }
+
+func (repo infoRepository) GetAllODN(ctx context.Context) ([]*string, error) {
+	var l []*string
+	err := repo.db.WithContext(ctx).Model(&entity.Fat{}).Select("DISTINCT odn").Pluck("odn", &l).Error
+	return l, err
+}

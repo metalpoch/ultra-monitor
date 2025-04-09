@@ -275,7 +275,7 @@ func (hdlr TrafficHandler) GetTotalTrafficByState(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-// Traffic by State
+// Traffic by TOP N State
 //
 // @Summary		Get a array of state traffic per device
 // @Description	get traffic by state per device
@@ -300,6 +300,29 @@ func (hdlr TrafficHandler) GetTotalTrafficByState_N(c fiber.Ctx) error {
 	}
 
 	res, err := hdlr.Usecase.GetTotalTrafficByState_N(month, int(n_int))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+// Traffic by ODN
+//
+// @Summary		Get a array of ODN traffic per device
+// @Description	get traffic by ODN per device
+// @Tags		traffic
+// @Produce		json
+// @Success		200			{object}	[]model.TrafficState
+// @Failure		400			{object}	object{message=string}
+// @Failure		500			{object}	object{message=string}
+// @Router		/traffic/interface/{id} [get]
+func (hdlr TrafficHandler) GetTotalTrafficByOND(c fiber.Ctx) error {
+	month, err := url.QueryUnescape(c.Params("month"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	res, err := hdlr.Usecase.GetTotalTrafficByOND(month)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

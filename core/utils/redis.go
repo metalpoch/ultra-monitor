@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/metalpoch/olt-blueprint/core/model"
+	core "github.com/metalpoch/olt-blueprint/core/model"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -16,7 +16,7 @@ func NewRedisClient(url string) *redis.Client {
 	return redis.NewClient(opt)
 }
 
-func SerializeModel(ld model.LocationsDevice) (string, error) {
+func SerializeModel(ld core.RedisDevice) (string, error) {
 	jsonData, err := json.Marshal(ld)
 	if err != nil {
 		return "", err
@@ -24,11 +24,11 @@ func SerializeModel(ld model.LocationsDevice) (string, error) {
 	return string(jsonData), nil
 }
 
-func DeserializeModel(jsonData string) (model.LocationsDevice, error) {
-	var ld model.LocationsDevice
+func DeserializeModel(jsonData string) (core.RedisDevice, error) {
+	var ld core.RedisDevice
 	err := json.Unmarshal([]byte(jsonData), &ld)
 	if err != nil {
-		return model.LocationsDevice{}, err
+		return core.RedisDevice{}, err
 	}
 	return ld, nil
 }

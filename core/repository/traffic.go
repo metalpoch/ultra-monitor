@@ -146,3 +146,14 @@ func (repo trafficRepository) GetTotalTrafficByState(ctx context.Context, ids []
 		Error
 	return trafficByState, err
 }
+
+func (repo trafficRepository) GetTotalTrafficByODN(ctx context.Context, ids []uint, month string) (*model.TrafficODN, error) {
+	var trafficByState *model.TrafficODN
+	err := repo.db.WithContext(ctx).
+		Model(&entity.Trend{}).
+		Select("SUM(bandwidth) AS bandwidth, SUM(\"in\") AS \"in\", SUM(out) AS out").
+		Where("device_id IN (?) AND Extract(MONTH FROM date) = ?", ids, month).
+		Scan(&trafficByState).
+		Error
+	return trafficByState, err
+}

@@ -35,4 +35,5 @@ type TrafficUsecase interface {
 	GetTrafficByODN(odn string, date *model.TranficRangeDate) ([]*model.TrafficResponse, error)
 	GetTotalTrafficByState(month string) ([]*model.TrafficState, error)
 	GetTotalTrafficByState_N(month string, n int) ([]*model.TrafficState, error)
+	GetTotalTrafficByOND(month string) ([]*model.TrafficODN, error)
 }

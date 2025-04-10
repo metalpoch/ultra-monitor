@@ -18,6 +18,8 @@ jobs:
     strategy:
       matrix:
         module: ["auth", "core", "report", "measurement", "client", "smart"]
+    outputs:
+      matrix_results: ${{ steps.set-outputs.outputs.matrix_results }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -30,6 +32,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image for ${{ matrix.module }}
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: . 
@@ -39,18 +42,56 @@ jobs:
             ghcr.io/${{ github.repository }}/${{ matrix.module }}:latest
             ghcr.io/${{ github.repository }}/${{ matrix.module }}:${{ github.sha }}
 
-      - name: Telegram Alert
-        id: telegram
+      - name: Set outputs
+        id: set-outputs
+        if: always()
+        run: |
+          echo "${{ matrix.module }}=${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "matrix_results=${{ matrix.module }}=${{ job.status }}" >> $GITHUB_OUTPUT
+
+  send-summary:
+    needs: build-and-push-images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Telegram message
+        id: create-message
+        run: |
+          # Parse the matrix results from the previous job
+          IFS=',' read -ra results <<< "${{ join(needs.build-and-push-images.outputs.matrix_results, ',') }}"
+          
+          declare -A status_map
+          for result in "${results[@]}"; do
+            IFS='=' read -r module status <<< "$result"
+            status_map["$module"]="$status"
+          done
+          
+          # Create the message
+          message="*Docker Images Builder Summary*\n\n"
+          message+="*🎟 Event:* \`${{ github.event_name }} on ${{ github.ref_name }}\`\n\n"
+          message+="*🔑 SHA:* \`${{ github.sha }}\`\n\n"
+          message+="*📝 Commit:* \`${{ github.event.head_commit.message }}\`\n\n"
+          message+="*📦 Modules Build Status:*\n"
+          
+          # Add status for each module
+          modules=("auth" "core" "report" "measurement" "client" "smart")
+          for module in "${modules[@]}"; do
+            if [[ "${status_map[$module]}" == "success" ]]; then
+              message+="✅ $module\n"
+            else
+              message+="❌ $module\n"
+            fi
+          done
+          
+          message+="\n*🔗 Links:*\n"
+          message+="\t[🗃 Changes](https://github.com/${{ github.repository }}/commit/${{ github.sha }})\n"
+          message+="\t[📦 Packages](https://github.com/${{ github.repository }}/pkgs/container/)"
+          
+          echo "message=$message" >> $GITHUB_OUTPUT
+
+      - name: Send Telegram notification
         uses: metalpoch/telegram-alerts-action@v1
         with:
           bot-token-id: ${{ secrets.BOT_TOKEN_ID }}
           chat-id: ${{ secrets.CHAT_ID }}
           disable-web-page-preview: true
-          text: "*Docker Imagen Builder*\n\n
-            *📦 Module:* `${{ matrix.module }}`\n\n
-            *🎟 Event:* `${{ github.event_name }} on ${{ github.ref_name }}`\n\n
-            *🔑 SHA:* `${{ github.sha }}`\n\n
-            *📝 Commit:* `${{ github.event.head_commit.message }}`\n\n
-            *🔗 Links:*\n
-            \t\t\t\t[🗃 Changes](https://github.com/${{ github.repository }}/commit/${{ github.sha }})\n
-            \t\t\t\t[📦 Releases](ghcr.io/${{ github.repository }}/${{ matrix.module }})"
+          text: ${{ steps.create-message.outputs.message }}

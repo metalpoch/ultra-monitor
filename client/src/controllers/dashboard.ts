@@ -1,5 +1,7 @@
 import { getMonth } from "../utils/date";
 import type { StateTrafficSchema } from "../schemas/measurement";
+import type { OdnTrafficSchema } from "../schemas/measurement";
+import { DashboardService } from "../services/dashboard";
 
 export class DashboardController {
     /**
@@ -7,12 +9,36 @@ export class DashboardController {
      */
     static async getTrafficState(): Promise<StateTrafficSchema[]> {
         const monthConsult = getMonth();
-        const response = { status: 200, data: [] as StateTrafficSchema[], err: { message: null } };
-        if (response.status === 200 && response.data) {           
-            return response.data as StateTrafficSchema[];
+        const response =  await DashboardService.gettrafficbystate(monthConsult);
+        if (response.status === 200 ) {           
+            return response.info as StateTrafficSchema[];
         } else {
-            console.error(response.err!.message);
+            console.error(response.info!.message);
             return [];
         }
-}
+    }
+
+    static async gettrafficbystatetopN(): Promise<StateTrafficSchema[]> {
+        const monthConsult = getMonth();
+        var n = 5;
+        const response =  await DashboardService.gettrafficbystatetopN(monthConsult, n);
+        if (response.status === 200 ) {           
+            return response.info as StateTrafficSchema[];
+        } else {
+            console.error(response.info!.message);
+            return [];
+        }
+    }
+
+    static async gettrafficbyodn(): Promise<OdnTrafficSchema[]> {
+        const monthConsult = getMonth();
+        const response =  await DashboardService.gettrafficbyodn(monthConsult);
+        if (response.status === 200 ) {           
+            return response.info as OdnTrafficSchema[];
+        } else {
+            console.error(response.info!.message);
+            return [];
+        }
+    }
+
 }

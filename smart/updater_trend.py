@@ -23,9 +23,6 @@ def year(year: str):
         year = int(year)
         if year < 2023 or int(datetime.now().strftime("%Y")) < year:
             raise Exception("Error: Year must be greater than 2023.")
-        month = int(month)
-        if month > 12 or month < 1:
-            raise Exception("Error: Month must be a number between 1 and 12.")
     except ValueError:
         print("Error: Year and month must be integers.")
         exit(1)

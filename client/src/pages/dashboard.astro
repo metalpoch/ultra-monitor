@@ -3,6 +3,7 @@ import NavbarLayout from '../layouts/Navbar';
 import BackgroundLayout from '../layouts/Inside.astro';
 import LineTrafficStateGraphComponent from '../components/graphic/lineState';
 import LineGraphComponent from '../components/graphic/line';
+import LineGraphComponentOdn from '../components/graphic/lineOdn';
 import { DashboardController } from '../controllers/dashboard';
 import { LoadStatus } from '../constant/loadStatus';
 import { Routes } from '../constant/routes';
@@ -19,12 +20,12 @@ loadingOneGraph = LoadStatus.LOADED;
 
 let loadingTwoGraph = LoadStatus.EMPTY;
 loadingTwoGraph	= LoadStatus.LOADING;
-const dataTwoGraph = [];
+const dataTwoGraph = await DashboardController.gettrafficbystatetopN();
 loadingTwoGraph = LoadStatus.LOADED;
 
 let loadingThreeGraph = LoadStatus.EMPTY;
 loadingThreeGraph = LoadStatus.LOADING;
-let dataThreeGraph = [];
+let dataThreeGraph = await DashboardController.gettrafficbyodn();
 loadingThreeGraph = LoadStatus.LOADED;
 
 let loadingfourGraph = LoadStatus.EMPTY;
@@ -38,10 +39,10 @@ loadingfourGraph = LoadStatus.LOADED;
 		<NavbarLayout user={user.get()!} pathname={Astro.url.pathname} client:load/>
 		<section id="first-graph" class="w-full h-fit max-h-fit flex flex-col flex-nowrap gap-4 md:flex-row md:gap-1">
 			<LineTrafficStateGraphComponent loading={loadingOneGraph} title="Trafico por Estado" canvasID="traffic-state" data={trafficState} client:load />
-			<LineGraphComponent loading={loadingTwoGraph} title="Trafico por Estado" canvasID="traffic-two" data={dataTwoGraph} client:load />
+			<LineTrafficStateGraphComponent loading={loadingTwoGraph} title="Top 5 Trafico por Estado" canvasID="traffic-two" data={dataTwoGraph} client:load />
 		</section>
 		<section id="second-graph" class="w-full flex flex-col gap-4 md:flex-row md:gap-1">
-			<LineGraphComponent loading={loadingThreeGraph} title="Trafico por Estado" canvasID="traffic-three" data={dataThreeGraph} client:load />
+			<LineGraphComponentOdn loading={loadingThreeGraph} title="Trafico por ODN" canvasID="traffic-three" data={dataThreeGraph} client:load />
 			<LineGraphComponent loading={loadingfourGraph} title="Trafico por Estado" canvasID="traffic-four" data={dataFourGraph} client:load />
 		</section>
 	</main>

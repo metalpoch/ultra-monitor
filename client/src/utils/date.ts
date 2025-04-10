@@ -11,7 +11,7 @@ export function getMonthString(month: number): string {
 /**
  * Get the month.
  */
-export function getMonth(): string {
+export function getTrendMonth(): string {
     let pastMonth: string;
     const currentDate = new Date();
 
@@ -20,6 +20,22 @@ export function getMonth(): string {
 
     let day = currentDate.getDay() - 1;
     if (day < 20) month = month + 1;
+
+    if (month <= 9) pastMonth = `0${month}`;
+    else pastMonth = `${month}`;
+    return pastMonth;
+}
+
+
+export function getPreviousMonth(): string {
+    let pastMonth: string;
+    const currentDate = new Date();
+
+    let month = currentDate.getMonth() ;
+    if (month == 1) month = 12;
+
+    let day = currentDate.getDay() ;
+    if (day < 20) month = month ;
 
     if (month <= 9) pastMonth = `0${month}`;
     else pastMonth = `${month}`;

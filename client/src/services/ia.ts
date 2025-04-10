@@ -15,7 +15,7 @@ export class IAService {
      */
     static async postQuestion(question: QuestionIASchema): Promise<{ status: (number | null), info: (any | ErrorHandler) }> {
         try {
-            const response = await fetch(`${this.url}/chatbox/`, {
+            const response = await fetch(`${this.url}/chatbox`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

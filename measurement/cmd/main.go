@@ -39,7 +39,7 @@ func main() {
 	app := &cli.App{
 		Name:        constants.CLI_TITLE,
 		Description: constants.CLI_DESCRIPTION,
-		Authors:     []*cli.Author{{Name: "Keiber Urbila", Email: "keiberup.dev@gmail.com"}},
+		Authors:     []*cli.Author{{Name: "Wilman Grandett", Email: "wlmangrandett26@gmail.com"}},
 		Commands: []*cli.Command{
 			{
 				Name:  "template",

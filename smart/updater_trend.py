@@ -38,6 +38,7 @@ def year(year: str):
     for device in res_devices:
         devices.append(device[0])
 
+
     date_now = datetime.now()
     month_now = date_now.month
     months = date.day_per_month(year)
@@ -166,6 +167,5 @@ def month(year: str, month: str):
 
 
 if __name__ == "__main__":
-    cli()
-    
+    year(2025)
     

@@ -167,5 +167,5 @@ def month(year: str, month: str):
 
 
 if __name__ == "__main__":
-    year(2025)
+    cli()
     

@@ -36,7 +36,7 @@ if (!token) return Astro.redirect(Routes.LOGIN);
         let questionIA = inputIA.value;
         if (questionIA) {
             inputIA.value = '';
-        await IAController.postQuestion(questionIA);
+            await IAController.postQuestion(questionIA);
         }
     });
 </script>

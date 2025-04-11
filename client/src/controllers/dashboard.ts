@@ -9,7 +9,7 @@ export class DashboardController {
      */
     static async getTrafficState(): Promise<StateTrafficSchema[]> {
         const monthConsult = getPreviousMonth();
-        const response = await DashboardService.gettrafficbystate(monthConsult);
+        const response = await DashboardService.getTrafficByState(monthConsult);
         console.log(response);
         if (response.status === 200 ) {           
             return response.info as StateTrafficSchema[];
@@ -19,10 +19,13 @@ export class DashboardController {
         }
     }
 
-    static async gettrafficbystatetopN(): Promise<StateTrafficSchema[]> {
+    /**
+     * Get traffic top N to state to dashboard. 
+     * @param {number} n Top N to get. Default N is 5.
+     */
+    static async getTrafficByStateTopN(n: number = 5): Promise<StateTrafficSchema[]> {
         const monthConsult = getPreviousMonth();
-        var n = 5;
-        const response =  await DashboardService.gettrafficbystatetopN(monthConsult, n);
+        const response =  await DashboardService.getTrafficByStateTopN(monthConsult, n);
         if (response.status === 200 ) {           
             return response.info as StateTrafficSchema[];
         } else {
@@ -31,9 +34,12 @@ export class DashboardController {
         }
     }
 
-    static async gettrafficbyodn(): Promise<OdnTrafficSchema[]> {
+    /**
+     * Get traffic to ODN to dashboard.
+     */
+    static async getTrafficByOdn(): Promise<OdnTrafficSchema[]> {
         const monthConsult = getPreviousMonth();
-        const response =  await DashboardService.gettrafficbyodn(monthConsult);
+        const response =  await DashboardService.getTrafficByOdn(monthConsult);
         if (response.status === 200 ) {           
             return response.info as OdnTrafficSchema[];
         } else {

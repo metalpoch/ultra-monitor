@@ -20,12 +20,12 @@ loadingOneGraph = LoadStatus.LOADED;
 
 let loadingTwoGraph = LoadStatus.EMPTY;
 loadingTwoGraph	= LoadStatus.LOADING;
-const dataTwoGraph = await DashboardController.gettrafficbystatetopN();
+const dataTwoGraph = await DashboardController.getTrafficByStateTopN();
 loadingTwoGraph = LoadStatus.LOADED;
 
 let loadingThreeGraph = LoadStatus.EMPTY;
 loadingThreeGraph = LoadStatus.LOADING;
-let dataThreeGraph = await DashboardController.gettrafficbyodn();
+let dataThreeGraph = await DashboardController.getTrafficByOdn();
 loadingThreeGraph = LoadStatus.LOADED;
 
 let loadingfourGraph = LoadStatus.EMPTY;

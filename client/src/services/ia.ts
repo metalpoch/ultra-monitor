@@ -1,5 +1,4 @@
-import type { QuestionIASchema } from "../schemas/question.ia";
-import type { AnswerIASchema } from "../schemas/answer.ia";
+import type { AnswerIASchema } from "../schemas/ia";
 import { ErrorHandler } from "../lib/errors";
 
 /**
@@ -11,16 +10,16 @@ export class IAService {
     /**
      * Request API to post a question to the IA.
      * 
-     * @param {QuestionIASchema} question Question to be posted.
+     * @param {string} question Question to be posted.
      */
-    static async postQuestion(question: QuestionIASchema): Promise<{ status: (number | null), info: (any | ErrorHandler) }> {
+    static async postQuestion(question: string): Promise<{ status: (number | null), info: (any | ErrorHandler) }> {
         try {
-            const response = await fetch(`${this.url}/chatbox/`, {
+            const response = await fetch(`${this.url}/chatbox`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify(question)
+                body: JSON.stringify({"message": question})
             });
             if (response.ok) return { status: response.status, info: await response.json() as AnswerIASchema };
             else return { status: response.status, info: new ErrorHandler(response.status, response.statusText) };

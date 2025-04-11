@@ -1,6 +1,5 @@
 import { atom } from "nanostores";
 import { IAService } from "../services/ia";
-import type { QuestionIASchema } from "../schemas/question.ia";
 
 export const questionIA = atom<string | null>(null);
 export const answerIA = atom<string | null>(null);
@@ -17,16 +16,13 @@ export class IAController {
      * @param {string} question Text of the question.
      */
     static async postQuestion(question: string): Promise<void> {
-        let currentQuestion: QuestionIASchema = { message: question }
         loadingIA.set(true);
         questionIA.set(question);
 
-        const response = await IAService.postQuestion(currentQuestion);
-        console.log(question);
-        console.log(response);
+        const response = await IAService.postQuestion(question);
 
         if (response.status === 200) {
-            let answer = response.info.response;
+            let answer = response.info.output;
             answerIA.set(answer);
             loadingIA.set(false);
         } else {

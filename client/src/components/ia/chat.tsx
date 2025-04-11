@@ -2,6 +2,8 @@ import SpinnerBasicComponent from '../spinner/basic';
 import { answerIA, loadingIA } from '../../controllers/ia';
 import { questionIA } from '../../controllers/ia';
 import { useStore } from '@nanostores/react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import React, { useState, useEffect } from 'react';
 
 /**
@@ -19,6 +21,7 @@ export default function ChatIAComponent() {
     const $answerIA = useStore(answerIA);
     const $questionIA = useStore(questionIA);
     const $loadingIA = useStore(loadingIA);
+
 
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState<DataIAProps[]>([]);
@@ -47,7 +50,7 @@ export default function ChatIAComponent() {
                 {data.map((consult: DataIAProps, index: number) => (
                     <section key={index}>
                         {consult.question && consult.answer && <h2 className="text-2xl text-gray-700 font-bold">{consult.question}</h2>}
-                        {consult.question && consult.answer && <p className='text-base text-gray-700 px-4'>{consult.answer}</p>}
+                        {consult.question && consult.answer && <ReactMarkdown remarkPlugins={[remarkGfm]}>{consult.answer}</ReactMarkdown>}
                     </section>
                 ))}
             </div>

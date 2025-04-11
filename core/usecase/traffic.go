@@ -223,7 +223,7 @@ func (use trafficUsecase) GetTrafficByMunicipality(state, county, municipality s
 }
 
 func (use trafficUsecase) GetTrafficByODN(odn string, date *model.TranficRangeDate) ([]*model.TrafficResponse, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
 	res, err := use.repo.GetTrafficByODN(ctx, odn, date)

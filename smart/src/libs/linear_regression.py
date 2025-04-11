@@ -65,12 +65,17 @@ class RegressionLineal:
         in_ = []
 
         mseIn, predictionsIn = RegressionLineal.get_in(df, month)
+        floatPredictionsIn=float(predictionsIn[0][0])
+        if floatPredictionsIn<0:
+            floatPredictionsIn=0
         in_.append(
-            {"mse": mseIn, "predictions": gbits_to_bits(float(predictionsIn[0][0]))}
+            {"mse": mseIn, "predictions": gbits_to_bits(floatPredictionsIn)}
         )
         mseOut, predictionsOut = RegressionLineal.get_out(df, month)
+        floatPredictionsOut=float(predictionsOut[0][0])
+        if floatPredictionsOut<0:
+            floatPredictionsOut=0
         out.append(
-            {"mse": mseOut, "predictions": gbits_to_bits(float(predictionsOut[0][0]))}
+            {"mse": mseOut, "predictions": gbits_to_bits(floatPredictionsOut)}
         )
-
         return out, in_

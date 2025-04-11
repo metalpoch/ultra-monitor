@@ -3,6 +3,7 @@ import { answerIA, loadingIA } from '../../controllers/ia';
 import { questionIA } from '../../controllers/ia';
 import { useStore } from '@nanostores/react';
 import ReactMarkdown from 'react-markdown';
+import { FailedIAResponse } from '../../constant/strings';
 import remarkGfm from 'remark-gfm';
 import React, { useState, useEffect } from 'react';
 
@@ -22,30 +23,34 @@ export default function ChatIAComponent() {
     const $questionIA = useStore(questionIA);
     const $loadingIA = useStore(loadingIA);
 
-
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState<DataIAProps[]>([]);
+
+
 
     const handlerLoading = (status: boolean = false) => {
         setLoading(status);
     }
 
-    useEffect(() => {
-        let newData: DataIAProps = { question: $questionIA, answer: $answerIA };
-        setData([...data, newData]);
-    }, [$answerIA, $questionIA]);
+    const handlerNewAnswer = (consult: DataIAProps) => {
+        setData([...data, consult]);
+    }
 
     useEffect(() => {
         handlerLoading($loadingIA);
+        if ($questionIA && $answerIA && !$loadingIA) {
+            let newData: DataIAProps = { question: $questionIA, answer: $answerIA };
+            handlerNewAnswer(newData);
+        }
     }, [$loadingIA]);
 
     return (<>
-        {!loading && data && data.length <= 1 && 
+        {!loading && data && data.length <= 0 && 
             <div className="w-full h-full bg-gray-55 rounded-xl shadow-xl flex flex-col items-center justify-center drop-shadow-[1px_1px_2px_rgba(0,0,0,0.25)]">
                 <h2 className="text-2xl text-blue-700 font-bold">Hola, usuario</h2>
             </div>
         }
-        {!loading && data && data.length > 1 && 
+        {!loading && data && data.length > 0 && 
             <div className="w-full h-full max-h-full overflow-y-auto bg-gray-55 rounded-xl shadow-xl flex flex-col px-6 py-8">
                 {data.map((consult: DataIAProps, index: number) => (
                     <section key={index}>

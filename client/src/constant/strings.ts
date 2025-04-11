@@ -8,3 +8,5 @@ export const Strings = {
     LOCATION: "location",
     ODN: "odn",
 }
+
+export const FailedIAResponse = "No se pudo responder a tu pregunta. Inténtalo más tarde.";

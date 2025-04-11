@@ -1,5 +1,6 @@
 import { atom } from "nanostores";
 import { IAService } from "../services/ia";
+import { FailedIAResponse } from "../constant/strings";
 
 export const questionIA = atom<string | null>(null);
 export const answerIA = atom<string | null>(null);
@@ -26,7 +27,7 @@ export class IAController {
             answerIA.set(answer);
             loadingIA.set(false);
         } else {
-            answerIA.set("No se pudo responder a tu pregunta. Inténtalo más tarde.");
+            answerIA.set(FailedIAResponse);
             loadingIA.set(false);
         }
     }

@@ -15,7 +15,7 @@ export class AuthService {
      */
     static async login(body: AuthSchema): Promise<{ status: (number | null), info: (any | ErrorHandler) }> {
         try {
-            const response = await fetch(`${this.url}/api/auth/login`, {
+            const response = await fetch(`${this.url}/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

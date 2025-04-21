@@ -4,7 +4,7 @@ import { ErrorHandler } from "../lib/errors";
  * @class Handler of all OLT device requests for the API.
  */
 export class DeviceService {
-    private static url: string = process.env.PUBLIC_API_CORE || import.meta.env.PUBLIC_API_CORE;
+    private static url: string = process.env.PUBLIC_API_CORE ?? import.meta.env.PUBLIC_API_CORE;
 
 
     /**

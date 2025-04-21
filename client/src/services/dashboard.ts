@@ -2,7 +2,7 @@ import { ErrorHandler } from "../lib/errors";
 
 
 export class DashboardService {
-    private static url: string = process.env.PUBLIC_API_CORE || import.meta.env.PUBLIC_API_CORE;
+    private static url: string = process.env.PUBLIC_API_CORE ?? import.meta.env.PUBLIC_API_CORE;
 
 
     /**

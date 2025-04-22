@@ -7,6 +7,10 @@ import (
 	"gorm.io/gorm"
 )
 
+type LocationRepository interface {
+	Add(ctx context.Context, location *entity.Location) error
+	Find(ctx context.Context, location *entity.Location) error
+}
 type locationRepository struct {
 	db *gorm.DB
 }

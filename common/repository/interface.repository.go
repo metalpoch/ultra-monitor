@@ -9,6 +9,13 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+type InterfaceRepository interface {
+	Get(ctx context.Context, id uint) (*entity.Interface, error)
+	Upsert(ctx context.Context, element *entity.Interface) error
+	GetAll(ctx context.Context) ([]*entity.Interface, error)
+	GetAllByDevice(ctx context.Context, id uint) ([]*entity.Interface, error)
+}
+
 type interfaceRepository struct {
 	db *gorm.DB
 }

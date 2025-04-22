@@ -13,16 +13,16 @@ import (
 	"gorm.io/gorm"
 )
 
-type interfaceUsecase struct {
+type InterfaceUsecase struct {
 	repo     repository.InterfaceRepository
 	telegram tracking.SmartModule
 }
 
-func NewInterfaceUsecase(db *gorm.DB, telegram tracking.SmartModule) *interfaceUsecase {
-	return &interfaceUsecase{repository.NewInterfaceRepository(db), telegram}
+func NewInterfaceUsecase(db *gorm.DB, telegram tracking.SmartModule) *InterfaceUsecase {
+	return &InterfaceUsecase{repository.NewInterfaceRepository(db), telegram}
 }
 
-func (use interfaceUsecase) Upsert(element *model.Interface) error {
+func (use InterfaceUsecase) Upsert(element *model.Interface) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	err := use.repo.Upsert(ctx, (*entity.Interface)(element))
@@ -38,7 +38,7 @@ func (use interfaceUsecase) Upsert(element *model.Interface) error {
 	return err
 }
 
-func (use interfaceUsecase) GetAllByDevice(id uint) ([]*model.Interface, error) {
+func (use InterfaceUsecase) GetAllByDevice(id uint) ([]*model.Interface, error) {
 	var interfaces []*model.Interface
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -61,7 +61,7 @@ func (use interfaceUsecase) GetAllByDevice(id uint) ([]*model.Interface, error) 
 	return interfaces, nil
 }
 
-func (use interfaceUsecase) GetAll() ([]*model.Interface, error) {
+func (use InterfaceUsecase) GetAll() ([]*model.Interface, error) {
 	var interfaces []*model.Interface
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

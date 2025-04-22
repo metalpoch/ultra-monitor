@@ -13,16 +13,16 @@ import (
 	"gorm.io/gorm"
 )
 
-type trafficUsecase struct {
+type TrafficUsecase struct {
 	repo     repository.TrafficRepository
 	telegram tracking.SmartModule
 }
 
-func NewTrafficUsecase(db *gorm.DB, telegram tracking.SmartModule) *trafficUsecase {
-	return &trafficUsecase{repository.NewTrafficRepository(db), telegram}
+func NewTrafficUsecase(db *gorm.DB, telegram tracking.SmartModule) *TrafficUsecase {
+	return &TrafficUsecase{repository.NewTrafficRepository(db), telegram}
 }
 
-func (use trafficUsecase) Add(traffic *model.Traffic) error {
+func (use TrafficUsecase) Add(traffic *model.Traffic) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

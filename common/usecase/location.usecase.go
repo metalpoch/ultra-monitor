@@ -13,16 +13,16 @@ import (
 	"gorm.io/gorm"
 )
 
-type locationUsecase struct {
+type LocationUsecase struct {
 	repo     repository.LocationRepository
 	telegram tracking.SmartModule
 }
 
-func NewLocationUsecase(db *gorm.DB, telegram tracking.SmartModule) *locationUsecase {
-	return &locationUsecase{repository.NewLocationRepository(db), telegram}
+func NewLocationUsecase(db *gorm.DB, telegram tracking.SmartModule) *LocationUsecase {
+	return &LocationUsecase{repository.NewLocationRepository(db), telegram}
 }
 
-func (use locationUsecase) Add(location *model.Location) (uint, error) {
+func (use LocationUsecase) Add(location *model.Location) (uint, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -40,7 +40,7 @@ func (use locationUsecase) Add(location *model.Location) (uint, error) {
 	return loc.ID, err
 }
 
-func (use locationUsecase) FindID(location *model.Location) (uint, error) {
+func (use LocationUsecase) FindID(location *model.Location) (uint, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

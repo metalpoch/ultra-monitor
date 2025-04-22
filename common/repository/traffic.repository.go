@@ -7,6 +7,10 @@ import (
 	"gorm.io/gorm"
 )
 
+type TrafficRepository interface {
+	Add(ctx context.Context, traffic *entity.Traffic) error
+}
+
 type trafficRepository struct {
 	db *gorm.DB
 }

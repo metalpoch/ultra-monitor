@@ -10,8 +10,8 @@ import (
 	"github.com/metalpoch/olt-blueprint/common/database"
 	"github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
-	"github.com/metalpoch/olt-blueprint/measurement/constants"
 	"github.com/metalpoch/olt-blueprint/measurement/controller"
+	"github.com/metalpoch/olt-blueprint/measurement/internal/constants"
 	"github.com/urfave/cli/v2"
 )
 

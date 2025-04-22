@@ -2,12 +2,14 @@ package controller
 
 import (
 	"os"
+	"time"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/metalpoch/olt-blueprint/common/constants"
 	"github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
 	"github.com/metalpoch/olt-blueprint/common/usecase"
+	"github.com/metalpoch/olt-blueprint/measurement/internal/snmp"
 	"gorm.io/gorm"
 )
 
@@ -20,7 +22,23 @@ func newDeviceController(db *gorm.DB, telegram tracking.SmartModule) *deviceCont
 }
 
 func AddDevice(db *gorm.DB, telegram tracking.SmartModule, device *model.AddDevice) error {
-	return newDeviceController(db, telegram).Usecase.Add(device)
+	var isAlive bool
+	info, err := snmp.GetInfo(device.IP, device.Community)
+	if err == nil {
+		isAlive = true
+	}
+
+	newDevice := &model.Device{
+		IP:          device.IP,
+		SysName:     info.SysName,
+		SysLocation: info.SysLocation,
+		Community:   device.Community,
+		IsAlive:     isAlive,
+		TemplateID:  device.Template,
+		LastCheck:   time.Now(),
+	}
+
+	return newDeviceController(db, telegram).Usecase.Add(newDevice)
 }
 
 func ShowAllDevices(db *gorm.DB, telegram tracking.SmartModule, csv bool) ([]model.Device, error) {

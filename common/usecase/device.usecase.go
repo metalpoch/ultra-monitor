@@ -10,48 +10,33 @@ import (
 	"github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
 	"github.com/metalpoch/olt-blueprint/common/repository"
-	"github.com/metalpoch/olt-blueprint/measurement/pkg/snmp"
 	"gorm.io/gorm"
 )
 
-type deviceUsecase struct {
+type DeviceUsecase struct {
 	repo     repository.DeviceRepository
 	telegram tracking.SmartModule
 }
 
-func NewDeviceUsecase(db *gorm.DB, telegram tracking.SmartModule) *deviceUsecase {
-	return &deviceUsecase{repository.NewDeviceRepository(db), telegram}
+func NewDeviceUsecase(db *gorm.DB, telegram tracking.SmartModule) *DeviceUsecase {
+	return &DeviceUsecase{repository.NewDeviceRepository(db), telegram}
 }
 
-func (use deviceUsecase) Add(device *model.AddDevice) error {
+func (use DeviceUsecase) Add(device *model.Device) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
-	var isAlive bool
-	info, err := snmp.GetInfo(device.IP, device.Community)
-	if err != nil {
-		use.telegram.SendMessage(
-			constants.MODULE_UPDATE,
-			constants.CATEGORY_SNMP,
-			fmt.Sprintf("(deviceUsecase).Add - snmp.GetInfo(%s, %s)", device.IP, device.Community),
-			err,
-		)
-		isAlive = false
-	} else {
-		isAlive = true
-	}
-
 	newDevice := &entity.Device{
 		IP:          device.IP,
-		SysName:     info.SysName,
-		SysLocation: info.SysLocation,
+		SysName:     device.SysName,
+		SysLocation: device.SysLocation,
 		Community:   device.Community,
-		IsAlive:     isAlive,
-		TemplateID:  device.Template,
+		IsAlive:     device.IsAlive,
+		TemplateID:  device.TemplateID,
 		LastCheck:   time.Now(),
 	}
 
-	err = use.repo.Add(ctx, newDevice)
+	err := use.repo.Add(ctx, newDevice)
 	if err != nil {
 		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
@@ -63,7 +48,7 @@ func (use deviceUsecase) Add(device *model.AddDevice) error {
 	return err
 }
 
-func (use deviceUsecase) Update(id uint, device *model.AddDevice) error {
+func (use DeviceUsecase) Update(id uint, device *model.AddDevice) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -101,7 +86,7 @@ func (use deviceUsecase) Update(id uint, device *model.AddDevice) error {
 	return err
 }
 
-func (use deviceUsecase) Delete(id uint) error {
+func (use DeviceUsecase) Delete(id uint) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -118,7 +103,7 @@ func (use deviceUsecase) Delete(id uint) error {
 	return err
 }
 
-func (use deviceUsecase) Check(device *model.Device) error {
+func (use DeviceUsecase) Check(device *model.Device) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	err := use.repo.Check(ctx, (*entity.Device)(device))
@@ -134,7 +119,7 @@ func (use deviceUsecase) Check(device *model.Device) error {
 	return err
 }
 
-func (use deviceUsecase) GetByID(id uint) (*model.Device, error) {
+func (use DeviceUsecase) GetByID(id uint) (*model.Device, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -150,7 +135,8 @@ func (use deviceUsecase) GetByID(id uint) (*model.Device, error) {
 	fmt.Println(e.Template)
 	return (*model.Device)(e), err
 }
-func (use deviceUsecase) GetAll() ([]*model.Device, error) {
+
+func (use DeviceUsecase) GetAll() ([]*model.Device, error) {
 	var devices []*model.Device
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -172,7 +158,7 @@ func (use deviceUsecase) GetAll() ([]*model.Device, error) {
 	return devices, err
 }
 
-func (use deviceUsecase) GetDeviceWithOIDRows() ([]*model.DeviceWithOID, error) {
+func (use DeviceUsecase) GetDeviceWithOIDRows() ([]*model.DeviceWithOID, error) {
 	var devices []*model.DeviceWithOID
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()

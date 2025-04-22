@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/gosnmp/gosnmp"
-	"github.com/metalpoch/olt-blueprint/measurement/constants"
+	"github.com/metalpoch/olt-blueprint/measurement/internal/constants"
 )
 
 type SnmpInfo struct {
@@ -99,7 +99,6 @@ func Walk(ip, community, oid string) (Snmp, error) {
 			return errors.New("invalid snmp response type")
 		}
 		return nil
-
 	}); err != nil {
 		return nil, err
 	}

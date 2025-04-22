@@ -6,8 +6,8 @@ import (
 
 	"github.com/metalpoch/olt-blueprint/common/entity"
 	commonModel "github.com/metalpoch/olt-blueprint/common/model"
+	"github.com/metalpoch/olt-blueprint/measurement/internal/snmp"
 	"github.com/metalpoch/olt-blueprint/measurement/model"
-	"github.com/metalpoch/olt-blueprint/measurement/pkg/snmp"
 )
 
 func MeasurementToEntitys(date time.Time, measurements snmp.MapSnmp) []*entity.Measurement {
@@ -63,7 +63,6 @@ func SnmpElements(deviceID uint, date time.Time, snmp snmp.MapSnmp) ([]*commonMo
 				continue
 			}
 			if isString(f) {
-
 				switch f {
 				case "ifname":
 					i.IfName = snmp[f][ifIndex].(string)
@@ -72,7 +71,6 @@ func SnmpElements(deviceID uint, date time.Time, snmp snmp.MapSnmp) ([]*commonMo
 				case "ifalias":
 					i.IfAlias = snmp[f][ifIndex].(string)
 				}
-
 			} else {
 				switch f {
 				case "bw":

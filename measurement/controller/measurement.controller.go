@@ -9,10 +9,10 @@ import (
 	"github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
 	commonUsecase "github.com/metalpoch/olt-blueprint/common/usecase"
-	"github.com/metalpoch/olt-blueprint/measurement/constants"
-	"github.com/metalpoch/olt-blueprint/measurement/pkg/snmp"
+	"github.com/metalpoch/olt-blueprint/measurement/internal/constants"
+	"github.com/metalpoch/olt-blueprint/measurement/internal/snmp"
+	"github.com/metalpoch/olt-blueprint/measurement/internal/utils"
 	"github.com/metalpoch/olt-blueprint/measurement/usecase"
-	"github.com/metalpoch/olt-blueprint/measurement/utils"
 	"gorm.io/gorm"
 )
 

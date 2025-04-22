@@ -140,6 +140,8 @@ func measurements(db *gorm.DB, telegram tracking.SmartModule, device *model.Devi
 			Bandwidth:   m.Bandwidth,
 			In:          utils.BytesToBbps(old_m.In, m.In, m.Bandwidth, diffTime),
 			Out:         utils.BytesToBbps(old_m.Out, m.Out, m.Bandwidth, diffTime),
+			BytesIn:     utils.CalculateDelta(old_m.In, m.In),
+			BytesOut:    utils.CalculateDelta(old_m.Out, m.Out),
 		}); err != nil {
 			log.Println("error saving the traffic:", err.Error())
 		}

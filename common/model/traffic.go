@@ -13,6 +13,8 @@ type Traffic struct {
 	Bandwidth   uint64
 	In          uint64
 	Out         uint64
+	BytesIn     uint64
+	BytesOut    uint64
 }
 
 type TrafficResponse struct {

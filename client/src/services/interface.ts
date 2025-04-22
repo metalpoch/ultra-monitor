@@ -4,7 +4,7 @@ import { ErrorHandler } from "../lib/errors";
  * @class Handler of all inteface requests for the API.
  */
 export class InterfaceService {
-    private static url: string = process.env.PUBLIC_API_CORE ?? import.meta.env.PUBLIC_API_CORE;
+    private static url: string = import.meta.env.PUBLIC_API_CORE;
 
     /**
      * Request API to get all interfaces by a shell of an OLT device.

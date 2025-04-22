@@ -4,7 +4,7 @@ import { ErrorHandler } from "../lib/errors";
  * @class Handler of all location requests for the API.
  */
 export class LocationService {
-    private static url: string = process.env.PUBLIC_API_CORE ?? import.meta.env.PUBLIC_API_CORE;
+    private static url: string = import.meta.env.PUBLIC_API_CORE;
 
     /**
      * Request API to get all states avaliable.

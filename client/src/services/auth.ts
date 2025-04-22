@@ -5,7 +5,7 @@ import { ErrorHandler } from "../lib/errors";
  * @class Handler of all authentication requests for the API.
  */
 export class AuthService {
-    private static url: string = process.env.PUBLIC_API_AUTH ?? import.meta.env.PUBLIC_API_AUTH;
+    private static url: string = import.meta.env.PUBLIC_API_AUTH;
 
 
     /**

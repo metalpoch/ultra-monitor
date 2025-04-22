@@ -4,7 +4,7 @@ import { ErrorHandler } from "../lib/errors";
  * @class Handler of all authentication requests for the API.
  */
 export class ReportService {
-    private static url: string = process.env.PUBLIC_API_REPORT ?? import.meta.env.PUBLIC_API_REPORT;
+    private static url: string = import.meta.env.PUBLIC_API_REPORT;
 
 
     /**

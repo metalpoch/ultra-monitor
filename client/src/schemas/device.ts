@@ -1,4 +1,15 @@
-import type { Template } from "./template";
+/**
+ * Schema of template of an OLT device.
+ */
+export interface Template {
+    ID: number,
+    Name: string,
+    OidBw: string,
+    OidIn: string,
+    OidOut: string,
+    CreatedAt: Date,
+    UpdatedAt: Date,
+}
 
 /**
  * Schema of a OLT device.
@@ -15,3 +26,4 @@ export interface DeviceSchema {
     created_at: Date,
     updated_at: Date,
 }
+

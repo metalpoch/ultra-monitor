@@ -13,16 +13,16 @@ import (
 	"gorm.io/gorm"
 )
 
-type templateUsecase struct {
+type TemplateUsecase struct {
 	repo     repository.TemplateRepository
 	telegram tracking.SmartModule
 }
 
-func NewTemplateUsecase(db *gorm.DB, telegram tracking.SmartModule) *templateUsecase {
-	return &templateUsecase{repository.NewTemplateRepository(db), telegram}
+func NewTemplateUsecase(db *gorm.DB, telegram tracking.SmartModule) *TemplateUsecase {
+	return &TemplateUsecase{repository.NewTemplateRepository(db), telegram}
 }
 
-func (use templateUsecase) Add(template *model.AddTemplate) error {
+func (uc TemplateUsecase) Add(template *model.AddTemplate) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -33,9 +33,9 @@ func (use templateUsecase) Add(template *model.AddTemplate) error {
 		OidOut: template.OidOut,
 	}
 
-	err := use.repo.Add(ctx, newTemplate)
+	err := uc.repo.Add(ctx, newTemplate)
 	if err != nil {
-		use.telegram.SendMessage(
+		uc.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(templateUsecase).Add - use.repo.Add(ctx, %v)", newTemplate),
@@ -46,13 +46,13 @@ func (use templateUsecase) Add(template *model.AddTemplate) error {
 	return err
 }
 
-func (use templateUsecase) Update(id uint, template *model.AddTemplate) error {
+func (uc TemplateUsecase) Update(id uint, template *model.AddTemplate) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	e, err := use.repo.Get(ctx, id)
+	e, err := uc.repo.Get(ctx, id)
 	if err != nil {
-		use.telegram.SendMessage(
+		uc.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(templateUsecase).Update - use.repo.Get(ctx, %d)", id),
@@ -74,9 +74,9 @@ func (use templateUsecase) Update(id uint, template *model.AddTemplate) error {
 		e.OidBw = template.OidBw
 	}
 
-	err = use.repo.Update(ctx, e)
+	err = uc.repo.Update(ctx, e)
 	if err != nil {
-		use.telegram.SendMessage(
+		uc.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(templateUsecase).Update - use.repo.Update(ctx, %v)", e),
@@ -87,13 +87,13 @@ func (use templateUsecase) Update(id uint, template *model.AddTemplate) error {
 	return err
 }
 
-func (use templateUsecase) Delete(id uint) error {
+func (uc TemplateUsecase) Delete(id uint) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err := use.repo.Delete(ctx, id)
+	err := uc.repo.Delete(ctx, id)
 	if err != nil {
-		use.telegram.SendMessage(
+		uc.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(templateUsecase).Delete - use.repo.Delete(ctx, %v)", id),
@@ -104,13 +104,13 @@ func (use templateUsecase) Delete(id uint) error {
 	return err
 }
 
-func (use templateUsecase) GetByID(id uint) (model.Template, error) {
+func (uc TemplateUsecase) GetByID(id uint) (model.Template, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	e, err := use.repo.Get(ctx, id)
+	e, err := uc.repo.Get(ctx, id)
 	if err != nil {
-		use.telegram.SendMessage(
+		uc.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			fmt.Sprintf("(templateUsecase).GetByID - use.repo.Get(ctx, %d)", id),
@@ -129,15 +129,14 @@ func (use templateUsecase) GetByID(id uint) (model.Template, error) {
 	}, err
 }
 
-func (use templateUsecase) GetAll() ([]model.Template, error) {
+func (uc TemplateUsecase) GetAll() ([]model.Template, error) {
 	templates := []model.Template{}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, err := use.repo.GetAll(ctx)
-
+	res, err := uc.repo.GetAll(ctx)
 	if err != nil {
-		use.telegram.SendMessage(
+		uc.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
 			"(templateUsecase).GetAll - use.repo.GetAll(ctx)",

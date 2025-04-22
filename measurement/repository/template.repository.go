@@ -7,6 +7,14 @@ import (
 	"gorm.io/gorm"
 )
 
+type TemplateRepository interface {
+	Add(ctx context.Context, template entity.Template) error
+	Get(ctx context.Context, id uint) (*entity.Template, error)
+	GetAll(ctx context.Context) ([]entity.Template, error)
+	Update(ctx context.Context, template *entity.Template) error
+	Delete(ctx context.Context, id uint) error
+}
+
 type templateRepository struct {
 	db *gorm.DB
 }

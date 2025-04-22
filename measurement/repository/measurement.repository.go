@@ -9,6 +9,11 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+type MeasurementRepository interface {
+	Get(ctx context.Context, id uint, measurement *entity.Measurement) error
+	Upsert(ctx context.Context, measurement *entity.Measurement) error
+}
+
 type measurementRepository struct {
 	db *gorm.DB
 }

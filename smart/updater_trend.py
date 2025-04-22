@@ -254,4 +254,3 @@ def device(year: str, month: str, sysname: str):
 
 if __name__ == "__main__":
     cli()
-    device(year="2025", month="1", sysname="prp-olt-00")

@@ -6,7 +6,6 @@ import { ErrorHandler } from "../lib/errors";
 export class ReportService {
     private static url: string = process.env.PUBLIC_API_REPORT ?? import.meta.env.PUBLIC_API_REPORT;
 
-
     /**
      * Request API for the upload of a file.
      * 

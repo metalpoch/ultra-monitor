@@ -7,6 +7,7 @@ import { ErrorHandler } from "../lib/errors";
 export class IAService {
     private static url: string = process.env.PUBLIC_API_SMART ?? import.meta.env.PUBLIC_API_SMART;
 
+    
     /**
      * Request API to post a question to the IA.
      * 

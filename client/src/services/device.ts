@@ -12,6 +12,7 @@ export class DeviceService {
      */
     static async getDevices(): Promise<{ status: (number | null), info: (any | ErrorHandler) }> {
         try {
+            console.log(this.url);
             const response = await fetch(`${this.url}/info/device`, {
                 method: 'GET'
             });

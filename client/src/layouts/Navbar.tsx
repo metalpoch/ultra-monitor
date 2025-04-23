@@ -67,13 +67,13 @@ export default function Navbar({ user, pathname }: Props) {
                             <div className="font-medium truncate">{user.email}</div>
                         </div>
                     }
-                    <ul className="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownUserAvatarButton">
+                    {/* <ul className="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownUserAvatarButton">
                         {user &&
                             <li>
                                 <a href={Routes.PROFILE} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Perfil</a>
                             </li>
                         }
-                    </ul>
+                    </ul> */}
                     <div className="py-2">
                         <a href={Routes.LOGOUT} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Cerrar Sesión</a>
                     </div>

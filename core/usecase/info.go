@@ -13,16 +13,16 @@ import (
 	"gorm.io/gorm"
 )
 
-type infoUsecase struct {
+type InfoUsecase struct {
 	repo     repository.InfoRepository
 	telegram tracking.SmartModule
 }
 
-func NewInfoUsecase(db *gorm.DB, telegram tracking.SmartModule) *infoUsecase {
-	return &infoUsecase{repository.NewInfoRepository(db), telegram}
+func NewInfoUsecase(db *gorm.DB, telegram tracking.SmartModule) *InfoUsecase {
+	return &InfoUsecase{repository.NewInfoRepository(db), telegram}
 }
 
-func (use infoUsecase) GetDevice(id uint) (*model.Device, error) {
+func (use InfoUsecase) GetDevice(id uint) (*model.Device, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	res, err := use.repo.GetDevice(ctx, id)
@@ -39,7 +39,7 @@ func (use infoUsecase) GetDevice(id uint) (*model.Device, error) {
 	return (*model.Device)(res), err
 }
 
-func (use infoUsecase) GetDeviceByIP(ip string) (*model.Device, error) {
+func (use InfoUsecase) GetDeviceByIP(ip string) (*model.Device, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	res, err := use.repo.GetDeviceByIP(ctx, ip)
@@ -56,7 +56,7 @@ func (use infoUsecase) GetDeviceByIP(ip string) (*model.Device, error) {
 	return (*model.Device)(res), err
 }
 
-func (use infoUsecase) GetDeviceBySysname(sysname string) (*model.Device, error) {
+func (use InfoUsecase) GetDeviceBySysname(sysname string) (*model.Device, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	res, err := use.repo.GetDeviceBySysname(ctx, sysname)
@@ -73,7 +73,7 @@ func (use infoUsecase) GetDeviceBySysname(sysname string) (*model.Device, error)
 	return (*model.Device)(res), err
 }
 
-func (use infoUsecase) GetAllDevice() ([]*model.DeviceLite, error) {
+func (use InfoUsecase) GetAllDevice() ([]*model.DeviceLite, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -105,7 +105,7 @@ func (use infoUsecase) GetAllDevice() ([]*model.DeviceLite, error) {
 	return devices, err
 }
 
-func (use infoUsecase) GetDeviceByState(state string) ([]*model.DeviceLite, error) {
+func (use InfoUsecase) GetDeviceByState(state string) ([]*model.DeviceLite, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -137,7 +137,7 @@ func (use infoUsecase) GetDeviceByState(state string) ([]*model.DeviceLite, erro
 	return devices, err
 }
 
-func (use infoUsecase) GetDeviceByCounty(state, county string) ([]*model.DeviceLite, error) {
+func (use InfoUsecase) GetDeviceByCounty(state, county string) ([]*model.DeviceLite, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -169,7 +169,7 @@ func (use infoUsecase) GetDeviceByCounty(state, county string) ([]*model.DeviceL
 	return devices, err
 }
 
-func (use infoUsecase) GetDeviceByMunicipality(state, county, municipality string) ([]*model.DeviceLite, error) {
+func (use InfoUsecase) GetDeviceByMunicipality(state, county, municipality string) ([]*model.DeviceLite, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -201,7 +201,7 @@ func (use infoUsecase) GetDeviceByMunicipality(state, county, municipality strin
 	return devices, err
 }
 
-func (use infoUsecase) GetInterface(id uint) (*model.Interface, error) {
+func (use InfoUsecase) GetInterface(id uint) (*model.Interface, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	res, err := use.repo.GetInterface(ctx, id)
@@ -218,7 +218,7 @@ func (use infoUsecase) GetInterface(id uint) (*model.Interface, error) {
 	return (*model.Interface)(res), err
 }
 
-func (use infoUsecase) GetInterfacesByDevice(id uint) ([]*model.InterfaceLite, error) {
+func (use InfoUsecase) GetInterfacesByDevice(id uint) ([]*model.InterfaceLite, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	res, err := use.repo.GetInterfacesByDevice(ctx, id)
@@ -248,7 +248,7 @@ func (use infoUsecase) GetInterfacesByDevice(id uint) ([]*model.InterfaceLite, e
 	return interfaces, err
 }
 
-func (use infoUsecase) GetInterfacesByDeviceAndPorts(id uint, shell, card, port *uint8) ([]*model.InterfaceLite, error) {
+func (use InfoUsecase) GetInterfacesByDeviceAndPorts(id uint, shell, card, port *uint8) ([]*model.InterfaceLite, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -288,7 +288,7 @@ func (use infoUsecase) GetInterfacesByDeviceAndPorts(id uint, shell, card, port 
 	return interfaces, err
 }
 
-func (use infoUsecase) GetLocationStates() ([]*string, error) {
+func (use InfoUsecase) GetLocationStates() ([]*string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	res, err := use.repo.GetLocationStates(ctx)
@@ -305,7 +305,7 @@ func (use infoUsecase) GetLocationStates() ([]*string, error) {
 	return res, err
 }
 
-func (use infoUsecase) GetLocationCounties(state string) ([]*string, error) {
+func (use InfoUsecase) GetLocationCounties(state string) ([]*string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	res, err := use.repo.GetLocationCounties(ctx, state)
@@ -322,7 +322,7 @@ func (use infoUsecase) GetLocationCounties(state string) ([]*string, error) {
 	return res, err
 }
 
-func (use infoUsecase) GetLocationMunicipalities(state, county string) ([]*string, error) {
+func (use InfoUsecase) GetLocationMunicipalities(state, county string) ([]*string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	res, err := use.repo.GetLocationMunicipalities(ctx, state, county)
@@ -339,12 +339,11 @@ func (use infoUsecase) GetLocationMunicipalities(state, county string) ([]*strin
 	return res, err
 }
 
-func (use infoUsecase) GetODN(odn string) ([]*model.FatResponse, error) {
+func (use InfoUsecase) GetODN(odn string) ([]*model.FatResponse, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
 	res, err := use.repo.GetODN(ctx, odn)
-
 	if err != nil {
 		go use.telegram.SendMessage(
 			constants.MODULE_TRAFFIC,
@@ -406,7 +405,7 @@ func (use infoUsecase) GetODN(odn string) ([]*model.FatResponse, error) {
 	return fats, err
 }
 
-func (use infoUsecase) GetODNStates(state string) ([]*string, error) {
+func (use InfoUsecase) GetODNStates(state string) ([]*string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -421,10 +420,9 @@ func (use infoUsecase) GetODNStates(state string) ([]*string, error) {
 		return nil, err
 	}
 	return res, err
-
 }
 
-func (use infoUsecase) GetODNStatesContries(state, country string) ([]*string, error) {
+func (use InfoUsecase) GetODNStatesContries(state, country string) ([]*string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -439,10 +437,9 @@ func (use infoUsecase) GetODNStatesContries(state, country string) ([]*string, e
 		return nil, err
 	}
 	return res, err
-
 }
 
-func (use infoUsecase) GetODNStatesContriesMunicipality(state, country, municipality string) ([]*string, error) {
+func (use InfoUsecase) GetODNStatesContriesMunicipality(state, country, municipality string) ([]*string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -459,7 +456,7 @@ func (use infoUsecase) GetODNStatesContriesMunicipality(state, country, municipa
 	return res, err
 }
 
-func (use infoUsecase) GetODNDevice(id uint) ([]*string, error) {
+func (use InfoUsecase) GetODNDevice(id uint) ([]*string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -476,7 +473,7 @@ func (use infoUsecase) GetODNDevice(id uint) ([]*string, error) {
 	return res, err
 }
 
-func (use infoUsecase) GetODNDevicePort(id uint, shell *uint8, card, port *uint8) ([]*string, error) {
+func (use InfoUsecase) GetODNDevicePort(id uint, shell *uint8, card, port *uint8) ([]*string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -501,5 +498,4 @@ func (use infoUsecase) GetODNDevicePort(id uint, shell *uint8, card, port *uint8
 	}
 
 	return res, err
-
 }

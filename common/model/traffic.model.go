@@ -22,6 +22,8 @@ type TrafficResponse struct {
 	Bandwidth uint64    `json:"bandwidth_bps"`
 	In        uint64    `json:"in_bps"`
 	Out       uint64    `json:"out_bps"`
+	BytesIn   uint64    `json:"byte_in"`
+	BytesOut  uint64    `json:"bytes_out"`
 }
 
 type TranficRangeDate struct {

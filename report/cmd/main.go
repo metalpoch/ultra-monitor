@@ -47,6 +47,7 @@ func main() {
 		StructValidator: &model.StructValidator{Validator: validator.New()},
 		JSONEncoder:     json.Marshal,
 		JSONDecoder:     json.Unmarshal,
+		BodyLimit:       75 * 1024 * 1024, // 75 mb
 	})
 
 	server.Use(logger.New())

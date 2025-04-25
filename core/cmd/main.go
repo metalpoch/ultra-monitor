@@ -12,9 +12,9 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/metalpoch/olt-blueprint/common/database"
 	"github.com/metalpoch/olt-blueprint/common/model"
+	"github.com/metalpoch/olt-blueprint/common/pkg/cache"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
 	"github.com/metalpoch/olt-blueprint/core/router"
-	"github.com/metalpoch/olt-blueprint/core/utils"
 )
 
 var cfg model.Config
@@ -44,12 +44,11 @@ func main() {
 		JSONEncoder:     json.Marshal,
 		JSONDecoder:     json.Unmarshal,
 	})
-	redis := utils.NewRedisClient(cfg.CacheURI)
-
+	cache := cache.NewCache(cfg.CacheURI)
 	server.Use(logger.New())
 	server.Use(cors.New())
 
-	router.Setup(server, db, telegram, redis)
+	router.Setup(server, db, telegram, *cache)
 
 	server.Listen(":3001")
 }

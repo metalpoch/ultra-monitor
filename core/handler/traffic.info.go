@@ -267,7 +267,7 @@ func (hdlr TrafficHandler) GetTotalTrafficByState(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
-	res, err := hdlr.Usecase.GetTotalTrafficByState(month)
+	res, err := hdlr.Usecase.GetTotalTrafficByStateByMonth(month)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -299,7 +299,7 @@ func (hdlr TrafficHandler) GetTotalTrafficByState_N(c fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.GetTotalTrafficByState_N(month, int(n_int))
+	res, err := hdlr.Usecase.GetTopTrafficByStateByMonth(month, int(n_int))
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -322,7 +322,7 @@ func (hdlr TrafficHandler) GetTotalTrafficByOND(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
-	res, err := hdlr.Usecase.GetTotalTrafficByOND(month)
+	res, err := hdlr.Usecase.GetTotalTrafficOdnByMonth(month)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

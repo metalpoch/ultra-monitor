@@ -13,3 +13,7 @@ type Device struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
+
+type DevicesID struct {
+	Devices []uint `redis:"devices"`
+}

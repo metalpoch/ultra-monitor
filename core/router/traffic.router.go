@@ -2,14 +2,14 @@ package router
 
 import (
 	"github.com/gofiber/fiber/v3"
+	"github.com/metalpoch/olt-blueprint/common/pkg/cache"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
 	"github.com/metalpoch/olt-blueprint/core/handler"
 	"github.com/metalpoch/olt-blueprint/core/usecase"
-	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
-func newTrafficRouter(server *fiber.App, db *gorm.DB, telegram tracking.SmartModule, cache *redis.Client) {
+func newTrafficRouter(server *fiber.App, db *gorm.DB, telegram tracking.SmartModule, cache cache.Redis) {
 	hdlr := handler.TrafficHandler{
 		Usecase: *usecase.NewTrafficUsecase(db, telegram, cache),
 	}

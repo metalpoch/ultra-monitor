@@ -291,7 +291,7 @@ func (use TrafficUsecase) GetTotalTrafficByStateByMonth(month string) ([]*common
 		go use.telegram.SendMessage(
 			constants.MODULE_TRAFFIC,
 			constants.CATEGORY_DATABASE,
-			fmt.Sprintf("(trafficUsecase).GetTotalTrafficByState(%s) - use.repoinfo.GetLocationStates(ctx)"),
+			fmt.Sprintf("(trafficUsecase).GetTotalTrafficByState(%s) - use.repoinfo.GetLocationStates(ctx)", month),
 			err,
 		)
 		return nil, err

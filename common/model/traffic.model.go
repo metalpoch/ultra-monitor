@@ -33,14 +33,18 @@ type TranficRangeDate struct {
 
 type TrafficState struct {
 	State     string `json:"state"`
+	Bandwidth uint64 `json:"bandwidth_bps"`
 	In        uint64 `json:"in_bps"`
 	Out       uint64 `json:"out_bps"`
-	Bandwidth uint64 `json:"bandwidth_bps"`
+	BytesIn   uint64 `json:"bytes_in"`
+	BytesOut  uint64 `json:"bytes_out"`
 }
 
 type TrafficODN struct {
 	ODN       string `json:"odn"`
+	Bandwidth uint64 `json:"bandwidth_bps"`
 	In        uint64 `json:"in_bps"`
 	Out       uint64 `json:"out_bps"`
-	Bandwidth uint64 `json:"bandwidth_bps"`
+	BytesIn   uint64 `json:"bytes_in"`
+	BytesOut  uint64 `json:"bytes_out"`
 }

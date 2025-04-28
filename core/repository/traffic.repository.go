@@ -43,7 +43,7 @@ func (repo trafficRepository) GetTrafficByDevice(ctx context.Context, id uint, d
 	var traffic []*entity.Traffic
 	err := repo.db.WithContext(ctx).
 		Model(&entity.Traffic{}).
-		Select("date, SUM(\"in\") AS \"in\", SUM(out) AS out, SUM(bandwidth) as bandwidth").
+		Select("date, SUM(\"in\") AS \"in\", SUM(out) AS out, SUM(bandwidth) as bandwidth, SUM(bytes_in) AS bytes_in, SUM(bytes_out) AS bytes_out").
 		Joins("JOIN interfaces ON interfaces.id = traffics.interface_id").
 		Where("interfaces.device_id = ? AND traffics.date BETWEEN ? AND ?", id, date.InitDate, date.EndDate).
 		Group("date").
@@ -56,7 +56,7 @@ func (repo trafficRepository) GetTrafficByDevice(ctx context.Context, id uint, d
 func (repo trafficRepository) GetTrafficByFat(ctx context.Context, id uint, date *model.TranficRangeDate) ([]*entity.Traffic, error) {
 	var traffic []*entity.Traffic
 	err := repo.db.WithContext(ctx).
-		Select("date, \"in\", out, bandwidth").
+		Select("date, \"in\", out, bandwidth, bytes_in, bytes_out").
 		Where("date BETWEEN ? AND ?", date.InitDate, date.EndDate).
 		Joins("JOIN fats ON fats.interface_id = traffics.interface_id").
 		Where("fats.id = ?", id).
@@ -70,7 +70,7 @@ func (repo trafficRepository) GetTrafficByLocationID(ctx context.Context, id uin
 	var traffic []*entity.Traffic
 	err := repo.db.WithContext(ctx).
 		Model(&entity.Traffic{}).
-		Select("date, SUM(\"in\") AS \"in\", SUM(out) AS out, SUM(bandwidth) as bandwidth").
+		Select("date, SUM(\"in\") AS \"in\", SUM(out) AS out, SUM(bandwidth) as bandwidth, SUM(bytes_in) AS bytes_in, SUM(bytes_out) AS bytes_out").
 		Joins("JOIN fat_interfaces ON fat_interfaces.interface_id = traffics.interface_id").
 		Joins("JOIN fats ON fats.id = fat_interfaces.fat_id").
 		Where("f.location_id = ? AND traffics.date BETWEEN ? AND ?", id, date.InitDate, date.EndDate).
@@ -86,7 +86,7 @@ func (repo trafficRepository) GetTrafficByState(ctx context.Context, state strin
 	var traffic []*entity.Traffic
 	err := repo.db.WithContext(ctx).
 		Model(&entity.Traffic{}).
-		Select("date, SUM(\"in\") AS \"in\", SUM(out) AS out, SUM(bandwidth) as bandwidth").
+		Select("date, SUM(\"in\") AS \"in\", SUM(out) AS out, SUM(bandwidth) as bandwidth, SUM(bytes_in) AS bytes_in, SUM(bytes_out) AS bytes_out").
 		Joins("JOIN fat_interfaces ON fat_interfaces.interface_id = traffics.interface_id").
 		Joins("JOIN fats ON fats.id = fat_interfaces.fat_id").
 		Joins("JOIN locations as l ON l.id = fats.location_id").
@@ -103,7 +103,7 @@ func (repo trafficRepository) GetTrafficByCounty(ctx context.Context, state, cou
 	var traffic []*entity.Traffic
 	err := repo.db.WithContext(ctx).
 		Model(&entity.Traffic{}).
-		Select("date, SUM(\"in\") AS \"in\", SUM(out) AS out, SUM(bandwidth) as bandwidth").
+		Select("date, SUM(\"in\") AS \"in\", SUM(out) AS out, SUM(bandwidth) as bandwidth, SUM(bytes_in) AS bytes_in, SUM(bytes_out) AS bytes_out").
 		Joins("JOIN fat_interfaces ON fat_interfaces.interface_id = traffics.interface_id").
 		Joins("JOIN fats ON fats.id = fat_interfaces.fat_id").
 		Joins("JOIN locations as l ON l.id = fats.location_id").
@@ -120,7 +120,7 @@ func (repo trafficRepository) GetTrafficByMunicipality(ctx context.Context, stat
 	var traffic []*entity.Traffic
 	err := repo.db.WithContext(ctx).
 		Model(&entity.Traffic{}).
-		Select("date, SUM(\"in\") AS \"in\", SUM(out) AS out, SUM(bandwidth) as bandwidth").
+		Select("date, SUM(\"in\") AS \"in\", SUM(out) AS out, SUM(bandwidth) as bandwidth, SUM(bytes_in) AS bytes_in, SUM(bytes_out) AS bytes_out").
 		Joins("JOIN fat_interfaces ON fat_interfaces.interface_id = traffics.interface_id").
 		Joins("JOIN fats ON fats.id = fat_interfaces.fat_id").
 		Joins("JOIN locations as l ON l.id = fats.location_id").
@@ -137,7 +137,7 @@ func (repo trafficRepository) GetTrafficByODN(ctx context.Context, odn string, d
 	var traffic []*entity.Traffic
 	err := repo.db.WithContext(ctx).
 		Model(&entity.Traffic{}).
-		Select("date, SUM(\"in\") AS \"in\", SUM(out) AS out, SUM(bandwidth) as bandwidth").
+		Select("date, SUM(\"in\") AS \"in\", SUM(out) AS out, SUM(bandwidth) as bandwidth, SUM(bytes_in) AS bytes_in, SUM(bytes_out) AS bytes_out").
 		Joins("JOIN fat_interfaces ON fat_interfaces.interface_id = traffics.interface_id").
 		Joins("JOIN fats ON fats.id = fat_interfaces.fat_id").
 		Where("fats.odn = ? AND traffics.date BETWEEN ? AND ?", odn, date.InitDate, date.EndDate).
@@ -153,7 +153,7 @@ func (repo trafficRepository) GetTotalTrafficByState(ctx context.Context, ids []
 	var trafficByState *model.TrafficState
 	err := repo.db.WithContext(ctx).
 		Model(&entity.Trend{}).
-		Select("SUM(bandwidth) AS bandwidth, SUM(\"in\") AS \"in\", SUM(out) AS out").
+		Select("SUM(bandwidth) AS bandwidth, SUM(\"in\") AS \"in\", SUM(out) AS out, SUM(bytes_in) AS bytes_in, SUM(bytes_out) AS bytes_out").
 		Where("device_id IN (?) AND Extract(MONTH FROM date) = ?", ids, month).
 		Scan(&trafficByState).
 		Error
@@ -164,7 +164,7 @@ func (repo trafficRepository) GetTotalTrafficByODN(ctx context.Context, ids []ui
 	var trafficByState *model.TrafficODN
 	err := repo.db.WithContext(ctx).
 		Model(&entity.Trend{}).
-		Select("SUM(bandwidth) AS bandwidth, SUM(\"in\") AS \"in\", SUM(out) AS out").
+		Select("SUM(bandwidth) AS bandwidth, SUM(\"in\") AS \"in\", SUM(out) AS out, SUM(bytes_in) AS bytes_in, SUM(bytes_out) AS bytes_out").
 		Where("device_id IN (?) AND Extract(MONTH FROM date) = ?", ids, month).
 		Scan(&trafficByState).
 		Error

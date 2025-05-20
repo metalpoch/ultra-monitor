@@ -31,8 +31,8 @@ type InterfaceResponse struct {
 }
 
 type InterfaceLite struct {
-	ID        uint      `json:"id"`
-	IfIndex   uint      `json:"ifindex"`
+	ID        uint64    `json:"id"`
+	IfIndex   uint64    `json:"ifindex"`
 	IfName    string    `json:"ifname"`
 	IfDescr   string    `json:"ifDescr"`
 	IfAlias   string    `json:"ifAlias"`

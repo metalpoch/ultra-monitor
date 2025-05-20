@@ -38,7 +38,7 @@ type DeviceWithOID struct {
 }
 
 type DeviceLite struct {
-	ID          uint      `json:"id"`
+	ID          uint64    `json:"id"`
 	IP          string    `json:"ip"`
 	SysName     string    `json:"sysname"`
 	SysLocation string    `json:"syslocation"`

@@ -39,7 +39,7 @@ func (use fatUsecase) Add(fat *model.NewFat) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	var (
-		interfaceID uint
+		interfaceID uint64
 		fatID       uint
 	)
 

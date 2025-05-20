@@ -9,14 +9,14 @@ import (
 )
 
 type InfoRepository interface {
-	GetDevice(ctx context.Context, id uint) (*entity.Device, error)
+	GetDevice(ctx context.Context, id uint64) (*entity.Device, error)
 	GetDeviceByIP(ctx context.Context, ip string) (*entity.Device, error)
 	GetDeviceBySysname(ctx context.Context, sysname string) (*entity.Device, error)
 	GetAllDevice(ctx context.Context) ([]*entity.Device, error)
 	GetDeviceByState(ctx context.Context, state string) ([]*entity.Device, error)
 	GetDeviceByCounty(ctx context.Context, state, county string) ([]*entity.Device, error)
 	GetDeviceByMunicipality(ctx context.Context, state, county, municipality string) ([]*entity.Device, error)
-	GetInterface(ctx context.Context, id uint) (*entity.Interface, error)
+	GetInterface(ctx context.Context, id uint64) (*entity.Interface, error)
 	GetInterfacesByDevice(ctx context.Context, id uint) ([]*entity.Interface, error)
 	GetInterfacesByDeviceAndPorts(ctx context.Context, id uint, pattern string) ([]*entity.Interface, error)
 	GetLocationStates(ctx context.Context) ([]*string, error)
@@ -42,7 +42,7 @@ func NewInfoRepository(db *gorm.DB) *infoRepository {
 	return &infoRepository{db}
 }
 
-func (repo infoRepository) GetDevice(ctx context.Context, id uint) (*entity.Device, error) {
+func (repo infoRepository) GetDevice(ctx context.Context, id uint64) (*entity.Device, error) {
 	d := new(entity.Device)
 	err := repo.db.WithContext(ctx).Preload("Template").First(d, id).Error
 	return d, err
@@ -106,7 +106,7 @@ func (repo infoRepository) GetDeviceByMunicipality(ctx context.Context, state, c
 	return devices, err
 }
 
-func (repo infoRepository) GetInterface(ctx context.Context, id uint) (*entity.Interface, error) {
+func (repo infoRepository) GetInterface(ctx context.Context, id uint64) (*entity.Interface, error) {
 	i := new(entity.Interface)
 	err := repo.db.WithContext(ctx).Preload("Device").Preload("Device.Template").First(i, id).Error
 	return i, err

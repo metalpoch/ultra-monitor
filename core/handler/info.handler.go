@@ -32,7 +32,7 @@ func (hdlr InfoHandler) GetDevice(c fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	device, err := hdlr.Usecase.GetDevice(uint(id))
+	device, err := hdlr.Usecase.GetDevice(uint64(id))
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -224,7 +224,7 @@ func (hdlr InfoHandler) GetInterface(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
-	iface, err := hdlr.Usecase.GetInterface(uint(id))
+	iface, err := hdlr.Usecase.GetInterface(uint64(id))
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -375,7 +375,6 @@ func (hdlr InfoHandler) GetLocationMunicipalities(c fiber.Ctx) error {
 // @Failure		500		{object}	object{message=string}
 // @Router		/info/fat/{odn} [get]
 func (hdlr InfoHandler) GetODN(c fiber.Ctx) error {
-
 	odn, err := url.QueryUnescape(c.Params("odn"))
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})

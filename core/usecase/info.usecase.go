@@ -22,7 +22,7 @@ func NewInfoUsecase(db *gorm.DB, telegram tracking.SmartModule) *InfoUsecase {
 	return &InfoUsecase{repository.NewInfoRepository(db), telegram}
 }
 
-func (use InfoUsecase) GetDevice(id uint) (*model.Device, error) {
+func (use InfoUsecase) GetDevice(id uint64) (*model.Device, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	res, err := use.repo.GetDevice(ctx, id)
@@ -201,7 +201,7 @@ func (use InfoUsecase) GetDeviceByMunicipality(state, county, municipality strin
 	return devices, err
 }
 
-func (use InfoUsecase) GetInterface(id uint) (*model.Interface, error) {
+func (use InfoUsecase) GetInterface(id uint64) (*model.Interface, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	res, err := use.repo.GetInterface(ctx, id)

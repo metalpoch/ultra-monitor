@@ -19,8 +19,8 @@ type Interface struct {
 }
 
 type InterfaceResponse struct {
-	ID        uint
-	IfIndex   uint
+	ID        uint64
+	IfIndex   uint64
 	IfName    string
 	IfDescr   string
 	IfAlias   string

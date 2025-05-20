@@ -49,7 +49,7 @@ type DeviceLite struct {
 }
 
 type DeviceResponse struct {
-	ID          uint      `json:"id"`
+	ID          uint64    `json:"id"`
 	IP          string    `json:"ip"`
 	Community   string    `json:"community"`
 	SysName     string    `json:"sysname"`

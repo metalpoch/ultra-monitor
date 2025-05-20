@@ -170,7 +170,6 @@ func (m measurementController) ProcessOntBatchData(measurements []string) error 
 			log.Println("error unmarshalling SNMP data:", err)
 			continue
 		}
-		fmt.Println(record)
 		records = append(records, record)
 	}
 

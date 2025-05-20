@@ -3,7 +3,7 @@ package entity
 import "time"
 
 type Device struct {
-	ID          uint   `gorm:"primaryKey"`
+	ID          uint64 `gorm:"primaryKey"`
 	IP          string `gorm:"uniqueIndex:idx_device"`
 	Community   string `gorm:"uniqueIndex:idx_device"`
 	SysName     string

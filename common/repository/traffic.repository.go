@@ -8,7 +8,8 @@ import (
 )
 
 type TrafficRepository interface {
-	Add(ctx context.Context, traffic *entity.Traffic) error
+	AddOlt(ctx context.Context, traffic *entity.Traffic) error
+	AddOnt(ctx context.Context, traffic *entity.TrafficOnt) error
 }
 
 type trafficRepository struct {
@@ -19,6 +20,10 @@ func NewTrafficRepository(db *gorm.DB) *trafficRepository {
 	return &trafficRepository{db}
 }
 
-func (repo trafficRepository) Add(ctx context.Context, traffic *entity.Traffic) error {
+func (repo trafficRepository) AddOlt(ctx context.Context, traffic *entity.Traffic) error {
+	return repo.db.WithContext(ctx).Create(traffic).Error
+}
+
+func (repo trafficRepository) AddOnt(ctx context.Context, traffic *entity.TrafficOnt) error {
 	return repo.db.WithContext(ctx).Create(traffic).Error
 }

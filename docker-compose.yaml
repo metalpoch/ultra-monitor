@@ -26,6 +26,8 @@ services:
     ports:
       - 6379:6379
     command: "redis-server --loglevel warning --requirepass example"
+    networks:
+      - olt-blueprint-network
     volumes:
       - ./redis-data:/data/redis.conf
     healthcheck:
@@ -39,8 +41,8 @@ services:
     image: ghcr.io/metalpoch/olt-blueprint/client
     container_name: olt-blueprint-front
     restart: unless-stopped
-    volumes:
-      - ./.env:/app/.env:ro
+    networks:
+      - olt-blueprint-network
     ports:
       - 4321:4321
 
@@ -48,8 +50,8 @@ services:
     image: ghcr.io/metalpoch/olt-blueprint/auth
     container_name: olt-blueprint-auth
     restart: unless-stopped
-    volumes:
-      - ./config.json:/app/config.json:ro
+    networks:
+      - olt-blueprint-network
     environment:
       - CONFIG_JSON=/app/config.json
     ports:
@@ -59,8 +61,8 @@ services:
     image: ghcr.io/metalpoch/olt-blueprint/core
     container_name: olt-blueprint-core
     restart: unless-stopped
-    volumes:
-      - ./config.json:/app/config.json:ro
+    networks:
+      - olt-blueprint-network
     environment:
       - CONFIG_JSON=/app/config.json
     ports:
@@ -72,7 +74,8 @@ services:
     restart: unless-stopped
     volumes:
       - ./report/data:/app/report/data
-      - ./config.json:/app/config.json:ro
+    networks:
+      - olt-blueprint-network
     environment:
       - CONFIG_JSON=/app/config.json
     ports:
@@ -82,8 +85,8 @@ services:
     image: ghcr.io/metalpoch/olt-blueprint/smart
     container_name: olt-blueprint-smart
     restart: unless-stopped
-    volumes:
-      - ./.env:/app/.env:ro
+    networks:
+      - olt-blueprint-network
     ports:
       - 3003:3003
 
@@ -91,8 +94,8 @@ services:
     image: ghcr.io/metalpoch/olt-blueprint/measurement
     container_name: olt-blueprint-measurement
     restart: unless-stopped
-    volumes:
-      - ./config.json:/app/config.json:ro
+    networks:
+      - olt-blueprint-network
     environment:
       - CONFIG_JSON=/app/config.json
       

@@ -15,7 +15,7 @@ type DeviceRepository interface {
 	GetAll(ctx context.Context) ([]*entity.Device, error)
 	GetDevicesWithTemplate(ctx context.Context) ([]*entity.Device, error)
 	Update(ctx context.Context, device *entity.Device) error
-	Delete(ctx context.Context, id uint) error
+	Delete(ctx context.Context, id uint64) error
 }
 
 type deviceRepository struct {
@@ -34,7 +34,7 @@ func (repo deviceRepository) Update(ctx context.Context, device *entity.Device) 
 	return repo.db.WithContext(ctx).Save(device).Error
 }
 
-func (repo deviceRepository) Delete(ctx context.Context, id uint) error {
+func (repo deviceRepository) Delete(ctx context.Context, id uint64) error {
 	return repo.db.WithContext(ctx).Delete(&entity.Device{ID: id}).Error
 }
 

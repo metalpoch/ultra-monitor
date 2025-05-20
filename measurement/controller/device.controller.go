@@ -17,13 +17,17 @@ type deviceController struct {
 	Usecase usecase.DeviceUsecase
 }
 
-func newDeviceController(db *gorm.DB, telegram tracking.SmartModule) *deviceController {
+func NewDeviceController(db *gorm.DB, telegram tracking.SmartModule) *deviceController {
 	return &deviceController{Usecase: *usecase.NewDeviceUsecase(db, telegram)}
 }
 
-func AddDevice(db *gorm.DB, telegram tracking.SmartModule, device *model.AddDevice) error {
+func (d deviceController) AddDevice(device *model.AddDevice) error {
 	var isAlive bool
-	info, err := snmp.GetInfo(device.IP, device.Community)
+	info, err := snmp.NewSnmp(snmp.Config{
+		IP:        device.IP,
+		Community: device.Community,
+		Timeout:   5 * time.Second,
+	}).OltSysQuery()
 	if err == nil {
 		isAlive = true
 	}
@@ -38,18 +42,18 @@ func AddDevice(db *gorm.DB, telegram tracking.SmartModule, device *model.AddDevi
 		LastCheck:   time.Now(),
 	}
 
-	return newDeviceController(db, telegram).Usecase.Add(newDevice)
+	return d.Usecase.Add(newDevice)
 }
 
-func ShowAllDevices(db *gorm.DB, telegram tracking.SmartModule, csv bool) ([]model.Device, error) {
-	devices, err := newDeviceController(db, telegram).Usecase.GetAll()
+func (d deviceController) ShowAllDevices(db *gorm.DB, telegram tracking.SmartModule, csv bool) ([]model.Device, error) {
+	devices, err := d.Usecase.GetAll()
 	if err != nil {
 		return nil, err
 	}
 
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{
+	pretty := table.NewWriter()
+	pretty.SetOutputMirror(os.Stdout)
+	pretty.AppendHeader(table.Row{
 		"ID",
 		"IP",
 		"Community",
@@ -63,7 +67,7 @@ func ShowAllDevices(db *gorm.DB, telegram tracking.SmartModule, csv bool) ([]mod
 	})
 
 	for _, device := range devices {
-		t.AppendRow(table.Row{
+		pretty.AppendRow(table.Row{
 			device.ID,
 			device.IP,
 			device.Community,
@@ -75,25 +79,25 @@ func ShowAllDevices(db *gorm.DB, telegram tracking.SmartModule, csv bool) ([]mod
 			device.CreatedAt.Local().Format(constants.FORMAT_DATE),
 			device.UpdatedAt.Local().Format(constants.FORMAT_DATE),
 		})
-		t.AppendSeparator()
+		pretty.AppendSeparator()
 	}
 	if csv {
-		t.RenderCSV()
+		pretty.RenderCSV()
 	} else {
-		t.Render()
+		pretty.Render()
 	}
 
 	return nil, nil
 }
 
-func GetDeviceWithOIDRows(db *gorm.DB, telegram tracking.SmartModule) ([]*model.DeviceWithOID, error) {
-	return newDeviceController(db, telegram).Usecase.GetDeviceWithOIDRows()
+func (d deviceController) GetDeviceWithOIDRows() ([]*model.DeviceWithOID, error) {
+	return d.Usecase.GetDeviceWithOIDRows()
 }
 
-func UpdateDevice(db *gorm.DB, telegram tracking.SmartModule, id uint, device *model.AddDevice) error {
-	return newDeviceController(db, telegram).Usecase.Update(id, device)
+func (d deviceController) UpdateDevice(id uint, device *model.AddDevice) error {
+	return d.Usecase.Update(id, device)
 }
 
-func DeleteDevice(db *gorm.DB, telegram tracking.SmartModule, id uint) error {
-	return newDeviceController(db, telegram).Usecase.Delete(id)
+func (d deviceController) DeleteDevice(id uint64) error {
+	return d.Usecase.Delete(id)
 }

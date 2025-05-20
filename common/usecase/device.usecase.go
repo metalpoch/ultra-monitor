@@ -86,7 +86,7 @@ func (use DeviceUsecase) Update(id uint, device *model.AddDevice) error {
 	return err
 }
 
-func (use DeviceUsecase) Delete(id uint) error {
+func (use DeviceUsecase) Delete(id uint64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

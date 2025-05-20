@@ -2,10 +2,8 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 	"time"
 
-	"github.com/metalpoch/olt-blueprint/common/constants"
 	"github.com/metalpoch/olt-blueprint/common/entity"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
 	"github.com/metalpoch/olt-blueprint/measurement/model"
@@ -22,35 +20,45 @@ func NewMeasurementUsecase(db *gorm.DB, telegram tracking.SmartModule) *Measurem
 	return &MeasurementUsecase{repository.NewMeasurementRepository(db), telegram}
 }
 
-func (uc MeasurementUsecase) Get(id uint) (*model.Measurement, error) {
+func (uc MeasurementUsecase) GetOlt(id uint64) (*model.MeasurementOlt, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	measurement := new(entity.Measurement)
-	if err := uc.repo.Get(ctx, id, measurement); err != nil {
-		go uc.telegram.SendMessage(
-			constants.MODULE_UPDATE,
-			constants.CATEGORY_DATABASE,
-			fmt.Sprintf("(measurementUsecase).Get - use.repo.Get(ctx, %d, %v)", id, *measurement),
-			err,
-		)
-		return &model.Measurement{}, err
+	if err := uc.repo.GetOlt(ctx, id, measurement); err != nil {
+		return &model.MeasurementOlt{}, err
 	}
 
-	return (*model.Measurement)(measurement), nil
+	return (*model.MeasurementOlt)(measurement), nil
 }
 
-func (uc MeasurementUsecase) Upsert(measurement *model.Measurement) error {
+func (uc MeasurementUsecase) UpsertOlt(measurement *model.MeasurementOlt) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	err := uc.repo.Upsert(ctx, (*entity.Measurement)(measurement))
-	if err != nil {
-		uc.telegram.SendMessage(
-			constants.MODULE_UPDATE,
-			constants.CATEGORY_DATABASE,
-			fmt.Sprintf("(measurementUsecase).Upsert - use.repo.Upsert(ctx, %v)", *(*entity.Measurement)(measurement)),
-			err,
-		)
+	return uc.repo.UpsertOlt(ctx, (*entity.Measurement)(measurement))
+}
+
+func (uc MeasurementUsecase) InsertManyOnt(measurements []model.MeasurementOnt) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var data []entity.MeasurementOnt
+	for _, measurement := range measurements {
+		/*data = append(data, (entity.MeasurementOnt)(measurement))*/
+		data = append(data, entity.MeasurementOnt{
+			InterfaceID:      measurement.InterfaceID,
+			Idx:              measurement.Idx,
+			Despt:            measurement.Despt,
+			SerialNumber:     measurement.SerialNumber,
+			LineProfName:     measurement.LineProfName,
+			OltDistance:      measurement.OltDistance,
+			ControlMacCount:  measurement.ControlMacCount,
+			ControlRunStatus: measurement.ControlRunStatus,
+			BytesIn:          measurement.BytesIn,
+			BytesOut:         measurement.BytesOut,
+			Date:             measurement.Date,
+		})
 	}
-	return err
+
+	return uc.repo.InsertManyOnt(ctx, &data)
 }

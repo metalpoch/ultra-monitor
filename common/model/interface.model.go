@@ -7,13 +7,13 @@ import (
 )
 
 type Interface struct {
-	ID        uint
-	IfIndex   uint
+	ID        uint64
+	IfIndex   uint64
 	IfName    string
 	IfDescr   string
 	IfAlias   string
 	Device    entity.Device
-	DeviceID  uint
+	DeviceID  uint64
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

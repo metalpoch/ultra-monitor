@@ -14,31 +14,31 @@ type templateController struct {
 	Usecase usecase.TemplateUsecase
 }
 
-func newTemplateController(db *gorm.DB, telegram tracking.SmartModule) *templateController {
+func NewTemplateController(db *gorm.DB, telegram tracking.SmartModule) *templateController {
 	return &templateController{Usecase: *usecase.NewTemplateUsecase(db, telegram)}
 }
 
-func AddTemplate(db *gorm.DB, telegram tracking.SmartModule, template *model.AddTemplate) error {
-	return newTemplateController(db, telegram).Usecase.Add(template)
+func (t templateController) AddTemplate(template *model.AddTemplate) error {
+	return t.Usecase.Add(template)
 }
 
-func UpdateTemplate(db *gorm.DB, telegram tracking.SmartModule, id uint, template *model.AddTemplate) error {
-	return newTemplateController(db, telegram).Usecase.Update(id, template)
+func (t templateController) UpdateTemplate(id uint, template *model.AddTemplate) error {
+	return t.Usecase.Update(id, template)
 }
 
-func DeleteTemplate(db *gorm.DB, telegram tracking.SmartModule, id uint) error {
-	return newTemplateController(db, telegram).Usecase.Delete(id)
+func (t templateController) DeleteTemplate(id uint) error {
+	return t.DeleteTemplate(id)
 }
 
-func ShowAllTemplates(db *gorm.DB, telegram tracking.SmartModule, csv bool) error {
-	templates, err := newTemplateController(db, telegram).Usecase.GetAll()
+func (t templateController) ShowAllTemplates(csv bool) error {
+	templates, err := t.Usecase.GetAll()
 	if err != nil {
 		return err
 	}
 
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{
+	pretty := table.NewWriter()
+	pretty.SetOutputMirror(os.Stdout)
+	pretty.AppendHeader(table.Row{
 		"ID",
 		"Name",
 		"Bandwidth OID",
@@ -49,7 +49,7 @@ func ShowAllTemplates(db *gorm.DB, telegram tracking.SmartModule, csv bool) erro
 	})
 
 	for _, template := range templates {
-		t.AppendRow(table.Row{
+		pretty.AppendRow(table.Row{
 			template.ID,
 			template.Name,
 			template.OidBw,
@@ -58,13 +58,13 @@ func ShowAllTemplates(db *gorm.DB, telegram tracking.SmartModule, csv bool) erro
 			template.CreatedAt.Local().Format("2006-01-02 15:04:05"),
 			template.UpdatedAt.Local().Format("2006-01-02 15:04:05"),
 		})
-		t.AppendSeparator()
+		pretty.AppendSeparator()
 	}
 
 	if csv {
-		t.RenderCSV()
+		pretty.RenderCSV()
 	} else {
-		t.Render()
+		pretty.Render()
 	}
 
 	return nil

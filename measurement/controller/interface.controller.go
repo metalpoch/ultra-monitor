@@ -14,19 +14,19 @@ type interfaceController struct {
 	Usecase usecase.InterfaceUsecase
 }
 
-func newInterfaceController(db *gorm.DB, telegram tracking.SmartModule) *interfaceController {
+func NewInterfaceController(db *gorm.DB, telegram tracking.SmartModule) *interfaceController {
 	return &interfaceController{*usecase.NewInterfaceUsecase(db, telegram)}
 }
 
-func ShowAllInterfaces(db *gorm.DB, telegram tracking.SmartModule, deviceID uint, csv bool) error {
-	interfaces, err := newInterfaceController(db, telegram).Usecase.GetAllByDevice(deviceID)
+func (i interfaceController) ShowAllInterfaces(deviceID uint64, csv bool) error {
+	interfaces, err := i.Usecase.GetAllByDevice(deviceID)
 	if err != nil {
 		return err
 	}
 
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{
+	pretty := table.NewWriter()
+	pretty.SetOutputMirror(os.Stdout)
+	pretty.AppendHeader(table.Row{
 		"ID",
 		"IfIndex",
 		"IfName",
@@ -37,7 +37,7 @@ func ShowAllInterfaces(db *gorm.DB, telegram tracking.SmartModule, deviceID uint
 	})
 
 	for _, i := range interfaces {
-		t.AppendRow(table.Row{
+		pretty.AppendRow(table.Row{
 			i.ID,
 			i.IfIndex,
 			i.IfName,
@@ -46,12 +46,12 @@ func ShowAllInterfaces(db *gorm.DB, telegram tracking.SmartModule, deviceID uint
 			i.CreatedAt.Local().Format(constants.FORMAT_DATE),
 			i.UpdatedAt.Local().Format(constants.FORMAT_DATE),
 		})
-		t.AppendSeparator()
+		pretty.AppendSeparator()
 	}
 	if csv {
-		t.RenderCSV()
+		pretty.RenderCSV()
 	} else {
-		t.Render()
+		pretty.Render()
 	}
 
 	return nil

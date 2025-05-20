@@ -1,169 +1,201 @@
 package controller
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
-	"sync"
+	"math"
 	"time"
 
-	"github.com/metalpoch/olt-blueprint/common/model"
+	commonModel "github.com/metalpoch/olt-blueprint/common/model"
 	"github.com/metalpoch/olt-blueprint/common/pkg/tracking"
 	commonUsecase "github.com/metalpoch/olt-blueprint/common/usecase"
-	"github.com/metalpoch/olt-blueprint/measurement/internal/constants"
 	"github.com/metalpoch/olt-blueprint/measurement/internal/snmp"
-	"github.com/metalpoch/olt-blueprint/measurement/internal/utils"
+	"github.com/metalpoch/olt-blueprint/measurement/model"
 	"github.com/metalpoch/olt-blueprint/measurement/usecase"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
-type trafficController struct {
-	Measurement usecase.MeasurementUsecase
-	Traffic     commonUsecase.TrafficUsecase
-}
+type (
+	measurementController struct {
+		Measurement usecase.MeasurementUsecase
+		Traffic     commonUsecase.TrafficUsecase
+		Device      commonUsecase.DeviceUsecase
+		Interface   commonUsecase.InterfaceUsecase
+		rdb         *redis.Client
+	}
+)
 
-func newTrafficController(db *gorm.DB, telegram tracking.SmartModule) *trafficController {
-	return &trafficController{
+func NewMeasurementController(db *gorm.DB, telegram tracking.SmartModule) *measurementController {
+	return &measurementController{
 		Measurement: *usecase.NewMeasurementUsecase(db, telegram),
 		Traffic:     *commonUsecase.NewTrafficUsecase(db, telegram),
+		Device:      *commonUsecase.NewDeviceUsecase(db, telegram),
+		Interface:   *commonUsecase.NewInterfaceUsecase(db, telegram),
 	}
 }
 
-func deviceUpdater(db *gorm.DB, telegram tracking.SmartModule, device *model.DeviceWithOID) (bool, error) {
-	var isAlive bool
-	checkDevice := &model.Device{
-		ID:          device.ID,
-		SysName:     device.SysName,
-		SysLocation: device.SysLocation,
+func (m measurementController) calculateDelta(prev, curr uint64) uint64 {
+	if curr >= prev {
+		return curr - prev
 	}
-
-	info, err := snmp.GetInfo(device.IP, device.Community)
-	if err != nil {
-		log.Printf("deviceUpdaterSNMPError: on device %s with the community %s - %v\n", device.IP, device.Community, err)
-	} else {
-		isAlive = true
-		checkDevice.SysName = info.SysName
-		checkDevice.SysLocation = info.SysLocation
-	}
-
-	checkDevice.IsAlive = isAlive
-	checkDevice.LastCheck = time.Now()
-	return isAlive, newDeviceController(db, telegram).Usecase.Check(checkDevice)
+	return (math.MaxUint64-prev)*curr + 1
 }
 
-func measurements(db *gorm.DB, telegram tracking.SmartModule, device *model.DeviceWithOID) error {
-	measurementUsecase := newTrafficController(db, telegram).Measurement
-	trafficUsecase := newTrafficController(db, telegram).Traffic
-	var (
-		err error
-		mu  sync.Mutex
-		wg  sync.WaitGroup
-	)
+func (m measurementController) bytesToBbps(prev, curr, bandwidth, diffDate uint64) uint64 {
+	maxPossible := bandwidth + (bandwidth / 10) // +10% de tolerancia
+	delta := m.calculateDelta(prev, curr)
+	bps := (8 * delta) / diffDate
 
-	result := snmp.MapSnmp{
-		"bw":      snmp.Snmp{},
-		"in":      snmp.Snmp{},
-		"out":     snmp.Snmp{},
-		"ifname":  snmp.Snmp{},
-		"ifdescr": snmp.Snmp{},
-		"ifalias": snmp.Snmp{},
+	if bps > maxPossible {
+		return bandwidth
 	}
 
-	oidMap := map[string]string{
-		"bw":      device.OidBw,
-		"in":      device.OidIn,
-		"out":     device.OidOut,
-		"ifalias": constants.IF_ALIAS_OID,
-		"ifdescr": constants.IF_DESCR_OID,
-		"ifname":  constants.IF_NAME_OID,
-	}
+	return bps
+}
 
-	date := time.Now()
-	for name, oid := range oidMap {
-		wg.Add(1)
-		go func(f, oid string) {
-			defer wg.Done()
-			res, errSnmp := snmp.Walk(device.IP, device.Community, oid)
-			if errSnmp != nil {
-				mu.Lock()
-				err = errSnmp
-				mu.Unlock()
-				return
-			}
-			mu.Lock()
-			result[f] = res
-			mu.Unlock()
-		}(name, oid)
-	}
-	wg.Wait()
+func (m measurementController) OltScan(device *commonModel.DeviceWithOID) {
+	client := snmp.NewSnmp(snmp.Config{
+		IP:        device.IP,
+		Community: device.Community,
+		Timeout:   time.Duration(10 * time.Second),
+		Retries:   5,
+	})
 
+	ponData, err := client.PonQuery()
 	if err != nil {
-		return err
+		log.Printf("error al ejecutar client.PonQuery en %s: %v", device.SysName, err)
 	}
 
-	interfaces, measurements := utils.SnmpElements(device.ID, date, result)
-	for idx := range interfaces {
-		var isFirstMeasurement bool
-		i := interfaces[idx]
-		m := measurements[idx]
-		err := newInterfaceController(db, telegram).Usecase.Upsert(i)
+	for idx, data := range ponData {
+		interfaceID, err := m.Interface.Upsert(&commonModel.Interface{
+			IfIndex:   idx,
+			IfName:    data.IfName,
+			IfDescr:   data.IfDescr,
+			IfAlias:   data.IfAlias,
+			DeviceID:  device.ID,
+			UpdatedAt: time.Now(),
+		})
 		if err != nil {
-			log.Printf("interfaceUpdaterError: on update the interface %s of deviceID %d:%v\n", i.IfName, device.ID, err)
-			continue
+			log.Printf("error al ejecutar m.Interface.Upsert en %s en el ifIndex %d: %v", device.SysName, idx, err)
 		}
 
-		id := i.ID
-		m.InterfaceID = id
-
-		old_m, err := measurementUsecase.Get(id)
+		var isFirstMeasurement bool
+		oldData, err := m.Measurement.GetOlt(interfaceID)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				isFirstMeasurement = true
-			} else {
-				log.Printf("measurementGetError: on get the measurement of %d:%v\n", id, err)
 			}
+			log.Printf("error al ejecutar m.Measurement.Get(%d) en %s: %v", idx, device.SysName, err)
 		}
 
-		err = measurementUsecase.Upsert(m)
+		now := time.Now()
+		err = m.Measurement.UpsertOlt(&model.MeasurementOlt{
+			InterfaceID: interfaceID,
+			Date:        now,
+			Bandwidth:   uint64(data.Bandwidth),
+			In:          data.CounterBytesIn,
+			Out:         data.CounterBytesOut,
+		})
 		if err != nil {
-			log.Printf("measurementUpdaterError: on update the measurement %d:%v\n", id, err)
+			log.Printf("error al ejecutar m.Measurement.Upsert en %s-%v: %v", device.SysName, &model.MeasurementOlt{
+				InterfaceID: interfaceID,
+				Date:        now,
+				Bandwidth:   uint64(data.Bandwidth),
+				In:          data.CounterBytesIn,
+				Out:         data.CounterBytesOut,
+			}, err)
 		}
 
-		if isFirstMeasurement { // There is no prior "measurement" to obtain the traffic
+		if isFirstMeasurement {
 			continue
 		}
 
-		diffTime := uint64(m.Date.Sub(old_m.Date).Seconds())
-
-		if err := trafficUsecase.Add(&model.Traffic{
-			InterfaceID: id,
-			Date:        m.Date,
-			Bandwidth:   m.Bandwidth,
-			In:          utils.BytesToBbps(old_m.In, m.In, m.Bandwidth, diffTime),
-			Out:         utils.BytesToBbps(old_m.Out, m.Out, m.Bandwidth, diffTime),
-			BytesIn:     utils.CalculateDelta(old_m.In, m.In),
-			BytesOut:    utils.CalculateDelta(old_m.Out, m.Out),
-		}); err != nil {
+		diffTime := uint64(now.Sub(oldData.Date).Seconds())
+		err = m.Traffic.Add(&commonModel.Traffic{
+			InterfaceID: interfaceID,
+			Date:        now,
+			Bandwidth:   uint64(data.Bandwidth),
+			In:          m.bytesToBbps(oldData.In, data.CounterBytesIn, uint64(data.Bandwidth), diffTime),
+			Out:         m.bytesToBbps(oldData.Out, data.CounterBytesOut, uint64(data.Bandwidth), diffTime),
+			BytesIn:     m.calculateDelta(oldData.In, data.CounterBytesIn),
+			BytesOut:    m.calculateDelta(oldData.Out, data.CounterBytesOut),
+		})
+		if err != nil {
 			log.Println("error saving the traffic:", err.Error())
 		}
 	}
-	return nil
 }
 
-func Scan(db *gorm.DB, telegram tracking.SmartModule, devices []*model.DeviceWithOID) {
-	for _, d := range devices {
-		go func(d *model.DeviceWithOID) {
-			if ok, err := deviceUpdater(db, telegram, d); err != nil {
-				log.Printf("deviceUpdaterError: on update the device %d:%v\n", d.ID, err)
-				return
-			} else if !ok {
-				return
-			}
+func (m measurementController) OntScan(device *commonModel.DeviceWithOID, interfaceID, idx uint64) ([]model.MeasurementOnt, error) {
+	client := snmp.NewSnmp(snmp.Config{
+		IP:        device.IP,
+		Community: device.Community,
+		Timeout:   time.Duration(5 * time.Second),
+		Retries:   3,
+	})
 
-			err := measurements(db, telegram, d)
-			if err != nil {
-				log.Printf("deviceUpdaterError: on update the measurement of %d:%v\n", d.ID, err)
-				return
-			}
-		}(d)
+	ontData, err := client.OntQuery(idx)
+	if err != nil {
+		return nil, fmt.Errorf("error al ejecutar client.OntQuery(%d) en %s: %v", idx, device.SysName, err)
 	}
+	var records []model.MeasurementOnt
+	for ontIdx, data := range ontData {
+		records = append(records, model.MeasurementOnt{
+			InterfaceID:      interfaceID,
+			Idx:              ontIdx,
+			Despt:            data.Despt,
+			SerialNumber:     data.SerialNumber,
+			LineProfName:     data.LineProfName,
+			OltDistance:      data.ControlRanging,
+			ControlMacCount:  data.ControlMacCount,
+			ControlRunStatus: data.ControlRunStatus,
+			BytesIn:          data.BytesIn,
+			BytesOut:         data.BytesOut,
+			Date:             time.Now(),
+		})
+	}
+
+	return records, err
+}
+
+func (m measurementController) ProcessOntBatchData(measurements []string) error {
+	var records []model.MeasurementOnt
+
+	for _, item := range measurements {
+		var record model.MeasurementOnt
+		if err := json.Unmarshal([]byte(item), &record); err != nil {
+			log.Println("error unmarshalling SNMP data:", err)
+			continue
+		}
+		fmt.Println(record)
+		records = append(records, record)
+	}
+
+	if len(records) == 0 {
+		return nil
+	}
+	return m.Measurement.InsertManyOnt(records)
+}
+
+func (m measurementController) calculateDeltaOnt(value, prev, curr *uint64) {
+	if prev == nil || curr == nil {
+		return
+	}
+
+	delta := m.calculateDelta(*prev, *curr)
+	value = &delta
+}
+
+func (m measurementController) bytesToBbpsOnt(value, prev, curr *uint64, diffDate uint64) {
+	if prev == nil || curr == nil {
+		return
+	}
+
+	delta := m.calculateDelta(*prev, *curr)
+	res := (8 * delta) / diffDate
+
+	value = &res
 }

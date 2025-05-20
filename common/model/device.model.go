@@ -7,7 +7,7 @@ import (
 )
 
 type Device struct {
-	ID          uint
+	ID          uint64
 	IP          string
 	Community   string
 	SysName     string
@@ -27,7 +27,7 @@ type AddDevice struct {
 }
 
 type DeviceWithOID struct {
-	ID          uint
+	ID          uint64
 	IP          string
 	SysName     string
 	SysLocation string

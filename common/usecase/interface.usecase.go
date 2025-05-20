@@ -22,10 +22,10 @@ func NewInterfaceUsecase(db *gorm.DB, telegram tracking.SmartModule) *InterfaceU
 	return &InterfaceUsecase{repository.NewInterfaceRepository(db), telegram}
 }
 
-func (use InterfaceUsecase) Upsert(element *model.Interface) error {
+func (use InterfaceUsecase) Upsert(element *model.Interface) (uint64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	err := use.repo.Upsert(ctx, (*entity.Interface)(element))
+	id, err := use.repo.Upsert(ctx, (*entity.Interface)(element))
 	if err != nil {
 		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
@@ -35,10 +35,10 @@ func (use InterfaceUsecase) Upsert(element *model.Interface) error {
 		)
 	}
 
-	return err
+	return id, err
 }
 
-func (use InterfaceUsecase) GetAllByDevice(id uint) ([]*model.Interface, error) {
+func (use InterfaceUsecase) GetAllByDevice(id uint64) ([]*model.Interface, error) {
 	var interfaces []*model.Interface
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -59,6 +59,23 @@ func (use InterfaceUsecase) GetAllByDevice(id uint) ([]*model.Interface, error) 
 	}
 
 	return interfaces, nil
+}
+
+func (use InterfaceUsecase) GetAllByDeviceAndIfindex(deviceID, idx uint64) (*model.Interface, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	pon, err := use.repo.GetAllByDeviceAndIfindex(ctx, deviceID, idx)
+	if err != nil {
+		use.telegram.SendMessage(
+			constants.MODULE_UPDATE,
+			constants.CATEGORY_DATABASE,
+			fmt.Sprintf("(interfaceUsecase).GetAllByDeviceAndIfindex - use.repo.GetAllByDevice(ctx, %d, %d)", deviceID, idx),
+			err,
+		)
+		return nil, err
+	}
+	return (*model.Interface)(pon), nil
 }
 
 func (use InterfaceUsecase) GetAll() ([]*model.Interface, error) {

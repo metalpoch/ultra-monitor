@@ -10,4 +10,5 @@ import (
 func Setup(server *fiber.App, db *gorm.DB, telegram tracking.SmartModule, cache cache.Redis) {
 	newTrafficRouter(server, db, telegram, cache)
 	newInfoRouter(server, db, telegram)
+	newSummaryRouter(server, db, cache)
 }

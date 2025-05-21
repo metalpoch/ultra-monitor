@@ -254,9 +254,7 @@ func main() {
 										started[device.ID] = struct{}{}
 										go func(device *model.DeviceWithOID) {
 											for {
-												log.Println("INIT")
 												ctrl.OltScan(device)
-												log.Println("END")
 												time.Sleep(time.Duration(interval) * time.Minute)
 											}
 										}(device)

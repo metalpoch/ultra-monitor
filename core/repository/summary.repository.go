@@ -90,11 +90,11 @@ func (repo summaryRepository) TrafficByState(ctx context.Context, state string, 
 	err := repo.db.WithContext(ctx).
 		Model(&entity.Traffic{}).
 		Select("DATE_TRUNC('hour', traffics.date) AS date",
-			"SUM(\"in\") AS \"in\"",
-			"SUM(out) AS out",
-			"SUM(bandwidth) AS bandwidth",
-			"SUM(bytes_in) AS bytes_in",
-			"SUM(bytes_out) AS bytes_out").
+			"SUM(\"in\") / 1000000 AS mbps_in",
+			"SUM(out) / 1000000 AS mbps_out",
+			"SUM(bandwidth) / 1000000 AS bandwidth",
+			"SUM(bytes_in) / 1000000 AS mbytes_in",
+			"SUM(bytes_out) /1000000 AS mbytes_out").
 		Joins("JOIN fat_interfaces ON fat_interfaces.interface_id = traffics.interface_id").
 		Joins("JOIN fats ON fats.id = fat_interfaces.fat_id").
 		Joins("JOIN locations AS l ON l.id = fats.location_id").

@@ -17,10 +17,10 @@ type UserStatusByState struct {
 }
 
 type TrafficResponse struct {
-	Date      time.Time
-	In        float64
-	Out       float64
-	Bandwidth float64
-	BytesIn   float64
-	BytesOut  float64
+	Date      time.Time `json:"total"`
+	In        float64   `json:"mbps_in"`
+	Out       float64   `json:"mbps_out"`
+	Bandwidth float64   `json:"bandwidth_mbps"`
+	BytesIn   float64   `json:"mbytes_in_sec"`
+	BytesOut  float64   `json:"mbytes_out_sec"`
 }

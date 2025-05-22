@@ -39,7 +39,7 @@ func (use SummaryUsecase) UserStatus(query *commonModel.TranficRangeDate) ([]mod
 		for _, s := range res {
 			status = append(status, (model.UserStatusCounts)(s))
 		}
-		err = use.cache.InsertOne(ctx, key, 24*time.Hour, status)
+		err = use.cache.InsertOne(ctx, key, 12*time.Hour, status)
 		if err != nil {
 			return nil, err
 		}
@@ -68,7 +68,7 @@ func (use SummaryUsecase) UserStatusByState(query *model.UserStatusByState) ([]m
 		for _, s := range res {
 			status = append(status, (model.UserStatusCounts)(s))
 		}
-		err = use.cache.InsertOne(ctx, key, 24*time.Hour, status)
+		err = use.cache.InsertOne(ctx, key, 12*time.Hour, status)
 		if err != nil {
 			return nil, err
 		}
@@ -93,7 +93,7 @@ func (use SummaryUsecase) Traffic(dates *commonModel.TranficRangeDate) ([]model.
 		for _, trf := range res {
 			traffic = append(traffic, (model.TrafficResponse)(trf))
 		}
-		err = use.cache.InsertOne(context.Background(), key, 24*time.Hour, traffic)
+		err = use.cache.InsertOne(context.Background(), key, 12*time.Hour, traffic)
 		if err != nil {
 			return nil, err
 		}
@@ -121,7 +121,7 @@ func (use SummaryUsecase) TrafficByState(state string, dates *commonModel.Tranfi
 		for _, trf := range res {
 			traffic = append(traffic, (model.TrafficResponse)(trf))
 		}
-		err = use.cache.InsertOne(context.Background(), key, 24*time.Hour, traffic)
+		err = use.cache.InsertOne(context.Background(), key, 12*time.Hour, traffic)
 		if err != nil {
 			return nil, err
 		}

@@ -14,5 +14,8 @@ func newSummaryRouter(server *fiber.App, db *gorm.DB, cache cache.Redis) {
 	}
 
 	summary := server.Group("/summary")
-	summary.Get("/users", hdlr.UserStatus)
+	summary.Get("/users/", hdlr.UserStatusByState)
+	summary.Get("/users/all", hdlr.UserStatus)
+	summary.Get("/traffic/state/all", hdlr.Traffic)
+	summary.Get("/traffic/state/:state", hdlr.TrafficByState)
 }

@@ -2,7 +2,6 @@ package entity
 
 import "time"
 
-// Trafic OLT
 type Traffic struct {
 	Interface   Interface `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	InterfaceID uint64
@@ -29,4 +28,13 @@ type TrafficOnt struct {
 	BytesIn          *uint64
 	BytesOut         *uint64
 	Date             time.Time
+}
+
+type TrafficResponse struct {
+	Date      time.Time `gorm:"column:date"`
+	In        float64   `gorm:"column:mbps_in"`
+	Out       float64   `gorm:"column:mbps_out"`
+	Bandwidth float64   `gorm:"column:bandwidth"`
+	BytesIn   float64   `gorm:"column:mbytes_in"`
+	BytesOut  float64   `gorm:"column:mbytes_out"`
 }

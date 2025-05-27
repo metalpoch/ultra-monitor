@@ -19,7 +19,7 @@ type MeasurementOnt struct {
 	/*Interface        entity.Interface*/
 	InterfaceID      uint64    `json:"interface_id"`
 	Idx              uint64    `json:"idx"`
-	Despt            string    `json:"desp"`
+	Despt            string    `json:"despt"`
 	SerialNumber     string    `json:"serial_number"`
 	LineProfName     string    `json:"line_prof_name"`
 	OltDistance      int64     `json:"olt_distance"`

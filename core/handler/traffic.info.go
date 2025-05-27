@@ -33,7 +33,7 @@ func (hdlr TrafficHandler) GetByInterface(c fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	query := new(model.TranficRangeDate)
+	query := new(model.TrafficRangeDate)
 	if err := c.Bind().Query(query); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -64,7 +64,7 @@ func (hdlr TrafficHandler) GetByDevice(c fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	query := new(model.TranficRangeDate)
+	query := new(model.TrafficRangeDate)
 	if err := c.Bind().Query(query); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -96,7 +96,7 @@ func (hdlr TrafficHandler) GetByFat(c fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	query := new(model.TranficRangeDate)
+	query := new(model.TrafficRangeDate)
 	if err := c.Bind().Query(query); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -128,7 +128,7 @@ func (hdlr TrafficHandler) GetByState(c fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	query := new(model.TranficRangeDate)
+	query := new(model.TrafficRangeDate)
 	if err := c.Bind().Query(query); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -166,7 +166,7 @@ func (hdlr TrafficHandler) GetByCounty(c fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	query := new(model.TranficRangeDate)
+	query := new(model.TrafficRangeDate)
 	if err := c.Bind().Query(query); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -208,7 +208,7 @@ func (hdlr TrafficHandler) GetByMunicipaly(c fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	query := new(model.TranficRangeDate)
+	query := new(model.TrafficRangeDate)
 	if err := c.Bind().Query(query); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -240,7 +240,7 @@ func (hdlr TrafficHandler) GetTrafficByODN(c fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	query := new(model.TranficRangeDate)
+	query := new(model.TrafficRangeDate)
 	if err := c.Bind().Query(query); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

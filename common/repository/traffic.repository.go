@@ -8,7 +8,7 @@ import (
 )
 
 type TrafficRepository interface {
-	AddOlt(ctx context.Context, traffic *entity.Traffic) error
+	AddOlt(ctx context.Context, traffic *entity.TrafficOlt) error
 	AddOnt(ctx context.Context, traffic *entity.TrafficOnt) error
 }
 
@@ -20,7 +20,7 @@ func NewTrafficRepository(db *gorm.DB) *trafficRepository {
 	return &trafficRepository{db}
 }
 
-func (repo trafficRepository) AddOlt(ctx context.Context, traffic *entity.Traffic) error {
+func (repo trafficRepository) AddOlt(ctx context.Context, traffic *entity.TrafficOlt) error {
 	return repo.db.WithContext(ctx).Create(traffic).Error
 }
 

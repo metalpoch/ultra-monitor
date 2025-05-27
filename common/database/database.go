@@ -30,7 +30,7 @@ func Connect(uri string, isProduction bool) *gorm.DB {
 		entity.Template{},
 		entity.Device{},
 		entity.Interface{},
-		entity.Traffic{},
+		entity.TrafficOlt{},
 		entity.Trend{},
 		entity.Measurement{},
 		entity.MeasurementOnt{},

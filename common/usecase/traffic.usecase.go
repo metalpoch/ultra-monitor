@@ -26,12 +26,12 @@ func (use TrafficUsecase) Add(traffic *model.Traffic) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	err := use.repo.AddOlt(ctx, (*entity.Traffic)(traffic))
+	err := use.repo.AddOlt(ctx, (*entity.TrafficOlt)(traffic))
 	if err != nil {
 		use.telegram.SendMessage(
 			constants.MODULE_UPDATE,
 			constants.CATEGORY_DATABASE,
-			fmt.Sprintf("(trafficUsecase).Add - use.repo.Add(ctx, %v)", *(*entity.Traffic)(traffic)),
+			fmt.Sprintf("(trafficUsecase).Add - use.repo.Add(ctx, %v)", *(*entity.TrafficOlt)(traffic)),
 			err,
 		)
 	}

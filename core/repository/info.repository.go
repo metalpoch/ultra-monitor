@@ -69,8 +69,8 @@ func (repo infoRepository) GetAllDevice(ctx context.Context) ([]*entity.Device, 
 func (repo infoRepository) GetDeviceByState(ctx context.Context, state string) ([]*entity.Device, error) {
 	var devices []*entity.Device
 	err := repo.db.WithContext(ctx).
-		Joins("JOIN interfaces ON devices.id = interfaces.device_id").
-		Joins("JOIN fat_interfaces AS fi ON interfaces.id = fi.interface_id").
+		Joins("JOIN pons ON devices.id = pons.device_id").
+		Joins("JOIN fats_pon AS fi ON pons.id = fi.interface_id").
 		Joins("JOIN fats ON fats.id = fi.fat_id").
 		Joins("JOIN locations ON fats.location_id = locations.id").
 		Select("DISTINCT devices.id, devices.ip, devices.sys_name", "devices.sys_location", "devices.is_alive", "devices.last_check", "devices.created_at", "devices.updated_at").
@@ -83,8 +83,8 @@ func (repo infoRepository) GetDeviceByState(ctx context.Context, state string) (
 func (repo infoRepository) GetDeviceByCounty(ctx context.Context, state, county string) ([]*entity.Device, error) {
 	var devices []*entity.Device
 	err := repo.db.WithContext(ctx).
-		Joins("JOIN interfaces ON devices.id = interfaces.device_id").
-		Joins("JOIN fat_interfaces AS fi ON interfaces.id = fi.interface_id").
+		Joins("JOIN pons ON devices.id = pons.device_id").
+		Joins("JOIN fats_pon AS fi ON pons.id = fi.interface_id").
 		Joins("JOIN fats ON fats.id = fi.fat_id").
 		Joins("JOIN locations ON fats.location_id = locations.id").
 		Select("DISTINCT devices.id, devices.ip, devices.sys_name", "devices.sys_location", "devices.is_alive", "devices.last_check", "devices.created_at", "devices.updated_at").
@@ -96,8 +96,8 @@ func (repo infoRepository) GetDeviceByCounty(ctx context.Context, state, county 
 func (repo infoRepository) GetDeviceByMunicipality(ctx context.Context, state, county, municipality string) ([]*entity.Device, error) {
 	var devices []*entity.Device
 	err := repo.db.WithContext(ctx).
-		Joins("JOIN interfaces ON devices.id = interfaces.device_id").
-		Joins("JOIN fat_interfaces AS fi ON interfaces.id = fi.interface_id").
+		Joins("JOIN pons ON devices.id = pons.device_id").
+		Joins("JOIN fats_pon AS fi ON pons.id = fi.interface_id").
 		Joins("JOIN fats ON fats.id = fi.fat_id").
 		Joins("JOIN locations ON fats.location_id = locations.id").
 		Select("DISTINCT devices.id, devices.ip, devices.sys_name", "devices.sys_location", "devices.is_alive", "devices.last_check", "devices.created_at", "devices.updated_at").
@@ -171,7 +171,7 @@ func (repo infoRepository) GetODN(ctx context.Context, odn string) ([]*entity.Fa
 
 	err := repo.db.
 		WithContext(ctx).
-		Joins("JOIN fats ON fats.id = fat_interfaces.fat_id").
+		Joins("JOIN fats ON fats.id = fats_pon.fat_id").
 		Where("fats.odn = ?", odn).
 		Find(&fats).Error
 	if err != nil {
@@ -243,8 +243,8 @@ func (repo infoRepository) GetODNDevice(ctx context.Context, id uint) ([]*string
 		WithContext(ctx).
 		Model(&entity.Interface{}).
 		Where("device_id = ?", id).
-		Joins("INNER JOIN fat_interfaces ON interfaces.id = fat_interfaces.interface_id").
-		Joins("INNER JOIN fats ON fat_interfaces.fat_id = fats.id").
+		Joins("INNER JOIN fats_pon ON pons.id = fats_pon.interface_id").
+		Joins("INNER JOIN fats ON fats_pon.fat_id = fats.id").
 		Distinct().
 		Select("fats.odn").
 		Scan(&odn).Error
@@ -261,8 +261,8 @@ func (repo infoRepository) GetODNDevicePort(ctx context.Context, id uint, patter
 	err := repo.db.WithContext(ctx).
 		Model(&entity.Interface{}).
 		Where("device_id = ? AND if_name LIKE ?", id, pattern).
-		Joins("INNER JOIN fat_interfaces ON interfaces.id = fat_interfaces.interface_id").
-		Joins("INNER JOIN fats ON fat_interfaces.fat_id = fats.id").
+		Joins("INNER JOIN fats_pon ON pons.id = fats_pon.interface_id").
+		Joins("INNER JOIN fats ON fats_pon.fat_id = fats.id").
 		Distinct().
 		Pluck("fats.odn", &odn).
 		Error
@@ -282,9 +282,9 @@ func (repo infoRepository) GetDevicesByOND(ctx context.Context, odn string) ([]*
 	var ids []*uint
 	result := repo.db.Model(&model.Device{}).
 		Select("devices.id").
-		Joins("INNER JOIN interfaces ON devices.id = interfaces.device_id").
-		Joins("INNER JOIN fat_interfaces ON interfaces.id = fat_interfaces.interface_id").
-		Joins("INNER JOIN fats ON fat_interfaces.fat_id = fats.id").
+		Joins("INNER JOIN pons ON devices.id = pons.device_id").
+		Joins("INNER JOIN fats_pon ON pons.id = fats_pon.interface_id").
+		Joins("INNER JOIN fats ON fats_pon.fat_id = fats.id").
 		Where("fats.odn = ?", odn).
 		Pluck("devices.id", &ids)
 

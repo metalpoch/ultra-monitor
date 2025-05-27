@@ -26,7 +26,7 @@ type TrafficResponse struct {
 	BytesOut  uint64    `json:"bytes_out"`
 }
 
-type TranficRangeDate struct {
+type TrafficRangeDate struct {
 	InitDate time.Time `query:"init_date" validate:"required"`
 	EndDate  time.Time `query:"end_date" validate:"required"`
 }

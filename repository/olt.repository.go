@@ -36,16 +36,6 @@ func NewOltRepository(db *sqlx.DB) *oltRepository {
 	return &oltRepository{db}
 }
 
-//	type Olt struct {
-//	    ID          uint64    `db:"id"`
-//	    IP          string    `db:"ip"`
-//	    Community   string    `db:"community"`
-//	    SysName     string    `db:"sys_name"`
-//	    SysLocation string    `db:"sys_location"`
-//	    IsAlive     bool      `db:"is_alive"`
-//	    LastCheck   time.Time `db:"last_check"`
-//	    CreatedAt   time.Time `db:"created_at"`
-//	}
 func (repo oltRepository) Add(ctx context.Context, device *entity.Olt) error {
 	query := `
         INSERT INTO olt (ip, community, sys_name, sys_location, is_alive, last_check)

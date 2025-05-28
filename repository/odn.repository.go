@@ -9,7 +9,7 @@ import (
 
 type OdnRepository interface {
 	GetFat(ctx context.Context, id uint) (entity.Fat, error)
-	GetODN(ctx context.Context, odn string) ([]entity.FatInterface, error)
+	GetODN(ctx context.Context, odn string) ([]entity.PonInterface, error)
 	GetODNStates(ctx context.Context, state string) ([]string, error)
 	GetODNStatesContries(ctx context.Context, state, country string) ([]string, error)
 	GetODNStatesContriesMunicipality(ctx context.Context, state, country, municipality string) ([]string, error)
@@ -33,8 +33,8 @@ func (repo odnRepository) GetFat(ctx context.Context, id uint) (entity.Fat, erro
 	return res, err
 }
 
-func (repo odnRepository) GetODN(ctx context.Context, odn string) ([]entity.FatInterface, error) {
-	var res []entity.FatInterface
+func (repo odnRepository) GetODN(ctx context.Context, odn string) ([]entity.PonInterface, error) {
+	var res []entity.PonInterface
 	query := `
         SELECT fi.* FROM fats_pon fi
         JOIN fats f ON f.id = fi.fat_id

@@ -9,11 +9,10 @@ import (
 )
 
 type OntRepository interface {
-	AddTrafficOnt(ctx context.Context, traffic *entity.TrafficOnt) error
-	GetOntStatus(ctx context.Context, initDate, endDate time.Time) ([]entity.OntStatusCounts, error)
+	AllOntStatus(ctx context.Context, initDate, endDate time.Time) ([]entity.OntStatusCounts, error)
 	GetOntStatusByState(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.OntStatusCountsByState, error)
 	GetOntStatusByODN(ctx context.Context, state, odn string, initDate, endDate time.Time) ([]entity.OntStatusCountsByState, error)
-	GetTrafficOnt(ctx context.Context, interfaceID, idx string, initDate, endDate time.Time) ([]entity.TrafficOnt, error)
+	TrafficOnt(ctx context.Context, ponID uint64, idx string, initDate, endDate time.Time) ([]entity.TrafficOnt, error)
 }
 
 type ontRepository struct {
@@ -24,39 +23,7 @@ func NewOntRepository(db *sqlx.DB) *ontRepository {
 	return &ontRepository{db}
 }
 
-func (repo oltRepository) AddTrafficOnt(ctx context.Context, traffic *entity.TrafficOnt) error {
-	query := `
-	INSERT INTO traffic_olt (
-		date,
-		despt,
-		serial_number,
-		olt_distance,
-		control_mac_count,
-		control_run_status,
-		line_prof_name,
-		mbps_in,
-		mbps_out,
-		mbytes_in_sec,
-		mbytes_out_sec
-	)
-	VALUES (
-		:date,
-		:despt,
-		:serial_number,
-		:olt_distance,
-		:control_mac_count,
-		:control_run_status,
-		:line_prof_name,
-		:mbps_in,
-		:mbps_out,
-		:mbytes_in_sec,
-		:mbytes_out_sec
-	)`
-	_, err := repo.db.NamedExecContext(ctx, query, traffic)
-	return err
-}
-
-func (repo ontRepository) GetOntStatus(ctx context.Context, initDate, endDate time.Time) ([]entity.OntStatusCounts, error) {
+func (repo ontRepository) AllOntStatus(ctx context.Context, initDate, endDate time.Time) ([]entity.OntStatusCounts, error) {
 	var res []entity.OntStatusCounts
 	query := `
 		SELECT
@@ -127,7 +94,7 @@ func (repo ontRepository) GetOntStatusByODN(ctx context.Context, state, odn stri
 	return res, err
 }
 
-func (repo ontRepository) GetTrafficOnt(ctx context.Context, interfaceID, idx string, initDate, endDate time.Time) ([]entity.TrafficOnt, error) {
+func (repo ontRepository) TrafficOnt(ctx context.Context, PonID uint64, idx string, initDate, endDate time.Time) ([]entity.TrafficOnt, error) {
 	var res []entity.TrafficOnt
 	query := `
 		SELECT
@@ -165,14 +132,14 @@ func (repo ontRepository) GetTrafficOnt(ctx context.Context, interfaceID, idx st
 				control_run_status,
 				bytes_in AS prev_bytes_in,
 				bytes_out AS prev_bytes_out,
-				LEAD(bytes_in) OVER (PARTITION BY interface_id ORDER BY date) AS curr_bytes_in,
-				LEAD(bytes_out) OVER (PARTITION BY interface_id ORDER BY date) AS curr_bytes_out,
-				EXTRACT(EPOCH FROM (LEAD(date) OVER (PARTITION BY interface_id ORDER BY date) - date)) AS time_diff
+				LEAD(bytes_in) OVER (PARTITION BY pon_id ORDER BY date) AS curr_bytes_in,
+				LEAD(bytes_out) OVER (PARTITION BY pon_id ORDER BY date) AS curr_bytes_out,
+				EXTRACT(EPOCH FROM (LEAD(date) OVER (PARTITION BY pon_id ORDER BY date) - date)) AS time_diff
 			FROM measurement_ont
-			WHERE interface_id = $1 AND idx = $2 AND bytes_in > 0 AND bytes_out > 0 AND date BETWEEN $3 AND $4
+			WHERE pon_id = $1 AND idx = $2 AND bytes_in > 0 AND bytes_out > 0 AND date BETWEEN $3 AND $4
 			ORDER BY date
 		) AS subquery`
 
-	err := repo.db.SelectContext(ctx, &res, query, interfaceID, idx, initDate, endDate)
+	err := repo.db.SelectContext(ctx, &res, query, PonID, idx, initDate, endDate)
 	return res, err
 }

@@ -23,7 +23,7 @@ func NewUserUsecase(db *sqlx.DB, secret []byte) *UserUsecase {
 	return &UserUsecase{secret, repository.NewUserRepository(db)}
 }
 
-func (use UserUsecase) Create(newUser *dto.NewUser) error {
+func (uc UserUsecase) Create(newUser *dto.NewUser) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -32,7 +32,7 @@ func (use UserUsecase) Create(newUser *dto.NewUser) error {
 		return err
 	}
 
-	if err := use.repo.Create(ctx, entity.User{
+	if err := uc.repo.Create(ctx, entity.User{
 		ID:             newUser.ID,
 		Fullname:       newUser.Fullname,
 		Email:          newUser.Email,
@@ -47,11 +47,11 @@ func (use UserUsecase) Create(newUser *dto.NewUser) error {
 	return nil
 }
 
-func (use UserUsecase) Login(email string, password string) (*model.User, error) {
+func (uc UserUsecase) Login(email string, password string) (*model.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, err := use.repo.UserByEmail(ctx, email)
+	res, err := uc.repo.UserByEmail(ctx, email)
 	if err != nil {
 		return nil, errors.New("invalid email or password")
 	}
@@ -59,7 +59,7 @@ func (use UserUsecase) Login(email string, password string) (*model.User, error)
 	if err := bcrypt.CompareHashAndPassword([]byte(res.Password), []byte(password)); err != nil {
 		return nil, errors.New("invalid email or password")
 	}
-	token, err := jwt.CreateJWT(use.secret, res.ID, res.IsAdmin)
+	token, err := jwt.CreateJWT(uc.secret, res.ID, res.IsAdmin)
 	if err != nil {
 		return nil, err
 	}
@@ -71,11 +71,11 @@ func (use UserUsecase) Login(email string, password string) (*model.User, error)
 	}, nil
 }
 
-func (use UserUsecase) GetUser(id uint32) (*model.User, error) {
+func (uc UserUsecase) GetUser(id uint32) (*model.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, err := use.repo.UserByID(ctx, id)
+	res, err := uc.repo.UserByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -90,31 +90,31 @@ func (use UserUsecase) GetUser(id uint32) (*model.User, error) {
 	}, nil
 }
 
-func (use UserUsecase) Disable(id uint32) error {
+func (uc UserUsecase) Disable(id uint32) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	if err := use.repo.Disable(ctx, id); err != nil {
+	if err := uc.repo.Disable(ctx, id); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (use UserUsecase) Enable(id uint32) error {
+func (uc UserUsecase) Enable(id uint32) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	if err := use.repo.Enable(ctx, id); err != nil {
+	if err := uc.repo.Enable(ctx, id); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (use UserUsecase) ChangePassword(id uint32, user *dto.ChangePassword) error {
+func (uc UserUsecase) ChangePassword(id uint32, user *dto.ChangePassword) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, err := use.repo.UserByID(ctx, id)
+	res, err := uc.repo.UserByID(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (use UserUsecase) ChangePassword(id uint32, user *dto.ChangePassword) error
 		return err
 	}
 
-	if err := use.repo.ChangePassword(ctx, id, string(bytesPsw)); err != nil {
+	if err := uc.repo.ChangePassword(ctx, id, string(bytesPsw)); err != nil {
 		return err
 	}
 	return nil

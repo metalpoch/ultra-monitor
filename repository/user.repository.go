@@ -10,7 +10,7 @@ import (
 type UserRepository interface {
 	Create(ctx context.Context, user entity.User) error
 	UserByID(ctx context.Context, id uint32) (entity.User, error)
-	GetUserByEmail(ctx context.Context, email string) (entity.User, error)
+	UserByEmail(ctx context.Context, email string) (entity.User, error)
 	Disable(ctx context.Context, id uint32) error
 	Enable(ctx context.Context, id uint32) error
 	ChangePassword(ctx context.Context, id uint32, password string) error
@@ -39,7 +39,7 @@ func (repo userRepository) UserByID(ctx context.Context, id uint32) (entity.User
 	return res, err
 }
 
-func (repo userRepository) GetUserByEmail(ctx context.Context, email string) (entity.User, error) {
+func (repo userRepository) UserByEmail(ctx context.Context, email string) (entity.User, error) {
 	var res entity.User
 	query := `SELECT id, fullname, email, password, change_password, is_admin, is_disabled, created_at FROM users WHERE email = $1`
 	err := repo.db.GetContext(ctx, &res, query, email)

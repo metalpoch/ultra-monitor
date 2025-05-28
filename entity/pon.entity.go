@@ -2,7 +2,7 @@ package entity
 
 import "time"
 
-type Pon struct {
+type Pon struct { // Table
 	ID        uint64    `db:"id"`
 	OltID     uint64    `db:"olt_id"`
 	IfIndex   uint64    `db:"if_index"`

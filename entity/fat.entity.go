@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-type Fat struct {
+type Fat struct { // Table. TODO: agregar campos de location para eliminar esa tabla
 	ID         uint      `db:"id"`
 	LocationID uint      `db:"location_id"`
 	Splitter   uint8     `db:"splitter"`
@@ -13,6 +13,5 @@ type Fat struct {
 	Address    string    `db:"address"`
 	Fat        string    `db:"fat"`
 	ODN        string    `db:"odn"`
-	Location   Location  `db:"location"`
 	CreatedAt  time.Time `db:"created_at"`
 }

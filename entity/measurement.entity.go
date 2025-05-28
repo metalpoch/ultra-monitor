@@ -2,7 +2,7 @@ package entity
 
 import "time"
 
-type MeasurementOlt struct {
+type MeasurementPon struct { // Table
 	PonID     uint64    `db:"pon_id"`
 	Bandwidth uint64    `db:"bandwidth"`
 	In        uint64    `db:"bytes_in_count"`
@@ -10,7 +10,7 @@ type MeasurementOlt struct {
 	Date      time.Time `db:"date"`
 }
 
-type MeasurementOnt struct {
+type MeasurementOnt struct { // Table
 	PonID            uint64    `db:"pon_id"`
 	Idx              uint64    `db:"idx"`
 	Despt            string    `db:"despt"`
@@ -19,7 +19,7 @@ type MeasurementOnt struct {
 	OltDistance      int64     `db:"olt_distance"`
 	ControlMacCount  int64     `db:"control_mac_count"`
 	ControlRunStatus int8      `db:"control_run_status"`
-	BytesIn          uint64    `db:"bytes_in"`
-	BytesOut         uint64    `db:"bytes_out"`
+	BytesIn          uint64    `db:"bytes_in_count"`
+	BytesOut         uint64    `db:"bytes_out_count"`
 	Date             time.Time `db:"date"`
 }

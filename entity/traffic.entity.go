@@ -2,13 +2,14 @@ package entity
 
 import "time"
 
-type TrafficOlt struct {
-	Date      time.Time `db:"date"`
-	MbpsIn    float64   `db:"mbps_in"`
-	MbpsOut   float64   `db:"mbps_out"`
+type TrafficPon struct { // Table
+	PonID     uint64    `db:"pon_id"`
+	BpsIn     float64   `db:"bps_in"`
+	BpsOut    float64   `db:"bps_out"`
 	Bandwidth float64   `db:"bandwidth_mbps_sec"`
-	MBpsIn    float64   `db:"mbytes_in_sec"`
-	MBpsOut   float64   `db:"mbytes_out_sec"`
+	BytesIn   float64   `db:"bytes_in_sec"`
+	BytesOut  float64   `db:"bytes_out_sec"`
+	Date      time.Time `db:"date"`
 }
 
 type TrafficOnt struct {
@@ -23,4 +24,13 @@ type TrafficOnt struct {
 	MbpsOut          float64   `db:"mbps_out"`
 	MBpsIn           float64   `db:"mbytes_in_sec"`
 	MBpsOut          float64   `db:"mbytes_out_sec"`
+}
+
+type Traffic struct {
+	Date      time.Time `db:"date"`
+	MbpsIn    float64   `db:"mbps_in"`
+	MbpsOut   float64   `db:"mbps_out"`
+	Bandwidth float64   `db:"bandwidth_mbps_sec"`
+	MBpsIn    float64   `db:"mbytes_in_sec"`
+	MBpsOut   float64   `db:"mbytes_out_sec"`
 }

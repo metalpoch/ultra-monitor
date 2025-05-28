@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-type User struct {
+type User struct { // Table
 	ID             uint32    `db:"id"`
 	ChangePassword bool      `db:"change_password"`
 	IsAdmin        bool      `db:"is_admin"`

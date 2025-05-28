@@ -8,6 +8,12 @@ import (
 )
 
 type UserRepository interface {
+	Create(ctx context.Context, user entity.User) error
+	UserByID(ctx context.Context, id uint32) (entity.User, error)
+	GetUserByEmail(ctx context.Context, email string) (entity.User, error)
+	Disable(ctx context.Context, id uint32) error
+	Enable(ctx context.Context, id uint32) error
+	ChangePassword(ctx context.Context, id uint32, password string) error
 }
 
 type userRepository struct {

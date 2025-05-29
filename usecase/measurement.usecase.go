@@ -18,20 +18,20 @@ func NewMeasurementUsecase(db *sqlx.DB) *MeasurementUsecase {
 	return &MeasurementUsecase{repository.NewMeasurementRepository(db)}
 }
 
-func (uc MeasurementUsecase) UpsertOlt(olt model.Olt) error {
+func (uc *MeasurementUsecase) UpsertOlt(olt model.Olt) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	return uc.repo.UpsertOlt(ctx, (entity.Olt)(olt))
 }
 
-func (uc MeasurementUsecase) UpsertPon(element model.Pon) (uint64, error) {
+func (uc *MeasurementUsecase) UpsertPon(element model.Pon) (uint64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	id, err := uc.repo.UpsertPon(ctx, (entity.Pon)(element))
 	return id, err
 }
 
-func (uc MeasurementUsecase) GetTemportalMeasurementPon(id uint64) (*model.MeasurementPon, error) {
+func (uc *MeasurementUsecase) GetTemportalMeasurementPon(id uint64) (*model.MeasurementPon, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -43,19 +43,19 @@ func (uc MeasurementUsecase) GetTemportalMeasurementPon(id uint64) (*model.Measu
 	return (*model.MeasurementPon)(&res), nil
 }
 
-func (uc MeasurementUsecase) UpsertTemportalMeasurementPon(measurement model.MeasurementPon) error {
+func (uc *MeasurementUsecase) UpsertTemportalMeasurementPon(measurement model.MeasurementPon) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	return uc.repo.UpsertTemportalMeasurementPon(ctx, (entity.MeasurementPon)(measurement))
 }
 
-func (uc MeasurementUsecase) InsertTrafficPon(measurement model.TrafficPon) error {
+func (uc *MeasurementUsecase) InsertTrafficPon(measurement model.TrafficPon) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	return uc.repo.InsertTrafficPon(ctx, (entity.TrafficPon)(measurement))
 }
 
-func (uc MeasurementUsecase) InsertManyOnt(measurements []model.MeasurementOnt) error {
+func (uc *MeasurementUsecase) InsertManyOnt(measurements []model.MeasurementOnt) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

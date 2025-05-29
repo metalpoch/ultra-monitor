@@ -23,7 +23,7 @@ func NewUserUsecase(db *sqlx.DB, secret []byte) *UserUsecase {
 	return &UserUsecase{secret, repository.NewUserRepository(db)}
 }
 
-func (uc UserUsecase) Create(newUser *dto.NewUser) error {
+func (uc *UserUsecase) Create(newUser *dto.NewUser) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -47,7 +47,7 @@ func (uc UserUsecase) Create(newUser *dto.NewUser) error {
 	return nil
 }
 
-func (uc UserUsecase) Login(email string, password string) (*model.User, error) {
+func (uc *UserUsecase) Login(email string, password string) (*model.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -71,7 +71,7 @@ func (uc UserUsecase) Login(email string, password string) (*model.User, error) 
 	}, nil
 }
 
-func (uc UserUsecase) GetUser(id uint32) (*model.User, error) {
+func (uc *UserUsecase) GetUser(id uint32) (*model.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -90,7 +90,7 @@ func (uc UserUsecase) GetUser(id uint32) (*model.User, error) {
 	}, nil
 }
 
-func (uc UserUsecase) Disable(id uint32) error {
+func (uc *UserUsecase) Disable(id uint32) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -100,7 +100,7 @@ func (uc UserUsecase) Disable(id uint32) error {
 	return nil
 }
 
-func (uc UserUsecase) Enable(id uint32) error {
+func (uc *UserUsecase) Enable(id uint32) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -110,7 +110,7 @@ func (uc UserUsecase) Enable(id uint32) error {
 	return nil
 }
 
-func (uc UserUsecase) ChangePassword(id uint32, user *dto.ChangePassword) error {
+func (uc *UserUsecase) ChangePassword(id uint32, user *dto.ChangePassword) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

@@ -7,6 +7,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/metalpoch/olt-blueprint/entity"
 	"github.com/metalpoch/olt-blueprint/internal/dto"
+	"github.com/metalpoch/olt-blueprint/internal/snmp"
 	"github.com/metalpoch/olt-blueprint/model"
 	"github.com/metalpoch/olt-blueprint/repository"
 )
@@ -19,23 +20,27 @@ func NewOltUsecase(db *sqlx.DB) *OltUsecase {
 	return &OltUsecase{repository.NewOltRepository(db)}
 }
 
-func (uc OltUsecase) Add(olt model.Olt) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-	defer cancel()
-
-	newDevice := &entity.Olt{
-		IP:          olt.IP,
-		SysName:     olt.SysName,
-		SysLocation: olt.SysLocation,
-		Community:   olt.Community,
-		IsAlive:     olt.IsAlive,
-		LastCheck:   time.Now(),
+func (uc *OltUsecase) Add(olt dto.NewOlt) error {
+	info, err := snmp.NewSnmp(snmp.Config{
+		IP:        olt.IP,
+		Community: olt.Community,
+		Timeout:   5 * time.Second,
+	}).OltSysQuery()
+	if err != nil {
+		return err
 	}
 
-	return uc.repo.Add(ctx, newDevice)
+	return uc.repo.Add(context.Background(), &entity.Olt{
+		IP:          olt.IP,
+		SysName:     info.SysName,
+		SysLocation: info.SysLocation,
+		Community:   olt.Community,
+		IsAlive:     true,
+		LastCheck:   time.Now(),
+	})
 }
 
-func (uc OltUsecase) Update(id uint64, olt dto.NewOlt) error {
+func (uc *OltUsecase) Update(id uint64, olt dto.NewOlt) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -53,14 +58,14 @@ func (uc OltUsecase) Update(id uint64, olt dto.NewOlt) error {
 	return uc.repo.Update(ctx, e)
 }
 
-func (uc OltUsecase) Delete(id uint64) error {
+func (uc *OltUsecase) Delete(id uint64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	return uc.repo.Delete(ctx, id)
 
 }
 
-func (uc OltUsecase) Olt(id uint64) (model.Olt, error) {
+func (uc *OltUsecase) Olt(id uint64) (model.Olt, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -68,7 +73,7 @@ func (uc OltUsecase) Olt(id uint64) (model.Olt, error) {
 	return (model.Olt)(e), err
 }
 
-func (uc OltUsecase) Olts(page, limit uint16) ([]model.Olt, error) {
+func (uc *OltUsecase) Olts(page, limit uint16) ([]model.Olt, error) {
 	var devices []model.Olt
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -85,7 +90,7 @@ func (uc OltUsecase) Olts(page, limit uint16) ([]model.Olt, error) {
 	return devices, err
 }
 
-func (uc OltUsecase) OltsByState(state string, page, limit uint16) ([]model.Olt, error) {
+func (uc *OltUsecase) OltsByState(state string, page, limit uint16) ([]model.Olt, error) {
 	var devices []model.Olt
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -102,7 +107,7 @@ func (uc OltUsecase) OltsByState(state string, page, limit uint16) ([]model.Olt,
 	return devices, err
 }
 
-func (uc OltUsecase) OltsByCounty(state, county string, page, limit uint16) ([]model.Olt, error) {
+func (uc *OltUsecase) OltsByCounty(state, county string, page, limit uint16) ([]model.Olt, error) {
 	var devices []model.Olt
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -118,7 +123,7 @@ func (uc OltUsecase) OltsByCounty(state, county string, page, limit uint16) ([]m
 
 	return devices, err
 }
-func (uc OltUsecase) OltsByMunicipality(state, county, municipality string, page, limit uint16) ([]model.Olt, error) {
+func (uc *OltUsecase) OltsByMunicipality(state, county, municipality string, page, limit uint16) ([]model.Olt, error) {
 	var devices []model.Olt
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

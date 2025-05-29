@@ -2,7 +2,7 @@ package entity
 
 import "time"
 
-type Olt struct { // Table
+type Olt struct {
 	ID          uint64    `db:"id"`
 	IP          string    `db:"ip"`
 	Community   string    `db:"community"`

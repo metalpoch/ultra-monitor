@@ -20,7 +20,7 @@ func NewPonRepository(db *sqlx.DB) *ponRepository {
 	return &ponRepository{db}
 }
 
-func (repo ponRepository) PonByPort(ctx context.Context, sysname, port string) (entity.Pon, error) {
+func (repo *ponRepository) PonByPort(ctx context.Context, sysname, port string) (entity.Pon, error) {
 	var res entity.Pon
 	query := `
 	SELECT id, olt_id, if_index, if_name, if_descr, if_alias, created_at, updated_at
@@ -31,7 +31,7 @@ func (repo ponRepository) PonByPort(ctx context.Context, sysname, port string) (
 	return res, err
 }
 
-func (repo ponRepository) PonsByOLT(ctx context.Context, sysname string) ([]entity.Pon, error) {
+func (repo *ponRepository) PonsByOLT(ctx context.Context, sysname string) ([]entity.Pon, error) {
 	var res []entity.Pon
 	query := `
 	SELECT id, olt_id, if_index, if_name, if_descr, if_alias, created_at, updated_at

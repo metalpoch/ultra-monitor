@@ -17,7 +17,7 @@ func NewPonUsecase(db *sqlx.DB) *PonUsecase {
 	return &PonUsecase{repository.NewPonRepository(db)}
 }
 
-func (uc PonUsecase) GetAllByDevice(sysname string) ([]model.Pon, error) {
+func (uc *PonUsecase) GetAllByDevice(sysname string) ([]model.Pon, error) {
 	var interfaces []model.Pon
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -34,7 +34,7 @@ func (uc PonUsecase) GetAllByDevice(sysname string) ([]model.Pon, error) {
 	return interfaces, nil
 }
 
-func (uc PonUsecase) PonByOltAndPort(sysname, port string) (*model.Pon, error) {
+func (uc *PonUsecase) PonByOltAndPort(sysname, port string) (*model.Pon, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

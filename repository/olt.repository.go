@@ -26,7 +26,7 @@ func NewOltRepository(db *sqlx.DB) *oltRepository {
 	return &oltRepository{db}
 }
 
-func (repo oltRepository) Add(ctx context.Context, device *entity.Olt) error {
+func (repo *oltRepository) Add(ctx context.Context, device *entity.Olt) error {
 	query := `
         INSERT INTO olt (ip, community, sys_name, sys_location, is_alive, last_check)
         VALUES (:ip, :community, :sys_name, :sys_location, :is_alive, :last_check)
@@ -35,7 +35,7 @@ func (repo oltRepository) Add(ctx context.Context, device *entity.Olt) error {
 	return err
 }
 
-func (repo oltRepository) Olt(ctx context.Context, id uint64) (entity.Olt, error) {
+func (repo *oltRepository) Olt(ctx context.Context, id uint64) (entity.Olt, error) {
 	var olt entity.Olt
 	query := `SELECT * FROM olt WHERE id = $1`
 	err := repo.db.GetContext(ctx, &olt, query, id)
@@ -45,7 +45,7 @@ func (repo oltRepository) Olt(ctx context.Context, id uint64) (entity.Olt, error
 	return olt, nil
 }
 
-func (repo oltRepository) Update(ctx context.Context, olt entity.Olt) error {
+func (repo *oltRepository) Update(ctx context.Context, olt entity.Olt) error {
 	query := `
         UPDATE olt SET
             ip = :ip,
@@ -60,13 +60,13 @@ func (repo oltRepository) Update(ctx context.Context, olt entity.Olt) error {
 	return err
 }
 
-func (repo oltRepository) Delete(ctx context.Context, id uint64) error {
+func (repo *oltRepository) Delete(ctx context.Context, id uint64) error {
 	query := `DELETE FROM olt WHERE id = $1`
 	_, err := repo.db.ExecContext(ctx, query, id)
 	return err
 }
 
-func (repo oltRepository) Olts(ctx context.Context, page, limit uint16) ([]entity.Olt, error) {
+func (repo *oltRepository) Olts(ctx context.Context, page, limit uint16) ([]entity.Olt, error) {
 	var res []entity.Olt
 	offset := (page - 1) * limit
 	query := `SELECT * FROM olt ORDER BY sys_name LIMIT ? OFFSET ?`
@@ -74,7 +74,7 @@ func (repo oltRepository) Olts(ctx context.Context, page, limit uint16) ([]entit
 	return res, err
 }
 
-func (repo oltRepository) OltsByState(ctx context.Context, state string, page, limit uint16) ([]entity.Olt, error) {
+func (repo *oltRepository) OltsByState(ctx context.Context, state string, page, limit uint16) ([]entity.Olt, error) {
 	var res []entity.Olt
 	offset := (page - 1) * limit
 	query := `
@@ -90,7 +90,7 @@ func (repo oltRepository) OltsByState(ctx context.Context, state string, page, l
 	return res, err
 }
 
-func (repo oltRepository) OltsByCounty(ctx context.Context, state, county string, page, limit uint16) ([]entity.Olt, error) {
+func (repo *oltRepository) OltsByCounty(ctx context.Context, state, county string, page, limit uint16) ([]entity.Olt, error) {
 	var res []entity.Olt
 	offset := (page - 1) * limit
 	query := `
@@ -106,7 +106,7 @@ func (repo oltRepository) OltsByCounty(ctx context.Context, state, county string
 	return res, err
 }
 
-func (repo oltRepository) OltsByMunicipality(ctx context.Context, state, county, municipality string, page, limit uint16) ([]entity.Olt, error) {
+func (repo *oltRepository) OltsByMunicipality(ctx context.Context, state, county, municipality string, page, limit uint16) ([]entity.Olt, error) {
 	var res []entity.Olt
 	offset := (page - 1) * limit
 	query := `

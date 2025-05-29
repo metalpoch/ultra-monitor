@@ -2,13 +2,11 @@ package controller
 
 import (
 	"os"
-	"time"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jmoiron/sqlx"
 	"github.com/metalpoch/olt-blueprint/internal/constants"
 	"github.com/metalpoch/olt-blueprint/internal/dto"
-	"github.com/metalpoch/olt-blueprint/internal/snmp"
 	"github.com/metalpoch/olt-blueprint/model"
 	"github.com/metalpoch/olt-blueprint/usecase"
 )
@@ -21,25 +19,8 @@ func NewOltController(db *sqlx.DB) *OltController {
 	return &OltController{Usecase: *usecase.NewOltUsecase(db)}
 }
 
-func (ctrl OltController) AddOlt(olt *dto.NewOlt) error {
-	var isAlive bool
-	info, err := snmp.NewSnmp(snmp.Config{
-		IP:        olt.IP,
-		Community: olt.Community,
-		Timeout:   5 * time.Second,
-	}).OltSysQuery()
-	if err == nil {
-		isAlive = true
-	}
-
-	return ctrl.Usecase.Add(model.Olt{
-		IP:          olt.IP,
-		SysName:     info.SysName,
-		SysLocation: info.SysLocation,
-		Community:   olt.Community,
-		IsAlive:     isAlive,
-		LastCheck:   time.Now(),
-	})
+func (ctrl OltController) AddOlt(olt dto.NewOlt) error {
+	return ctrl.Usecase.Add(olt)
 }
 
 func (ctrl OltController) ShowAllDevices(csv bool) ([]model.Olt, error) {

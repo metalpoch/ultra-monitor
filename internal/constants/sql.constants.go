@@ -1,97 +1,129 @@
 package constants
 
+const SQL_TABLE_USERS string = `
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY,
+    fullname VARCHAR(255),
+    username VARCHAR(10) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    change_password BOOLEAN,
+    is_admin BOOLEAN,
+    is_disabled BOOLEAN,
+    created_at TIMESTAMP DEFAULT NOW()
+);`
+
+const SQL_TABLE_REPORT string = `
+CREATE TABLE IF NOT EXISTS reports (
+    id UUID PRIMARY KEY,
+    category VARCHAR(128) NOT NULL,
+    original_filename VARCHAR(255) NOT NULL,
+    content_type VARCHAR(128) NOT NULL,
+    basepath VARCHAR(255) NOT NULL,
+    filepath VARCHAR(255) NOT NULL,
+    user_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);`
+
 const SQL_TABLE_OLT string = `
-CREATE TABLE olt (
-    id BIGINT UNSIGNED PRIMARY KEY,
-    ip VARCHAR(15) NOT NULL,
+CREATE TABLE IF NOT EXISTS olts (
+    id INTEGER PRIMARY KEY,
+    ip VARCHAR(45) NOT NULL UNIQUE,
     community VARCHAR(255),
-    sys_name VARCHAR(255),
+    sys_name VARCHAR(255) NOT NULL UNIQUE,
     sys_location VARCHAR(255),
     is_alive BOOLEAN,
-    template_id INT UNSIGNED,
-    last_check DATETIME,
-    created_at DATETIME
-);`
-
-const SQL_TABLE_MEASUREMENT_OLT string = `
-CREATE TABLE measurement_olt (
-    pon_id BIGINT UNSIGNED NOT NULL,
-    bandwidth BIGINT UNSIGNED,
-    bytes_in_count BIGINT UNSIGNED,
-    bytes_out_count BIGINT UNSIGNED,
-    date DATETIME NOT NULL
-    FOREIGN KEY (pon_id) REFERENCES pon(id)
-
-);`
-const SQL_TABLE_MEASUREMENT_ONT string = `
-CREATE TABLE measurement_ont (
-    pon_id BIGINT UNSIGNED,
-    idx BIGINT UNSIGNED,
-    despt VARCHAR(255),
-    serial_number VARCHAR(255),
-    line_prof_name VARCHAR(255),
-    olt_distance BIGINT,
-    control_mac_count BIGINT,
-    control_run_status TINYINT,
-    bytes_in BIGINT UNSIGNED,
-    bytes_out BIGINT UNSIGNED,
-    date DATETIME
-    FOREIGN KEY (pon_id) REFERENCES pon(id)
-
-);`
-
-const SQL_TABLE_TRAFFIC_OLT string = `
-CREATE TABLE traffic_olt (
-    date DATETIME NOT NULL,
-    mbps_in DOUBLE,
-    mbps_out DOUBLE,
-    bandwidth_mbps_sec DOUBLE,
-    mbytes_in_sec DOUBLE,
-    mbytes_out_sec DOUBLE
+    last_check TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW()
 );`
 
 const SQL_TABLE_PON string = `
-CREATE TABLE pon (
-    id BIGINT UNSIGNED PRIMARY KEY,
-    olt_id BIGINT UNSIGNED,
-    if_index BIGINT UNSIGNED,
+CREATE TABLE IF NOT EXISTS pons (
+    id INTEGER PRIMARY KEY,
+    olt_id INTEGER NOT NULL,
+    if_index INTEGER NOT NULL,
     if_name VARCHAR(128),
     if_descr VARCHAR(255),
     if_alias VARCHAR(255),
-    created_at DATETIME,
-    updated_at DATETIME,
-    FOREIGN KEY (olt_id) REFERENCES olt(id)
+    updated_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE (olt_id, if_index),
+    FOREIGN KEY (olt_id) REFERENCES olts(id)
 );`
 
-const SQL_TABLE_LOCATION string = `
-CREATE TABLE location (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    state VARCHAR(128) NOT NULL,
-    county VARCHAR(128) NOT NULL,
-    municipality VARCHAR(128) NOT NULL,
-    UNIQUE KEY unique_location (state, county, municipality)
+const SQL_TABLE_MEASUREMENT_PON string = `
+CREATE TABLE IF NOT EXISTS measurement_pon (
+    pon_id INTEGER NOT NULL,
+    bandwidth NUMERIC(20,0) NOT NULL,
+    bytes_in_count NUMERIC(20,0) NOT NULL,
+    bytes_out_count NUMERIC(20,0) NOT NULL,
+    date TIMESTAMP NOT NULL,
+    FOREIGN KEY (pon_id) REFERENCES pons(id)
 );`
+
+const SQL_TABLE_TRAFFIC_PON string = `
+CREATE TABLE IF NOT EXISTS traffic_pon (
+    pon_id INTEGER NOT NULL,
+    bps_in DOUBLE PRECISION,
+    bps_out DOUBLE PRECISION,
+    bandwidth_mbps_sec DOUBLE PRECISION,
+    bytes_in_sec DOUBLE PRECISION,
+    bytes_out_sec DOUBLE PRECISION,
+    date TIMESTAMP NOT NULL,
+    FOREIGN KEY (pon_id) REFERENCES pons(id)
+);`
+
+const SQL_TABLE_MEASUREMENT_ONT string = `
+CREATE TABLE IF NOT EXISTS measurement_ont (
+    pon_id INTEGER NOT NULL,
+    idx INTEGER NOT NULL,
+    despt VARCHAR(255),
+    serial_number VARCHAR(64),
+    line_prof_name VARCHAR(128),
+    olt_distance INTEGER,
+    control_mac_count SMALLINT,
+    control_run_status SMALLINT,
+    bytes_in_count NUMERIC(20,0) NOT NULL,
+    bytes_out_count NUMERIC(20,0) NOT NULL,
+    date TIMESTAMP DEFAULT NOW(),
+    FOREIGN KEY (pon_id) REFERENCES pons(id)
+);
+`
 
 const SQL_TABLE_FAT string = `
-CREATE TABLE fat (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    location_id INT UNSIGNED NOT NULL,
-    splitter TINYINT UNSIGNED,
-    latitude DOUBLE,
-    longitude DOUBLE,
-    address VARCHAR(255),
-    fat VARCHAR(64),
-    odn VARCHAR(64),
-    created_at DATETIME,
-    FOREIGN KEY (location_id) REFERENCES location(id)
+CREATE TABLE IF NOT EXISTS fats (
+    id INTEGER PRIMARY KEY,
+    fat VARCHAR(128) NOT NULL,
+    region VARCHAR(128) NOT NULL,
+    state VARCHAR(128) NOT NULL,
+    municipality VARCHAR(128) NOT NULL,
+    county VARCHAR(128) NOT NULL,
+    odn VARCHAR(128) NOT NULL,
+    olt_ip VARCHAR(45) NOT NULL,
+    pon_shell SMALLINT NOT NULL,
+    pon_port SMALLINT NOT NULL,
+    pon_card SMALLINT NOT NULL,
+    latitude DOUBLE PRECISION,
+    longitude DOUBLE PRECISION,
+    created_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE (fat, state, municipality, county, olt_ip, odn, pon_shell, pon_card, pon_port)
 );`
 
-const SQL_TABLE_FAT_PON string = `
-CREATE TABLE fat_pon (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    fat_id INT UNSIGNED NOT NULL,
-    pon_id BIGINT UNSIGNED NOT NULL,
-    UNIQUE KEY unique_fat_pon (fat_id, pon_id),
-    FOREIGN KEY (fat_id) REFERENCES fat(id),
-    FOREIGN KEY (pon_id) REFERENCES pon(id)
-);`
+const SQL_INDEX_FAT_STATE string = `CREATE INDEX IF NOT EXISTS idx_fats_state ON fats(state);`
+const SQL_INDEX_FAT_COUNTY string = `CREATE INDEX IF NOT EXISTS idx_fats_county ON fats(county);`
+const SQL_INDEX_FAT_MUNICIPALITY string = `CREATE INDEX IF NOT EXISTS idx_fats_municipality ON fats(municipality);`
+const SQL_INDEX_FAT_ODN string = `CREATE INDEX IF NOT EXISTS idx_fats_odn ON fats(odn);`
+const SQL_INDEX_FAT_OLT string = `CREATE INDEX IF NOT EXISTS idx_fats_olt_ip ON fats(olt_ip);`
+
+const SQL_INDEX_MEASUREMENT_PON_DATE string = `CREATE INDEX IF NOT EXISTS idx_measurement_pon_date ON measurement_pon(date);`
+const SQL_INDEX_MEASUREMENT_PON_PON_ID string = `CREATE INDEX IF NOT EXISTS idx_measurement_pon_id ON measurement_pon(pon_id);`
+
+const SQL_INDEX_MEASUREMENT_ONT_DATE string = `CREATE INDEX IF NOT EXISTS idx_measurement_ont_date ON measurement_ont(date);`
+const SQL_INDEX_MEASUREMENT_ONT_IDX string = `CREATE INDEX IF NOT EXISTS idx_measurement_ont_pon_id ON measurement_ont(idx);`
+const SQL_INDEX_MEASUREMENT_ONT_DESPT string = `CREATE INDEX IF NOT EXISTS idx_measurement_ont_despt ON measurement_ont(despt);`
+const SQL_INDEX_MEASUREMENT_ONT_PON_ID string = `CREATE INDEX IF NOT EXISTS idx_measurement_ont_pon_id ON measurement_ont(pon_id);`
+
+const SQL_INDEX_REPORT_CATEGORY string = `CREATE INDEX IF NOT EXISTS idx_reports_category ON reports(category);`
+const SQL_INDEX_REPORT_USER_ID string = `CREATE INDEX IF NOT EXISTS idx_reports_user_id ON reports(user_id);`
+
+const SQL_INDEX_USERS_USERNAME string = `CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);`

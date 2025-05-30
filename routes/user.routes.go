@@ -3,25 +3,21 @@ package routes
 import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/jmoiron/sqlx"
-	"github.com/metalpoch/olt-blueprint/handler"
-	"github.com/metalpoch/olt-blueprint/middleware"
-	"github.com/metalpoch/olt-blueprint/usecase"
+	"github.com/metalpoch/ultra-monitor/handler"
+	"github.com/metalpoch/ultra-monitor/middleware"
+	"github.com/metalpoch/ultra-monitor/usecase"
 )
 
-func newUserRoutes(server *fiber.App, db *sqlx.DB, secret []byte) {
+func Users(app *fiber.App, db *sqlx.DB, secret []byte) {
 	hdlr := &handler.UserHandler{
 		Usecase: *usecase.NewUserUsecase(db, secret),
 	}
 
-	server.Post("/login", hdlr.Login)
-	server.Get("/user/profile", hdlr.GetOwn, middleware.ValidateJWT(secret))
-	server.Patch("/user/reset_password", hdlr.ChangePassword, middleware.ValidateJWT(secret))
-
-	// for develop
-	server.Post("/signup", hdlr.Create)
-
-	// Admin routes
-	// server.Post("/api/auth/signup", hdlr.Create, middleware.ValidateJWT(secret), middleware.AdminAccess)
-	// server.Get("/user/all", hdlr.GetAll, middleware.ValidateJWT(secret), middleware.AdminAccess)
-	// server.Delete("/user/:id", hdlr.DeleteUser, middleware.ValidateJWT(secret), middleware.AdminAccess)
+	route := app.Group("/api/user")
+	route.Get("/", hdlr.GetOwn, middleware.ValidateJWT(secret))
+	route.Post("/signin", hdlr.Login)
+	route.Patch("/reset_password", hdlr.ChangePassword, middleware.ValidateJWT(secret))
+	route.Post("/:p00", hdlr.Enable, middleware.ValidateJWT(secret), middleware.AdminAccess)
+	route.Delete("/:p00", hdlr.Disable, middleware.ValidateJWT(secret), middleware.AdminAccess)
+	route.Post("/signup", hdlr.Create, middleware.ValidateJWT(secret), middleware.AdminAccess)
 }

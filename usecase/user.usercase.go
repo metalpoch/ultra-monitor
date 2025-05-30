@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/metalpoch/olt-blueprint/entity"
-	"github.com/metalpoch/olt-blueprint/internal/dto"
-	"github.com/metalpoch/olt-blueprint/internal/jwt"
-	"github.com/metalpoch/olt-blueprint/model"
-	"github.com/metalpoch/olt-blueprint/repository"
+	"github.com/metalpoch/ultra-monitor/entity"
+	"github.com/metalpoch/ultra-monitor/internal/dto"
+	"github.com/metalpoch/ultra-monitor/internal/jwt"
+	"github.com/metalpoch/ultra-monitor/model"
+	"github.com/metalpoch/ultra-monitor/repository"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -35,7 +35,7 @@ func (uc *UserUsecase) Create(newUser *dto.NewUser) error {
 	if err := uc.repo.Create(ctx, entity.User{
 		ID:             newUser.ID,
 		Fullname:       newUser.Fullname,
-		Email:          newUser.Email,
+		Username:       newUser.Username,
 		Password:       string(bytesPsw),
 		ChangePassword: true,
 		IsAdmin:        false,
@@ -47,31 +47,32 @@ func (uc *UserUsecase) Create(newUser *dto.NewUser) error {
 	return nil
 }
 
-func (uc *UserUsecase) Login(email string, password string) (*model.User, error) {
+func (uc *UserUsecase) Login(email string, password string) (*model.Login, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, err := uc.repo.UserByEmail(ctx, email)
+	res, err := uc.repo.UserByUsername(ctx, email)
 	if err != nil {
-		return nil, errors.New("invalid email or password")
+		return nil, errors.New("invalid user or password")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(res.Password), []byte(password)); err != nil {
-		return nil, errors.New("invalid email or password")
+		return nil, errors.New("invalid user or password")
 	}
 	token, err := jwt.CreateJWT(uc.secret, res.ID, res.IsAdmin)
 	if err != nil {
 		return nil, err
 	}
 
-	return &model.User{
+	return &model.Login{
 		ID:       res.ID,
 		Fullname: res.Fullname,
+		Username: res.Username,
 		Token:    token,
 	}, nil
 }
 
-func (uc *UserUsecase) GetUser(id uint32) (*model.User, error) {
+func (uc *UserUsecase) GetUser(id int) (*model.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -82,15 +83,15 @@ func (uc *UserUsecase) GetUser(id uint32) (*model.User, error) {
 
 	return &model.User{
 		ID:             res.ID,
-		Email:          res.Email,
+		Fullname:       res.Fullname,
+		Username:       res.Username,
 		ChangePassword: res.ChangePassword,
 		IsDisabled:     res.IsDisabled,
-		Fullname:       res.Fullname,
 		IsAdmin:        res.IsAdmin,
 	}, nil
 }
 
-func (uc *UserUsecase) Disable(id uint32) error {
+func (uc *UserUsecase) Disable(id int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -100,7 +101,7 @@ func (uc *UserUsecase) Disable(id uint32) error {
 	return nil
 }
 
-func (uc *UserUsecase) Enable(id uint32) error {
+func (uc *UserUsecase) Enable(id int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -110,7 +111,7 @@ func (uc *UserUsecase) Enable(id uint32) error {
 	return nil
 }
 
-func (uc *UserUsecase) ChangePassword(id uint32, user *dto.ChangePassword) error {
+func (uc *UserUsecase) ChangePassword(id int, user *dto.ChangePassword) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -124,9 +125,6 @@ func (uc *UserUsecase) ChangePassword(id uint32, user *dto.ChangePassword) error
 	}
 
 	bytesPsw, err := bcrypt.GenerateFromPassword([]byte(user.NewPassword), 14)
-	if err != nil {
-		return err
-	}
 	if err != nil {
 		return err
 	}

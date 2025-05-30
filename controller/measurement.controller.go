@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/metalpoch/olt-blueprint/internal/snmp"
-	"github.com/metalpoch/olt-blueprint/model"
-	"github.com/metalpoch/olt-blueprint/usecase"
+	"github.com/metalpoch/ultra-monitor/internal/snmp"
+	"github.com/metalpoch/ultra-monitor/model"
+	"github.com/metalpoch/ultra-monitor/usecase"
 )
 
 type MeasurementController struct {

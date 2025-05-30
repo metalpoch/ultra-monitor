@@ -3,7 +3,7 @@ package entity
 import "time"
 
 type Olt struct {
-	ID          uint64    `db:"id"`
+	ID          int32     `db:"id"`
 	IP          string    `db:"ip"`
 	Community   string    `db:"community"`
 	SysName     string    `db:"sys_name"`

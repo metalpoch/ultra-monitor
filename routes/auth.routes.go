@@ -8,12 +8,12 @@ import (
 	"github.com/metalpoch/ultra-monitor/usecase"
 )
 
-func Users(app *fiber.App, db *sqlx.DB, secret []byte) {
+func NewAuthRoutes(app *fiber.App, db *sqlx.DB, secret []byte) {
 	hdlr := &handler.UserHandler{
 		Usecase: *usecase.NewUserUsecase(db, secret),
 	}
 
-	route := app.Group("/api/user")
+	route := app.Group("/api/auth")
 	route.Get("/", hdlr.GetOwn, middleware.ValidateJWT(secret))
 	route.Post("/signin", hdlr.Login)
 	route.Patch("/reset_password", hdlr.ChangePassword, middleware.ValidateJWT(secret))

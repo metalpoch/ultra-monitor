@@ -3,7 +3,7 @@ package model
 import "time"
 
 type Olt struct {
-	ID          uint64    `json:"id"`
+	ID          int32     `json:"id"`
 	IP          string    `json:"ip"`
 	Community   string    `json:"community"`
 	SysName     string    `json:"sys_name"`

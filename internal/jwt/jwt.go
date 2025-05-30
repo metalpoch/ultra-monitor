@@ -6,7 +6,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func CreateJWT(secret []byte, id uint32, is_admin bool) (string, error) {
+func CreateJWT(secret []byte, id int32, is_admin bool) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 	claims["id"] = id

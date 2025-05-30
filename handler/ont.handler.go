@@ -2,10 +2,11 @@ package handler
 
 import (
 	"net/url"
+	"strconv"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/metalpoch/olt-blueprint/internal/dto"
-	"github.com/metalpoch/olt-blueprint/usecase"
+	"github.com/metalpoch/ultra-monitor/internal/dto"
+	"github.com/metalpoch/ultra-monitor/usecase"
 )
 
 type OntHandler struct {
@@ -40,6 +41,7 @@ func (hdlr OntHandler) OntStatusByState(c fiber.Ctx) error {
 	}
 	return c.JSON(res)
 }
+
 func (hdlr OntHandler) OntStatusByOdn(c fiber.Ctx) error {
 	state, err := url.QueryUnescape(c.Params("state"))
 	if err != nil {
@@ -59,5 +61,29 @@ func (hdlr OntHandler) OntStatusByOdn(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
+	return c.JSON(res)
+}
+
+func (hdlr OntHandler) TrafficOnt(c fiber.Ctx) error {
+	ponID, err := fiber.Convert(c.Params("ponID"), strconv.Atoi)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	ontIDX, err := url.QueryUnescape(c.Params("ontIDX"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	dates := new(dto.RangeDate)
+	if err := c.Bind().Query(dates); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.TrafficOnt(uint64(ponID), ontIDX, *dates)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
 	return c.JSON(res)
 }

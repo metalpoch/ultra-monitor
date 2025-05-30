@@ -2,8 +2,8 @@ package entity
 
 import "time"
 
-type TrafficPon struct { // Table
-	PonID     uint64    `db:"pon_id"`
+type TrafficPon struct {
+	PonID     int32     `db:"pon_id"`
 	BpsIn     float64   `db:"bps_in"`
 	BpsOut    float64   `db:"bps_out"`
 	Bandwidth float64   `db:"bandwidth_mbps_sec"`
@@ -17,8 +17,8 @@ type TrafficOnt struct {
 	Despt            string    `db:"despt"`
 	SerialNumber     string    `db:"serial_number"`
 	LineProfName     string    `db:"line_prof_name"`
-	OltDistance      int64     `db:"olt_distance"`
-	ControlMacCount  int64     `db:"control_mac_count"`
+	OltDistance      int32     `db:"olt_distance"`
+	ControlMacCount  int8      `db:"control_mac_count"`
 	ControlRunStatus int8      `db:"control_run_status"`
 	MbpsIn           float64   `db:"mbps_in"`
 	MbpsOut          float64   `db:"mbps_out"`

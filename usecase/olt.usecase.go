@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/metalpoch/olt-blueprint/entity"
-	"github.com/metalpoch/olt-blueprint/internal/dto"
-	"github.com/metalpoch/olt-blueprint/internal/snmp"
-	"github.com/metalpoch/olt-blueprint/model"
-	"github.com/metalpoch/olt-blueprint/repository"
+	"github.com/metalpoch/ultra-monitor/entity"
+	"github.com/metalpoch/ultra-monitor/internal/dto"
+	"github.com/metalpoch/ultra-monitor/internal/snmp"
+	"github.com/metalpoch/ultra-monitor/model"
+	"github.com/metalpoch/ultra-monitor/repository"
 )
 
 type OltUsecase struct {
@@ -40,11 +40,11 @@ func (uc *OltUsecase) Add(olt dto.NewOlt) error {
 	})
 }
 
-func (uc *OltUsecase) Update(id uint64, olt dto.NewOlt) error {
+func (uc *OltUsecase) Update(id int, olt dto.NewOlt) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	e, err := uc.repo.Olt(ctx, id)
+	e, err := uc.repo.Olt(ctx, int32(id))
 	if err != nil {
 		return err
 	}
@@ -58,18 +58,18 @@ func (uc *OltUsecase) Update(id uint64, olt dto.NewOlt) error {
 	return uc.repo.Update(ctx, e)
 }
 
-func (uc *OltUsecase) Delete(id uint64) error {
+func (uc *OltUsecase) Delete(id int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	return uc.repo.Delete(ctx, id)
+	return uc.repo.Delete(ctx, int32(id))
 
 }
 
-func (uc *OltUsecase) Olt(id uint64) (model.Olt, error) {
+func (uc *OltUsecase) Olt(id int) (model.Olt, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	e, err := uc.repo.Olt(ctx, id)
+	e, err := uc.repo.Olt(ctx, int32(id))
 	return (model.Olt)(e), err
 }
 

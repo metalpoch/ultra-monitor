@@ -4,14 +4,13 @@ import (
 	"time"
 )
 
-type Tao struct {
-	ID           uint64    `db:"id"`
-	Tao          string    `db:"tao"`
+type Fat struct {
+	ID           int32     `db:"id"`
+	Fat          string    `db:"fat"`
 	Region       string    `db:"region"`
 	State        string    `db:"state"`
 	Municipality string    `db:"municipality"`
 	County       string    `db:"county"`
-	Sector       string    `db:"sector"`
 	Odn          string    `db:"odn"`
 	OltIP        string    `db:"olt_ip"`
 	Shell        uint8     `db:"pon_shell"`

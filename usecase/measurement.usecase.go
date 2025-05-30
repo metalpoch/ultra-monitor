@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/metalpoch/olt-blueprint/entity"
-	"github.com/metalpoch/olt-blueprint/model"
-	"github.com/metalpoch/olt-blueprint/repository"
+	"github.com/metalpoch/ultra-monitor/entity"
+	"github.com/metalpoch/ultra-monitor/model"
+	"github.com/metalpoch/ultra-monitor/repository"
 )
 
 type MeasurementUsecase struct {
@@ -31,7 +31,7 @@ func (uc *MeasurementUsecase) UpsertPon(element model.Pon) (uint64, error) {
 	return id, err
 }
 
-func (uc *MeasurementUsecase) GetTemportalMeasurementPon(id uint64) (*model.MeasurementPon, error) {
+func (uc *MeasurementUsecase) GetTemportalMeasurementPon(id int32) (*model.MeasurementPon, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

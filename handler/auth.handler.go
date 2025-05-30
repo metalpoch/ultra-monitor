@@ -64,7 +64,7 @@ func (hdlr UserHandler) Disable(c fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.SendStatus(http.StatusOK)
+	return c.SendStatus(http.StatusNoContent)
 }
 
 func (hdlr UserHandler) Enable(c fiber.Ctx) error {

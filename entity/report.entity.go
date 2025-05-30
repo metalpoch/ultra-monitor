@@ -13,6 +13,6 @@ type Report struct {
 	ContentType      string    `db:"content_type"`
 	Basepath         string    `db:"basepath"`
 	Filepath         string    `db:"filepath"`
-	UserID           uint32    `db:"user_id"`
+	UserID           int32     `db:"user_id"`
 	CreatedAt        time.Time `db:"created_at"`
 }

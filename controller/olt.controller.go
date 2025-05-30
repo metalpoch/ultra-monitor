@@ -5,10 +5,10 @@ import (
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jmoiron/sqlx"
-	"github.com/metalpoch/olt-blueprint/internal/constants"
-	"github.com/metalpoch/olt-blueprint/internal/dto"
-	"github.com/metalpoch/olt-blueprint/model"
-	"github.com/metalpoch/olt-blueprint/usecase"
+	"github.com/metalpoch/ultra-monitor/internal/constants"
+	"github.com/metalpoch/ultra-monitor/internal/dto"
+	"github.com/metalpoch/ultra-monitor/model"
+	"github.com/metalpoch/ultra-monitor/usecase"
 )
 
 type OltController struct {

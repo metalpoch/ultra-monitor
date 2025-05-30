@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/metalpoch/olt-blueprint/entity"
+	"github.com/metalpoch/ultra-monitor/entity"
 )
 
 type PonRepository interface {

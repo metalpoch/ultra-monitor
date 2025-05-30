@@ -6,13 +6,13 @@ import (
 	"strings"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/metalpoch/olt-blueprint/entity"
+	"github.com/metalpoch/ultra-monitor/entity"
 )
 
 type MeasurementRepository interface {
 	UpsertOlt(ctx context.Context, olt entity.Olt) error // creo que no se esta usando
 	UpsertPon(ctx context.Context, element entity.Pon) (uint64, error)
-	GetTemportalMeasurementPon(ctx context.Context, id uint64) (entity.MeasurementPon, error)
+	GetTemportalMeasurementPon(ctx context.Context, id int32) (entity.MeasurementPon, error)
 	UpsertTemportalMeasurementPon(ctx context.Context, measurement entity.MeasurementPon) error
 	InsertTrafficPon(ctx context.Context, traffic entity.TrafficPon) error
 	InsertManyMeasurementOnt(ctx context.Context, measurements []entity.MeasurementOnt) error
@@ -55,7 +55,7 @@ func (repo *measurementRepository) UpsertPon(ctx context.Context, element entity
 	return id, err
 }
 
-func (repo *measurementRepository) GetTemportalMeasurementPon(ctx context.Context, id uint64) (entity.MeasurementPon, error) {
+func (repo *measurementRepository) GetTemportalMeasurementPon(ctx context.Context, id int32) (entity.MeasurementPon, error) {
 	var res entity.MeasurementPon
 	query := `SELECT * FROM measurement_pon WHERE pon_id = $1`
 	err := repo.db.GetContext(ctx, &res, query, id)

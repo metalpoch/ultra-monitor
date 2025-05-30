@@ -10,13 +10,16 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/jmoiron/sqlx"
-	"github.com/metalpoch/ultra-monitor/internal/config"
+	"github.com/metalpoch/ultra-monitor/internal/cache"
 	"github.com/metalpoch/ultra-monitor/internal/database"
+	"github.com/metalpoch/ultra-monitor/internal/validations"
 	"github.com/metalpoch/ultra-monitor/routes"
 )
 
 var db *sqlx.DB
+var redis *cache.Redis
 var jwtSecret string
+var reportDirectory string
 
 func init() {
 	dbURI := os.Getenv("POSTGRES_URI")
@@ -29,6 +32,11 @@ func init() {
 		log.Fatal("error 'JWT_SECRET' enviroment varables requried.")
 	}
 
+	reportDirectory = os.Getenv("REPORT_DIRECTORY")
+	if reportDirectory == "" {
+		log.Fatal("error 'REPORT_DIRECTORY' enviroment varables requried.")
+	}
+
 	var err error
 	db, err = database.Connect(dbURI)
 	if err != nil {
@@ -38,13 +46,16 @@ func init() {
 
 func main() {
 	app := fiber.New(fiber.Config{
-		StructValidator: &config.StructValidator{Validator: validator.New()},
+		StructValidator: &validations.StructValidator{Validator: validator.New()},
 		JSONEncoder:     json.Marshal,
 		JSONDecoder:     json.Unmarshal,
+		BodyLimit:       100 * 1024 * 1024, // 100 mb
 	})
 
 	app.Use(logger.New())
 	app.Use(cors.New())
-	routes.Users(app, db, []byte(jwtSecret))
-	app.Listen(":3001")
+
+	routes.Init(app, db, redis, []byte(jwtSecret))
+
+	app.Listen(":3000")
 }

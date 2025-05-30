@@ -2,11 +2,12 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/metalpoch/olt-blueprint/model"
-	"github.com/metalpoch/olt-blueprint/repository"
+	"github.com/metalpoch/ultra-monitor/model"
+	"github.com/metalpoch/ultra-monitor/repository"
 )
 
 type PonUsecase struct {
@@ -34,11 +35,12 @@ func (uc *PonUsecase) GetAllByDevice(sysname string) ([]model.Pon, error) {
 	return interfaces, nil
 }
 
-func (uc *PonUsecase) PonByOltAndPort(sysname, port string) (*model.Pon, error) {
+func (uc *PonUsecase) PonByOltAndPort(sysname string, shell, card, port int) (*model.Pon, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	pon, err := uc.repo.PonByPort(ctx, sysname, port)
+	ifname := fmt.Sprintf("GPON %d/%d/%d", shell, card, port)
+	pon, err := uc.repo.PonByPort(ctx, sysname, ifname)
 	if err != nil {
 		return nil, err
 	}

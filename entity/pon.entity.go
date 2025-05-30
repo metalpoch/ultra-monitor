@@ -3,9 +3,9 @@ package entity
 import "time"
 
 type Pon struct {
-	ID        uint64    `db:"id"`
-	OltID     uint64    `db:"olt_id"`
-	IfIndex   uint64    `db:"if_index"`
+	ID        int32     `db:"id"`
+	OltID     int32     `db:"olt_id"`
+	IfIndex   int32     `db:"if_index"`
 	IfName    string    `db:"if_name"`
 	IfDescr   string    `db:"if_descr"`
 	IfAlias   string    `db:"if_alias"`

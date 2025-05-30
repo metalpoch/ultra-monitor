@@ -2,14 +2,13 @@ package model
 
 import "time"
 
-type Tao struct {
-	ID           uint64    `json:"id"`
-	Tao          string    `db:"tao"`
+type Fat struct {
+	ID           int32     `json:"id"`
+	Fat          string    `db:"fat"`
 	Region       string    `json:"region"`
 	State        string    `json:"state"`
 	Municipality string    `json:"municipality"`
 	County       string    `json:"county"`
-	Sector       string    `json:"sector"`
 	Odn          string    `json:"odn"`
 	OltIP        string    `json:"olt_ip"`
 	Shell        uint8     `json:"pon_shell"`

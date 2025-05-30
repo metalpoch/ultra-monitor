@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/metalpoch/olt-blueprint/internal/dto"
-	"github.com/metalpoch/olt-blueprint/usecase"
+	"github.com/metalpoch/ultra-monitor/internal/dto"
+	"github.com/metalpoch/ultra-monitor/usecase"
 )
 
 type OltHandler struct {
@@ -37,7 +37,7 @@ func (hdlr OltHandler) UpdateOne(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	err = hdlr.Usecase.Update(uint64(id), *olt)
+	err = hdlr.Usecase.Update(id, *olt)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -50,12 +50,12 @@ func (hdlr OltHandler) DeleteOne(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
-	err = hdlr.Usecase.Delete(uint64(id))
+	err = hdlr.Usecase.Delete(id)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.SendStatus(fiber.StatusOK)
+	return c.SendStatus(fiber.StatusNoContent)
 }
 
 func (hdlr OltHandler) GetOlt(c fiber.Ctx) error {
@@ -64,7 +64,7 @@ func (hdlr OltHandler) GetOlt(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	olt, err := hdlr.Usecase.Olt(uint64(id))
+	olt, err := hdlr.Usecase.Olt(id)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -104,13 +104,14 @@ func (hdlr OltHandler) GetOltsByState(c fiber.Ctx) error {
 
 	return c.JSON(olts)
 }
+
 func (hdlr OltHandler) GetOltsByCounty(c fiber.Ctx) error {
-	county, err := fiber.Convert(c.Params("county"), url.QueryUnescape)
+	state, err := fiber.Convert(c.Params("state"), url.QueryUnescape)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	state, err := fiber.Convert(c.Params("state"), url.QueryUnescape)
+	county, err := fiber.Convert(c.Params("county"), url.QueryUnescape)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -127,8 +128,9 @@ func (hdlr OltHandler) GetOltsByCounty(c fiber.Ctx) error {
 
 	return c.JSON(olts)
 }
+
 func (hdlr OltHandler) GetOltsByMunicipality(c fiber.Ctx) error {
-	municipality, err := fiber.Convert(c.Params("municipality"), url.QueryUnescape)
+	state, err := fiber.Convert(c.Params("state"), url.QueryUnescape)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -138,7 +140,7 @@ func (hdlr OltHandler) GetOltsByMunicipality(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	state, err := fiber.Convert(c.Params("state"), url.QueryUnescape)
+	municipality, err := fiber.Convert(c.Params("municipality"), url.QueryUnescape)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

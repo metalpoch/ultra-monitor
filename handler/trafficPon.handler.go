@@ -5,12 +5,12 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/metalpoch/olt-blueprint/internal/dto"
-	"github.com/metalpoch/olt-blueprint/usecase"
+	"github.com/metalpoch/ultra-monitor/internal/dto"
+	"github.com/metalpoch/ultra-monitor/usecase"
 )
 
 type TrafficHandler struct {
-	Usecase usecase.TrafficUsecase
+	Usecase *usecase.TrafficUsecase
 }
 
 func (hdlr TrafficHandler) GetTotalTraffic(c fiber.Ctx) error {
@@ -122,13 +122,23 @@ func (hdlr TrafficHandler) TrafficByODN(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func (hdlr TrafficHandler) TrafficOnt(c fiber.Ctx) error {
-	ponID, err := fiber.Convert(c.Params("ponID"), strconv.Atoi)
+func (hdlr TrafficHandler) TrafficPon(c fiber.Ctx) error {
+	sysname, err := url.QueryUnescape(c.Params("sysname"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	ontIDX, err := url.QueryUnescape(c.Params("ontIDX"))
+	shell, err := fiber.Convert(c.Params("shell"), strconv.Atoi)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	card, err := fiber.Convert(c.Params("card"), strconv.Atoi)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	port, err := fiber.Convert(c.Params("port"), strconv.Atoi)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -138,7 +148,7 @@ func (hdlr TrafficHandler) TrafficOnt(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.TrafficOnt(uint64(ponID), ontIDX, *dates)
+	res, err := hdlr.Usecase.TrafficByPon(sysname, shell, card, port, *dates)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

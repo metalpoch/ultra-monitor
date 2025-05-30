@@ -3,7 +3,7 @@ package model
 import "time"
 
 type TrafficPon struct {
-	PonID     uint64    `json:"pon_id"`
+	PonID     int32     `json:"pon_id"`
 	BpsIn     float64   `json:"bps_in"`
 	BpsOut    float64   `json:"bps_out"`
 	Bandwidth float64   `json:"bandwidth_mbps_sec"`
@@ -17,8 +17,8 @@ type TrafficOnt struct {
 	Despt            string    `db:"despt"`
 	SerialNumber     string    `db:"serial_number"`
 	LineProfName     string    `db:"line_prof_name"`
-	OltDistance      int64     `db:"olt_distance"`
-	ControlMacCount  int64     `db:"control_mac_count"`
+	OltDistance      int32     `db:"olt_distance"`
+	ControlMacCount  int8      `db:"control_mac_count"`
 	ControlRunStatus int8      `db:"control_run_status"`
 	MbpsIn           float64   `db:"mbps_in"`
 	MbpsOut          float64   `db:"mbps_out"`

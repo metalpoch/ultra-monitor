@@ -3,9 +3,9 @@ package model
 import "time"
 
 type Pon struct {
-	ID        uint64    `json:"id"`
-	OltID     uint64    `json:"olt_id"`
-	IfIndex   uint64    `json:"if_index"`
+	ID        int32     `json:"id"`
+	OltID     int32     `json:"olt_id"`
+	IfIndex   int32     `json:"if_index"`
 	IfName    string    `json:"if_name"`
 	IfDescr   string    `json:"if_descr"`
 	IfAlias   string    `json:"if_alias"`

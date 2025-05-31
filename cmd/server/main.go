@@ -19,7 +19,6 @@ import (
 var db *sqlx.DB
 var redis *cache.Redis
 var jwtSecret string
-var reportDirectory string
 
 func init() {
 	dbURI := os.Getenv("POSTGRES_URI")
@@ -30,11 +29,6 @@ func init() {
 	jwtSecret = os.Getenv("AUTH_SECRET_KEY")
 	if jwtSecret == "" {
 		log.Fatal("error 'JWT_SECRET' enviroment varables requried.")
-	}
-
-	reportDirectory = os.Getenv("REPORT_DIRECTORY")
-	if reportDirectory == "" {
-		log.Fatal("error 'REPORT_DIRECTORY' enviroment varables requried.")
 	}
 
 	var err error
@@ -55,7 +49,7 @@ func main() {
 	app.Use(logger.New())
 	app.Use(cors.New())
 
-	routes.Init(app, db, redis, []byte(jwtSecret), reportDirectory)
+	routes.Init(app, db, redis, []byte(jwtSecret), "./data")
 
 	app.Listen(":3000")
 }

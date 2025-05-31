@@ -14,7 +14,7 @@ type ReportRepository interface {
 	Add(ctx context.Context, report *entity.Report) error
 	Get(ctx context.Context, id uuid.UUID) (*entity.Report, error)
 	GetCategories(ctx context.Context) ([]string, error)
-	GetReportsByUser(ctx context.Context, userID uint32) ([]entity.Report, error)
+	GetReportsByUser(ctx context.Context, userID int32, page, limit uint16) ([]entity.Report, error)
 	GetReportsByCategory(ctx context.Context, category string, page, limit uint16) ([]entity.Report, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 }
@@ -46,7 +46,7 @@ func (repo *reportRepository) GetCategories(ctx context.Context) ([]string, erro
 	return categories, err
 }
 
-func (repo *reportRepository) GetReportsByUser(ctx context.Context, userID uint32, page, limit uint16) ([]entity.Report, error) {
+func (repo *reportRepository) GetReportsByUser(ctx context.Context, userID int32, page, limit uint16) ([]entity.Report, error) {
 	offset := (page - 1) * limit
 	var reports []entity.Report
 	err := repo.db.SelectContext(ctx, &reports, constants.SQL_SELECT_REPORTS_BY_USER, userID, limit, offset)

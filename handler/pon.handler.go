@@ -12,10 +12,6 @@ type PonHandler struct {
 	Usecase *usecase.PonUsecase
 }
 
-func NewPonHandler(uc *usecase.PonUsecase) *PonHandler {
-	return &PonHandler{uc}
-}
-
 func (hdlr *PonHandler) GetAllByDevice(c fiber.Ctx) error {
 	sysname, err := url.QueryUnescape(c.Params("sysname"))
 	if err != nil {

@@ -10,7 +10,7 @@ import (
 )
 
 type MeasurementRepository interface {
-	UpsertOlt(ctx context.Context, olt entity.Olt) error // creo que no se esta usando
+	UpsertOlt(ctx context.Context, olt entity.Olt) error
 	UpsertPon(ctx context.Context, element entity.Pon) (uint64, error)
 	GetTemportalMeasurementPon(ctx context.Context, id int32) (entity.MeasurementPon, error)
 	UpsertTemportalMeasurementPon(ctx context.Context, measurement entity.MeasurementPon) error
@@ -28,7 +28,7 @@ func NewMeasurementRepository(db *sqlx.DB) *measurementRepository {
 
 func (repo *measurementRepository) UpsertOlt(ctx context.Context, olt entity.Olt) error {
 	query := `
-        UPDATE olt SET
+        UPDATE olts SET
             sys_name = :sys_name,
             sys_location = :sys_location,
             is_alive = :is_alive,
@@ -42,13 +42,12 @@ func (repo *measurementRepository) UpsertOlt(ctx context.Context, olt entity.Olt
 func (repo *measurementRepository) UpsertPon(ctx context.Context, element entity.Pon) (uint64, error) {
 	var id uint64
 	query := `
-        INSERT INTO pon (olt_id, if_index, if_name, if_descr, if_alias, created_at, updated_at)
-        VALUES (:olt_id, :if_index, :if_name, :if_descr, :if_alias, :created_at, :updated_at)
+        INSERT INTO pons (olt_id, if_index, if_name, if_descr, if_alias, created_at)
+        VALUES (:olt_id, :if_index, :if_name, :if_descr, :if_alias, :created_at)
         ON CONFLICT (olt_id, if_index) DO UPDATE SET
             if_name = EXCLUDED.if_name,
             if_descr = EXCLUDED.if_descr,
             if_alias = EXCLUDED.if_alias,
-            updated_at = EXCLUDED.updated_at
         RETURNING id
     `
 	err := repo.db.QueryRowxContext(ctx, query, element).Scan(&id)
@@ -78,8 +77,8 @@ func (repo *measurementRepository) UpsertTemportalMeasurementPon(ctx context.Con
 
 func (repo *measurementRepository) InsertTrafficPon(ctx context.Context, traffic entity.TrafficPon) error {
 	query := `
-	INSERT INTO traffic_pon (date, mbps_in, mbps_out, bandwidth_mbps_sec, mbytes_in_sec, mbytes_out_sec)
-	VALUES (:date, :mbps_in, :mbps_out, :bandwidth_mbps_sec, :mbytes_in_sec, :mbytes_out_sec)`
+	INSERT INTO traffic_pon (date, bps_in, bps_out, bandwidth_mbps_sec, bytes_in_sec, bytes_out_sec)
+	VALUES (:date, :bps_in, :bps_out, :bandwidth_mbps_sec, :bytes_in_sec, :bytes_out_sec)`
 	_, err := repo.db.NamedExecContext(ctx, query, traffic)
 	return err
 }
@@ -99,9 +98,9 @@ func (repo *measurementRepository) InsertManyMeasurementOnt(ctx context.Context,
 	}
 
 	query := `
-        INSERT INTO measurement_ont (
+        INSERT INTO measurement_onts (
             pon_id, idx, despt, serial_number, line_prof_name, olt_distance,
-            control_mac_count, control_run_status, bytes_in, bytes_out, date
+            control_mac_count, control_run_status, bytes_in_count, bytes_out_count, date
         ) VALUES ` + strings.Join(valueStrings, ", ")
 
 	_, err := repo.db.ExecContext(ctx, query, valueArgs...)

@@ -27,20 +27,20 @@ func (repo *ontRepository) AllOntStatus(ctx context.Context, initDate, endDate t
 	var res []entity.OntStatusCounts
 	query := `
 		SELECT
-        	l.state,
-        	DATE_TRUNC('hour', m.date) AS hour,
-        	COUNT(DISTINCT m.interface_id) AS pons_count,
-        	COUNT(CASE WHEN control_run_status = 1 THEN 1 END) AS active_count,
-        	COUNT(CASE WHEN control_run_status = 2 THEN 1 END) AS inactive_count,
-        	COUNT(CASE WHEN control_run_status NOT IN (1,2) THEN 1 END) AS unknown_count,
-        	COUNT(*) AS total_count
-    	FROM measurement_ont AS m
-    	JOIN fats_pon ON fats_pon.interface_id = m.interface_id
-    	JOIN fats ON fats.id = fats_pon.fat_id
-    	JOIN locations AS l ON l.id = fats.location_id
-    	WHERE m.date >= $1 AND m.date < $2
-    	GROUP BY l.state, hour
-    	ORDER BY l.state, hour`
+			fats.state AS state,
+			DATE_TRUNC('date', measurement_onts.date) AS date,
+    		COUNT(DISTINCT pons.id) AS pons_count,
+    		COUNT(CASE WHEN measurement_onts.control_run_status = 1 THEN 1 END) AS active_count,
+    		COUNT(CASE WHEN measurement_onts.control_run_status = 2 THEN 1 END) AS inactive_count,
+    		COUNT(CASE WHEN measurement_onts.control_run_status NOT IN (1,2) THEN 1 END) AS unknown_count,
+    		COUNT(*) AS total_count
+		FROM measurement_onts
+		JOIN pons ON measurement_onts.pon_id = pons.id
+		JOIN olts ON pons.olt_id = olts.id
+		JOIN fats ON fats.olt_ip = olts.ip
+		WHERE measurement_onts.date BETWEEN $2 AND $3
+		GROUP BY state, date
+		ORDER BY state, date`
 	err := repo.db.SelectContext(ctx, &res, query, initDate, endDate)
 	return res, err
 }
@@ -49,22 +49,20 @@ func (repo *ontRepository) GetOntStatusByState(ctx context.Context, state string
 	var res []entity.OntStatusCountsByState
 	query := `
 		SELECT
-			devices.sys_name AS sysname,
-			DATE_TRUNC('hour', measurement_ont.date) AS hour,
-			COUNT(DISTINCT measurement_ont.interface_id) AS pons_count,
-			COUNT(CASE WHEN control_run_status = 1 THEN 1 END) AS active_count,
-			COUNT(CASE WHEN control_run_status = 2 THEN 1 END) AS inactive_count,
-			COUNT(CASE WHEN control_run_status NOT IN (1,2) THEN 1 END) AS unknown_count,
-			COUNT(*) AS total_count
-		FROM measurement_ont
-		INNER JOIN fats_pon ON fats_pon.interface_id = measurement_ont.interface_id
-		INNER JOIN fats ON fats.id = fats_pon.fat_id
-		INNER JOIN locations ON locations.id = fats.location_id
-		INNER JOIN pons ON pons.id = measurement_ont.interface_id
-		INNER JOIN devices ON devices.id = pons.device_id
-		WHERE locations.state = $1 AND measurement_ont.date BETWEEN $2 AND $3
-		GROUP BY devices.sys_name, hour
-		ORDER BY devices.sys_name, hour`
+			olts.sys_name AS sysname,
+			DATE_TRUNC('date', measurement_onts.date) AS date,
+    		COUNT(DISTINCT pons.id) AS pons_count,
+    		COUNT(CASE WHEN measurement_onts.control_run_status = 1 THEN 1 END) AS active_count,
+    		COUNT(CASE WHEN measurement_onts.control_run_status = 2 THEN 1 END) AS inactive_count,
+    		COUNT(CASE WHEN measurement_onts.control_run_status NOT IN (1,2) THEN 1 END) AS unknown_count,
+    		COUNT(*) AS total_count
+		FROM measurement_onts
+		JOIN pons ON measurement_onts.pon_id = pons.id
+		JOIN olts ON pons.olt_id = olts.id
+		JOIN fats ON fats.olt_ip = olts.ip
+		WHERE fats.state = $1 AND measurement_onts.date BETWEEN $2 AND $3
+		GROUP BY sysname, date
+		ORDER BY sysname, date`
 	err := repo.db.SelectContext(ctx, &res, query, state, initDate, endDate)
 	return res, err
 }
@@ -72,24 +70,21 @@ func (repo *ontRepository) GetOntStatusByState(ctx context.Context, state string
 func (repo *ontRepository) GetOntStatusByODN(ctx context.Context, state, odn string, initDate, endDate time.Time) ([]entity.OntStatusCountsByState, error) {
 	var res []entity.OntStatusCountsByState
 	query := `
-		SELECT 
-			devices.sys_name AS sysname,
-			DATE_TRUNC('hour', measurement_ont.date) AS hour,
-			COUNT(DISTINCT measurement_ont.interface_id) AS pons_count,
-			COUNT(CASE WHEN control_run_status = 1 THEN 1 END) AS active_count,
-			COUNT(CASE WHEN control_run_status = 2 THEN 1 END) AS inactive_count,
-			COUNT(CASE WHEN control_run_status NOT IN (1,2) THEN 1 END) AS unknown_count,
-			COUNT(*) AS total_count
-		FROM measurement_ont
-		INNER JOIN fats_pon ON fats_pon.interface_id = measurement_ont.interface_id
-		INNER JOIN fats ON fats.id = fats_pon.fat_id
-		INNER JOIN locations ON locations.id = fats.location_id
-		INNER JOIN pons ON pons.id = measurement_ont.interface_id
-		INNER JOIN devices ON devices.id = pons.device_id
-		WHERE locations.state = $1 AND fats.odn = $2 AND measurement_ont.date BETWEEN $3 AND $4
-		GROUP BY devices.sys_name, hour
-		ORDER BY devices.sys_name, hour`
-
+		SELECT
+			olts.sys_name AS sysname,
+			DATE_TRUNC('date', measurement_onts.date) AS date,
+    		COUNT(DISTINCT pons.id) AS pons_count,
+    		COUNT(CASE WHEN measurement_onts.control_run_status = 1 THEN 1 END) AS active_count,
+    		COUNT(CASE WHEN measurement_onts.control_run_status = 2 THEN 1 END) AS inactive_count,
+    		COUNT(CASE WHEN measurement_onts.control_run_status NOT IN (1,2) THEN 1 END) AS unknown_count,
+    		COUNT(*) AS total_count
+		FROM measurement_onts
+		JOIN pons ON measurement_onts.pon_id = pons.id
+		JOIN olts ON pons.olt_id = olts.id
+		JOIN fats ON fats.olt_ip = olts.ip
+		WHERE fats.state = $1 AND fats.odn = $2 AND measurement_onts.date BETWEEN $3 AND $4
+		GROUP BY sysname, date
+		ORDER BY sysname, date`
 	err := repo.db.SelectContext(ctx, &res, query, state, odn, initDate, endDate)
 	return res, err
 }
@@ -98,7 +93,7 @@ func (repo *ontRepository) TrafficOnt(ctx context.Context, PonID uint64, idx str
 	var res []entity.TrafficOnt
 	query := `
 		SELECT
-			hour,
+			date,
 			despt,
 			serial_number,
 			line_prof_name,
@@ -123,7 +118,7 @@ func (repo *ontRepository) TrafficOnt(ctx context.Context, PonID uint64, idx str
 			END AS Mbytes_out_sec
 		FROM (
 			SELECT
-				date AS hour,
+				date,
 				despt,
 				serial_number,
         			line_prof_name,

@@ -1,22 +1,36 @@
-# 📐 OLT Blueprint 
-Application for traffic monitoring in OLTs (Optical Line Terminals) using SNMP (Simple Network Management Protocol) for traffic analysis by OLT, port, clients, or geographical location.
+# 📐 Ultra Monitor 
+Ultra Monitor is a platform for traffic monitoring and analysis in OLTs (Optical Line Terminals) using SNMP (Simple Network Management Protocol). It supports traffic analysis by OLT, port, client, or geographical location.
+
+## 🗂️ Structure
+- **cmd/server/**: Main backend (REST API, authentication, reports, traffic, etc.) in Go.
+- **cmd/cli/**: CLI tool for administration, scanning, and technical operations.
+- **controller/**, **handler/**, **routes/**, **usecase/**: Shared domain logic, controllers, and routes.
+- **client/**: React frontend (coming soon).
+- **smart/**: AI module in Python (coming soon).
 
 ## ⚙️ App workflow
 ```mermaid
 graph LR
-X[(OLT 1)] -- SNMP --> M(Measurement*)
-Y[(OLT 2)] -- SNMP --> M(Measurement*)
-Z[(OLT n)] -- SNMP --> M(Measurement*)
+ONT11[(ONT)] --> OLT1[(OLT)]
+ONT12[(ONT)] --> OLT1[(OLT)]
+
+ONT2n[(ONT)] --> OLT2[(OLT n)]
+
+OLT1[(OLT)] -- SNMP --> M(Measurement*)
+
+OLT2[(OLT)] -- SNMP --> M(Measurement*)
+
 M --> D[(Database)]
-D --> S(Smart*) 
-D --> R(Report*)
-D --> T(Traffic*)
-T --> A(Auth*)
-R --> A(Auth*)
-S --> A(Auth*)
-A --> C(Client)
+M --> S(Server*) 
+M --> R[(Cache)]
+
+D --> S
+R --> S
+S --> UI(Client)
 ```
-This diagram shows how measurement data from various OLTs is collected and stored in a database, then used to generate traffic and reports, which are accessible to clients through an authentication system. Below are the components and their interactions:
+
+This diagram shows how measurement data from various OLTs is collected and stored in a database, then used to generate traffic and reports, which are accessible to clients through an authentication system.
+
 
 1.  **OLT (Optical Line Terminal)**:
     -   **OLT's**: Represent different OLTs sending measurement data.
@@ -45,41 +59,30 @@ This diagram shows how measurement data from various OLTs is collected and store
 To initialize the application as a developer, follow these steps:
 ```bash
 # clone this repository
-git clone https://github.com/metalpoch/olt-blueprint.git
+git clone https://github.com/metalpoch/ultra-monitor.git
 ```
 
 ```sql
 -- create the database
-CREATE DATABASE olt;
-```
-create the configuration file called `config.json` in the root of the project
-```json
-{
-  "db_uri": "postgresql://xxx:yyy@zzz:5432/olt",
-  "cache_uri": "redis://xxx:yyy@zzz:6379",
-  "secret_key": "supersecrettoken",
-  "telegram_bot_token_id": "xx:yyy-zzz",
-  "telegram_chat_id": "xxx"
-}
+CREATE DATABASE ultramonitor;
 ```
 
-run any module
+Define the following environment variables
 ```bash
-# run auth module
-make dev-auth
-
-# run traffic module
-make dev-traffic
-
-# run report module
-make dev-report
-
-# run traffic module
-make dev-traffic
-
-# run the CLI measurement module
-CONFIG_JSON=./config.json go run ./measurement/cmd/main.go
+POSTGRES_URI="postgresql://user:password@host:5432/ultramonitor"
+AUTH_SECRET_KEY="secret-super-secure!"
+REDIS_URI="redis://user:password@host:6379"
 ```
+
+Execute docker-compose for run server or cli
+
+## 📦 Contributing
+
+Want to contribute? Awesome! Please check the contribution guidelines and open a Pull Request.
+
+---
+
+
 ## ⚖️ License
 [MIT]
 

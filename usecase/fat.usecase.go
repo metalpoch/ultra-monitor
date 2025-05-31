@@ -48,7 +48,7 @@ func (use *FatUsecase) GetAll(pag dto.Pagination) ([]model.Fat, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	res, err := use.repo.AllTao(ctx, pag.Page, pag.Limit)
+	res, err := use.repo.AllFat(ctx, pag.Page, pag.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (use *FatUsecase) GetOdnStates(state string) ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	res, err := use.repo.GetOdnStates(ctx, state)
+	res, err := use.repo.GetOdnByStates(ctx, state)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (use *FatUsecase) GetOdnCounty(state, county string) ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	res, err := use.repo.GetOdnCounty(ctx, state, county)
+	res, err := use.repo.GetOdnByCounty(ctx, state, county)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func (use *FatUsecase) GetOdnOltPort(oltIP string, shell, card, port int) ([]str
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	res, err := use.repo.GetOdnOltPort(ctx, oltIP, uint8(shell), uint8(card), uint8(port))
+	res, err := use.repo.GetOdnByOltPort(ctx, oltIP, uint8(shell), uint8(card), uint8(port))
 	if err != nil {
 		return nil, err
 	}

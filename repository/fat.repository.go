@@ -11,7 +11,7 @@ import (
 type FatRepository interface {
 	AddFat(ctx context.Context, tao *entity.Fat) error
 	DeleteOne(ctx context.Context, id int32) error
-	AllTao(ctx context.Context, page, limit uint16) ([]entity.Fat, error)
+	AllFat(ctx context.Context, page, limit uint16) ([]entity.Fat, error)
 	GetByID(ctx context.Context, id int32) (entity.Fat, error)
 	GetByFat(ctx context.Context, tao string) (entity.Fat, error)
 	GetByOdn(ctx context.Context, state, odn string) ([]entity.Fat, error)

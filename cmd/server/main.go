@@ -31,11 +31,18 @@ func init() {
 		log.Fatal("error 'JWT_SECRET' enviroment varables requried.")
 	}
 
+	cacheURI := os.Getenv("REDIS_URI")
+	if dbURI == "" {
+		log.Fatal("error 'REDIS_URI' enviroment varables requried.")
+	}
+
 	var err error
 	db, err = database.Connect(dbURI)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	redis = cache.NewCache(cacheURI)
 }
 
 func main() {

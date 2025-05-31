@@ -290,6 +290,9 @@ const SQL_GET_OLTS_BY_MUNICIPALITY string = `
 	ORDER BY olts.sys_name
 	LIMIT $4 OFFSET $5`
 
+// SQL_GET_OLTS_IPS retrieves all unique OLT IP addresses from the database.
+const SQL_GET_OLTS_IPS string = `SELECT DISTINCT ip FROM olts ORDER BY ip`
+
 // SQL_UPSERT_OLT updates an existing OLT or inserts a new one if it does not exist.
 const SQL_UPSERT_OLT string = `
     UPDATE olts SET

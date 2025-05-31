@@ -23,7 +23,7 @@ func (ctrl OltController) AddOlt(olt dto.NewOlt) error {
 	return ctrl.Usecase.Add(olt)
 }
 
-func (ctrl OltController) ShowAllDevices(csv bool) ([]model.Olt, error) {
+func (ctrl OltController) ShowAllOlt(csv bool) ([]model.Olt, error) {
 	olts, err := ctrl.Usecase.Olts(constants.DEFAULT_PAGE, constants.DEFAULT_LIMIT)
 	if err != nil {
 		return nil, err

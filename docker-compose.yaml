@@ -9,7 +9,7 @@ services:
     ports:
       - 5432:5432
     networks:
-      - olt-blueprint-network
+      - ultra-monitor-network
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -42,63 +42,34 @@ services:
     container_name: olt-blueprint-front
     restart: unless-stopped
     networks:
-      - olt-blueprint-network
+      - ultra-monitor-network
     ports:
       - 4321:4321
 
-  olt-blueprint-auth:
-    image: ghcr.io/metalpoch/olt-blueprint/auth
+  ultra-monitor-server:
+    image: ghcr.io/metalpoch/ultra-monitor/server
     container_name: olt-blueprint-auth
     restart: unless-stopped
     networks:
-      - olt-blueprint-network
+      - ultra-monitor-network
+    volumes:
+      - ./reports/data:/app/data
     environment:
-      - CONFIG_JSON=/app/config.json
+      - POSTGRES_URI=uri://postgres:example@db:5432/postgres
+      - AUTH_SECRET_KEY=password-super-secret
     ports:
       - 3000:3000
 
-  olt-blueprint-core:
-    image: ghcr.io/metalpoch/olt-blueprint/core
-    container_name: olt-blueprint-core
-    restart: unless-stopped
-    networks:
-      - olt-blueprint-network
-    environment:
-      - CONFIG_JSON=/app/config.json
-    ports:
-      - 3001:3001
-
-  olt-blueprint-report:
-    image: ghcr.io/metalpoch/olt-blueprint/report
-    container_name: olt-blueprint-report
-    restart: unless-stopped
-    volumes:
-      - ./report/data:/app/report/data
-    networks:
-      - olt-blueprint-network
-    environment:
-      - CONFIG_JSON=/app/config.json
-    ports:
-      - 3004:3002
-
-  olt-blueprint-smart:
-    image: ghcr.io/metalpoch/olt-blueprint/smart
-    container_name: olt-blueprint-smart
-    restart: unless-stopped
-    networks:
-      - olt-blueprint-network
-    ports:
-      - 3003:3003
-
-  olt-blueprint-measurement:
-    image: ghcr.io/metalpoch/olt-blueprint/measurement
+  ultra-monitor-cli:
+    image: ghcr.io/metalpoch/ultra-monitor/cli
     container_name: olt-blueprint-measurement
     restart: unless-stopped
     networks:
-      - olt-blueprint-network
+      - ultra-monitor-network
     environment:
-      - CONFIG_JSON=/app/config.json
+      - POSTGRES_URI=uri://postgres:example@db:5432/postgres
+      - AUTH_SECRET_KEY=password-super-secret
       
 networks:
-  olt-blueprint-network:
-    name: olt-blueprint-network
+  ultra-monitor-network:
+    name: ultra-monitor-network

@@ -17,10 +17,16 @@ import (
 
 type MeasurementController struct {
 	usecase *usecase.MeasurementUsecase
+	olt     *usecase.OltUsecase
+	pon     *usecase.PonUsecase
 }
 
 func NewMeasurementController(db *sqlx.DB) *MeasurementController {
-	return &MeasurementController{usecase.NewMeasurementUsecase(db)}
+	return &MeasurementController{
+		usecase.NewMeasurementUsecase(db),
+		usecase.NewOltUsecase(db),
+		usecase.NewPonUsecase(db),
+	}
 }
 
 func (ctrl MeasurementController) calculateDelta(prev, curr uint64) uint64 {
@@ -39,7 +45,15 @@ func (ctrl MeasurementController) bytesToBbps(prev, curr, bandwidth, diffDate ui
 	return bps
 }
 
-func (ctrl MeasurementController) PonScanner(olt model.Olt) {
+func (ctrl MeasurementController) GetIPs() ([]string, error) {
+	return ctrl.olt.GetIPs()
+}
+
+func (ctrl MeasurementController) GetPonsBySysname(sysname string) ([]model.Pon, error) {
+	return ctrl.pon.GetAllByDevice(sysname)
+}
+
+func (ctrl MeasurementController) PonScan(olt model.Olt) {
 	client := snmp.NewSnmp(snmp.Config{
 		IP:        olt.IP,
 		Community: olt.Community,

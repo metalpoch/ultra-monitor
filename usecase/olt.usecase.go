@@ -74,7 +74,7 @@ func (uc *OltUsecase) Olt(id int) (model.Olt, error) {
 }
 
 func (uc *OltUsecase) Olts(page, limit uint16) ([]model.Olt, error) {
-	var devices []model.Olt
+	var olt []model.Olt
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -84,14 +84,14 @@ func (uc *OltUsecase) Olts(page, limit uint16) ([]model.Olt, error) {
 	}
 
 	for _, e := range res {
-		devices = append(devices, (model.Olt)(e))
+		olt = append(olt, (model.Olt)(e))
 	}
 
-	return devices, err
+	return olt, err
 }
 
 func (uc *OltUsecase) OltsByState(state string, page, limit uint16) ([]model.Olt, error) {
-	var devices []model.Olt
+	var olt []model.Olt
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -101,14 +101,14 @@ func (uc *OltUsecase) OltsByState(state string, page, limit uint16) ([]model.Olt
 	}
 
 	for _, e := range res {
-		devices = append(devices, (model.Olt)(e))
+		olt = append(olt, (model.Olt)(e))
 	}
 
-	return devices, err
+	return olt, err
 }
 
 func (uc *OltUsecase) OltsByCounty(state, county string, page, limit uint16) ([]model.Olt, error) {
-	var devices []model.Olt
+	var olt []model.Olt
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -118,13 +118,13 @@ func (uc *OltUsecase) OltsByCounty(state, county string, page, limit uint16) ([]
 	}
 
 	for _, e := range res {
-		devices = append(devices, (model.Olt)(e))
+		olt = append(olt, (model.Olt)(e))
 	}
 
-	return devices, err
+	return olt, err
 }
 func (uc *OltUsecase) OltsByMunicipality(state, county, municipality string, page, limit uint16) ([]model.Olt, error) {
-	var devices []model.Olt
+	var olt []model.Olt
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -134,8 +134,19 @@ func (uc *OltUsecase) OltsByMunicipality(state, county, municipality string, pag
 	}
 
 	for _, e := range res {
-		devices = append(devices, (model.Olt)(e))
+		olt = append(olt, (model.Olt)(e))
 	}
 
-	return devices, err
+	return olt, err
+}
+
+func (uc *OltUsecase) GetIPs() ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err := uc.repo.GetIPs(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return res, err
 }

@@ -17,6 +17,7 @@ type OltRepository interface {
 	OltsByState(ctx context.Context, state string, page, limit uint16) ([]entity.Olt, error)
 	OltsByCounty(ctx context.Context, state, county string, page, limit uint16) ([]entity.Olt, error)
 	OltsByMunicipality(ctx context.Context, state, county, municipality string, page, limit uint16) ([]entity.Olt, error)
+	GetIPs(ctx context.Context) ([]string, error)
 }
 
 type oltRepository struct {
@@ -77,4 +78,13 @@ func (repo *oltRepository) OltsByMunicipality(ctx context.Context, state, county
 	offset := (page - 1) * limit
 	err := repo.db.SelectContext(ctx, &res, constants.SQL_GET_OLTS_BY_MUNICIPALITY, state, county, municipality, limit, offset)
 	return res, err
+}
+
+func (repo *oltRepository) GetIPs(ctx context.Context) ([]string, error) {
+	var res []string
+	err := repo.db.SelectContext(ctx, &res, constants.SQL_GET_OLTS_IPS)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }

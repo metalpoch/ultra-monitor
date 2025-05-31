@@ -1,127 +1,401 @@
 package constants
 
-const SQL_TABLE_USERS string = `
-CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY,
-    fullname VARCHAR(255),
-    username VARCHAR(10) NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    change_password BOOLEAN,
-    is_admin BOOLEAN,
-    is_disabled BOOLEAN,
-    created_at TIMESTAMP DEFAULT NOW()
-);`
+// SQL_CREATE_USER creates a new user in the database.
+const SQL_CREATE_USER string = `
+INSERT INTO users (id, fullname, username, password, change_password, is_admin, is_disabled)
+VALUES (:id, :fullname, :username, :password, :change_password, :is_admin, :is_disabled);`
 
-const SQL_TABLE_REPORT string = `
-CREATE TABLE IF NOT EXISTS reports (
-    id UUID PRIMARY KEY,
-    category VARCHAR(128) NOT NULL,
-    original_filename VARCHAR(255) NOT NULL,
-    content_type VARCHAR(128) NOT NULL,
-    basepath VARCHAR(255) NOT NULL,
-    filepath VARCHAR(255) NOT NULL,
-    user_id INTEGER NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW(),
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);`
+// SQL_USER_BY_ID retrieves a user by their ID.
+const SQL_USER_BY_ID string = `SELECT * FROM users WHERE id = $1;`
 
-const SQL_TABLE_OLT string = `
-CREATE TABLE IF NOT EXISTS olts (
-    id INTEGER PRIMARY KEY,
-    ip VARCHAR(45) NOT NULL UNIQUE,
-    community VARCHAR(255),
-    sys_name VARCHAR(255) NOT NULL UNIQUE,
-    sys_location VARCHAR(255),
-    is_alive BOOLEAN,
-    last_check TIMESTAMP,
-    created_at TIMESTAMP DEFAULT NOW()
-);`
+// SQL_USER_BY_USERNAME retrieves a user by username.
+const SQL_USER_BY_USERNAME string = `SELECT * FROM users WHERE username = $1;`
 
-const SQL_TABLE_PON string = `
-CREATE TABLE IF NOT EXISTS pons (
-    id INTEGER PRIMARY KEY,
-    olt_id INTEGER NOT NULL,
-    if_index INTEGER NOT NULL,
-    if_name VARCHAR(128),
-    if_descr VARCHAR(255),
-    if_alias VARCHAR(255),
-    created_at TIMESTAMP DEFAULT NOW(),
-    UNIQUE (olt_id, if_index),
-    FOREIGN KEY (olt_id) REFERENCES olts(id)
-);`
+// SQL_DISABLE_USER disables a user by setting is_disabled to true.
+const SQL_DISABLE_USER string = `UPDATE users SET is_disabled = true WHERE id = $1;`
 
-const SQL_TABLE_MEASUREMENT_PON string = `
-CREATE TABLE IF NOT EXISTS measurement_pon (
-    pon_id INTEGER NOT NULL,
-    bandwidth NUMERIC(20,0) NOT NULL,
-    bytes_in_count NUMERIC(20,0) NOT NULL,
-    bytes_out_count NUMERIC(20,0) NOT NULL,
-    date TIMESTAMP NOT NULL,
-    FOREIGN KEY (pon_id) REFERENCES pons(id)
-);`
+// SQL_ENABLE_USER enables a previously disabled user.
+const SQL_ENABLE_USER string = `UPDATE users SET is_disabled = false WHERE id = $1;`
 
-const SQL_TABLE_TRAFFIC_PON string = `
-CREATE TABLE IF NOT EXISTS traffic_pons (
-    pon_id INTEGER NOT NULL,
-    bps_in DOUBLE PRECISION,
-    bps_out DOUBLE PRECISION,
-    bandwidth_mbps_sec DOUBLE PRECISION,
-    bytes_in_sec DOUBLE PRECISION,
-    bytes_out_sec DOUBLE PRECISION,
-    date TIMESTAMP NOT NULL,
-    FOREIGN KEY (pon_id) REFERENCES pons(id)
-);`
+// SQL_CHANGE_PASSWORD updates a user's password and sets change_password to false.
+const SQL_CHANGE_PASSWORD string = `UPDATE users SET password = $1, change_password = false WHERE id = $2;`
 
-const SQL_TABLE_MEASUREMENT_ONT string = `
-CREATE TABLE IF NOT EXISTS measurement_onts (
-    pon_id INTEGER NOT NULL,
-    idx INTEGER NOT NULL,
-    despt VARCHAR(255),
-    serial_number VARCHAR(64),
-    line_prof_name VARCHAR(128),
-    olt_distance INTEGER,
-    control_mac_count SMALLINT,
-    control_run_status SMALLINT,
-    bytes_in_count NUMERIC(20,0) NOT NULL,
-    bytes_out_count NUMERIC(20,0) NOT NULL,
-    date TIMESTAMP DEFAULT NOW(),
-    FOREIGN KEY (pon_id) REFERENCES pons(id)
-);`
+// SQL_TOTAL_TRAFFIC retrieves total traffic data aggregated by minute.
+const SQL_TOTAL_TRAFFIC string = `
+		SELECT
+			DATE_TRUNC('minute', date) AS date,
+			SUM("in") / 1000000 AS mbps_in,
+			SUM(out) / 1000000 AS mbps_out,
+			SUM(bandwidth) / 1000000 AS bandwidth_mbps_sec,
+			SUM(bytes_in) / 1000000 AS mbytes_in_sec,
+			SUM(bytes_out) / 1000000 AS mbytes_out_sec
+		FROM traffic_pons
+		WHERE date BETWEEN ? AND ?
+		GROUP BY DATE_TRUNC('minute', date)
+		ORDER BY date`
 
-const SQL_TABLE_FAT string = `
-CREATE TABLE IF NOT EXISTS fats (
-    id INTEGER PRIMARY KEY,
-    fat VARCHAR(128) NOT NULL,
-    region VARCHAR(128) NOT NULL,
-    state VARCHAR(128) NOT NULL,
-    municipality VARCHAR(128) NOT NULL,
-    county VARCHAR(128) NOT NULL,
-    odn VARCHAR(128) NOT NULL,
-    olt_ip VARCHAR(45) NOT NULL,
-    pon_shell SMALLINT NOT NULL,
-    pon_port SMALLINT NOT NULL,
-    pon_card SMALLINT NOT NULL,
-    latitude DOUBLE PRECISION,
-    longitude DOUBLE PRECISION,
-    created_at TIMESTAMP DEFAULT NOW(),
-    UNIQUE (fat, state, municipality, county, olt_ip, odn, pon_shell, pon_card, pon_port)
-);`
+// SQL_TRAFFIC_BY_STATE retrieves traffic data for a specific state aggregated by minute.
+const SQL_TRAFFIC_BY_STATE string = `
+    SELECT
+        DATE_TRUNC('minute', traffic_pons.date) AS date,
+        SUM(traffic_pons.bps_in) / 1000000 AS mbps_in,
+        SUM(traffic_pons.bps_out) / 1000000 AS mbps_out,
+        SUM(traffic_pons.bandwidth_mbps_sec) / 1000000 AS bandwidth_mbps_sec,
+        SUM(traffic_pons.bytes_in_sec) / 1000000 AS mbytes_in,
+        SUM(traffic_pons.bytes_out_sec) / 1000000 AS mbytes_out
+    FROM traffic_pons
+    JOIN pons ON pons.id = traffic_pons.pon_id
+    JOIN olts ON olts.id = pons.olt_id
+    JOIN fats ON fats.olt_ip = olts.ip
+    WHERE fats.state = $1 AND traffic_pons.date BETWEEN $2 AND $3
+    GROUP BY DATE_TRUNC('minute', date)
+    ORDER BY date;`
 
-const SQL_INDEX_FAT_STATE string = `CREATE INDEX IF NOT EXISTS idx_fats_state ON fats(state);`
-const SQL_INDEX_FAT_COUNTY string = `CREATE INDEX IF NOT EXISTS idx_fats_county ON fats(county);`
-const SQL_INDEX_FAT_MUNICIPALITY string = `CREATE INDEX IF NOT EXISTS idx_fats_municipality ON fats(municipality);`
-const SQL_INDEX_FAT_ODN string = `CREATE INDEX IF NOT EXISTS idx_fats_odn ON fats(odn);`
-const SQL_INDEX_FAT_OLT string = `CREATE INDEX IF NOT EXISTS idx_fats_olt_ip ON fats(olt_ip);`
+// SQL_TRAFFIC_BY_COUNTY retrieves traffic data for a specific county within a state, aggregated by minute.
+const SQL_TRAFFIC_BY_COUNTY string = `
+    SELECT
+        DATE_TRUNC('minute', traffic_pons.date) AS date,
+        SUM(traffic_pons.bps_in) / 1000000 AS mbps_in,
+        SUM(traffic_pons.bps_out) / 1000000 AS mbps_out,
+        SUM(traffic_pons.bandwidth_mbps_sec) / 1000000 AS bandwidth_mbps_sec,
+        SUM(traffic_pons.bytes_in_sec) / 1000000 AS mbytes_in,
+        SUM(traffic_pons.bytes_out_sec) / 1000000 AS mbytes_out
+    FROM traffic_pons
+    JOIN pons ON pons.id = traffic_pons.pon_id
+    JOIN olts ON olts.id = pons.olt_id
+    JOIN fats ON fats.olt_ip = olts.ip
+    WHERE fats.state = $1 AND fats.county = $2 AND traffic_pons.date BETWEEN $3 AND $4
+    GROUP BY DATE_TRUNC('minute', date)
+    ORDER BY date;`
 
-const SQL_INDEX_MEASUREMENT_PON_DATE string = `CREATE INDEX IF NOT EXISTS idx_measurement_pon_date ON measurement_pon(date);`
-const SQL_INDEX_MEASUREMENT_PON_PON_ID string = `CREATE INDEX IF NOT EXISTS idx_measurement_pon_id ON measurement_pon(pon_id);`
+// SQL_TRAFFIC_BY_MUNICIPALITY retrieves traffic data for a specific municipality within a county and state, aggregated by minute.
+const SQL_TRAFFIC_BY_MUNICIPALITY string = `
+    SELECT
+        DATE_TRUNC('minute', traffic_pons.date) AS date,
+        SUM(traffic_pons.bps_in) / 1000000 AS mbps_in,
+        SUM(traffic_pons.bps_out) / 1000000 AS mbps_out,
+        SUM(traffic_pons.bandwidth_mbps_sec) / 1000000 AS bandwidth_mbps_sec,
+        SUM(traffic_pons.bytes_in_sec) / 1000000 AS mbytes_in,
+        SUM(traffic_pons.bytes_out_sec) / 1000000 AS mbytes_out
+    FROM traffic_pons
+    JOIN pons ON pons.id = traffic_pons.pon_id
+    JOIN olts ON olts.id = pons.olt_id
+    JOIN fats ON fats.olt_ip = olts.ip
+    WHERE fats.state = $1 AND fats.county = $2 AND fats.municipality = $3 AND traffic_pons.date BETWEEN $4 AND $5
+    GROUP BY DATE_TRUNC('minute', date)
+    ORDER BY date;`
 
-const SQL_INDEX_MEASUREMENT_ONT_DATE string = `CREATE INDEX IF NOT EXISTS idx_measurement_ont_date ON measurement_ont(date);`
-const SQL_INDEX_MEASUREMENT_ONT_IDX string = `CREATE INDEX IF NOT EXISTS idx_measurement_ont_pon_id ON measurement_ont(idx);`
-const SQL_INDEX_MEASUREMENT_ONT_DESPT string = `CREATE INDEX IF NOT EXISTS idx_measurement_ont_despt ON measurement_ont(despt);`
-const SQL_INDEX_MEASUREMENT_ONT_PON_ID string = `CREATE INDEX IF NOT EXISTS idx_measurement_ont_pon_id ON measurement_ont(pon_id);`
+// SQL_TRAFFIC_BY_ODN retrieves traffic data for a specific ODN within a state, aggregated by minute.
+const SQL_TRAFFIC_BY_ODN string = `
+    SELECT
+        DATE_TRUNC('minute', traffic_pons.date) AS date,
+        SUM(traffic_pons.bps_in) / 1000000 AS mbps_in,
+        SUM(traffic_pons.bps_out) / 1000000 AS mbps_out,
+        SUM(traffic_pons.bandwidth_mbps_sec) / 1000000 AS bandwidth_mbps_sec,
+        SUM(traffic_pons.bytes_in_sec) / 1000000 AS mbytes_in,
+        SUM(traffic_pons.bytes_out_sec) / 1000000 AS mbytes_out
+    FROM traffic_pons
+    JOIN pons ON pons.id = traffic_pons.pon_id
+    JOIN olts ON olts.id = pons.olt_id
+    JOIN fats ON fats.olt_ip = olts.ip
+    WHERE fats.state = $1 AND fats.odn = $2 AND traffic_pons.date BETWEEN $3 AND $4
+    GROUP BY DATE_TRUNC('minute', date)
+    ORDER BY date;`
 
-const SQL_INDEX_REPORT_CATEGORY string = `CREATE INDEX IF NOT EXISTS idx_reports_category ON reports(category);`
-const SQL_INDEX_REPORT_USER_ID string = `CREATE INDEX IF NOT EXISTS idx_reports_user_id ON reports(user_id);`
+// SQL_TRAFFIC_BY_OLT retrieves traffic data for a specific OLT, aggregated by minute.
+const SQL_TRAFFIC_BY_OLT string = `
+    SELECT
+        DATE_TRUNC('minute', traffic_pons.date) AS date,
+        SUM(traffic_pons.bps_in) / 1000000 AS mbps_in,
+        SUM(traffic_pons.bps_out) / 1000000 AS mbps_out,
+        SUM(traffic_pons.bandwidth_mbps_sec) / 1000000 AS bandwidth_mbps_sec,
+        SUM(traffic_pons.bytes_in_sec) / 1000000 AS mbytes_in,
+        SUM(traffic_pons.bytes_out_sec) / 1000000 AS mbytes_out
+    FROM traffic_pons 
+    JOIN pons ON pons.id = traffic_pons.pon_id
+    JOIN olts ON olts.id = pons.olt_id
+    WHERE olts.sys_name = $1 AND traffic_pons.date BETWEEN $2 AND $3
+    GROUP BY DATE_TRUNC('minute', date)
+    ORDER BY date;`
 
-const SQL_INDEX_USERS_USERNAME string = `CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);`
+// SQL_TRAFFIC_BY_PON retrieves traffic data for a specific PON interface on an OLT, aggregated by minute.
+const SQL_TRAFFIC_BY_PON string = `
+    SELECT
+        DATE_TRUNC('minute', traffic_pons.date) AS date,
+        SUM(traffic_pons.bps_in) / 1000000 AS mbps_in,
+        SUM(traffic_pons.bps_out) / 1000000 AS mbps_out,
+        SUM(traffic_pons.bandwidth_mbps_sec) / 1000000 AS bandwidth_mbps_sec,
+        SUM(traffic_pons.bytes_in_sec) / 1000000 AS mbytes_in,
+        SUM(traffic_pons.bytes_out_sec) / 1000000 AS mbytes_out
+    FROM traffic_pons 
+    JOIN pons ON pons.id = traffic_pons.pon_id
+    JOIN olts ON olts.id = pons.olt_id
+    WHERE olts.sys_name = $1 AND pons.if_name = $2 AND traffic_pons.date BETWEEN $3 AND $4
+    GROUP BY DATE_TRUNC('minute', date)
+    ORDER BY date;`
+
+// SQL_PONS_BY_OLT retrieves all PON interfaces associated with a specific OLT.
+const SQL_PONS_BY_OLT string = `SELECT pons.* FROM pons JOIN olts ON olts.id = pons.olt_id	WHERE olts.sys_name = ?`
+
+// SQL_PON_BY_PORT retrieves a specific PON interface by its port name on a given OLT.
+const SQL_PON_BY_PORT string = `SELECT pons.* FROM pons JOIN olts ON olts.id = pons.olt_id WHERE olts.sys_name = ? AND pons.if_name = ?`
+
+// SQL_ALL_ONT_STATUS retrieves ONT status counts for all states within a date range.
+const SQL_ALL_ONT_STATUS string = `
+	SELECT
+		fats.state AS state,
+		DATE_TRUNC('date', measurement_onts.date) AS date,
+    	COUNT(DISTINCT pons.id) AS pons_count,
+    	COUNT(CASE WHEN measurement_onts.control_run_status = 1 THEN 1 END) AS active_count,
+    	COUNT(CASE WHEN measurement_onts.control_run_status = 2 THEN 1 END) AS inactive_count,
+    	COUNT(CASE WHEN measurement_onts.control_run_status NOT IN (1,2) THEN 1 END) AS unknown_count,
+    	COUNT(*) AS total_count
+	FROM measurement_onts
+	JOIN pons ON measurement_onts.pon_id = pons.id
+	JOIN olts ON pons.olt_id = olts.id
+	JOIN fats ON fats.olt_ip = olts.ip
+	WHERE measurement_onts.date BETWEEN $2 AND $3
+	GROUP BY state, date
+	ORDER BY state, date;`
+
+// SQL_ONT_STATUS_BY_STATE retrieves ONT status counts for a specific state within a date range.
+const SQL_ONT_STATUS_BY_STATE string = `
+	SELECT
+		olts.sys_name AS sysname,
+		DATE_TRUNC('date', measurement_onts.date) AS date,
+    	COUNT(DISTINCT pons.id) AS pons_count,
+    	COUNT(CASE WHEN measurement_onts.control_run_status = 1 THEN 1 END) AS active_count,
+    	COUNT(CASE WHEN measurement_onts.control_run_status = 2 THEN 1 END) AS inactive_count,
+    	COUNT(CASE WHEN measurement_onts.control_run_status NOT IN (1,2) THEN 1 END) AS unknown_count,
+    	COUNT(*) AS total_count
+	FROM measurement_onts
+	JOIN pons ON measurement_onts.pon_id = pons.id
+	JOIN olts ON pons.olt_id = olts.id
+	JOIN fats ON fats.olt_ip = olts.ip
+	WHERE fats.state = $1 AND measurement_onts.date BETWEEN $2 AND $3
+	GROUP BY sysname, date
+	ORDER BY sysname, date;`
+
+// SQL_ONT_STATUS_BY_ODN retrieves ONT status counts for a specific ODN within a state and date range.
+const SQL_ONT_STATUS_BY_ODN string = `
+	SELECT
+		olts.sys_name AS sysname,
+		DATE_TRUNC('date', measurement_onts.date) AS date,
+    	COUNT(DISTINCT pons.id) AS pons_count,
+    	COUNT(CASE WHEN measurement_onts.control_run_status = 1 THEN 1 END) AS active_count,
+    	COUNT(CASE WHEN measurement_onts.control_run_status = 2 THEN 1 END) AS inactive_count,
+    	COUNT(CASE WHEN measurement_onts.control_run_status NOT IN (1,2) THEN 1 END) AS unknown_count,
+    	COUNT(*) AS total_count
+	FROM measurement_onts
+	JOIN pons ON measurement_onts.pon_id = pons.id
+	JOIN olts ON pons.olt_id = olts.id
+	JOIN fats ON fats.olt_ip = olts.ip
+	WHERE fats.state = $1 AND fats.odn = $2 AND measurement_onts.date BETWEEN $3 AND $4
+	GROUP BY sysname, date
+	ORDER BY sysname, date;`
+
+// SQL_TRAFFIC_ONT retrieves traffic data for a specific ONT, including calculated Mbps and Mbytes per second.
+const SQL_TRAFFIC_ONT string = `
+	SELECT
+		date,
+		despt,
+		serial_number,
+		line_prof_name,
+		olt_distance,
+    		control_mac_count,
+		control_run_status,
+		CASE
+		WHEN curr_bytes_in < prev_bytes_in THEN ((18446744073709551615 - prev_bytes_in) + curr_bytes_in) * 8 / (time_diff * 1000000)
+		ELSE ((curr_bytes_in - prev_bytes_in) * 8) / (time_diff * 1000000)
+		END AS Mbps_in,
+		CASE
+		WHEN curr_bytes_out < prev_bytes_out THEN ((18446744073709551615 - prev_bytes_out) + curr_bytes_out) * 8 / (time_diff * 1000000)
+		ELSE ((curr_bytes_out - prev_bytes_out) * 8) / (time_diff * 1000000)
+		END AS Mbps_out,
+		CASE
+		WHEN curr_bytes_in < prev_bytes_in THEN ((18446744073709551615 - prev_bytes_in) + curr_bytes_in) / (time_diff * 1000000)
+		ELSE (curr_bytes_in - prev_bytes_in) / (time_diff * 1000000)
+		END AS Mbytes_in_sec,
+		CASE
+		WHEN curr_bytes_out < prev_bytes_out THEN ((18446744073709551615 - prev_bytes_out) + curr_bytes_out) / (time_diff * 1000000)
+		ELSE (curr_bytes_out - prev_bytes_out) / (time_diff * 1000000)
+		END AS Mbytes_out_sec
+	FROM (
+		SELECT
+			date,
+			despt,
+			serial_number,
+    			line_prof_name,
+			olt_distance,
+    			control_mac_count, 
+			control_run_status,
+			bytes_in AS prev_bytes_in,
+			bytes_out AS prev_bytes_out,
+			LEAD(bytes_in) OVER (PARTITION BY pon_id ORDER BY date) AS curr_bytes_in,
+			LEAD(bytes_out) OVER (PARTITION BY pon_id ORDER BY date) AS curr_bytes_out,
+			EXTRACT(EPOCH FROM (LEAD(date) OVER (PARTITION BY pon_id ORDER BY date) - date)) AS time_diff
+		FROM measurement_ont
+		WHERE pon_id = $1 AND idx = $2 AND bytes_in > 0 AND bytes_out > 0 AND date BETWEEN $3 AND $4
+		ORDER BY date
+	) AS subquery;`
+
+// SQL_ADD_OLT adds a new OLT to the database.
+const SQL_ADD_OLT string = `
+INSERT INTO olts (ip, community, sys_name, sys_location, is_alive, last_check)
+VALUES (:ip, :community, :sys_name, :sys_location, :is_alive, :last_check)`
+
+// SQL_GET_OLT retrieves an OLT by its ID.
+const SQL_GET_OLT string = `SELECT * FROM olts WHERE id = $1`
+
+// SQL_UPDATE_OLT updates an existing OLT in the database.
+const SQL_UPDATE_OLT string = `
+    UPDATE olts SET
+        ip = :ip,
+        community = :community,
+        sys_name = :sys_name,
+        sys_location = :sys_location,
+        is_alive = :is_alive,
+        last_check = :last_check
+    WHERE id = :id`
+
+// SQL_DELETE_OLT deletes an OLT from the database by its ID.
+const SQL_DELETE_OLT string = `DELETE FROM olts WHERE id = $1`
+
+// SQL_GET_ALL_OLTS retrieves all OLTs from the database.
+const SQL_GET_ALL_OLTS string = `SELECT * FROM olts ORDER BY sys_name LIMIT $1 OFFSET $2`
+
+// SQL_GET_OLTS_BY_STATE retrieves OLTs by their state, with pagination.
+const SQL_GET_OLTS_BY_STATE string = `
+    SELECT DISTINCT olts.*
+    FROM olts
+    JOIN fats ON fats.olt_ip = olts.ip
+    WHERE fats.state = $1
+    ORDER BY olts.sys_name LIMIT $2 OFFSET $3`
+
+// SQL_GET_OLTS_BY_COUNTY retrieves OLTs by their state and county, with pagination.
+const SQL_GET_OLTS_BY_COUNTY string = `
+	SELECT DISTINCT olts.*
+	FROM olts
+	JOIN fats ON fats.olt_ip = olts.ip
+	WHERE fats.state = $1 AND fats.county = $2
+	ORDER BY olts.sys_name
+	LIMIT $3 OFFSET $4`
+
+// SQL_GET_OLTS_BY_MUNICIPALITY retrieves OLTs by their state, county, and municipality, with pagination.
+const SQL_GET_OLTS_BY_MUNICIPALITY string = `
+	SELECT DISTINCT olts.*
+	FROM olts
+	JOIN fats ON fats.olt_ip = olts.ip
+	WHERE fats.state = $1 AND fats.county = $2 AND fats.municipality = $3
+	ORDER BY olts.sys_name
+	LIMIT $4 OFFSET $5`
+
+// SQL_UPSERT_OLT updates an existing OLT or inserts a new one if it does not exist.
+const SQL_UPSERT_OLT string = `
+    UPDATE olts SET
+        sys_name = :sys_name,
+        sys_location = :sys_location,
+        is_alive = :is_alive,
+        last_check = :last_check,
+    WHERE id = :id`
+
+// SQL_UPSERT_PON inserts a new PON interface or updates an existing one if it already exists.
+const SQL_UPSERT_PON string = `
+    INSERT INTO pons (olt_id, if_index, if_name, if_descr, if_alias, created_at)
+    VALUES (:olt_id, :if_index, :if_name, :if_descr, :if_alias, :created_at)
+    ON CONFLICT (olt_id, if_index) DO UPDATE SET
+        if_name = EXCLUDED.if_name,
+        if_descr = EXCLUDED.if_descr,
+        if_alias = EXCLUDED.if_alias,
+    RETURNING id`
+
+// SQL_GET_TEMPORAL_MEASUREMENT_PON retrieves a temporal measurement for a specific PON.
+const SQL_GET_TEMPORAL_MEASUREMENT_PON string = `SELECT * FROM measurement_pons WHERE pon_id = $1`
+
+// SQL_UPSERT_TEMPORAL_MEASUREMENT_PON inserts or updates a temporal measurement for a PON.
+const SQL_UPSERT_TEMPORAL_MEASUREMENT_PON string = `
+    INSERT INTO measurement_pons (pon_id, bandwidth, bytes_in_count, bytes_out_count, date)
+    VALUES (:pon_id, :bandwidth, :bytes_in_count, :bytes_out_count, :date)
+    ON CONFLICT (pon_id) DO UPDATE SET
+        bandwidth = EXCLUDED.bandwidth,
+        bytes_in_count = EXCLUDED.bytes_in_count,
+        bytes_out_count = EXCLUDED.bytes_out_count,
+        date = EXCLUDED.date`
+
+// SQL_INSERT_TRAFFIC_PON inserts traffic data for a PON.
+const SQL_INSERT_TRAFFIC_PON string = `
+    INSERT INTO traffic_pons (date, bps_in, bps_out, bandwidth_mbps_sec, bytes_in_sec, bytes_out_sec)
+    VALUES (:date, :bps_in, :bps_out, :bandwidth_mbps_sec, :bytes_in_sec, :bytes_out_sec)`
+
+// SQL_INSERT_MANY_MEASUREMENT_ONT_PREFIX is the prefix for inserting multiple ONT measurements.
+const SQL_INSERT_MANY_MEASUREMENT_ONT_PREFIX string = `
+    INSERT INTO measurement_onts (
+            pon_id, idx, despt, serial_number, line_prof_name, olt_distance,
+            control_mac_count, control_run_status, bytes_in_count, bytes_out_count, date
+        ) VALUES `
+
+// SQL_INSERT_FAT is the SQL statement to insert a new FAT (Fiber Access Terminal) record.
+const SQL_INSERT_FAT = `
+    INSERT INTO fats (
+        region, fat, state, municipality, county, odn, olt_ip,
+        pon_shell, pon_port, pon_card, latitude, longitude
+    ) VALUES (
+        :region, :fat, :state, :municipality, :county, :odn, :olt_ip,
+        :pon_shell, :pon_port, :pon_card, :latitude, :longitude
+    )`
+
+// SQL_DELETE_FAT_BY_ID is the SQL statement to delete a FAT record by its ID.
+const SQL_DELETE_FAT_BY_ID = `DELETE FROM fats WHERE id = $1`
+
+// SQL_SELECT_ALL_FATS retrieves all FAT records with pagination.
+const SQL_SELECT_ALL_FATS = `SELECT * FROM fats ORDER BY region, state, municipality, county LIMIT $1 OFFSET $2`
+
+// SQL_SELECT_FAT_BY_ID retrieves a FAT record by its ID.
+const SQL_SELECT_FAT_BY_ID = `SELECT * FROM fats WHERE id = $1`
+
+// SQL_SELECT_FAT_BY_FAT retrieves a FAT record by its FAT identifier.
+const SQL_SELECT_FAT_BY_FAT = `SELECT * FROM fats WHERE fat = $1`
+
+// SQL_SELECT_FATS_BY_ODN retrieves all FAT records for a specific ODN in a given state, ordered by FAT.
+const SQL_SELECT_FATS_BY_ODN = `SELECT * FROM fats WHERE state = $1 AND odn = $2 ORDER BY fat`
+
+// SQL_SELECT_DISTINCT_ODN_BY_STATE retrieves distinct ODNs for a specific state, ordered by ODN.
+const SQL_SELECT_DISTINCT_ODN_BY_STATE = `SELECT DISTINCT odn FROM fats WHERE state = $1 ORDER BY odn`
+
+// SQL_SELECT_DISTINCT_ODN_BY_COUNTY retrieves distinct ODNs for a specific state and county, ordered by ODN.
+const SQL_SELECT_DISTINCT_ODN_BY_COUNTY = `SELECT DISTINCT odn FROM fats WHERE state = $1 AND county = $2 ORDER BY odn`
+
+// SQL_SELECT_DISTINCT_ODN_BY_MUNICIPALITY retrieves distinct ODNs for a specific state, county, and municipality, ordered by ODN.
+const SQL_SELECT_DISTINCT_ODN_BY_MUNICIPALITY = `SELECT DISTINCT odn FROM fats WHERE state = $1 AND county = $2 AND municipality = $3 ORDER BY odn`
+
+// SQL_SELECT_DISTINCT_ODN_BY_OLT retrieves distinct ODNs for a specific OLT, ordered by ODN.
+const SQL_SELECT_DISTINCT_ODN_BY_OLT = `SELECT DISTINCT odn FROM fats WHERE olt_ip = $1 ORDER BY odn`
+
+// SQL_SELECT_DISTINCT_ODN_BY_OLT_PORT retrieves distinct ODNs for a specific OLT and PON port, ordered by ODN.
+const SQL_SELECT_DISTINCT_ODN_BY_OLT_PORT = `SELECT DISTINCT odn FROM fats WHERE olt_ip = $1 AND pon_shell = $2 AND pon_card = $3 AND pon_port = $4 ORDER BY odn`
+
+// SQL_SELECT_DISTINCT_ALL_ODN retrieves all distinct ODNs from the fats table.
+const SQL_SELECT_DISTINCT_ALL_ODN = `SELECT DISTINCT odn FROM fats`
+
+// SQL_INSERT_REPORT inserts a new report into the reports table.
+const SQL_INSERT_REPORT = `
+    INSERT INTO reports (
+        id, category, original_filename, content_type, basepath, filepath, user_id
+    ) VALUES (
+        :id, :category, :original_filename, :content_type, :basepath, :filepath, :user_id
+    )`
+
+// SQL_SELECT_REPORT_BY_ID retrieves a report by its ID.
+const SQL_SELECT_REPORT_BY_ID = `SELECT * FROM reports WHERE id = $1 ORDER BY created_at`
+
+// SQL_SELECT_DISTINCT_REPORT_CATEGORIES retrieves all distinct report categories.
+const SQL_SELECT_DISTINCT_REPORT_CATEGORIES = `SELECT DISTINCT category FROM reports ORDER BY category`
+
+// SQL_SELECT_REPORTS_BY_USER retrieves paginated reports for a specific user.
+const SQL_SELECT_REPORTS_BY_USER = `SELECT * FROM reports WHERE user_id = $1 LIMIT $2 OFFSET $3 ORDER BY created_at`
+
+// SQL_SELECT_REPORTS_BY_CATEGORY retrieves paginated reports for a specific category.
+const SQL_SELECT_REPORTS_BY_CATEGORY = `SELECT * FROM reports WHERE category = $1 LIMIT $2 OFFSET $3 ORDER BY created_at`
+
+// SQL_DELETE_REPORT_BY_ID deletes a report by its ID.
+const SQL_DELETE_REPORT_BY_ID = `DELETE FROM reports WHERE id = $1`

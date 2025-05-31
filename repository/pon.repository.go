@@ -5,6 +5,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/metalpoch/ultra-monitor/entity"
+	"github.com/metalpoch/ultra-monitor/internal/constants"
 )
 
 type PonRepository interface {
@@ -22,21 +23,11 @@ func NewPonRepository(db *sqlx.DB) *ponRepository {
 
 func (repo *ponRepository) PonsByOLT(ctx context.Context, sysname string) ([]entity.Pon, error) {
 	var res []entity.Pon
-	query := `
-	SELECT pons.*
-	FROM pons
-	JOIN olts ON olts.id = pons.olt_id
-	WHERE olts.sys_name = ?`
-	err := repo.db.SelectContext(ctx, &res, query, sysname)
+	err := repo.db.SelectContext(ctx, &res, constants.SQL_PONS_BY_OLT, sysname)
 	return res, err
 }
 func (repo *ponRepository) PonByPort(ctx context.Context, sysname, port string) (entity.Pon, error) {
 	var res entity.Pon
-	query := `
-	SELECT pons.*
-	FROM pons
-	JOIN olts ON olts.id = pons.olt_id
-	WHERE olts.sys_name = ? AND pons.if_name = ?`
-	err := repo.db.SelectContext(ctx, &res, query, sysname, port)
+	err := repo.db.SelectContext(ctx, &res, constants.SQL_PON_BY_PORT, sysname, port)
 	return res, err
 }

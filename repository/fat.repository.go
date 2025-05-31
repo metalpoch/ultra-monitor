@@ -5,6 +5,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/metalpoch/ultra-monitor/entity"
+	"github.com/metalpoch/ultra-monitor/internal/constants"
 )
 
 type FatRepository interface {
@@ -31,91 +32,72 @@ func NewFatRepository(db *sqlx.DB) *fatRepository {
 }
 
 func (repo *fatRepository) AddFat(ctx context.Context, tao *entity.Fat) error {
-	query := `
-        INSERT INTO fats (
-            region, fat, state, municipality, county, odn, olt_ip,
-            pon_shell, pon_port, pon_card, latitude, longitude
-        ) VALUES (
-            :region, :fat, :state, :municipality, :county, :sector, :odn, :olt_ip,
-            :pon_shell, :pon_port, :pon_card, :latitude, :longitude
-        )`
-	_, err := repo.db.NamedExecContext(ctx, query, tao)
+	_, err := repo.db.NamedExecContext(ctx, constants.SQL_INSERT_FAT, tao)
 	return err
 }
 
 func (repo *fatRepository) DeleteOne(ctx context.Context, id int32) error {
-	query := `DELETE FROM fats WHERE id = $1`
-	_, err := repo.db.ExecContext(ctx, query, id)
+	_, err := repo.db.ExecContext(ctx, constants.SQL_DELETE_FAT_BY_ID, id)
 	return err
 }
 
-func (repo *fatRepository) AllTao(ctx context.Context, page, limit uint16) ([]entity.Fat, error) {
+func (repo *fatRepository) AllFat(ctx context.Context, page, limit uint16) ([]entity.Fat, error) {
 	var res []entity.Fat
 	offset := (page - 1) * limit
-	query := `SELECT * FROM fats ORDER BY region, state, municipality, county LIMIT $1 OFFSET $2`
-	err := repo.db.SelectContext(ctx, &res, query, limit, offset)
+	err := repo.db.SelectContext(ctx, &res, constants.SQL_SELECT_ALL_FATS, limit, offset)
 	return res, err
 }
 
 func (repo *fatRepository) GetByID(ctx context.Context, id int32) (entity.Fat, error) {
 	var res entity.Fat
-	query := `SELECT * FROM fats WHERE id = $1`
-	err := repo.db.GetContext(ctx, &res, query, id)
+	err := repo.db.GetContext(ctx, &res, constants.SQL_SELECT_FAT_BY_ID, id)
 	return res, err
 }
 
 func (repo *fatRepository) GetByFat(ctx context.Context, tao string) (entity.Fat, error) {
 	var res entity.Fat
-	query := `SELECT * FROM fats WHERE fat = $1`
-	err := repo.db.SelectContext(ctx, &res, query, tao)
+	err := repo.db.SelectContext(ctx, &res, constants.SQL_SELECT_FAT_BY_FAT, tao)
 	return res, err
 }
 
 func (repo *fatRepository) GetByOdn(ctx context.Context, state, odn string) ([]entity.Fat, error) {
 	var res []entity.Fat
-	query := `SELECT * FROM fats WHERE state = $1 AND odn = $2 ORDER BY fat`
-	err := repo.db.SelectContext(ctx, &res, query, state, odn)
+	err := repo.db.SelectContext(ctx, &res, constants.SQL_SELECT_FATS_BY_ODN, state, odn)
 	return res, err
 }
 
 func (repo *fatRepository) GetOdnByStates(ctx context.Context, state string) ([]string, error) {
 	var res []string
-	query := `SELECT DISTINCT odn FROM fats WHERE state = $1 ORDER BY odn`
-	err := repo.db.SelectContext(ctx, &res, query, state)
+	err := repo.db.SelectContext(ctx, &res, constants.SQL_SELECT_DISTINCT_ODN_BY_STATE, state)
 	return res, err
 }
 
 func (repo *fatRepository) GetOdnByCounty(ctx context.Context, state, county string) ([]string, error) {
 	var res []string
-	query := `SELECT DISTINCT odn FROM fats WHERE state = $1 AND county = $2 ORDER BY odn`
-	err := repo.db.SelectContext(ctx, &res, query, state, county)
+	err := repo.db.SelectContext(ctx, &res, constants.SQL_SELECT_DISTINCT_ODN_BY_COUNTY, state, county)
 	return res, err
 }
 
 func (repo *fatRepository) GetOdnMunicipality(ctx context.Context, state, county, municipality string) ([]string, error) {
 	var res []string
-	query := `SELECT DISTINCT odn FROM fats WHERE state = $1 AND county = $2 AND municipality = $3 ORDER BY odn`
-	err := repo.db.SelectContext(ctx, &res, query, state, county, municipality)
+	err := repo.db.SelectContext(ctx, &res, constants.SQL_SELECT_DISTINCT_ODN_BY_MUNICIPALITY, state, county, municipality)
 	return res, err
 }
 
 func (repo *fatRepository) GetOdnByOlt(ctx context.Context, oltIP string) ([]string, error) {
 	var res []string
-	query := `SELECT DISTINCT odn FROM fats WHERE olt_ip = $1 ORDER BY odn`
-	err := repo.db.SelectContext(ctx, &res, query, oltIP)
+	err := repo.db.SelectContext(ctx, &res, constants.SQL_SELECT_DISTINCT_ODN_BY_OLT, oltIP)
 	return res, err
 }
 
 func (repo *fatRepository) GetOdnByOltPort(ctx context.Context, oltIP string, shell, card, port uint8) ([]string, error) {
 	var res []string
-	query := `SELECT DISTINCT odn FROM fats WHERE olt_ip = $1 AND shell = $2 AND card = $3 AND port = $4 ORDER BY odn`
-	err := repo.db.SelectContext(ctx, &res, query, oltIP, shell, card, port)
+	err := repo.db.SelectContext(ctx, &res, constants.SQL_SELECT_DISTINCT_ODN_BY_OLT_PORT, oltIP, shell, card, port)
 	return res, err
 }
 
 func (repo *fatRepository) GetAllOdn(ctx context.Context) ([]string, error) {
 	var res []string
-	query := `SELECT DISTINCT odn FROM fats`
-	err := repo.db.SelectContext(ctx, &res, query)
+	err := repo.db.SelectContext(ctx, &res, constants.SQL_SELECT_DISTINCT_ALL_ODN)
 	return res, err
 }

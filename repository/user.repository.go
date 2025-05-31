@@ -5,6 +5,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/metalpoch/ultra-monitor/entity"
+	"github.com/metalpoch/ultra-monitor/internal/constants"
 )
 
 type UserRepository interface {
@@ -25,41 +26,33 @@ func NewUserRepository(db *sqlx.DB) *userRepository {
 }
 
 func (repo *userRepository) Create(ctx context.Context, user entity.User) error {
-	query := `
-	INSERT INTO users (id, fullname, username, password, change_password, is_admin, is_disabled)
-	VALUES (:id, :fullname, :username, :password, :change_password, :is_admin, :is_disabled)`
-	_, err := repo.db.NamedExecContext(ctx, query, user)
+	_, err := repo.db.NamedExecContext(ctx, constants.SQL_USER_BY_ID, user)
 	return err
 }
 
 func (repo *userRepository) UserByID(ctx context.Context, id int) (entity.User, error) {
 	var res entity.User
-	query := `SELECT * FROM users WHERE id = $1`
-	err := repo.db.GetContext(ctx, &res, query, id)
+	err := repo.db.GetContext(ctx, &res, constants.SQL_USER_BY_ID, id)
 	return res, err
 }
 
 func (repo *userRepository) UserByUsername(ctx context.Context, username string) (entity.User, error) {
 	var res entity.User
-	query := `SELECT * FROM users WHERE username = $1`
-	err := repo.db.GetContext(ctx, &res, query, username)
+	err := repo.db.GetContext(ctx, &res, constants.SQL_USER_BY_USERNAME, username)
 	return res, err
 }
 
 func (repo *userRepository) Disable(ctx context.Context, id int) error {
-	query := `UPDATE users SET is_disabled = true WHERE id = $1`
-	_, err := repo.db.ExecContext(ctx, query, id)
+	_, err := repo.db.ExecContext(ctx, constants.SQL_DISABLE_USER, id)
 	return err
 }
 
 func (repo *userRepository) Enable(ctx context.Context, id int) error {
-	query := `UPDATE users SET is_disabled = false WHERE id = $1`
-	_, err := repo.db.ExecContext(ctx, query, id)
+	_, err := repo.db.ExecContext(ctx, constants.SQL_ENABLE_USER, id)
 	return err
 }
 
 func (repo *userRepository) ChangePassword(ctx context.Context, id int, password string) error {
-	query := `UPDATE users SET password = $1 WHERE id = $2`
-	_, err := repo.db.ExecContext(ctx, query, password, id)
+	_, err := repo.db.ExecContext(ctx, constants.SQL_CHANGE_PASSWORD, password, id)
 	return err
 }

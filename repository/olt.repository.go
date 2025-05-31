@@ -5,6 +5,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/metalpoch/ultra-monitor/entity"
+	"github.com/metalpoch/ultra-monitor/internal/constants"
 )
 
 type OltRepository interface {
@@ -26,19 +27,14 @@ func NewOltRepository(db *sqlx.DB) *oltRepository {
 	return &oltRepository{db}
 }
 
-func (repo *oltRepository) Add(ctx context.Context, device *entity.Olt) error {
-	query := `
-        INSERT INTO olts (ip, community, sys_name, sys_location, is_alive, last_check)
-        VALUES (:ip, :community, :sys_name, :sys_location, :is_alive, :last_check)
-    `
-	_, err := repo.db.NamedExecContext(ctx, query, device)
+func (repo *oltRepository) Add(ctx context.Context, olt *entity.Olt) error {
+	_, err := repo.db.NamedExecContext(ctx, constants.SQL_ADD_OLT, olt)
 	return err
 }
 
 func (repo *oltRepository) Olt(ctx context.Context, id int32) (entity.Olt, error) {
 	var olt entity.Olt
-	query := `SELECT * FROM olts WHERE id = $1`
-	err := repo.db.GetContext(ctx, &olt, query, id)
+	err := repo.db.GetContext(ctx, &olt, constants.SQL_GET_OLT, id)
 	if err != nil {
 		return olt, err
 	}
@@ -46,72 +42,39 @@ func (repo *oltRepository) Olt(ctx context.Context, id int32) (entity.Olt, error
 }
 
 func (repo *oltRepository) Update(ctx context.Context, olt entity.Olt) error {
-	query := `
-        UPDATE olts SET
-            ip = :ip,
-            community = :community,
-            sys_name = :sys_name,
-            sys_location = :sys_location,
-            is_alive = :is_alive,
-            last_check = :last_check
-        WHERE id = :id
-    `
-	_, err := repo.db.NamedExecContext(ctx, query, olt)
+	_, err := repo.db.NamedExecContext(ctx, constants.SQL_UPDATE_OLT, olt)
 	return err
 }
 
 func (repo *oltRepository) Delete(ctx context.Context, id int32) error {
-	query := `DELETE FROM olts WHERE id = $1`
-	_, err := repo.db.ExecContext(ctx, query, id)
+	_, err := repo.db.ExecContext(ctx, constants.SQL_DELETE_OLT, id)
 	return err
 }
 
 func (repo *oltRepository) Olts(ctx context.Context, page, limit uint16) ([]entity.Olt, error) {
 	var res []entity.Olt
 	offset := (page - 1) * limit
-	query := `SELECT * FROM olts ORDER BY sys_name LIMIT $1 OFFSET $2`
-	err := repo.db.SelectContext(ctx, &res, query, limit, offset)
+	err := repo.db.SelectContext(ctx, &res, constants.SQL_GET_ALL_OLTS, limit, offset)
 	return res, err
 }
 
 func (repo *oltRepository) OltsByState(ctx context.Context, state string, page, limit uint16) ([]entity.Olt, error) {
 	var res []entity.Olt
 	offset := (page - 1) * limit
-	query := `
-		SELECT DISTINCT olts.*
-		FROM olts
-		JOIN fats ON fats.olt_ip = olts.ip
-		WHERE fats.state = $1
-		ORDER BY olts.sys_name
-		LIMIT $2 OFFSET $3`
-	err := repo.db.SelectContext(ctx, &res, query, state, limit, offset)
+	err := repo.db.SelectContext(ctx, &res, constants.SQL_GET_OLTS_BY_STATE, state, limit, offset)
 	return res, err
 }
 
 func (repo *oltRepository) OltsByCounty(ctx context.Context, state, county string, page, limit uint16) ([]entity.Olt, error) {
 	var res []entity.Olt
 	offset := (page - 1) * limit
-	query := `
-		SELECT DISTINCT olts.*
-		FROM olts
-		JOIN fats ON fats.olt_ip = olts.ip
-		WHERE fats.state = $1 AND fats.county = $2
-		ORDER BY olts.sys_name
-		LIMIT $3 OFFSET $4`
-	err := repo.db.SelectContext(ctx, &res, query, state, county, limit, offset)
+	err := repo.db.SelectContext(ctx, &res, constants.SQL_GET_OLTS_BY_COUNTY, state, county, limit, offset)
 	return res, err
 }
 
 func (repo *oltRepository) OltsByMunicipality(ctx context.Context, state, county, municipality string, page, limit uint16) ([]entity.Olt, error) {
 	var res []entity.Olt
 	offset := (page - 1) * limit
-	query := `
-		SELECT DISTINCT olts.*
-		FROM olts
-		JOIN fats ON fats.olt_ip = olts.ip
-		WHERE fats.state = $1 AND fats.county = $2 AND fats.municipality = $3
-		ORDER BY olts.sys_name
-		LIMIT $4 OFFSET $5`
-	err := repo.db.SelectContext(ctx, &res, query, state, county, municipality, limit, offset)
+	err := repo.db.SelectContext(ctx, &res, constants.SQL_GET_OLTS_BY_MUNICIPALITY, state, county, municipality, limit, offset)
 	return res, err
 }

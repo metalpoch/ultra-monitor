@@ -54,12 +54,11 @@ func (ctrl MeasurementController) PonScanner(olt model.Olt) {
 
 	for idx, data := range ponData {
 		ponID, err := ctrl.usecase.UpsertPon(model.Pon{
-			IfIndex:   idx,
-			IfName:    data.IfName,
-			IfDescr:   data.IfDescr,
-			IfAlias:   data.IfAlias,
-			OltID:     olt.ID,
-			UpdatedAt: time.Now(),
+			IfIndex: idx,
+			IfName:  data.IfName,
+			IfDescr: data.IfDescr,
+			IfAlias: data.IfAlias,
+			OltID:   olt.ID,
 		})
 		if err != nil {
 			log.Printf("error al ejecutar ctrl.usecase.UpsertPon en %s en el ifIndex %d: %v", olt.SysName, idx, err)
@@ -106,7 +105,7 @@ func (ctrl MeasurementController) PonScanner(olt model.Olt) {
 	}
 }
 
-func (ctrl MeasurementController) OntScan(olt model.Olt, ponID, idx uint64) ([]model.MeasurementOnt, error) {
+func (ctrl MeasurementController) OntScan(olt model.Olt, ponID, idx int32) ([]model.MeasurementOnt, error) {
 	client := snmp.NewSnmp(snmp.Config{
 		IP:        olt.IP,
 		Community: olt.Community,
@@ -155,24 +154,4 @@ func (ctrl MeasurementController) ProcessOntBatchData(measurements []string) err
 	}
 
 	return ctrl.usecase.InsertManyOnt(records)
-}
-
-func (ctrl MeasurementController) calculateDeltaOnt(value, prev, curr *uint64) {
-	if prev == nil || curr == nil {
-		return
-	}
-
-	delta := ctrl.calculateDelta(*prev, *curr)
-	value = &delta
-}
-
-func (ctrl MeasurementController) bytesToBbpsOnt(value, prev, curr *uint64, diffDate uint64) {
-	if prev == nil || curr == nil {
-		return
-	}
-
-	delta := ctrl.calculateDelta(*prev, *curr)
-	res := (8 * delta) / diffDate
-
-	value = &res
 }

@@ -43,7 +43,6 @@ func (ctrl PonController) ShowAllInterfaces(sysname string, csv bool) error {
 			i.IfDescr,
 			i.IfAlias,
 			i.CreatedAt.Local().Format(constants.FORMAT_DATE),
-			i.UpdatedAt.Local().Format(constants.FORMAT_DATE),
 		})
 		pretty.AppendSeparator()
 	}

@@ -64,10 +64,10 @@ func (ctrl OltController) ShowAllDevices(csv bool) ([]model.Olt, error) {
 	return nil, nil
 }
 
-func (d OltController) Update(id uint64, olt dto.NewOlt) error {
+func (d OltController) Update(id int, olt dto.NewOlt) error {
 	return d.Usecase.Update(id, olt)
 }
 
-func (d OltController) Delete(id uint64) error {
+func (d OltController) Delete(id int) error {
 	return d.Usecase.Delete(id)
 }

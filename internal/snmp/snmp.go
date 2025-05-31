@@ -64,8 +64,8 @@ type OntData struct {
 	Despt            string
 	SerialNumber     string
 	LineProfName     string
-	ControlRanging   int64
-	ControlMacCount  int64
+	ControlRanging   int32
+	ControlMacCount  int8
 	ControlRunStatus int8
 	BytesIn          uint64
 	BytesOut         uint64
@@ -161,13 +161,13 @@ func (s snmp) OltSysQuery() (*OltData, error) {
 	return data, nil
 }
 
-func (s snmp) PonQuery() (map[uint64]PonData, error) {
+func (s snmp) PonQuery() (map[int32]PonData, error) {
 	err := s.client.Connect()
 	if err != nil {
 		return nil, fmt.Errorf("conexión fallida: %v", err)
 	}
 	defer s.client.Conn.Close()
-	data := make(map[uint64]PonData)
+	data := make(map[int32]PonData)
 
 	for _, oidHandler := range s.ponOidHandlers() {
 		err = s.client.BulkWalk(oidHandler.oid, func(pdu gosnmp.SnmpPDU) error {
@@ -176,17 +176,17 @@ func (s snmp) PonQuery() (map[uint64]PonData, error) {
 				return nil
 			}
 
-			idx, err := strconv.ParseUint(index, 10, 64)
+			idx, err := strconv.Atoi(index)
 			if err != nil {
 				return err
 			}
 
-			pon := data[idx]
+			pon := data[int32(idx)]
 			if err := oidHandler.handler(&pon, pdu); err != nil {
 				log.Printf("Error on proccess OID %s: %v", pdu.Name, err)
 				return nil
 			}
-			data[idx] = pon
+			data[int32(idx)] = pon
 			return nil
 		})
 	}
@@ -194,7 +194,7 @@ func (s snmp) PonQuery() (map[uint64]PonData, error) {
 	return data, err
 }
 
-func (s snmp) OntQuery(ponIdx uint64) (map[uint64]OntData, error) {
+func (s snmp) OntQuery(ponIdx int32) (map[int32]OntData, error) {
 	err := s.client.Connect()
 	if err != nil {
 		return nil, fmt.Errorf("conexión fallida: %v", err)
@@ -202,7 +202,7 @@ func (s snmp) OntQuery(ponIdx uint64) (map[uint64]OntData, error) {
 	defer s.client.Conn.Close()
 
 	oidHandlers := s.ontOidHandlers(fmt.Sprint(ponIdx))
-	data := make(map[uint64]OntData)
+	data := make(map[int32]OntData)
 
 	for _, oidHandler := range oidHandlers {
 		err = s.client.BulkWalk(oidHandler.oid, func(pdu gosnmp.SnmpPDU) error {
@@ -211,16 +211,16 @@ func (s snmp) OntQuery(ponIdx uint64) (map[uint64]OntData, error) {
 				return nil
 			}
 
-			idx, err := strconv.ParseUint(index, 10, 64)
+			idx, err := strconv.Atoi(index)
 			if err != nil {
 				return err
 			}
 
-			ont := data[idx]
+			ont := data[int32(idx)]
 			if err := oidHandler.handler(&ont, pdu); err != nil {
 				return err
 			}
-			data[idx] = ont
+			data[int32(idx)] = ont
 			return nil
 		})
 	}

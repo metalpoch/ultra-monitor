@@ -12,7 +12,7 @@ import (
 
 type MeasurementRepository interface {
 	UpsertOlt(ctx context.Context, olt entity.Olt) error
-	UpsertPon(ctx context.Context, element entity.Pon) (uint64, error)
+	UpsertPon(ctx context.Context, element entity.Pon) (int32, error)
 	GetTemportalMeasurementPon(ctx context.Context, id int32) (entity.MeasurementPon, error)
 	UpsertTemportalMeasurementPon(ctx context.Context, measurement entity.MeasurementPon) error
 	InsertTrafficPon(ctx context.Context, traffic entity.TrafficPon) error
@@ -32,8 +32,8 @@ func (repo *measurementRepository) UpsertOlt(ctx context.Context, olt entity.Olt
 	return err
 }
 
-func (repo *measurementRepository) UpsertPon(ctx context.Context, element entity.Pon) (uint64, error) {
-	var id uint64
+func (repo *measurementRepository) UpsertPon(ctx context.Context, element entity.Pon) (int32, error) {
+	var id int32
 	err := repo.db.QueryRowxContext(ctx, constants.SQL_UPSERT_PON, element).Scan(&id)
 	return id, err
 }

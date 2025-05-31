@@ -151,7 +151,7 @@ func (s snmp) ontOidHandlers(ponIdx string) ontHandler {
 			fmt.Sprintf("%s.%s", HwGponDeviceOntControlRanging, ponIdx),
 			func(ont *OntData, pdu gosnmp.SnmpPDU) error {
 				if value, ok := s.toInt64(pdu.Value); ok {
-					ont.ControlRanging = value
+					ont.ControlRanging = int32(value)
 					return nil
 				}
 				return fmt.Errorf("invalid type for HwGponDeviceOntControlRanging OID: %v", pdu.Value)
@@ -161,7 +161,7 @@ func (s snmp) ontOidHandlers(ponIdx string) ontHandler {
 			fmt.Sprintf("%s.%s", HwGponDeviceOntControlMacCount, ponIdx),
 			func(ont *OntData, pdu gosnmp.SnmpPDU) error {
 				if value, ok := s.toInt64(pdu.Value); ok {
-					ont.ControlMacCount = value
+					ont.ControlMacCount = int8(value)
 					return nil
 				}
 				return fmt.Errorf("invalid type for HwGponDeviceOntControlMacCount OID: %v", pdu.Value)

@@ -24,7 +24,7 @@ func (uc *MeasurementUsecase) UpsertOlt(olt model.Olt) error {
 	return uc.repo.UpsertOlt(ctx, (entity.Olt)(olt))
 }
 
-func (uc *MeasurementUsecase) UpsertPon(element model.Pon) (uint64, error) {
+func (uc *MeasurementUsecase) UpsertPon(element model.Pon) (int32, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	id, err := uc.repo.UpsertPon(ctx, (entity.Pon)(element))

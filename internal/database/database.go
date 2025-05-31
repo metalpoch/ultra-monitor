@@ -5,7 +5,6 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"github.com/metalpoch/ultra-monitor/internal/constants"
 )
 
 func Connect(uri string) (*sqlx.DB, error) {
@@ -23,30 +22,30 @@ func Connect(uri string) (*sqlx.DB, error) {
 
 func createTablesAndIndexes(db *sqlx.DB) error {
 	tableQueries := []string{
-		constants.SQL_TABLE_USERS,
-		constants.SQL_TABLE_REPORT,
-		constants.SQL_TABLE_OLT,
-		constants.SQL_TABLE_PON,
-		constants.SQL_TABLE_MEASUREMENT_PON,
-		constants.SQL_TABLE_TRAFFIC_PON,
-		constants.SQL_TABLE_MEASUREMENT_ONT,
-		constants.SQL_TABLE_FAT,
+		SQL_TABLE_USERS,
+		SQL_TABLE_REPORT,
+		SQL_TABLE_OLT,
+		SQL_TABLE_PON,
+		SQL_TABLE_MEASUREMENT_PON,
+		SQL_TABLE_TRAFFIC_PON,
+		SQL_TABLE_MEASUREMENT_ONT,
+		SQL_TABLE_FAT,
 	}
 	indexQueries := []string{
-		constants.SQL_INDEX_FAT_STATE,
-		constants.SQL_INDEX_FAT_COUNTY,
-		constants.SQL_INDEX_FAT_MUNICIPALITY,
-		constants.SQL_INDEX_FAT_ODN,
-		constants.SQL_INDEX_FAT_OLT,
-		constants.SQL_INDEX_MEASUREMENT_PON_DATE,
-		constants.SQL_INDEX_MEASUREMENT_PON_PON_ID,
-		constants.SQL_INDEX_MEASUREMENT_ONT_DATE,
-		constants.SQL_INDEX_MEASUREMENT_ONT_IDX,
-		constants.SQL_INDEX_MEASUREMENT_ONT_DESPT,
-		constants.SQL_INDEX_MEASUREMENT_ONT_PON_ID,
-		constants.SQL_INDEX_REPORT_CATEGORY,
-		constants.SQL_INDEX_REPORT_USER_ID,
-		constants.SQL_INDEX_USERS_USERNAME,
+		SQL_INDEX_FAT_STATE,
+		SQL_INDEX_FAT_COUNTY,
+		SQL_INDEX_FAT_MUNICIPALITY,
+		SQL_INDEX_FAT_ODN,
+		SQL_INDEX_FAT_OLT,
+		SQL_INDEX_MEASUREMENT_PON_DATE,
+		SQL_INDEX_MEASUREMENT_PON_PON_ID,
+		SQL_INDEX_MEASUREMENT_ONT_DATE,
+		SQL_INDEX_MEASUREMENT_ONT_IDX,
+		SQL_INDEX_MEASUREMENT_ONT_DESPT,
+		SQL_INDEX_MEASUREMENT_ONT_PON_ID,
+		SQL_INDEX_REPORT_CATEGORY,
+		SQL_INDEX_REPORT_USER_ID,
+		SQL_INDEX_USERS_USERNAME,
 	}
 
 	for _, q := range tableQueries {

@@ -10,5 +10,4 @@ type Pon struct {
 	IfDescr   string    `db:"if_descr"`
 	IfAlias   string    `db:"if_alias"`
 	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
 }

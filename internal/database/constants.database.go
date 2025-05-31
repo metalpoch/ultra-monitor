@@ -1,4 +1,4 @@
-package constants
+package database
 
 const SQL_TABLE_USERS string = `
 CREATE TABLE IF NOT EXISTS users (

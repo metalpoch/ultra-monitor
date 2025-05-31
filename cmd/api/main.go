@@ -55,7 +55,7 @@ func main() {
 	app.Use(logger.New())
 	app.Use(cors.New())
 
-	routes.Init(app, db, redis, []byte(jwtSecret))
+	routes.Init(app, db, redis, []byte(jwtSecret), reportDirectory)
 
 	app.Listen(":3000")
 }

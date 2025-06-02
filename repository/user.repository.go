@@ -26,7 +26,7 @@ func NewUserRepository(db *sqlx.DB) *userRepository {
 }
 
 func (repo *userRepository) Create(ctx context.Context, user entity.User) error {
-	_, err := repo.db.NamedExecContext(ctx, constants.SQL_USER_BY_ID, user)
+	_, err := repo.db.NamedExecContext(ctx, constants.SQL_CREATE_USER, user)
 	return err
 }
 

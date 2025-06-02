@@ -32,7 +32,6 @@ func (ctrl OltController) ShowAllOlt(csv bool) ([]model.Olt, error) {
 	pretty := table.NewWriter()
 	pretty.SetOutputMirror(os.Stdout)
 	pretty.AppendHeader(table.Row{
-		"ID",
 		"IP",
 		"Community",
 		"SysName",

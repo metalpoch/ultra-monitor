@@ -72,7 +72,7 @@ func (ctrl MeasurementController) PonScan(olt model.Olt) {
 			IfName:  data.IfName,
 			IfDescr: data.IfDescr,
 			IfAlias: data.IfAlias,
-			OltID:   olt.ID,
+			OltIP:   olt.IP,
 		})
 		if err != nil {
 			log.Printf("error al ejecutar ctrl.usecase.UpsertPon en %s en el ifIndex %d: %v", olt.SysName, idx, err)

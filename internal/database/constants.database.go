@@ -27,8 +27,7 @@ CREATE TABLE IF NOT EXISTS reports (
 
 const SQL_TABLE_OLT string = `
 CREATE TABLE IF NOT EXISTS olts (
-    id INTEGER PRIMARY KEY,
-    ip VARCHAR(45) NOT NULL UNIQUE,
+    ip VARCHAR(15) PRIMARY KEY UNIQUE,
     community VARCHAR(255),
     sys_name VARCHAR(255) NOT NULL UNIQUE,
     sys_location VARCHAR(255),
@@ -40,14 +39,14 @@ CREATE TABLE IF NOT EXISTS olts (
 const SQL_TABLE_PON string = `
 CREATE TABLE IF NOT EXISTS pons (
     id INTEGER PRIMARY KEY,
-    olt_id INTEGER NOT NULL,
+    olt_ip VARCHAR(15) NOT NULL,
     if_index INTEGER NOT NULL,
     if_name VARCHAR(128),
     if_descr VARCHAR(255),
     if_alias VARCHAR(255),
     created_at TIMESTAMP DEFAULT NOW(),
-    UNIQUE (olt_id, if_index),
-    FOREIGN KEY (olt_id) REFERENCES olts(id)
+    UNIQUE (olt_ip, if_index),
+    FOREIGN KEY (olt_ip) REFERENCES olts(ip)
 );`
 
 const SQL_TABLE_MEASUREMENT_PON string = `
@@ -97,7 +96,7 @@ CREATE TABLE IF NOT EXISTS fats (
     municipality VARCHAR(128) NOT NULL,
     county VARCHAR(128) NOT NULL,
     odn VARCHAR(128) NOT NULL,
-    olt_ip VARCHAR(45) NOT NULL,
+    olt_ip VARCHAR(15) NOT NULL,
     pon_shell SMALLINT NOT NULL,
     pon_port SMALLINT NOT NULL,
     pon_card SMALLINT NOT NULL,

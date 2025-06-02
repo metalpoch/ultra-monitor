@@ -4,7 +4,7 @@ import "time"
 
 type Pon struct {
 	ID        int32     `json:"id"`
-	OltID     int32     `json:"olt_id"`
+	OltIP     string    `json:"olt_ip"`
 	IfIndex   int32     `json:"if_index"`
 	IfName    string    `json:"if_name"`
 	IfDescr   string    `json:"if_descr"`

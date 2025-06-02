@@ -44,7 +44,6 @@ func (ctrl OltController) ShowAllOlt(csv bool) ([]model.Olt, error) {
 
 	for _, olt := range olts {
 		pretty.AppendRow(table.Row{
-			olt.ID,
 			olt.IP,
 			olt.Community,
 			olt.SysName,

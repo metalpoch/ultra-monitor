@@ -139,7 +139,7 @@ func main() {
 
 							ctrl := controller.NewMeasurementController(db)
 
-							started := make(map[int32]struct{})
+							started := make(map[string]struct{})
 							var mu sync.Mutex
 
 							for {
@@ -149,8 +149,8 @@ func main() {
 								}
 								mu.Lock()
 								for _, olt := range olts {
-									if _, ok := started[olt.ID]; !ok {
-										started[olt.ID] = struct{}{}
+									if _, ok := started[olt.IP]; !ok {
+										started[olt.IP] = struct{}{}
 										go func(device model.Olt) {
 											for {
 												ctrl.PonScan(device)
@@ -224,7 +224,7 @@ func main() {
 									}
 									mu.Lock()
 									for _, pon := range pons {
-										unique_id := fmt.Sprintf("%d-%d", olt.ID, pon.IfIndex)
+										unique_id := fmt.Sprintf("%s-%d", olt.IP, pon.IfIndex)
 										if _, ok := started[unique_id]; !ok {
 											started[unique_id] = struct{}{}
 											go func(device model.Olt, ponID, idx int32) {

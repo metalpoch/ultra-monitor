@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS pons (
 );`
 
 const SQL_TABLE_MEASUREMENT_PON string = `
-CREATE TABLE IF NOT EXISTS measurement_pon (
+CREATE TABLE IF NOT EXISTS measurement_pons (
     pon_id INTEGER NOT NULL,
     bandwidth NUMERIC(20,0) NOT NULL,
     bytes_in_count NUMERIC(20,0) NOT NULL,
@@ -113,13 +113,13 @@ const SQL_INDEX_FAT_MUNICIPALITY string = `CREATE INDEX IF NOT EXISTS idx_fats_m
 const SQL_INDEX_FAT_ODN string = `CREATE INDEX IF NOT EXISTS idx_fats_odn ON fats(odn);`
 const SQL_INDEX_FAT_OLT string = `CREATE INDEX IF NOT EXISTS idx_fats_olt_ip ON fats(olt_ip);`
 
-const SQL_INDEX_MEASUREMENT_PON_DATE string = `CREATE INDEX IF NOT EXISTS idx_measurement_pon_date ON measurement_pon(date);`
-const SQL_INDEX_MEASUREMENT_PON_PON_ID string = `CREATE INDEX IF NOT EXISTS idx_measurement_pon_id ON measurement_pon(pon_id);`
+const SQL_INDEX_MEASUREMENT_PON_DATE string = `CREATE INDEX IF NOT EXISTS idx_measurement_pons_date ON measurement_pons(date);`
+const SQL_INDEX_MEASUREMENT_PON_PON_ID string = `CREATE INDEX IF NOT EXISTS idx_measurement_pons_id ON measurement_pons(pon_id);`
 
-const SQL_INDEX_MEASUREMENT_ONT_DATE string = `CREATE INDEX IF NOT EXISTS idx_measurement_ont_date ON measurement_ont(date);`
-const SQL_INDEX_MEASUREMENT_ONT_IDX string = `CREATE INDEX IF NOT EXISTS idx_measurement_ont_pon_id ON measurement_ont(idx);`
-const SQL_INDEX_MEASUREMENT_ONT_DESPT string = `CREATE INDEX IF NOT EXISTS idx_measurement_ont_despt ON measurement_ont(despt);`
-const SQL_INDEX_MEASUREMENT_ONT_PON_ID string = `CREATE INDEX IF NOT EXISTS idx_measurement_ont_pon_id ON measurement_ont(pon_id);`
+const SQL_INDEX_MEASUREMENT_ONT_DATE string = `CREATE INDEX IF NOT EXISTS idx_measurement_onts_date ON measurement_onts(date);`
+const SQL_INDEX_MEASUREMENT_ONT_IDX string = `CREATE INDEX IF NOT EXISTS idx_measurement_onts_pon_id ON measurement_onts(idx);`
+const SQL_INDEX_MEASUREMENT_ONT_DESPT string = `CREATE INDEX IF NOT EXISTS idx_measurement_onts_despt ON measurement_onts(despt);`
+const SQL_INDEX_MEASUREMENT_ONT_PON_ID string = `CREATE INDEX IF NOT EXISTS idx_measurement_onts_pon_id ON measurement_onts(pon_id);`
 
 const SQL_INDEX_REPORT_CATEGORY string = `CREATE INDEX IF NOT EXISTS idx_reports_category ON reports(category);`
 const SQL_INDEX_REPORT_USER_ID string = `CREATE INDEX IF NOT EXISTS idx_reports_user_id ON reports(user_id);`

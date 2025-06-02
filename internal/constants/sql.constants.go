@@ -327,8 +327,8 @@ const SQL_UPSERT_TEMPORAL_MEASUREMENT_PON string = `
 
 // SQL_INSERT_TRAFFIC_PON inserts traffic data for a PON.
 const SQL_INSERT_TRAFFIC_PON string = `
-    INSERT INTO traffic_pons (date, bps_in, bps_out, bandwidth_mbps_sec, bytes_in_sec, bytes_out_sec)
-    VALUES (:date, :bps_in, :bps_out, :bandwidth_mbps_sec, :bytes_in_sec, :bytes_out_sec)`
+    INSERT INTO traffic_pons (pon_id, date, bps_in, bps_out, bandwidth_mbps_sec, bytes_in_sec, bytes_out_sec)
+    VALUES (:pon_id, :date, :bps_in, :bps_out, :bandwidth_mbps_sec, :bytes_in_sec, :bytes_out_sec)`
 
 // SQL_INSERT_MANY_MEASUREMENT_ONT_PREFIX is the prefix for inserting multiple ONT measurements.
 const SQL_INSERT_MANY_MEASUREMENT_ONT_PREFIX string = `

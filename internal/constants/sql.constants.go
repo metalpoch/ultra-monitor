@@ -135,10 +135,10 @@ const SQL_TRAFFIC_BY_PON string = `
     ORDER BY date;`
 
 // SQL_PONS_BY_OLT retrieves all PON interfaces associated with a specific OLT.
-const SQL_PONS_BY_OLT string = `SELECT pons.* FROM pons JOIN olts ON olts.ip = pons.olt_ip	WHERE olts.sys_name = ?`
+const SQL_PONS_BY_OLT string = `SELECT pons.* FROM pons JOIN olts ON olts.ip = pons.olt_ip WHERE olts.sys_name = $1`
 
 // SQL_PON_BY_PORT retrieves a specific PON interface by its port name on a given OLT.
-const SQL_PON_BY_PORT string = `SELECT pons.* FROM pons JOIN olts ON olts.ip = pons.olt_ip WHERE olts.sys_name = ? AND pons.if_name = ?`
+const SQL_PON_BY_PORT string = `SELECT pons.* FROM pons JOIN olts ON olts.ip = pons.olt_ip WHERE olts.sys_name = $1 AND pons.if_name = $2`
 
 // SQL_ALL_ONT_STATUS retrieves ONT status counts for all states within a date range.
 const SQL_ALL_ONT_STATUS string = `

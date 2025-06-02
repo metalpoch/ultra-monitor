@@ -187,7 +187,7 @@ func main() {
 									// check length
 									len, err := rdb.LLen(cCtx.Context, redisKey).Result() // check len in redis
 									if err != nil {
-										log.Println("Redis LLEN error:", err)
+										fmt.Println("Redis LLEN error:", err)
 										time.Sleep(10 * time.Second)
 										continue
 									}
@@ -195,15 +195,15 @@ func main() {
 										// get first 1000 items
 										data, err := rdb.LRange(cCtx.Context, redisKey, 0, batchSize-1).Result()
 										if err != nil {
-											log.Println("Redis LRANGE error:", err)
+											fmt.Println("Redis LRANGE error:", err)
 											continue
 										}
 										if err := rdb.LTrim(cCtx.Context, redisKey, batchSize, -1).Err(); err != nil {
-											log.Println("Redis LTRIM error:", err)
+											fmt.Println("Redis LTRIM error:", err)
 											continue
 										}
 										if err := ctrl.ProcessOntBatchData(data); err != nil {
-											log.Println("Batch insert error:", err)
+											fmt.Println("Batch insert error:", err)
 										}
 									} else {
 										time.Sleep(5 * time.Second)
@@ -219,7 +219,7 @@ func main() {
 								for _, olt := range olts {
 									pons, err := ctrl.GetPonsBySysname(olt.SysName)
 									if err != nil {
-										log.Fatalln(err)
+										fmt.Println(err)
 										continue
 									}
 									mu.Lock()
@@ -239,7 +239,7 @@ func main() {
 														jsonData, err := json.Marshal(record)
 														if err == nil {
 															if err := rdb.RPush(cCtx.Context, redisKey, jsonData).Err(); err != nil {
-																log.Println("Redis RPUSH error:", err)
+																fmt.Println("Redis RPUSH error:", err)
 															}
 														}
 													}

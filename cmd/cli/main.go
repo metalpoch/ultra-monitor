@@ -227,7 +227,7 @@ func main() {
 										unique_id := fmt.Sprintf("%s-%d", olt.IP, pon.IfIndex)
 										if _, ok := started[unique_id]; !ok {
 											started[unique_id] = struct{}{}
-											go func(device model.Olt, ponID, idx int32) {
+											go func(device model.Olt, ponID int32, idx int64) {
 												for {
 
 													data, err := ctrl.OntScan(device, ponID, idx)

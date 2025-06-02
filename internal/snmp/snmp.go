@@ -161,13 +161,13 @@ func (s snmp) OltSysQuery() (*OltData, error) {
 	return data, nil
 }
 
-func (s snmp) PonQuery() (map[int32]PonData, error) {
+func (s snmp) PonQuery() (map[int64]PonData, error) {
 	err := s.client.Connect()
 	if err != nil {
 		return nil, fmt.Errorf("conexión fallida: %v", err)
 	}
 	defer s.client.Conn.Close()
-	data := make(map[int32]PonData)
+	data := make(map[int64]PonData)
 
 	for _, oidHandler := range s.ponOidHandlers() {
 		err = s.client.BulkWalk(oidHandler.oid, func(pdu gosnmp.SnmpPDU) error {
@@ -181,12 +181,12 @@ func (s snmp) PonQuery() (map[int32]PonData, error) {
 				return err
 			}
 
-			pon := data[int32(idx)]
+			pon := data[int64(idx)]
 			if err := oidHandler.handler(&pon, pdu); err != nil {
 				log.Printf("Error on proccess OID %s: %v", pdu.Name, err)
 				return nil
 			}
-			data[int32(idx)] = pon
+			data[int64(idx)] = pon
 			return nil
 		})
 	}
@@ -194,7 +194,7 @@ func (s snmp) PonQuery() (map[int32]PonData, error) {
 	return data, err
 }
 
-func (s snmp) OntQuery(ponIdx int32) (map[int32]OntData, error) {
+func (s snmp) OntQuery(ponIdx int64) (map[int64]OntData, error) {
 	err := s.client.Connect()
 	if err != nil {
 		return nil, fmt.Errorf("conexión fallida: %v", err)
@@ -202,7 +202,7 @@ func (s snmp) OntQuery(ponIdx int32) (map[int32]OntData, error) {
 	defer s.client.Conn.Close()
 
 	oidHandlers := s.ontOidHandlers(fmt.Sprint(ponIdx))
-	data := make(map[int32]OntData)
+	data := make(map[int64]OntData)
 
 	for _, oidHandler := range oidHandlers {
 		err = s.client.BulkWalk(oidHandler.oid, func(pdu gosnmp.SnmpPDU) error {
@@ -216,11 +216,11 @@ func (s snmp) OntQuery(ponIdx int32) (map[int32]OntData, error) {
 				return err
 			}
 
-			ont := data[int32(idx)]
+			ont := data[int64(idx)]
 			if err := oidHandler.handler(&ont, pdu); err != nil {
 				return err
 			}
-			data[int32(idx)] = ont
+			data[int64(idx)] = ont
 			return nil
 		})
 	}

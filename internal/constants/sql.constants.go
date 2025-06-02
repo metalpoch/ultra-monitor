@@ -45,7 +45,7 @@ const SQL_TRAFFIC_BY_STATE string = `
         SUM(traffic_pons.bytes_out_sec) / 1000000 AS mbytes_out
     FROM traffic_pons
     JOIN pons ON pons.id = traffic_pons.pon_id
-    JOIN olts ON olts.id = pons.olt_id
+    JOIN olts ON olts.ip = pons.olt_ip
     JOIN fats ON fats.olt_ip = olts.ip
     WHERE fats.state = $1 AND traffic_pons.date BETWEEN $2 AND $3
     GROUP BY DATE_TRUNC('minute', date)
@@ -62,7 +62,7 @@ const SQL_TRAFFIC_BY_COUNTY string = `
         SUM(traffic_pons.bytes_out_sec) / 1000000 AS mbytes_out
     FROM traffic_pons
     JOIN pons ON pons.id = traffic_pons.pon_id
-    JOIN olts ON olts.id = pons.olt_id
+    JOIN olts ON olts.ip = pons.olt_ip
     JOIN fats ON fats.olt_ip = olts.ip
     WHERE fats.state = $1 AND fats.county = $2 AND traffic_pons.date BETWEEN $3 AND $4
     GROUP BY DATE_TRUNC('minute', date)
@@ -79,7 +79,7 @@ const SQL_TRAFFIC_BY_MUNICIPALITY string = `
         SUM(traffic_pons.bytes_out_sec) / 1000000 AS mbytes_out
     FROM traffic_pons
     JOIN pons ON pons.id = traffic_pons.pon_id
-    JOIN olts ON olts.id = pons.olt_id
+    JOIN olts ON olts.ip = pons.olt_ip
     JOIN fats ON fats.olt_ip = olts.ip
     WHERE fats.state = $1 AND fats.county = $2 AND fats.municipality = $3 AND traffic_pons.date BETWEEN $4 AND $5
     GROUP BY DATE_TRUNC('minute', date)
@@ -96,7 +96,7 @@ const SQL_TRAFFIC_BY_ODN string = `
         SUM(traffic_pons.bytes_out_sec) / 1000000 AS mbytes_out
     FROM traffic_pons
     JOIN pons ON pons.id = traffic_pons.pon_id
-    JOIN olts ON olts.id = pons.olt_id
+    JOIN olts ON olts.ip = pons.olt_ip
     JOIN fats ON fats.olt_ip = olts.ip
     WHERE fats.state = $1 AND fats.odn = $2 AND traffic_pons.date BETWEEN $3 AND $4
     GROUP BY DATE_TRUNC('minute', date)
@@ -113,7 +113,7 @@ const SQL_TRAFFIC_BY_OLT string = `
         SUM(traffic_pons.bytes_out_sec) / 1000000 AS mbytes_out
     FROM traffic_pons 
     JOIN pons ON pons.id = traffic_pons.pon_id
-    JOIN olts ON olts.id = pons.olt_id
+    JOIN olts ON olts.ip = pons.olt_ip
     WHERE olts.sys_name = $1 AND traffic_pons.date BETWEEN $2 AND $3
     GROUP BY DATE_TRUNC('minute', date)
     ORDER BY date;`
@@ -129,16 +129,16 @@ const SQL_TRAFFIC_BY_PON string = `
         SUM(traffic_pons.bytes_out_sec) / 1000000 AS mbytes_out
     FROM traffic_pons 
     JOIN pons ON pons.id = traffic_pons.pon_id
-    JOIN olts ON olts.id = pons.olt_id
+    JOIN olts ON olts.ip = pons.olt_ip
     WHERE olts.sys_name = $1 AND pons.if_name = $2 AND traffic_pons.date BETWEEN $3 AND $4
     GROUP BY DATE_TRUNC('minute', date)
     ORDER BY date;`
 
 // SQL_PONS_BY_OLT retrieves all PON interfaces associated with a specific OLT.
-const SQL_PONS_BY_OLT string = `SELECT pons.* FROM pons JOIN olts ON olts.id = pons.olt_id	WHERE olts.sys_name = ?`
+const SQL_PONS_BY_OLT string = `SELECT pons.* FROM pons JOIN olts ON olts.ip = pons.olt_ip	WHERE olts.sys_name = ?`
 
 // SQL_PON_BY_PORT retrieves a specific PON interface by its port name on a given OLT.
-const SQL_PON_BY_PORT string = `SELECT pons.* FROM pons JOIN olts ON olts.id = pons.olt_id WHERE olts.sys_name = ? AND pons.if_name = ?`
+const SQL_PON_BY_PORT string = `SELECT pons.* FROM pons JOIN olts ON olts.ip = pons.olt_ip WHERE olts.sys_name = ? AND pons.if_name = ?`
 
 // SQL_ALL_ONT_STATUS retrieves ONT status counts for all states within a date range.
 const SQL_ALL_ONT_STATUS string = `
@@ -152,7 +152,7 @@ const SQL_ALL_ONT_STATUS string = `
     	COUNT(*) AS total_count
 	FROM measurement_onts
 	JOIN pons ON measurement_onts.pon_id = pons.id
-	JOIN olts ON pons.olt_id = olts.id
+	JOIN olts ON pons.olt_ip = olts.ip
 	JOIN fats ON fats.olt_ip = olts.ip
 	WHERE measurement_onts.date BETWEEN $2 AND $3
 	GROUP BY state, date
@@ -170,7 +170,7 @@ const SQL_ONT_STATUS_BY_STATE string = `
     	COUNT(*) AS total_count
 	FROM measurement_onts
 	JOIN pons ON measurement_onts.pon_id = pons.id
-	JOIN olts ON pons.olt_id = olts.id
+	JOIN olts ON pons.olt_ip = olts.ip
 	JOIN fats ON fats.olt_ip = olts.ip
 	WHERE fats.state = $1 AND measurement_onts.date BETWEEN $2 AND $3
 	GROUP BY sysname, date
@@ -188,7 +188,7 @@ const SQL_ONT_STATUS_BY_ODN string = `
     	COUNT(*) AS total_count
 	FROM measurement_onts
 	JOIN pons ON measurement_onts.pon_id = pons.id
-	JOIN olts ON pons.olt_id = olts.id
+	JOIN olts ON pons.olt_ip = olts.ip
 	JOIN fats ON fats.olt_ip = olts.ip
 	WHERE fats.state = $1 AND fats.odn = $2 AND measurement_onts.date BETWEEN $3 AND $4
 	GROUP BY sysname, date
@@ -245,21 +245,20 @@ INSERT INTO olts (ip, community, sys_name, sys_location, is_alive, last_check)
 VALUES (:ip, :community, :sys_name, :sys_location, :is_alive, :last_check)`
 
 // SQL_GET_OLT retrieves an OLT by its ID.
-const SQL_GET_OLT string = `SELECT * FROM olts WHERE id = $1`
+const SQL_GET_OLT string = `SELECT * FROM olts WHERE ip = $1`
 
 // SQL_UPDATE_OLT updates an existing OLT in the database.
 const SQL_UPDATE_OLT string = `
     UPDATE olts SET
-        ip = :ip,
         community = :community,
         sys_name = :sys_name,
         sys_location = :sys_location,
         is_alive = :is_alive,
         last_check = :last_check
-    WHERE id = :id`
+    WHERE ip = :ip`
 
 // SQL_DELETE_OLT deletes an OLT from the database by its ID.
-const SQL_DELETE_OLT string = `DELETE FROM olts WHERE id = $1`
+const SQL_DELETE_OLT string = `DELETE FROM olts WHERE ip = $1`
 
 // SQL_GET_ALL_OLTS retrieves all OLTs from the database.
 const SQL_GET_ALL_OLTS string = `SELECT * FROM olts ORDER BY sys_name LIMIT $1 OFFSET $2`
@@ -300,17 +299,18 @@ const SQL_UPSERT_OLT string = `
         sys_location = :sys_location,
         is_alive = :is_alive,
         last_check = :last_check,
-    WHERE id = :id`
+    WHERE ip = :ip`
 
 // SQL_UPSERT_PON inserts a new PON interface or updates an existing one if it already exists.
 const SQL_UPSERT_PON string = `
-    INSERT INTO pons (olt_id, if_index, if_name, if_descr, if_alias, created_at)
-    VALUES (:olt_id, :if_index, :if_name, :if_descr, :if_alias, :created_at)
-    ON CONFLICT (olt_id, if_index) DO UPDATE SET
+    INSERT INTO pons (olt_ip, if_index, if_name, if_descr, if_alias)
+    VALUES ($1, $2, $3, $4, $5)
+    ON CONFLICT (olt_ip, if_index) DO UPDATE SET
         if_name = EXCLUDED.if_name,
         if_descr = EXCLUDED.if_descr,
-        if_alias = EXCLUDED.if_alias,
-    RETURNING id`
+        if_alias = EXCLUDED.if_alias
+    RETURNING id
+`
 
 // SQL_GET_TEMPORAL_MEASUREMENT_PON retrieves a temporal measurement for a specific PON.
 const SQL_GET_TEMPORAL_MEASUREMENT_PON string = `SELECT * FROM measurement_pons WHERE pon_id = $1`

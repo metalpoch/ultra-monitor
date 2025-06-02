@@ -12,7 +12,7 @@ type MeasurementPon struct {
 
 type MeasurementOnt struct {
 	PonID            int32     `db:"pon_id"`
-	Idx              int32     `db:"idx"`
+	Idx              int64     `db:"idx"`
 	Despt            string    `db:"despt"`
 	SerialNumber     string    `db:"serial_number"`
 	LineProfName     string    `db:"line_prof_name"`

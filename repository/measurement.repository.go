@@ -34,7 +34,16 @@ func (repo *measurementRepository) UpsertOlt(ctx context.Context, olt entity.Olt
 
 func (repo *measurementRepository) UpsertPon(ctx context.Context, element entity.Pon) (int32, error) {
 	var id int32
-	err := repo.db.QueryRowxContext(ctx, constants.SQL_UPSERT_PON, element).Scan(&id)
+	err := repo.db.QueryRowxContext(
+		ctx,
+		constants.SQL_UPSERT_PON,
+		element.OltIP,
+		element.IfIndex,
+		element.IfName,
+		element.IfDescr,
+		element.IfAlias,
+	).Scan(&id)
+
 	return id, err
 }
 

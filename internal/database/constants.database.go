@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS reports (
 
 const SQL_TABLE_OLT string = `
 CREATE TABLE IF NOT EXISTS olts (
-    ip VARCHAR(15) PRIMARY KEY UNIQUE,
+    ip VARCHAR(15) PRIMARY KEY,
     community VARCHAR(255),
     sys_name VARCHAR(255) NOT NULL UNIQUE,
     sys_location VARCHAR(255),
@@ -38,9 +38,9 @@ CREATE TABLE IF NOT EXISTS olts (
 
 const SQL_TABLE_PON string = `
 CREATE TABLE IF NOT EXISTS pons (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     olt_ip VARCHAR(15) NOT NULL,
-    if_index INTEGER NOT NULL,
+    if_index BIGINT NOT NULL,
     if_name VARCHAR(128),
     if_descr VARCHAR(255),
     if_alias VARCHAR(255),
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS pons (
 
 const SQL_TABLE_MEASUREMENT_PON string = `
 CREATE TABLE IF NOT EXISTS measurement_pons (
-    pon_id INTEGER NOT NULL,
+    pon_id INTEGER UNIQUE NOT NULL,
     bandwidth NUMERIC(20,0) NOT NULL,
     bytes_in_count NUMERIC(20,0) NOT NULL,
     bytes_out_count NUMERIC(20,0) NOT NULL,
@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS traffic_pons (
 const SQL_TABLE_MEASUREMENT_ONT string = `
 CREATE TABLE IF NOT EXISTS measurement_onts (
     pon_id INTEGER NOT NULL,
-    idx INTEGER NOT NULL,
+    idx BIGINT NOT NULL,
     despt VARCHAR(255),
     serial_number VARCHAR(64),
     line_prof_name VARCHAR(128),
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS measurement_onts (
 
 const SQL_TABLE_FAT string = `
 CREATE TABLE IF NOT EXISTS fats (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     fat VARCHAR(128) NOT NULL,
     region VARCHAR(128) NOT NULL,
     state VARCHAR(128) NOT NULL,
@@ -111,9 +111,6 @@ const SQL_INDEX_FAT_COUNTY string = `CREATE INDEX IF NOT EXISTS idx_fats_county 
 const SQL_INDEX_FAT_MUNICIPALITY string = `CREATE INDEX IF NOT EXISTS idx_fats_municipality ON fats(municipality);`
 const SQL_INDEX_FAT_ODN string = `CREATE INDEX IF NOT EXISTS idx_fats_odn ON fats(odn);`
 const SQL_INDEX_FAT_OLT string = `CREATE INDEX IF NOT EXISTS idx_fats_olt_ip ON fats(olt_ip);`
-
-const SQL_INDEX_MEASUREMENT_PON_DATE string = `CREATE INDEX IF NOT EXISTS idx_measurement_pons_date ON measurement_pons(date);`
-const SQL_INDEX_MEASUREMENT_PON_PON_ID string = `CREATE INDEX IF NOT EXISTS idx_measurement_pons_id ON measurement_pons(pon_id);`
 
 const SQL_INDEX_MEASUREMENT_ONT_DATE string = `CREATE INDEX IF NOT EXISTS idx_measurement_onts_date ON measurement_onts(date);`
 const SQL_INDEX_MEASUREMENT_ONT_IDX string = `CREATE INDEX IF NOT EXISTS idx_measurement_onts_pon_id ON measurement_onts(idx);`

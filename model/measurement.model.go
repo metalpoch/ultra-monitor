@@ -14,7 +14,7 @@ type MeasurementPon struct {
 
 type MeasurementOnt struct {
 	PonID            int32     `json:"pon_id"`
-	Idx              int32     `json:"idx"`
+	Idx              int64     `json:"idx"`
 	Despt            string    `json:"despt"`
 	SerialNumber     string    `json:"serial_number"`
 	LineProfName     string    `json:"line_prof_name"`

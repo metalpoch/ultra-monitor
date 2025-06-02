@@ -83,8 +83,9 @@ func (ctrl MeasurementController) PonScan(olt model.Olt) {
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				isFirstMeasurement = true
+			} else {
+				log.Printf("error al ejecutar ctrl.usecase.GetTemportalMeasurementPon(%d) en %s: %v", idx, olt.SysName, err)
 			}
-			log.Printf("error al ejecutar ctrl.usecase.GetTemportalMeasurementPon(%d) en %s: %v", idx, olt.SysName, err)
 		}
 
 		now := time.Now()
@@ -119,7 +120,7 @@ func (ctrl MeasurementController) PonScan(olt model.Olt) {
 	}
 }
 
-func (ctrl MeasurementController) OntScan(olt model.Olt, ponID, idx int32) ([]model.MeasurementOnt, error) {
+func (ctrl MeasurementController) OntScan(olt model.Olt, ponID int32, idx int64) ([]model.MeasurementOnt, error) {
 	client := snmp.NewSnmp(snmp.Config{
 		IP:        olt.IP,
 		Community: olt.Community,

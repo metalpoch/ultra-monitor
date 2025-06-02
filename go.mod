@@ -13,6 +13,7 @@ require (
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/lib/pq v1.10.9
 	github.com/redis/go-redis/v9 v9.9.0
+	github.com/urfave/cli/v2 v2.27.6
 	golang.org/x/crypto v0.38.0
 )
 
@@ -36,7 +37,6 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/tinylib/msgp v1.2.5 // indirect
-	github.com/urfave/cli/v2 v2.27.6 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.58.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect

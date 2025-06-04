@@ -14,7 +14,7 @@ type FatHandler struct {
 	Usecase *usecase.FatUsecase
 }
 
-func (hdlr FatHandler) AddFat(c fiber.Ctx) error {
+func (hdlr *FatHandler) AddFat(c fiber.Ctx) error {
 	fat := new(model.Fat)
 	if err := c.Bind().Body(&fat); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -26,7 +26,7 @@ func (hdlr FatHandler) AddFat(c fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusCreated)
 }
 
-func (hdlr FatHandler) DeleteOne(c fiber.Ctx) error {
+func (hdlr *FatHandler) DeleteOne(c fiber.Ctx) error {
 	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
@@ -38,7 +38,7 @@ func (hdlr FatHandler) DeleteOne(c fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
-func (hdlr FatHandler) GetAll(c fiber.Ctx) error {
+func (hdlr *FatHandler) GetAll(c fiber.Ctx) error {
 	pag := new(dto.Pagination)
 	if err := c.Bind().Query(pag); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -51,7 +51,7 @@ func (hdlr FatHandler) GetAll(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func (hdlr FatHandler) GetByID(c fiber.Ctx) error {
+func (hdlr *FatHandler) GetByID(c fiber.Ctx) error {
 	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
@@ -63,7 +63,7 @@ func (hdlr FatHandler) GetByID(c fiber.Ctx) error {
 	return c.JSON(tao)
 }
 
-func (hdlr FatHandler) GetByFat(c fiber.Ctx) error {
+func (hdlr *FatHandler) GetByFat(c fiber.Ctx) error {
 	tao, err := url.QueryUnescape(c.Params("fat"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -76,7 +76,7 @@ func (hdlr FatHandler) GetByFat(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func (hdlr FatHandler) GetByOdn(c fiber.Ctx) error {
+func (hdlr *FatHandler) GetByOdn(c fiber.Ctx) error {
 	state, err := url.QueryUnescape(c.Params("state"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -94,7 +94,7 @@ func (hdlr FatHandler) GetByOdn(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func (hdlr FatHandler) GetOdnStates(c fiber.Ctx) error {
+func (hdlr *FatHandler) GetOdnStates(c fiber.Ctx) error {
 	state := c.Query("state")
 	res, err := hdlr.Usecase.GetOdnStates(state)
 	if err != nil {
@@ -103,7 +103,7 @@ func (hdlr FatHandler) GetOdnStates(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func (hdlr FatHandler) GetOdnCounty(c fiber.Ctx) error {
+func (hdlr *FatHandler) GetOdnCounty(c fiber.Ctx) error {
 	state, err := url.QueryUnescape(c.Params("state"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -121,7 +121,7 @@ func (hdlr FatHandler) GetOdnCounty(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func (hdlr FatHandler) GetOdnMunicipality(c fiber.Ctx) error {
+func (hdlr *FatHandler) GetOdnMunicipality(c fiber.Ctx) error {
 	state, err := url.QueryUnescape(c.Params("state"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -144,7 +144,7 @@ func (hdlr FatHandler) GetOdnMunicipality(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func (hdlr FatHandler) GetOdnByOlt(c fiber.Ctx) error {
+func (hdlr *FatHandler) GetOdnByOlt(c fiber.Ctx) error {
 	oltIP, err := url.QueryUnescape(c.Params("oltIP"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -161,7 +161,7 @@ func (hdlr FatHandler) GetOdnByOlt(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func (hdlr FatHandler) GetOdnOltPort(c fiber.Ctx) error {
+func (hdlr *FatHandler) GetOdnOltPort(c fiber.Ctx) error {
 	oltIP, err := url.QueryUnescape(c.Params("oltIP"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})

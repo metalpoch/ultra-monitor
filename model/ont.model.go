@@ -21,3 +21,17 @@ type OntStatusCountsByState struct {
 	UnknownCount  uint64    `json:"unknowns"`
 	TotalCount    uint64    `json:"total"`
 }
+
+type OntForecastBase struct {
+	Date          time.Time `json:"date"`
+	PonsCount     uint64    `json:"pons_count"`
+	ActiveCount   uint64    `json:"actives"`
+	InactiveCount uint64    `json:"inactives"`
+	UnknownCount  uint64    `json:"unknowns"`
+	TotalCount    uint64    `json:"total"`
+}
+
+type OntStatusForecast struct {
+	Historical []OntForecastBase `json:"historical"`
+	Forecast   []OntForecastBase `json:"forecast"`
+}

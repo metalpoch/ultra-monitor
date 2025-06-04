@@ -17,6 +17,7 @@ type TrafficRepository interface {
 	TrafficByODN(ctx context.Context, state, odn string, initDate, endDate time.Time) ([]entity.Traffic, error)
 	TrafficByOLT(ctx context.Context, sysname string, initDate, endDate time.Time) ([]entity.Traffic, error)
 	TrafficByPon(ctx context.Context, sysname, ifname string, initDate, endDate time.Time) ([]entity.Traffic, error)
+	GetDailyAveragedHourlyMaxTrafficTrends(ctx context.Context, initDate, endDate time.Time) ([]entity.TrafficTrend, error)
 }
 
 type trafficRepository struct {
@@ -67,4 +68,10 @@ func (repo *trafficRepository) TrafficByPon(ctx context.Context, sysname, ifname
 	var res []entity.Traffic
 	err := repo.db.SelectContext(ctx, &res, constants.SQL_TRAFFIC_BY_PON, sysname, ifname, initDate, endDate)
 	return res, err
+}
+
+func (repo *trafficRepository) GetDailyAveragedHourlyMaxTrafficTrends(ctx context.Context, initDate, endDate time.Time) ([]entity.TrafficTrend, error) {
+	var trends []entity.TrafficTrend
+	err := repo.db.SelectContext(ctx, &trends, constants.SQL_DAILY_AVERAGED_HOURLY_TRAFFIC_TREND, initDate, endDate)
+	return trends, err
 }

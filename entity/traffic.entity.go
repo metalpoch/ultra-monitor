@@ -34,3 +34,11 @@ type Traffic struct {
 	MBpsIn    float64   `db:"mbytes_in_sec"`
 	MBpsOut   float64   `db:"mbytes_out_sec"`
 }
+
+type TrafficTrend struct {
+	Day     time.Time `db:"day"`
+	MbpsIn  float64   `db:"mbps_in"`
+	MbpsOut float64   `db:"mbps_out"`
+	MBpsIn  float64   `db:"mbytes_in_sec"`
+	MBpsOut float64   `db:"mbytes_out_sec"`
+}

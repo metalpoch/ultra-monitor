@@ -5,7 +5,7 @@ import "time"
 type OntStatusCounts struct {
 	Date          time.Time `db:"date"`
 	State         string    `db:"state"`
-	PonsCount     uint64    `db:"pons_count"`
+	PonsCount     uint64    `db:"ports_pon"`
 	ActiveCount   uint64    `db:"actives"`
 	InactiveCount uint64    `db:"inactives"`
 	UnknownCount  uint64    `db:"unknowns"`
@@ -15,7 +15,7 @@ type OntStatusCounts struct {
 type OntStatusCountsByState struct {
 	Date          time.Time `db:"date"`
 	Sysname       string    `db:"sysname"`
-	PonsCount     uint64    `db:"pons_count"`
+	PonsCount     uint64    `db:"ports_pon"`
 	ActiveCount   uint64    `db:"actives"`
 	InactiveCount uint64    `db:"inactives"`
 	UnknownCount  uint64    `db:"unknowns"`

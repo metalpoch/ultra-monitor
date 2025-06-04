@@ -13,6 +13,8 @@ type OntRepository interface {
 	AllOntStatus(ctx context.Context, initDate, endDate time.Time) ([]entity.OntStatusCounts, error)
 	GetOntStatusByState(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.OntStatusCountsByState, error)
 	GetOntStatusByODN(ctx context.Context, state, odn string, initDate, endDate time.Time) ([]entity.OntStatusCountsByState, error)
+	GetOntStatusByOltIP(ctx context.Context, ip string, initDate, endDate time.Time) ([]entity.OntStatusCountsByState, error)
+	GetOntStatusBySysname(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.OntStatusCountsByState, error)
 	TrafficOnt(ctx context.Context, ponID uint64, idx string, initDate, endDate time.Time) ([]entity.TrafficOnt, error)
 }
 
@@ -39,6 +41,18 @@ func (repo *ontRepository) GetOntStatusByState(ctx context.Context, state string
 func (repo *ontRepository) GetOntStatusByODN(ctx context.Context, state, odn string, initDate, endDate time.Time) ([]entity.OntStatusCountsByState, error) {
 	var res []entity.OntStatusCountsByState
 	err := repo.db.SelectContext(ctx, &res, constants.SQL_ONT_STATUS_BY_ODN, state, odn, initDate, endDate)
+	return res, err
+}
+
+func (repo *ontRepository) GetOntStatusBySysname(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.OntStatusCountsByState, error) {
+	var res []entity.OntStatusCountsByState
+	err := repo.db.SelectContext(ctx, &res, constants.SQL_ONT_STATUS_BY_SYSNAME, state, initDate, endDate)
+	return res, err
+}
+
+func (repo *ontRepository) GetOntStatusByOltIP(ctx context.Context, ip string, initDate, endDate time.Time) ([]entity.OntStatusCountsByState, error) {
+	var res []entity.OntStatusCountsByState
+	err := repo.db.SelectContext(ctx, &res, constants.SQL_ONT_STATUS_BY_OLT_IP, ip, initDate, endDate)
 	return res, err
 }
 

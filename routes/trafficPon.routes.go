@@ -21,4 +21,5 @@ func NewTrafficRoutes(app *fiber.App, db *sqlx.DB, cache *cache.Redis) {
 	route.Get("/location/:state/:county/:municipality", hdlr.TrafficByMunicipaly)
 	route.Get("/odn/:state/:odn", hdlr.TrafficByODN)
 	route.Get("/pon/:sysname/:shell/:card/:port", hdlr.TrafficPon)
+	route.Get("/forecast/all", hdlr.DailyAveragedHourlyMaxTrafficTrends)
 }

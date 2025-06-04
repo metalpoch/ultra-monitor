@@ -142,57 +142,171 @@ const SQL_PON_BY_PORT string = `SELECT pons.* FROM pons JOIN olts ON olts.ip = p
 
 // SQL_ALL_ONT_STATUS retrieves ONT status counts for all states within a date range.
 const SQL_ALL_ONT_STATUS string = `
-	SELECT
-		fats.state AS state,
-		DATE_TRUNC('date', measurement_onts.date) AS date,
-    	COUNT(DISTINCT pons.id) AS pons_count,
-    	COUNT(CASE WHEN measurement_onts.control_run_status = 1 THEN 1 END) AS active_count,
-    	COUNT(CASE WHEN measurement_onts.control_run_status = 2 THEN 1 END) AS inactive_count,
-    	COUNT(CASE WHEN measurement_onts.control_run_status NOT IN (1,2) THEN 1 END) AS unknown_count,
-    	COUNT(*) AS total_count
-	FROM measurement_onts
-	JOIN pons ON measurement_onts.pon_id = pons.id
-	JOIN olts ON pons.olt_ip = olts.ip
-	JOIN fats ON fats.olt_ip = olts.ip
-	WHERE measurement_onts.date BETWEEN $2 AND $3
-	GROUP BY state, date
-	ORDER BY state, date;`
+    WITH ranked_status AS (
+        SELECT
+            fats.state AS state,
+            DATE_TRUNC('day', measurement_onts.date) AS date,
+            measurement_onts.pon_id,
+            measurement_onts.idx,
+            MIN(
+                CASE
+                    WHEN measurement_onts.control_run_status = 1 THEN 1
+                    WHEN measurement_onts.control_run_status = 2 THEN 2
+                    ELSE 3
+                END
+            ) AS status_priority
+        FROM measurement_onts
+        JOIN pons ON measurement_onts.pon_id = pons.id
+        JOIN olts ON pons.olt_ip = olts.ip
+        JOIN fats ON fats.olt_ip = olts.ip
+        WHERE measurement_onts.date BETWEEN $1 AND $2
+        GROUP BY fats.state, DATE_TRUNC('day', measurement_onts.date), measurement_onts.pon_id, measurement_onts.idx
+    )
+    SELECT
+        state,
+        date,
+        COUNT(DISTINCT pon_id) AS ports_pon,
+        SUM(CASE WHEN status_priority = 1 THEN 1 ELSE 0 END) AS actives,
+        SUM(CASE WHEN status_priority = 2 THEN 1 ELSE 0 END) AS inactives,
+        SUM(CASE WHEN status_priority = 3 THEN 1 ELSE 0 END) AS unknowns,
+        COUNT(*) AS total
+    FROM ranked_status
+    GROUP BY state, date
+    ORDER BY state, date;`
 
 // SQL_ONT_STATUS_BY_STATE retrieves ONT status counts for a specific state within a date range.
 const SQL_ONT_STATUS_BY_STATE string = `
-	SELECT
-		olts.sys_name AS sysname,
-		DATE_TRUNC('date', measurement_onts.date) AS date,
-    	COUNT(DISTINCT pons.id) AS pons_count,
-    	COUNT(CASE WHEN measurement_onts.control_run_status = 1 THEN 1 END) AS active_count,
-    	COUNT(CASE WHEN measurement_onts.control_run_status = 2 THEN 1 END) AS inactive_count,
-    	COUNT(CASE WHEN measurement_onts.control_run_status NOT IN (1,2) THEN 1 END) AS unknown_count,
-    	COUNT(*) AS total_count
-	FROM measurement_onts
-	JOIN pons ON measurement_onts.pon_id = pons.id
-	JOIN olts ON pons.olt_ip = olts.ip
-	JOIN fats ON fats.olt_ip = olts.ip
-	WHERE fats.state = $1 AND measurement_onts.date BETWEEN $2 AND $3
-	GROUP BY sysname, date
-	ORDER BY sysname, date;`
+	WITH ranked_status AS (
+        SELECT
+            olts.sys_name AS sysname,
+            DATE_TRUNC('day', measurement_onts.date) AS date,
+            measurement_onts.pon_id,
+            measurement_onts.idx,
+            MIN(
+                CASE
+                    WHEN control_run_status = 1 THEN 1
+                    WHEN control_run_status = 2 THEN 2
+                    ELSE 3
+                END
+            ) AS status_priority
+        FROM measurement_onts
+        JOIN pons ON measurement_onts.pon_id = pons.id
+        JOIN olts ON pons.olt_ip = olts.ip
+        JOIN fats ON fats.olt_ip = olts.ip
+        WHERE fats.state = $1 AND measurement_onts.date BETWEEN $2 AND $3
+        GROUP BY sysname, DATE_TRUNC('day', measurement_onts.date), measurement_onts.pon_id, measurement_onts.idx
+    )
+    SELECT
+        sysname,
+        date,
+        COUNT(DISTINCT pon_id) AS ports_pon,
+        SUM(CASE WHEN status_priority = 1 THEN 1 ELSE 0 END) AS actives,
+        SUM(CASE WHEN status_priority = 2 THEN 1 ELSE 0 END) AS inactives,
+        SUM(CASE WHEN status_priority = 3 THEN 1 ELSE 0 END) AS unknowns,
+        COUNT(*) AS total
+    FROM ranked_status
+    GROUP BY sysname, date
+    ORDER BY sysname, date;`
 
 // SQL_ONT_STATUS_BY_ODN retrieves ONT status counts for a specific ODN within a state and date range.
 const SQL_ONT_STATUS_BY_ODN string = `
-	SELECT
-		olts.sys_name AS sysname,
-		DATE_TRUNC('date', measurement_onts.date) AS date,
-    	COUNT(DISTINCT pons.id) AS pons_count,
-    	COUNT(CASE WHEN measurement_onts.control_run_status = 1 THEN 1 END) AS active_count,
-    	COUNT(CASE WHEN measurement_onts.control_run_status = 2 THEN 1 END) AS inactive_count,
-    	COUNT(CASE WHEN measurement_onts.control_run_status NOT IN (1,2) THEN 1 END) AS unknown_count,
-    	COUNT(*) AS total_count
-	FROM measurement_onts
-	JOIN pons ON measurement_onts.pon_id = pons.id
-	JOIN olts ON pons.olt_ip = olts.ip
-	JOIN fats ON fats.olt_ip = olts.ip
-	WHERE fats.state = $1 AND fats.odn = $2 AND measurement_onts.date BETWEEN $3 AND $4
-	GROUP BY sysname, date
-	ORDER BY sysname, date;`
+	WITH ranked_status AS (
+        SELECT
+            olts.sys_name AS sysname,
+            DATE_TRUNC('day', measurement_onts.date) AS date,
+            measurement_onts.pon_id,
+            measurement_onts.idx,
+            MIN(
+                CASE
+                    WHEN control_run_status = 1 THEN 1
+                    WHEN control_run_status = 2 THEN 2
+                    ELSE 3
+                END
+            ) AS status_priority
+        FROM measurement_onts
+        JOIN pons ON measurement_onts.pon_id = pons.id
+        JOIN olts ON pons.olt_ip = olts.ip
+        JOIN fats ON fats.olt_ip = olts.ip
+        WHERE fats.ond = $1 AND measurement_onts.date BETWEEN $2 AND $3
+        GROUP BY sysname, DATE_TRUNC('day', measurement_onts.date), measurement_onts.pon_id, measurement_onts.idx
+    )
+    SELECT
+        sysname,
+        date,
+        COUNT(DISTINCT pon_id) AS ports_pon,
+        SUM(CASE WHEN status_priority = 1 THEN 1 ELSE 0 END) AS actives,
+        SUM(CASE WHEN status_priority = 2 THEN 1 ELSE 0 END) AS inactives,
+        SUM(CASE WHEN status_priority = 3 THEN 1 ELSE 0 END) AS unknowns,
+        COUNT(*) AS total
+    FROM ranked_status
+    GROUP BY sysname, date
+    ORDER BY sysname, date;`
+
+// SQL_ONT_STATUS_BY_SYSNAME retrieves ONT status counts for a specific ip within a date range.
+const SQL_ONT_STATUS_BY_OLT_IP string = `
+	WITH ranked_status AS (
+        SELECT
+            olts.sys_name AS sysname,
+            DATE_TRUNC('day', measurement_onts.date) AS date,
+            measurement_onts.pon_id,
+            measurement_onts.idx,
+            MIN(
+                CASE
+                    WHEN control_run_status = 1 THEN 1
+                    WHEN control_run_status = 2 THEN 2
+                    ELSE 3
+                END
+            ) AS status_priority
+        FROM measurement_onts
+        JOIN pons ON measurement_onts.pon_id = pons.id
+        JOIN olts ON pons.olt_ip = olts.ip
+        WHERE olts.ip = $1 AND measurement_onts.date BETWEEN $2 AND $3
+        GROUP BY sysname, DATE_TRUNC('day', measurement_onts.date), measurement_onts.pon_id, measurement_onts.idx
+    )
+    SELECT
+        sysname,
+        date,
+        COUNT(DISTINCT pon_id) AS ports_pon,
+        SUM(CASE WHEN status_priority = 1 THEN 1 ELSE 0 END) AS actives,
+        SUM(CASE WHEN status_priority = 2 THEN 1 ELSE 0 END) AS inactives,
+        SUM(CASE WHEN status_priority = 3 THEN 1 ELSE 0 END) AS unknowns,
+        COUNT(*) AS total
+    FROM ranked_status
+    GROUP BY sysname, date
+    ORDER BY sysname, date;`
+
+// SQL_ONT_STATUS_BY_SYSNAME retrieves ONT status counts for a specific sysname within a date range.
+const SQL_ONT_STATUS_BY_SYSNAME string = `
+	WITH ranked_status AS (
+        SELECT
+            olts.sys_name AS sysname,
+            DATE_TRUNC('day', measurement_onts.date) AS date,
+            measurement_onts.pon_id,
+            measurement_onts.idx,
+            MIN(
+                CASE
+                    WHEN control_run_status = 1 THEN 1
+                    WHEN control_run_status = 2 THEN 2
+                    ELSE 3
+                END
+            ) AS status_priority
+        FROM measurement_onts
+        JOIN pons ON measurement_onts.pon_id = pons.id
+        JOIN olts ON pons.olt_ip = olts.ip
+        WHERE olts.sys_name = $1 AND measurement_onts.date BETWEEN $2 AND $3
+        GROUP BY sysname, DATE_TRUNC('day', measurement_onts.date), measurement_onts.pon_id, measurement_onts.idx
+    )
+    SELECT
+        sysname,
+        date,
+        COUNT(DISTINCT pon_id) AS ports_pon,
+        SUM(CASE WHEN status_priority = 1 THEN 1 ELSE 0 END) AS actives,
+        SUM(CASE WHEN status_priority = 2 THEN 1 ELSE 0 END) AS inactives,
+        SUM(CASE WHEN status_priority = 3 THEN 1 ELSE 0 END) AS unknowns,
+        COUNT(*) AS total
+    FROM ranked_status
+    GROUP BY sysname, date
+    ORDER BY sysname, date;`
 
 // SQL_TRAFFIC_ONT retrieves traffic data for a specific ONT, including calculated Mbps and Mbytes per second.
 const SQL_TRAFFIC_ONT string = `
@@ -402,3 +516,27 @@ const SQL_SELECT_REPORTS_BY_CATEGORY = `SELECT * FROM reports WHERE category = $
 
 // SQL_DELETE_REPORT_BY_ID deletes a report by its ID.
 const SQL_DELETE_REPORT_BY_ID = `DELETE FROM reports WHERE id = $1`
+
+// SQL_DAILY_AVERAGED_HOURLY_TRAFFIC_TREND retieves traffic averaged hourly traffic
+const SQL_DAILY_AVERAGED_HOURLY_TRAFFIC_TREND string = `
+    WITH hourly_max AS (
+        SELECT
+            DATE(date) AS day,
+            EXTRACT(HOUR FROM date) AS hour,
+            MAX(bps_in) AS max_bps_in,
+            MAX(bps_out) AS max_bps_out,
+            MAX(bytes_in_sec) AS max_bytes_in_sec,
+            MAX(bytes_out_sec) AS max_bytes_out_sec
+        FROM traffic_pons
+        GROUP BY day, hour
+    )
+    SELECT
+        day,
+        AVG(max_bps_in) / 1e6 AS mbps_in,
+        AVG(max_bps_out) / 1e6 AS mbps_out,
+        AVG(max_bytes_in_sec) / 1e6 AS mbytes_in_sec,
+        AVG(max_bytes_out_sec) / 1e6 AS mbytes_out_sec
+    FROM hourly_max
+    WHERE date BETWEEN $1 AND $2
+    GROUP BY day
+    ORDER BY day;`

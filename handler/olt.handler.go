@@ -13,7 +13,7 @@ type OltHandler struct {
 	Usecase usecase.OltUsecase
 }
 
-func (hdlr OltHandler) Add(c fiber.Ctx) error {
+func (hdlr *OltHandler) Add(c fiber.Ctx) error {
 	olt := new(dto.NewOlt)
 	if err := c.Bind().Query(olt); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -26,7 +26,7 @@ func (hdlr OltHandler) Add(c fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusCreated)
 }
 
-func (hdlr OltHandler) UpdateOne(c fiber.Ctx) error {
+func (hdlr *OltHandler) UpdateOne(c fiber.Ctx) error {
 	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -45,7 +45,7 @@ func (hdlr OltHandler) UpdateOne(c fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusOK)
 }
 
-func (hdlr OltHandler) DeleteOne(c fiber.Ctx) error {
+func (hdlr *OltHandler) DeleteOne(c fiber.Ctx) error {
 	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -58,7 +58,7 @@ func (hdlr OltHandler) DeleteOne(c fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
-func (hdlr OltHandler) GetOlt(c fiber.Ctx) error {
+func (hdlr *OltHandler) GetOlt(c fiber.Ctx) error {
 	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -72,7 +72,7 @@ func (hdlr OltHandler) GetOlt(c fiber.Ctx) error {
 	return c.JSON(olt)
 }
 
-func (hdlr OltHandler) GetOlts(c fiber.Ctx) error {
+func (hdlr *OltHandler) GetOlts(c fiber.Ctx) error {
 	pag := new(dto.Pagination)
 	if err := c.Bind().Query(pag); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -86,7 +86,7 @@ func (hdlr OltHandler) GetOlts(c fiber.Ctx) error {
 	return c.JSON(olts)
 }
 
-func (hdlr OltHandler) GetOltsByState(c fiber.Ctx) error {
+func (hdlr *OltHandler) GetOltsByState(c fiber.Ctx) error {
 	state, err := fiber.Convert(c.Params("state"), url.QueryUnescape)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -105,7 +105,7 @@ func (hdlr OltHandler) GetOltsByState(c fiber.Ctx) error {
 	return c.JSON(olts)
 }
 
-func (hdlr OltHandler) GetOltsByCounty(c fiber.Ctx) error {
+func (hdlr *OltHandler) GetOltsByCounty(c fiber.Ctx) error {
 	state, err := fiber.Convert(c.Params("state"), url.QueryUnescape)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -129,7 +129,7 @@ func (hdlr OltHandler) GetOltsByCounty(c fiber.Ctx) error {
 	return c.JSON(olts)
 }
 
-func (hdlr OltHandler) GetOltsByMunicipality(c fiber.Ctx) error {
+func (hdlr *OltHandler) GetOltsByMunicipality(c fiber.Ctx) error {
 	state, err := fiber.Convert(c.Params("state"), url.QueryUnescape)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})

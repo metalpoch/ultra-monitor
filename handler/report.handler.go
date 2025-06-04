@@ -65,7 +65,7 @@ func (hdlr *ReportHandler) GetCategories(c fiber.Ctx) error {
 	return c.JSON(rp)
 }
 
-func (hdlr ReportHandler) GetReportsByUser(c fiber.Ctx) error {
+func (hdlr *ReportHandler) GetReportsByUser(c fiber.Ctx) error {
 	userID, err := fiber.Convert(c.Params("userID"), strconv.Atoi)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -83,7 +83,7 @@ func (hdlr ReportHandler) GetReportsByUser(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func (hdlr ReportHandler) GetReportsByCategory(c fiber.Ctx) error {
+func (hdlr *ReportHandler) GetReportsByCategory(c fiber.Ctx) error {
 	category, err := url.QueryUnescape(c.Params("category"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})

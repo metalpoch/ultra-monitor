@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/gocarina/gocsv"
 	"github.com/gofiber/fiber/v3"
 	"github.com/metalpoch/ultra-monitor/internal/dto"
 	"github.com/metalpoch/ultra-monitor/model"
@@ -187,4 +188,51 @@ func (hdlr *FatHandler) GetOdnOltPort(c fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 	return c.JSON(res)
+}
+
+func (hdlr *FatHandler) UpdateFats(c fiber.Ctx) error {
+	f, err := c.FormFile("file")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Archivo no recibido"})
+	}
+
+	if f.Header.Get("Content-Type") != "text/csv" {
+		return c.Status(fiber.StatusUnsupportedMediaType).JSON(fiber.Map{"error": "El archivo debe ser CSV"})
+	}
+
+	file, err := f.Open()
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "No se pudo abrir el archivo"})
+	}
+	defer file.Close()
+
+	var fats []*model.Fat
+	if err := gocsv.Unmarshal(file, &fats); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "CSV inválido"})
+	}
+
+	var processed, failed int
+	for _, csv := range fats {
+		fat := model.Fat{
+			Fat:          csv.Fat,
+			Region:       csv.Region,
+			State:        csv.State,
+			Municipality: csv.Municipality,
+			County:       csv.County,
+			Odn:          csv.Odn,
+			OltIP:        csv.OltIP,
+			Shell:        csv.Shell,
+			Port:         csv.Port,
+			Card:         csv.Card,
+			Latitude:     csv.Latitude,
+			Longitude:    csv.Longitude,
+		}
+		if err := hdlr.Usecase.AddFat(fat); err != nil {
+			failed++
+			continue
+		}
+		processed++
+	}
+
+	return c.JSON(fiber.Map{"processed": processed, "failed": failed})
 }

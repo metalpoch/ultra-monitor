@@ -14,6 +14,7 @@ func NewFatRoutes(app *fiber.App, db *sqlx.DB) {
 
 	route := app.Group("/api/fat")
 	route.Post("/", hdlr.AddFat)
+	route.Post("/upload-csv", hdlr.UpdateFats)
 	route.Delete("/:id", hdlr.DeleteOne)
 	route.Get("/", hdlr.GetAll)
 	route.Get("/:id", hdlr.GetByID)

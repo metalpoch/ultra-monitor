@@ -19,12 +19,12 @@ func NewFatUsecase(db *sqlx.DB) *FatUsecase {
 	return &FatUsecase{repository.NewFatRepository(db)}
 }
 
-func (use *FatUsecase) AddFat(tao model.Fat) error {
+func (use *FatUsecase) AddFat(fat model.Fat) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	entityTao := (entity.Fat)(tao)
-	err := use.repo.AddFat(ctx, &entityTao)
+	entityFat := (entity.Fat)(fat)
+	err := use.repo.AddFat(ctx, &entityFat)
 	if err != nil {
 		return err
 	}

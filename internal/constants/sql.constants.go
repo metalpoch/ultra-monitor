@@ -452,14 +452,19 @@ const SQL_INSERT_MANY_MEASUREMENT_ONT_PREFIX string = `
         ) VALUES `
 
 // SQL_INSERT_FAT is the SQL statement to insert a new FAT (Fiber Access Terminal) record.
-const SQL_INSERT_FAT = `
+const SQL_INSERT_FAT string = `
     INSERT INTO fats (
-        region, fat, state, municipality, county, odn, olt_ip,
+        fat, region, state, municipality, county, odn, olt_ip,
         pon_shell, pon_port, pon_card, latitude, longitude
     ) VALUES (
-        :region, :fat, :state, :municipality, :county, :odn, :olt_ip,
+        :fat, :region, :state, :municipality, :county, :odn, :olt_ip,
         :pon_shell, :pon_port, :pon_card, :latitude, :longitude
-    )`
+    )
+    ON CONFLICT (fat, state, municipality, county, olt_ip, odn, pon_shell, pon_card, pon_port)
+    DO UPDATE SET
+        region = EXCLUDED.region,
+        latitude = EXCLUDED.latitude,
+        longitude = EXCLUDED.longitude;`
 
 // SQL_DELETE_FAT_BY_ID is the SQL statement to delete a FAT record by its ID.
 const SQL_DELETE_FAT_BY_ID = `DELETE FROM fats WHERE id = $1`

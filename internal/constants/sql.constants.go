@@ -27,8 +27,8 @@ const SQL_TOTAL_TRAFFIC string = `
 			SUM("in") / 1000000 AS mbps_in,
 			SUM(out) / 1000000 AS mbps_out,
 			SUM(bandwidth) / 1000000 AS bandwidth_mbps_sec,
-			SUM(bytes_in) / 1000000 AS mbytes_in_sec,
-			SUM(bytes_out) / 1000000 AS mbytes_out_sec
+			SUM(bytes_in_sec) / 1000000 AS mbytes_in_sec,
+			SUM(bytes_out_sec) / 1000000 AS mbytes_out_sec
 		FROM traffic_pons
 		WHERE date BETWEEN ? AND ?
 		GROUP BY DATE_TRUNC('minute', date)
@@ -227,7 +227,7 @@ const SQL_ONT_STATUS_BY_ODN string = `
         JOIN pons ON measurement_onts.pon_id = pons.id
         JOIN olts ON pons.olt_ip = olts.ip
         JOIN fats ON fats.olt_ip = olts.ip
-        WHERE fats.ond = $1 AND measurement_onts.date BETWEEN $2 AND $3
+        WHERE fats.odn = $1 AND measurement_onts.date BETWEEN $2 AND $3
         GROUP BY sysname, DATE_TRUNC('day', measurement_onts.date), measurement_onts.pon_id, measurement_onts.idx
     )
     SELECT
@@ -343,13 +343,13 @@ const SQL_TRAFFIC_ONT string = `
 			olt_distance,
     			control_mac_count, 
 			control_run_status,
-			bytes_in AS prev_bytes_in,
-			bytes_out AS prev_bytes_out,
-			LEAD(bytes_in) OVER (PARTITION BY pon_id ORDER BY date) AS curr_bytes_in,
-			LEAD(bytes_out) OVER (PARTITION BY pon_id ORDER BY date) AS curr_bytes_out,
+			bytes_in_count AS prev_bytes_in,
+			bytes_out_count AS prev_bytes_out,
+			LEAD(bytes_in_count) OVER (PARTITION BY pon_id ORDER BY date) AS curr_bytes_in,
+			LEAD(bytes_out_count) OVER (PARTITION BY pon_id ORDER BY date) AS curr_bytes_out,
 			EXTRACT(EPOCH FROM (LEAD(date) OVER (PARTITION BY pon_id ORDER BY date) - date)) AS time_diff
-		FROM measurement_ont
-		WHERE pon_id = $1 AND idx = $2 AND bytes_in > 0 AND bytes_out > 0 AND date BETWEEN $3 AND $4
+		FROM measurement_onts
+		WHERE pon_id = $1 AND idx = $2 AND bytes_in_count > 0 AND bytes_out_count > 0 AND date BETWEEN $3 AND $4
 		ORDER BY date
 	) AS subquery;`
 

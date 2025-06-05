@@ -14,7 +14,7 @@ func NewOntRoutes(app *fiber.App, db *sqlx.DB, cache *cache.Redis) {
 	}
 
 	route := app.Group("/api/ont")
-	route.Get("/status", hdlr.OntStatus)
+	// route.Get("/status", hdlr.OntStatus)
 	route.Get("/status/:state", hdlr.OntStatusByState)
 	route.Get("/status/:state/:odn", hdlr.OntStatusByOdn)
 	route.Get("/status/by-oltp/:ip", hdlr.OntStatusByOltIP)

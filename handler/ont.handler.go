@@ -14,11 +14,7 @@ type OntHandler struct {
 }
 
 func (hdlr *OntHandler) OntStatus(c fiber.Ctx) error {
-	dates := new(dto.RangeDate)
-	if err := c.Bind().Query(dates); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-	res, err := hdlr.Usecase.AllOntStatus(*dates)
+	res, err := hdlr.Usecase.AllOntStatus()
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -31,11 +27,7 @@ func (hdlr *OntHandler) OntStatusByState(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	dates := new(dto.RangeDate)
-	if err := c.Bind().Query(dates); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-	res, err := hdlr.Usecase.OntStatusByState(state, *dates)
+	res, err := hdlr.Usecase.OntStatusByState(state)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/metalpoch/ultra-monitor/internal/cache"
 	"github.com/metalpoch/ultra-monitor/internal/dto"
 	"github.com/metalpoch/ultra-monitor/internal/trend"
+	"github.com/metalpoch/ultra-monitor/internal/utils"
 	"github.com/metalpoch/ultra-monitor/model"
 	"github.com/metalpoch/ultra-monitor/repository"
 	"github.com/redis/go-redis/v9"
@@ -23,12 +24,15 @@ func NewOntUsecase(db *sqlx.DB, cache *cache.Redis) *OntUsecase {
 	return &OntUsecase{repository.NewOntRepository(db), cache}
 }
 
-func (use *OntUsecase) AllOntStatus(dates dto.RangeDate) ([]model.OntStatusCounts, error) {
+func (use *OntUsecase) AllOntStatus() ([]model.OntStatusCounts, error) {
+	initDate, endDate := utils.DateRangeFromYear()
+
 	var status []model.OntStatusCounts
-	key := fmt.Sprintf("ontStatus:%d:%d", dates.InitDate.Unix(), dates.EndDate.Unix())
+	key := fmt.Sprintf("ontStatus:%d:%d", initDate.Unix(), endDate.Unix())
 	err := use.cache.FindOne(context.Background(), key, &status)
+
 	if err == redis.Nil {
-		res, err := use.repo.AllOntStatus(context.Background(), dates.InitDate, dates.EndDate)
+		res, err := use.repo.AllOntStatus(context.Background(), initDate, endDate)
 		if err != nil {
 			return nil, err
 		}
@@ -48,12 +52,14 @@ func (use *OntUsecase) AllOntStatus(dates dto.RangeDate) ([]model.OntStatusCount
 	return status, err
 }
 
-func (uc *OntUsecase) OntStatusByState(state string, dates dto.RangeDate) ([]model.OntStatusCountsByState, error) {
+func (uc *OntUsecase) OntStatusByState(state string) ([]model.OntStatusCountsByState, error) {
+	initDate, endDate := utils.DateRangeFromYear()
+
 	var status []model.OntStatusCountsByState
-	key := fmt.Sprintf("ontStatusByState:%s:%d:%d", state, dates.InitDate.Unix(), dates.EndDate.Unix())
+	key := fmt.Sprintf("ontStatusByState:%s:%d:%d", state, initDate.Unix(), endDate.Unix())
 	err := uc.cache.FindOne(context.Background(), key, &status)
 	if err == redis.Nil {
-		res, err := uc.repo.GetOntStatusByState(context.Background(), state, dates.InitDate, dates.EndDate)
+		res, err := uc.repo.GetOntStatusByState(context.Background(), state, initDate, endDate)
 		if err != nil {
 			return nil, err
 		}
@@ -74,6 +80,10 @@ func (uc *OntUsecase) OntStatusByState(state string, dates dto.RangeDate) ([]mod
 }
 
 func (use *OntUsecase) OntStatusByOdn(state, odn string, dates dto.RangeDate) ([]model.OntStatusCountsByState, error) {
+	if !utils.IsDateRangeWithin7Days(dates.InitDate, dates.EndDate) {
+		return nil, fmt.Errorf("the date range invalor or cannot be greater than 7 days")
+	}
+
 	var status []model.OntStatusCountsByState
 	key := fmt.Sprintf("ontStatusByODN:%s:%s:%d:%d", state, odn, dates.InitDate.Unix(), dates.EndDate.Unix())
 	err := use.cache.FindOne(context.Background(), key, &status)
@@ -99,6 +109,10 @@ func (use *OntUsecase) OntStatusByOdn(state, odn string, dates dto.RangeDate) ([
 }
 
 func (uc *OntUsecase) OntStatusByOltIP(ip string, dates dto.RangeDate) ([]model.OntStatusCountsByState, error) {
+	if !utils.IsDateRangeWithin7Days(dates.InitDate, dates.EndDate) {
+		return nil, fmt.Errorf("the date range invalor or cannot be greater than 7 days")
+	}
+
 	var status []model.OntStatusCountsByState
 	key := fmt.Sprintf("ontStatusByOltIP:%s:%d:%d", ip, dates.InitDate.Unix(), dates.EndDate.Unix())
 	err := uc.cache.FindOne(context.Background(), key, &status)
@@ -122,6 +136,10 @@ func (uc *OntUsecase) OntStatusByOltIP(ip string, dates dto.RangeDate) ([]model.
 }
 
 func (uc *OntUsecase) OntStatusBySysname(sysname string, dates dto.RangeDate) ([]model.OntStatusCountsByState, error) {
+	if !utils.IsDateRangeWithin7Days(dates.InitDate, dates.EndDate) {
+		return nil, fmt.Errorf("the date range invalor or cannot be greater than 7 days")
+	}
+
 	var status []model.OntStatusCountsByState
 	key := fmt.Sprintf("ontStatusBySysname:%s:%d:%d", sysname, dates.InitDate.Unix(), dates.EndDate.Unix())
 	err := uc.cache.FindOne(context.Background(), key, &status)
@@ -148,6 +166,10 @@ func (use *OntUsecase) TrafficOnt(ponID uint64, idx string, dates dto.RangeDate)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	if !utils.IsDateRangeWithin7Days(dates.InitDate, dates.EndDate) {
+		return nil, fmt.Errorf("the date range invalor or cannot be greater than 7 days")
+	}
+
 	var traffic []model.TrafficOnt
 	res, err := use.repo.TrafficOnt(ctx, ponID, idx, dates.InitDate, dates.EndDate)
 	if err != nil {
@@ -161,7 +183,7 @@ func (use *OntUsecase) TrafficOnt(ponID uint64, idx string, dates dto.RangeDate)
 }
 
 func (uc *OntUsecase) AllOntStatusForecast(dates dto.RangeDate, futureDays int) (*model.OntStatusForecast, error) {
-	res, err := uc.AllOntStatus(dates)
+	res, err := uc.AllOntStatus()
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +237,7 @@ func (uc *OntUsecase) AllOntStatusForecast(dates dto.RangeDate, futureDays int) 
 }
 
 func (uc *OntUsecase) OntStatusByStateForecast(state string, dates dto.RangeDate, futureDays int) (*model.OntStatusForecast, error) {
-	res, err := uc.OntStatusByState(state, dates)
+	res, err := uc.OntStatusByState(state)
 	if err != nil {
 		return nil, err
 	}

@@ -73,6 +73,10 @@ func main() {
 		JSONEncoder:     json.Marshal,
 		JSONDecoder:     json.Unmarshal,
 		BodyLimit:       100 * 1024 * 1024, // 100 mb
+		ServerHeader:    "KURBIL01",
+		AppName:         "Ultra Monitor",
+		CaseSensitive:   true,
+		StrictRouting:   true,
 	})
 
 	app.Use(logger.New())
@@ -80,5 +84,7 @@ func main() {
 
 	routes.Init(app, db, redis, []byte(jwtSecret), reportsDir)
 
-	app.Listen(":" + port)
+	app.Listen(":"+port, fiber.ListenConfig{
+		EnablePrefork: true,
+	})
 }

@@ -116,19 +116,20 @@ func (s snmp) ponOidHandlers() ponHandler {
 	}
 }
 
-func (s snmp) ontOidHandlers(ponIdx string) ontHandler {
+func (s snmp) ontOidHandlers(ponIdx int64) ontHandler {
 	return ontHandler{
 		{
-			fmt.Sprintf("%s.%s", HwGponDeviceOntDespt, ponIdx),
+			fmt.Sprintf("%s.%d", HwGponDeviceOntDespt, ponIdx),
 			func(ont *OntData, pdu gosnmp.SnmpPDU) error {
 				if value, ok := pdu.Value.([]byte); ok {
 					ont.Despt = string(value)
+					return nil
 				}
 				return fmt.Errorf("invalid type for HwGponDeviceOntDespt OID: %v", pdu.Value)
 			},
 		},
 		{
-			fmt.Sprintf("%s.%s", HwGponDeviceOntSerialNumber, ponIdx),
+			fmt.Sprintf("%s.%d", HwGponDeviceOntSerialNumber, ponIdx),
 			func(ont *OntData, pdu gosnmp.SnmpPDU) error {
 				if value, ok := pdu.Value.([]byte); ok {
 					ont.SerialNumber = hex.EncodeToString(value)
@@ -138,7 +139,7 @@ func (s snmp) ontOidHandlers(ponIdx string) ontHandler {
 			},
 		},
 		{
-			fmt.Sprintf("%s.%s", HwGponDeviceOntLineProfName, ponIdx),
+			fmt.Sprintf("%s.%d", HwGponDeviceOntLineProfName, ponIdx),
 			func(ont *OntData, pdu gosnmp.SnmpPDU) error {
 				if value, ok := pdu.Value.([]byte); ok {
 					ont.LineProfName = string(value)
@@ -148,7 +149,7 @@ func (s snmp) ontOidHandlers(ponIdx string) ontHandler {
 			},
 		},
 		{
-			fmt.Sprintf("%s.%s", HwGponDeviceOntControlRanging, ponIdx),
+			fmt.Sprintf("%s.%d", HwGponDeviceOntControlRanging, ponIdx),
 			func(ont *OntData, pdu gosnmp.SnmpPDU) error {
 				if value, ok := s.toInt64(pdu.Value); ok {
 					ont.ControlRanging = int32(value)
@@ -158,7 +159,7 @@ func (s snmp) ontOidHandlers(ponIdx string) ontHandler {
 			},
 		},
 		{
-			fmt.Sprintf("%s.%s", HwGponDeviceOntControlMacCount, ponIdx),
+			fmt.Sprintf("%s.%d", HwGponDeviceOntControlMacCount, ponIdx),
 			func(ont *OntData, pdu gosnmp.SnmpPDU) error {
 				if value, ok := s.toInt64(pdu.Value); ok {
 					ont.ControlMacCount = int8(value)
@@ -168,7 +169,7 @@ func (s snmp) ontOidHandlers(ponIdx string) ontHandler {
 			},
 		},
 		{
-			fmt.Sprintf("%s.%s", HwGponDeviceOntControlRunStatus, ponIdx),
+			fmt.Sprintf("%s.%d", HwGponDeviceOntControlRunStatus, ponIdx),
 			func(ont *OntData, pdu gosnmp.SnmpPDU) error {
 				if value, ok := s.toInt64(pdu.Value); ok {
 					ont.ControlRunStatus = int8(value)
@@ -178,7 +179,7 @@ func (s snmp) ontOidHandlers(ponIdx string) ontHandler {
 			},
 		},
 		{
-			fmt.Sprintf("%s.%s", HwGponOntStatisticUpBytes, ponIdx),
+			fmt.Sprintf("%s.%d", HwGponOntStatisticUpBytes, ponIdx),
 			func(ont *OntData, pdu gosnmp.SnmpPDU) error {
 				if value, ok := s.toUint64(pdu.Value); ok {
 					ont.BytesOut = value
@@ -188,7 +189,7 @@ func (s snmp) ontOidHandlers(ponIdx string) ontHandler {
 			},
 		},
 		{
-			fmt.Sprintf("%s.%s", HwGponOntStatisticDownBytes, ponIdx),
+			fmt.Sprintf("%s.%d", HwGponOntStatisticDownBytes, ponIdx),
 			func(ont *OntData, pdu gosnmp.SnmpPDU) error {
 				if value, ok := s.toUint64(pdu.Value); ok {
 					ont.BytesIn = value

@@ -201,7 +201,7 @@ func (s snmp) OntQuery(ponIdx int64) (map[int64]OntData, error) {
 	}
 	defer s.client.Conn.Close()
 
-	oidHandlers := s.ontOidHandlers(fmt.Sprint(ponIdx))
+	oidHandlers := s.ontOidHandlers(ponIdx)
 	data := make(map[int64]OntData)
 
 	for _, oidHandler := range oidHandlers {

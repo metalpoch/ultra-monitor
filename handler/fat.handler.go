@@ -17,7 +17,7 @@ type FatHandler struct {
 
 func (hdlr *FatHandler) AddFat(c fiber.Ctx) error {
 	fat := new(model.Fat)
-	if err := c.Bind().Body(&fat); err != nil {
+	if err := c.Bind().Body(fat); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 

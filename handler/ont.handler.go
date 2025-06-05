@@ -183,3 +183,21 @@ func (hdlr *OntHandler) OntStatusByODNForecast(c fiber.Ctx) error {
 	}
 	return c.JSON(res)
 }
+
+func (h *OntHandler) TrafficOntByDespt(c fiber.Ctx) error {
+	despt, err := url.QueryUnescape(c.Params("despt"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	dates := new(dto.RangeDate)
+	if err := c.Bind().Query(dates); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	traffic, err := h.Usecase.TrafficOntByDespt(despt, *dates)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(traffic)
+}

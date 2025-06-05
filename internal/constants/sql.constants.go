@@ -353,6 +353,52 @@ const SQL_TRAFFIC_ONT string = `
 		ORDER BY date
 	) AS subquery;`
 
+// SQL_TRAFFIC_ONT_BY_DESPT retrieves  traffic data for a specific ONT by Despt
+const SQL_TRAFFIC_ONT_BY_DESPT string = `
+    SELECT
+        date,
+        despt,
+        serial_number,
+        line_prof_name,
+        olt_distance,
+        control_mac_count,
+        control_run_status,
+        CASE
+            WHEN curr_bytes_in < prev_bytes_in THEN ((18446744073709551615 - prev_bytes_in) + curr_bytes_in) * 8 / (time_diff * 1000000)
+            ELSE ((curr_bytes_in - prev_bytes_in) * 8) / (time_diff * 1000000)
+        END AS Mbps_in,
+        CASE
+            WHEN curr_bytes_out < prev_bytes_out THEN ((18446744073709551615 - prev_bytes_out) + curr_bytes_out) * 8 / (time_diff * 1000000)
+            ELSE ((curr_bytes_out - prev_bytes_out) * 8) / (time_diff * 1000000)
+        END AS Mbps_out,
+        CASE
+            WHEN curr_bytes_in < prev_bytes_in THEN ((18446744073709551615 - prev_bytes_in) + curr_bytes_in) / (time_diff * 1000000)
+            ELSE (curr_bytes_in - prev_bytes_in) / (time_diff * 1000000)
+        END AS Mbytes_in_sec,
+        CASE
+            WHEN curr_bytes_out < prev_bytes_out THEN ((18446744073709551615 - prev_bytes_out) + curr_bytes_out) / (time_diff * 1000000)
+            ELSE (curr_bytes_out - prev_bytes_out) / (time_diff * 1000000)
+        END AS Mbytes_out_sec
+    FROM (
+        SELECT
+            date,
+            despt,
+            serial_number,
+            line_prof_name,
+            olt_distance,
+            control_mac_count,
+            control_run_status,
+            bytes_in_count AS prev_bytes_in,
+            bytes_out_count AS prev_bytes_out,
+            LEAD(bytes_in_count) OVER (PARTITION BY despt ORDER BY date) AS curr_bytes_in,
+            LEAD(bytes_out_count) OVER (PARTITION BY despt ORDER BY date) AS curr_bytes_out,
+            EXTRACT(EPOCH FROM (LEAD(date) OVER (PARTITION BY despt ORDER BY date) - date)) AS time_diff
+        FROM measurement_onts
+        WHERE despt = $1 AND bytes_in_count > 0 AND bytes_out_count > 0 AND date BETWEEN $2 AND $3
+        ORDER BY date
+    ) AS subquery;
+`
+
 // SQL_ADD_OLT adds a new OLT to the database.
 const SQL_ADD_OLT string = `
 INSERT INTO olts (ip, community, sys_name, sys_location, is_alive, last_check)

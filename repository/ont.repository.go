@@ -16,6 +16,7 @@ type OntRepository interface {
 	GetOntStatusByOltIP(ctx context.Context, ip string, initDate, endDate time.Time) ([]entity.OntStatusCountsByState, error)
 	GetOntStatusBySysname(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.OntStatusCountsByState, error)
 	TrafficOnt(ctx context.Context, ponID uint64, idx string, initDate, endDate time.Time) ([]entity.TrafficOnt, error)
+	TrafficOntByDespt(ctx context.Context, despt string, initDate, endDate time.Time) ([]entity.TrafficOnt, error)
 }
 
 type ontRepository struct {
@@ -59,5 +60,11 @@ func (repo *ontRepository) GetOntStatusByOltIP(ctx context.Context, ip string, i
 func (repo *ontRepository) TrafficOnt(ctx context.Context, PonID uint64, idx string, initDate, endDate time.Time) ([]entity.TrafficOnt, error) {
 	var res []entity.TrafficOnt
 	err := repo.db.SelectContext(ctx, &res, constants.SQL_TRAFFIC_ONT, PonID, idx, initDate, endDate)
+	return res, err
+}
+
+func (repo *ontRepository) TrafficOntByDespt(ctx context.Context, despt string, initDate, endDate time.Time) ([]entity.TrafficOnt, error) {
+	var res []entity.TrafficOnt
+	err := repo.db.SelectContext(ctx, &res, constants.SQL_TRAFFIC_ONT_BY_DESPT, despt, initDate, endDate)
 	return res, err
 }

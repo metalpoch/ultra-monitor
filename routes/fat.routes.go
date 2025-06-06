@@ -13,16 +13,20 @@ func NewFatRoutes(app *fiber.App, db *sqlx.DB) {
 	}
 
 	route := app.Group("/api/fat")
-	route.Post("/", hdlr.AddFat)
-	route.Post("/upload-csv", hdlr.UpdateFats)
-	route.Delete("/:id", hdlr.DeleteOne)
+
+	// Base
 	route.Get("/", hdlr.GetAll)
+	route.Post("/", hdlr.AddFat)
+	route.Delete("/:id", hdlr.DeleteOne)
 	route.Get("/:id", hdlr.GetByID)
-	route.Get("/fat/:fat", hdlr.GetByFat)
-	route.Get("/odn/:state/:odn", hdlr.GetByOdn)
-	route.Get("/location/:state", hdlr.GetOdnStates)
-	route.Get("/location/:state/:county", hdlr.GetOdnCounty)
-	route.Get("/location/:state/:county/:municipality", hdlr.GetOdnMunicipality)
-	route.Get("/olt/:oltIP", hdlr.GetOdnByOlt)
-	route.Get("/olt/:oltIP/:shell/:card/:port", hdlr.GetOdnOltPort)
+
+	// Locations
+	route.Get("/info/location/", hdlr.GetStates)
+	route.Get("/info/location/:state/", hdlr.GetMunicipality)
+	route.Get("/info/location/:state/:municipality/", hdlr.GetCounty)
+
+	// Fat info by location
+	route.Get("/location/:state", hdlr.GetFatsByStates)
+	route.Get("/location/:state/:municipality", hdlr.GetFatsByMunicipality)
+	route.Get("/location/:state/:municipality/:county", hdlr.GetFatsByCounty)
 }

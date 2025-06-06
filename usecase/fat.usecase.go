@@ -19,6 +19,23 @@ func NewFatUsecase(db *sqlx.DB) *FatUsecase {
 	return &FatUsecase{repository.NewFatRepository(db)}
 }
 
+func (use *FatUsecase) GetAll(pag dto.Pagination) ([]model.Fat, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	res, err := use.repo.AllFat(ctx, pag.Page, pag.Limit)
+	if err != nil {
+		return nil, err
+	}
+
+	var taos []model.Fat
+	for _, t := range res {
+		taos = append(taos, (model.Fat)(t))
+	}
+
+	return taos, nil
+}
+
 func (use *FatUsecase) AddFat(fat model.Fat) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -44,23 +61,6 @@ func (use *FatUsecase) DeleteOne(id int) error {
 	return nil
 }
 
-func (use *FatUsecase) GetAll(pag dto.Pagination) ([]model.Fat, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	res, err := use.repo.AllFat(ctx, pag.Page, pag.Limit)
-	if err != nil {
-		return nil, err
-	}
-
-	var taos []model.Fat
-	for _, t := range res {
-		taos = append(taos, (model.Fat)(t))
-	}
-
-	return taos, nil
-}
-
 func (use *FatUsecase) GetByID(id int) (model.Fat, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -72,86 +72,90 @@ func (use *FatUsecase) GetByID(id int) (model.Fat, error) {
 
 	return (model.Fat)(res), nil
 }
-func (use *FatUsecase) GetByFat(tao string) (model.Fat, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+func (use *FatUsecase) GetStates() ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, err := use.repo.GetByFat(ctx, tao)
-	if err != nil {
-		return model.Fat{}, err
-	}
-
-	return (model.Fat)(res), nil
-}
-func (use *FatUsecase) GetByOdn(state, odn string) ([]model.Fat, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	res, err := use.repo.GetByOdn(ctx, state, odn)
-	if err != nil {
-		return nil, err
-	}
-
-	var taos []model.Fat
-	for _, t := range res {
-		taos = append(taos, (model.Fat)(t))
-	}
-
-	return taos, nil
-}
-
-func (use *FatUsecase) GetOdnStates(state string) ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	res, err := use.repo.GetOdnByStates(ctx, state)
+	res, err := use.repo.GetStates(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	return res, nil
 }
-func (use *FatUsecase) GetOdnCounty(state, county string) ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+func (use *FatUsecase) GetMunicipality(state string) ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, err := use.repo.GetOdnByCounty(ctx, state, county)
+	res, err := use.repo.GetMunicipality(ctx, state)
 	if err != nil {
 		return nil, err
 	}
 
 	return res, nil
 }
-func (use *FatUsecase) GetOdnMunicipality(state, county, municipality string) ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+func (use *FatUsecase) GetCounty(state, municipality string) ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, err := use.repo.GetOdnMunicipality(ctx, state, county, municipality)
+	res, err := use.repo.GetCounty(ctx, state, municipality)
 	if err != nil {
 		return nil, err
 	}
 
 	return res, nil
 }
-func (use *FatUsecase) GetOdnByOlt(oltIP string) ([]string, error) {
+
+func (use *FatUsecase) GetFatsByStates(state string) ([]model.Fat, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	res, err := use.repo.GetOdnByOlt(ctx, oltIP)
+	res, err := use.repo.GetFatsByStates(ctx, state)
 	if err != nil {
 		return nil, err
 	}
 
-	return res, nil
+	var fats []model.Fat
+	for _, e := range res {
+		fats = append(fats, (model.Fat)(e))
+	}
+
+	return fats, nil
 }
-func (use *FatUsecase) GetOdnOltPort(oltIP string, shell, card, port int) ([]string, error) {
+
+func (use *FatUsecase) GetFatsByMunicipality(state, municipality string) ([]model.Fat, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	res, err := use.repo.GetOdnByOltPort(ctx, oltIP, uint8(shell), uint8(card), uint8(port))
+	res, err := use.repo.GetFatsByMunicipality(ctx, state, municipality)
 	if err != nil {
 		return nil, err
 	}
 
-	return res, nil
+	var fats []model.Fat
+	for _, e := range res {
+		fats = append(fats, (model.Fat)(e))
+	}
+
+	return fats, nil
+}
+
+func (use *FatUsecase) GetFatsByCounty(state, municipality, county string) ([]model.Fat, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetFatsByCounty(ctx, state, municipality, county)
+	if err != nil {
+		return nil, err
+	}
+
+	var fats []model.Fat
+	for _, e := range res {
+		fats = append(fats, (model.Fat)(e))
+	}
+
+	return fats, nil
 }

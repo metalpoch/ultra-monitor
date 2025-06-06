@@ -11,9 +11,9 @@ type Fat struct {
 	County       string    `json:"county" csv:"county"`
 	Odn          string    `json:"odn" csv:"odn"`
 	OltIP        string    `json:"olt_ip" csv:"olt_ip"`
-	Shell        uint8     `json:"pon_shell" csv:"pon_shell"`
-	Port         uint8     `json:"pon_port" csv:"pon_port"`
-	Card         uint8     `json:"pon_card" csv:"pon_card"`
+	Shell        uint8     `json:"shell" csv:"pon_shell"`
+	Port         uint8     `json:"port" csv:"pon_port"`
+	Card         uint8     `json:"card" csv:"pon_card"`
 	Latitude     float64   `json:"latitude" csv:"latitude"`
 	Longitude    float64   `json:"longitude" csv:"longitude"`
 	CreatedAt    time.Time `json:"created_at"`

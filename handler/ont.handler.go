@@ -13,14 +13,6 @@ type OntHandler struct {
 	Usecase usecase.OntUsecase
 }
 
-func (hdlr *OntHandler) OntStatus(c fiber.Ctx) error {
-	res, err := hdlr.Usecase.AllOntStatus()
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-	return c.JSON(res)
-}
-
 func (hdlr *OntHandler) OntStatusByState(c fiber.Ctx) error {
 	state, err := url.QueryUnescape(c.Params("state"))
 	if err != nil {
@@ -40,19 +32,31 @@ func (hdlr *OntHandler) OntStatusByOdn(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
+	municipality, err := url.QueryUnescape(c.Params("municipality"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	county, err := url.QueryUnescape(c.Params("county"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
 	odn, err := url.QueryUnescape(c.Params("odn"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	dates := new(dto.RangeDate)
-	if err := c.Bind().Query(dates); err != nil {
+	var dates dto.RangeDate
+	if err := c.Bind().Query(&dates); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
-	res, err := hdlr.Usecase.OntStatusByOdn(state, odn, *dates)
+
+	res, err := hdlr.Usecase.OntStatusByOdn(state, municipality, county, odn, dates)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
+
 	return c.JSON(res)
 }
 
@@ -62,12 +66,12 @@ func (hdlr *OntHandler) OntStatusByOltIP(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	dates := new(dto.RangeDate)
-	if err := c.Bind().Query(dates); err != nil {
+	var dates dto.RangeDate
+	if err := c.Bind().Query(&dates); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.OntStatusByOltIP(ip, *dates)
+	res, err := hdlr.Usecase.OntStatusByOltIP(ip, dates)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -80,12 +84,12 @@ func (hdlr *OntHandler) OntStatusBySysname(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	dates := new(dto.RangeDate)
-	if err := c.Bind().Query(dates); err != nil {
+	var dates dto.RangeDate
+	if err := c.Bind().Query(&dates); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.OntStatusBySysname(sysname, *dates)
+	res, err := hdlr.Usecase.OntStatusBySysname(sysname, dates)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -98,17 +102,17 @@ func (hdlr *OntHandler) TrafficOnt(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	ontIDX, err := url.QueryUnescape(c.Params("ontIDX"))
+	ontIDX, err := fiber.Convert(c.Params("idx"), strconv.Atoi)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	dates := new(dto.RangeDate)
-	if err := c.Bind().Query(dates); err != nil {
+	var dates dto.RangeDate
+	if err := c.Bind().Query(&dates); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.TrafficOnt(uint64(ponID), ontIDX, *dates)
+	res, err := hdlr.Usecase.TrafficOnt(ponID, int64(ontIDX), dates)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -116,20 +120,22 @@ func (hdlr *OntHandler) TrafficOnt(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func (hdlr *OntHandler) AllOntStatusForecast(c fiber.Ctx) error {
-	futureDays, err := strconv.Atoi(c.Query("days", "-1"))
-	if err != nil || futureDays < 1 {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "days must be a positive integer"})
-	}
-	dates := new(dto.RangeDate)
-	if err := c.Bind().Query(dates); err != nil {
+func (hdlr *OntHandler) TrafficOntByDespt(c fiber.Ctx) error {
+	despt, err := url.QueryUnescape(c.Params("despt"))
+	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
-	res, err := hdlr.Usecase.AllOntStatusForecast(*dates, futureDays)
+
+	var dates dto.RangeDate
+	if err := c.Bind().Query(&dates); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	traffic, err := hdlr.Usecase.TrafficOntByDespt(despt, dates)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.JSON(res)
+	return c.JSON(traffic)
 }
 
 func (hdlr *OntHandler) OntStatusByStateForecast(c fiber.Ctx) error {
@@ -137,15 +143,12 @@ func (hdlr *OntHandler) OntStatusByStateForecast(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
+
 	futureDays, err := strconv.Atoi(c.Query("days", "-1"))
 	if err != nil || futureDays < 1 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "days must be a positive integer"})
 	}
-	dates := new(dto.RangeDate)
-	if err := c.Bind().Query(dates); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-	res, err := hdlr.Usecase.OntStatusByStateForecast(state, *dates, futureDays)
+	res, err := hdlr.Usecase.OntStatusByStateForecast(state, futureDays)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -157,39 +160,35 @@ func (hdlr *OntHandler) OntStatusByODNForecast(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
+
+	municipality, err := url.QueryUnescape(c.Params("municipality"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	county, err := url.QueryUnescape(c.Params("county"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
 	odn, err := url.QueryUnescape(c.Params("odn"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
+
 	futureDays, err := strconv.Atoi(c.Query("days", "-1"))
 	if err != nil || futureDays < 1 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "days must be a positive integer"})
 	}
-	dates := new(dto.RangeDate)
-	if err := c.Bind().Query(dates); err != nil {
+
+	var dates dto.RangeDate
+	if err := c.Bind().Query(&dates); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
-	res, err := hdlr.Usecase.OntStatusByODNForecast(state, odn, *dates, futureDays)
+
+	res, err := hdlr.Usecase.OntStatusByODNForecast(state, municipality, county, odn, dates, futureDays)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 	return c.JSON(res)
-}
-
-func (h *OntHandler) TrafficOntByDespt(c fiber.Ctx) error {
-	despt, err := url.QueryUnescape(c.Params("despt"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-
-	dates := new(dto.RangeDate)
-	if err := c.Bind().Query(dates); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-
-	traffic, err := h.Usecase.TrafficOntByDespt(despt, *dates)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
-	}
-	return c.JSON(traffic)
 }

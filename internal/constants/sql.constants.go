@@ -1,25 +1,5 @@
 package constants
 
-// SQL_CREATE_USER creates a new user in the database.
-const SQL_CREATE_USER string = `
-INSERT INTO users (id, fullname, username, password, change_password, is_admin, is_disabled)
-VALUES (:id, :fullname, :username, :password, :change_password, :is_admin, :is_disabled);`
-
-// SQL_USER_BY_ID retrieves a user by their ID.
-const SQL_USER_BY_ID string = `SELECT * FROM users WHERE id = $1;`
-
-// SQL_USER_BY_USERNAME retrieves a user by username.
-const SQL_USER_BY_USERNAME string = `SELECT * FROM users WHERE username = $1;`
-
-// SQL_DISABLE_USER disables a user by setting is_disabled to true.
-const SQL_DISABLE_USER string = `UPDATE users SET is_disabled = true WHERE id = $1;`
-
-// SQL_ENABLE_USER enables a previously disabled user.
-const SQL_ENABLE_USER string = `UPDATE users SET is_disabled = false WHERE id = $1;`
-
-// SQL_CHANGE_PASSWORD updates a user's password and sets change_password to false.
-const SQL_CHANGE_PASSWORD string = `UPDATE users SET password = $1, change_password = false WHERE id = $2;`
-
 // SQL_TOTAL_TRAFFIC retrieves total traffic data aggregated by minute.
 const SQL_TOTAL_TRAFFIC string = `
 		SELECT
@@ -135,10 +115,8 @@ const SQL_TRAFFIC_BY_PON string = `
     ORDER BY date;`
 
 // SQL_PONS_BY_OLT retrieves all PON interfaces associated with a specific OLT.
-const SQL_PONS_BY_OLT string = `SELECT pons.* FROM pons JOIN olts ON olts.ip = pons.olt_ip WHERE olts.sys_name = $1`
 
 // SQL_PON_BY_PORT retrieves a specific PON interface by its port name on a given OLT.
-const SQL_PON_BY_PORT string = `SELECT pons.* FROM pons JOIN olts ON olts.ip = pons.olt_ip WHERE olts.sys_name = $1 AND pons.if_name = $2`
 
 // SQL_ALL_ONT_STATUS retrieves ONT status counts for all states within a date range.
 const SQL_ALL_ONT_STATUS string = `
@@ -175,282 +153,28 @@ const SQL_ALL_ONT_STATUS string = `
     ORDER BY state, date;`
 
 // SQL_ONT_STATUS_BY_STATE retrieves ONT status counts for a specific state within a date range.
-const SQL_ONT_STATUS_BY_STATE string = `
-	WITH ranked_status AS (
-        SELECT
-            olts.sys_name AS sysname,
-            DATE_TRUNC('day', measurement_onts.date) AS date,
-            measurement_onts.pon_id,
-            measurement_onts.idx,
-            MIN(
-                CASE
-                    WHEN control_run_status = 1 THEN 1
-                    WHEN control_run_status = 2 THEN 2
-                    ELSE 3
-                END
-            ) AS status_priority
-        FROM measurement_onts
-        JOIN pons ON measurement_onts.pon_id = pons.id
-        JOIN olts ON pons.olt_ip = olts.ip
-        JOIN fats ON fats.olt_ip = olts.ip
-        WHERE fats.state = $1 AND measurement_onts.date BETWEEN $2 AND $3
-        GROUP BY sysname, DATE_TRUNC('day', measurement_onts.date), measurement_onts.pon_id, measurement_onts.idx
-    )
-    SELECT
-        sysname,
-        date,
-        COUNT(DISTINCT pon_id) AS ports_pon,
-        SUM(CASE WHEN status_priority = 1 THEN 1 ELSE 0 END) AS actives,
-        SUM(CASE WHEN status_priority = 2 THEN 1 ELSE 0 END) AS inactives,
-        SUM(CASE WHEN status_priority = 3 THEN 1 ELSE 0 END) AS unknowns,
-        COUNT(*) AS total
-    FROM ranked_status
-    GROUP BY sysname, date
-    ORDER BY sysname, date;`
 
 // SQL_ONT_STATUS_BY_ODN retrieves ONT status counts for a specific ODN within a state and date range.
-const SQL_ONT_STATUS_BY_ODN string = `
-	WITH ranked_status AS (
-        SELECT
-            olts.sys_name AS sysname,
-            DATE_TRUNC('day', measurement_onts.date) AS date,
-            measurement_onts.pon_id,
-            measurement_onts.idx,
-            MIN(
-                CASE
-                    WHEN control_run_status = 1 THEN 1
-                    WHEN control_run_status = 2 THEN 2
-                    ELSE 3
-                END
-            ) AS status_priority
-        FROM measurement_onts
-        JOIN pons ON measurement_onts.pon_id = pons.id
-        JOIN olts ON pons.olt_ip = olts.ip
-        JOIN fats ON fats.olt_ip = olts.ip
-        WHERE fats.odn = $1 AND measurement_onts.date BETWEEN $2 AND $3
-        GROUP BY sysname, DATE_TRUNC('day', measurement_onts.date), measurement_onts.pon_id, measurement_onts.idx
-    )
-    SELECT
-        sysname,
-        date,
-        COUNT(DISTINCT pon_id) AS ports_pon,
-        SUM(CASE WHEN status_priority = 1 THEN 1 ELSE 0 END) AS actives,
-        SUM(CASE WHEN status_priority = 2 THEN 1 ELSE 0 END) AS inactives,
-        SUM(CASE WHEN status_priority = 3 THEN 1 ELSE 0 END) AS unknowns,
-        COUNT(*) AS total
-    FROM ranked_status
-    GROUP BY sysname, date
-    ORDER BY sysname, date;`
 
 // SQL_ONT_STATUS_BY_SYSNAME retrieves ONT status counts for a specific ip within a date range.
-const SQL_ONT_STATUS_BY_OLT_IP string = `
-	WITH ranked_status AS (
-        SELECT
-            olts.sys_name AS sysname,
-            DATE_TRUNC('day', measurement_onts.date) AS date,
-            measurement_onts.pon_id,
-            measurement_onts.idx,
-            MIN(
-                CASE
-                    WHEN control_run_status = 1 THEN 1
-                    WHEN control_run_status = 2 THEN 2
-                    ELSE 3
-                END
-            ) AS status_priority
-        FROM measurement_onts
-        JOIN pons ON measurement_onts.pon_id = pons.id
-        JOIN olts ON pons.olt_ip = olts.ip
-        WHERE olts.ip = $1 AND measurement_onts.date BETWEEN $2 AND $3
-        GROUP BY sysname, DATE_TRUNC('day', measurement_onts.date), measurement_onts.pon_id, measurement_onts.idx
-    )
-    SELECT
-        sysname,
-        date,
-        COUNT(DISTINCT pon_id) AS ports_pon,
-        SUM(CASE WHEN status_priority = 1 THEN 1 ELSE 0 END) AS actives,
-        SUM(CASE WHEN status_priority = 2 THEN 1 ELSE 0 END) AS inactives,
-        SUM(CASE WHEN status_priority = 3 THEN 1 ELSE 0 END) AS unknowns,
-        COUNT(*) AS total
-    FROM ranked_status
-    GROUP BY sysname, date
-    ORDER BY sysname, date;`
 
 // SQL_ONT_STATUS_BY_SYSNAME retrieves ONT status counts for a specific sysname within a date range.
-const SQL_ONT_STATUS_BY_SYSNAME string = `
-	WITH ranked_status AS (
-        SELECT
-            olts.sys_name AS sysname,
-            DATE_TRUNC('day', measurement_onts.date) AS date,
-            measurement_onts.pon_id,
-            measurement_onts.idx,
-            MIN(
-                CASE
-                    WHEN control_run_status = 1 THEN 1
-                    WHEN control_run_status = 2 THEN 2
-                    ELSE 3
-                END
-            ) AS status_priority
-        FROM measurement_onts
-        JOIN pons ON measurement_onts.pon_id = pons.id
-        JOIN olts ON pons.olt_ip = olts.ip
-        WHERE olts.sys_name = $1 AND measurement_onts.date BETWEEN $2 AND $3
-        GROUP BY sysname, DATE_TRUNC('day', measurement_onts.date), measurement_onts.pon_id, measurement_onts.idx
-    )
-    SELECT
-        sysname,
-        date,
-        COUNT(DISTINCT pon_id) AS ports_pon,
-        SUM(CASE WHEN status_priority = 1 THEN 1 ELSE 0 END) AS actives,
-        SUM(CASE WHEN status_priority = 2 THEN 1 ELSE 0 END) AS inactives,
-        SUM(CASE WHEN status_priority = 3 THEN 1 ELSE 0 END) AS unknowns,
-        COUNT(*) AS total
-    FROM ranked_status
-    GROUP BY sysname, date
-    ORDER BY sysname, date;`
 
 // SQL_TRAFFIC_ONT retrieves traffic data for a specific ONT, including calculated Mbps and Mbytes per second.
-const SQL_TRAFFIC_ONT string = `
-	SELECT
-		date,
-		despt,
-		serial_number,
-		line_prof_name,
-		olt_distance,
-    		control_mac_count,
-		control_run_status,
-		CASE
-		WHEN curr_bytes_in < prev_bytes_in THEN ((18446744073709551615 - prev_bytes_in) + curr_bytes_in) * 8 / (time_diff * 1000000)
-		ELSE ((curr_bytes_in - prev_bytes_in) * 8) / (time_diff * 1000000)
-		END AS Mbps_in,
-		CASE
-		WHEN curr_bytes_out < prev_bytes_out THEN ((18446744073709551615 - prev_bytes_out) + curr_bytes_out) * 8 / (time_diff * 1000000)
-		ELSE ((curr_bytes_out - prev_bytes_out) * 8) / (time_diff * 1000000)
-		END AS Mbps_out,
-		CASE
-		WHEN curr_bytes_in < prev_bytes_in THEN ((18446744073709551615 - prev_bytes_in) + curr_bytes_in) / (time_diff * 1000000)
-		ELSE (curr_bytes_in - prev_bytes_in) / (time_diff * 1000000)
-		END AS Mbytes_in_sec,
-		CASE
-		WHEN curr_bytes_out < prev_bytes_out THEN ((18446744073709551615 - prev_bytes_out) + curr_bytes_out) / (time_diff * 1000000)
-		ELSE (curr_bytes_out - prev_bytes_out) / (time_diff * 1000000)
-		END AS Mbytes_out_sec
-	FROM (
-		SELECT
-			date,
-			despt,
-			serial_number,
-    			line_prof_name,
-			olt_distance,
-    			control_mac_count, 
-			control_run_status,
-			bytes_in_count AS prev_bytes_in,
-			bytes_out_count AS prev_bytes_out,
-			LEAD(bytes_in_count) OVER (PARTITION BY pon_id ORDER BY date) AS curr_bytes_in,
-			LEAD(bytes_out_count) OVER (PARTITION BY pon_id ORDER BY date) AS curr_bytes_out,
-			EXTRACT(EPOCH FROM (LEAD(date) OVER (PARTITION BY pon_id ORDER BY date) - date)) AS time_diff
-		FROM measurement_onts
-		WHERE pon_id = $1 AND idx = $2 AND bytes_in_count > 0 AND bytes_out_count > 0 AND date BETWEEN $3 AND $4
-		ORDER BY date
-	) AS subquery;`
 
 // SQL_TRAFFIC_ONT_BY_DESPT retrieves  traffic data for a specific ONT by Despt
-const SQL_TRAFFIC_ONT_BY_DESPT string = `
-    SELECT
-        date,
-        despt,
-        serial_number,
-        line_prof_name,
-        olt_distance,
-        control_mac_count,
-        control_run_status,
-        CASE
-            WHEN curr_bytes_in < prev_bytes_in THEN ((18446744073709551615 - prev_bytes_in) + curr_bytes_in) * 8 / (time_diff * 1000000)
-            ELSE ((curr_bytes_in - prev_bytes_in) * 8) / (time_diff * 1000000)
-        END AS Mbps_in,
-        CASE
-            WHEN curr_bytes_out < prev_bytes_out THEN ((18446744073709551615 - prev_bytes_out) + curr_bytes_out) * 8 / (time_diff * 1000000)
-            ELSE ((curr_bytes_out - prev_bytes_out) * 8) / (time_diff * 1000000)
-        END AS Mbps_out,
-        CASE
-            WHEN curr_bytes_in < prev_bytes_in THEN ((18446744073709551615 - prev_bytes_in) + curr_bytes_in) / (time_diff * 1000000)
-            ELSE (curr_bytes_in - prev_bytes_in) / (time_diff * 1000000)
-        END AS Mbytes_in_sec,
-        CASE
-            WHEN curr_bytes_out < prev_bytes_out THEN ((18446744073709551615 - prev_bytes_out) + curr_bytes_out) / (time_diff * 1000000)
-            ELSE (curr_bytes_out - prev_bytes_out) / (time_diff * 1000000)
-        END AS Mbytes_out_sec
-    FROM (
-        SELECT
-            date,
-            despt,
-            serial_number,
-            line_prof_name,
-            olt_distance,
-            control_mac_count,
-            control_run_status,
-            bytes_in_count AS prev_bytes_in,
-            bytes_out_count AS prev_bytes_out,
-            LEAD(bytes_in_count) OVER (PARTITION BY despt ORDER BY date) AS curr_bytes_in,
-            LEAD(bytes_out_count) OVER (PARTITION BY despt ORDER BY date) AS curr_bytes_out,
-            EXTRACT(EPOCH FROM (LEAD(date) OVER (PARTITION BY despt ORDER BY date) - date)) AS time_diff
-        FROM measurement_onts
-        WHERE despt = $1 AND bytes_in_count > 0 AND bytes_out_count > 0 AND date BETWEEN $2 AND $3
-        ORDER BY date
-    ) AS subquery;
-`
-
-// SQL_ADD_OLT adds a new OLT to the database.
-const SQL_ADD_OLT string = `
-INSERT INTO olts (ip, community, sys_name, sys_location, is_alive, last_check)
-VALUES (:ip, :community, :sys_name, :sys_location, :is_alive, :last_check)`
-
-// SQL_GET_OLT retrieves an OLT by its ID.
-const SQL_GET_OLT string = `SELECT * FROM olts WHERE ip = $1`
-
-// SQL_UPDATE_OLT updates an existing OLT in the database.
-const SQL_UPDATE_OLT string = `
-    UPDATE olts SET
-        community = :community,
-        sys_name = :sys_name,
-        sys_location = :sys_location,
-        is_alive = :is_alive,
-        last_check = :last_check
-    WHERE ip = :ip`
 
 // SQL_DELETE_OLT deletes an OLT from the database by its ID.
-const SQL_DELETE_OLT string = `DELETE FROM olts WHERE ip = $1`
 
 // SQL_GET_ALL_OLTS retrieves all OLTs from the database.
-const SQL_GET_ALL_OLTS string = `SELECT * FROM olts ORDER BY sys_name LIMIT $1 OFFSET $2`
 
 // SQL_GET_OLTS_BY_STATE retrieves OLTs by their state, with pagination.
-const SQL_GET_OLTS_BY_STATE string = `
-    SELECT DISTINCT olts.*
-    FROM olts
-    JOIN fats ON fats.olt_ip = olts.ip
-    WHERE fats.state = $1
-    ORDER BY olts.sys_name LIMIT $2 OFFSET $3`
 
 // SQL_GET_OLTS_BY_COUNTY retrieves OLTs by their state and county, with pagination.
-const SQL_GET_OLTS_BY_COUNTY string = `
-	SELECT DISTINCT olts.*
-	FROM olts
-	JOIN fats ON fats.olt_ip = olts.ip
-	WHERE fats.state = $1 AND fats.county = $2
-	ORDER BY olts.sys_name
-	LIMIT $3 OFFSET $4`
 
 // SQL_GET_OLTS_BY_MUNICIPALITY retrieves OLTs by their state, county, and municipality, with pagination.
-const SQL_GET_OLTS_BY_MUNICIPALITY string = `
-	SELECT DISTINCT olts.*
-	FROM olts
-	JOIN fats ON fats.olt_ip = olts.ip
-	WHERE fats.state = $1 AND fats.county = $2 AND fats.municipality = $3
-	ORDER BY olts.sys_name
-	LIMIT $4 OFFSET $5`
 
 // SQL_GET_OLTS_IPS retrieves all unique OLT IP addresses from the database.
-const SQL_GET_OLTS_IPS string = `SELECT DISTINCT ip FROM olts ORDER BY ip`
 
 // SQL_UPSERT_OLT updates an existing OLT or inserts a new one if it does not exist.
 const SQL_UPSERT_OLT string = `
@@ -497,29 +221,11 @@ const SQL_INSERT_MANY_MEASUREMENT_ONT_PREFIX string = `
             control_mac_count, control_run_status, bytes_in_count, bytes_out_count, date
         ) VALUES `
 
-// SQL_INSERT_FAT is the SQL statement to insert a new FAT (Fiber Access Terminal) record.
-const SQL_INSERT_FAT string = `
-    INSERT INTO fats (
-        fat, region, state, municipality, county, odn, olt_ip,
-        pon_shell, pon_port, pon_card, latitude, longitude
-    ) VALUES (
-        :fat, :region, :state, :municipality, :county, :odn, :olt_ip,
-        :pon_shell, :pon_port, :pon_card, :latitude, :longitude
-    )
-    ON CONFLICT (fat, state, municipality, county, olt_ip, odn, pon_shell, pon_card, pon_port)
-    DO UPDATE SET
-        region = EXCLUDED.region,
-        latitude = EXCLUDED.latitude,
-        longitude = EXCLUDED.longitude;`
-
 // SQL_DELETE_FAT_BY_ID is the SQL statement to delete a FAT record by its ID.
-const SQL_DELETE_FAT_BY_ID = `DELETE FROM fats WHERE id = $1`
 
 // SQL_SELECT_ALL_FATS retrieves all FAT records with pagination.
-const SQL_SELECT_ALL_FATS = `SELECT * FROM fats ORDER BY region, state, municipality, county LIMIT $1 OFFSET $2`
 
 // SQL_SELECT_FAT_BY_ID retrieves a FAT record by its ID.
-const SQL_SELECT_FAT_BY_ID = `SELECT * FROM fats WHERE id = $1`
 
 // SQL_SELECT_FAT_BY_FAT retrieves a FAT record by its FAT identifier.
 const SQL_SELECT_FAT_BY_FAT = `SELECT * FROM fats WHERE fat = $1`

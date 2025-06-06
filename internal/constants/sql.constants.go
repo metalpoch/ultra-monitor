@@ -531,10 +531,10 @@ const SQL_SELECT_FATS_BY_ODN = `SELECT * FROM fats WHERE state = $1 AND odn = $2
 const SQL_SELECT_DISTINCT_ODN_BY_STATE = `SELECT DISTINCT odn FROM fats WHERE state = $1 ORDER BY odn`
 
 // SQL_SELECT_DISTINCT_ODN_BY_COUNTY retrieves distinct ODNs for a specific state and county, ordered by ODN.
-const SQL_SELECT_DISTINCT_ODN_BY_COUNTY = `SELECT DISTINCT odn FROM fats WHERE state = $1 AND county = $2 ORDER BY odn`
+const SQL_SELECT_DISTINCT_ODN_BY_COUNTY = `SELECT DISTINCT odn FROM fats WHERE state = $1 AND municipality = $2 AND county = $3 ORDER BY odn`
 
 // SQL_SELECT_DISTINCT_ODN_BY_MUNICIPALITY retrieves distinct ODNs for a specific state, county, and municipality, ordered by ODN.
-const SQL_SELECT_DISTINCT_ODN_BY_MUNICIPALITY = `SELECT DISTINCT odn FROM fats WHERE state = $1 AND county = $2 AND municipality = $3 ORDER BY odn`
+const SQL_SELECT_DISTINCT_ODN_BY_MUNICIPALITY = `SELECT DISTINCT odn FROM fats WHERE state = $1 AND municipality = $3 ORDER BY odn`
 
 // SQL_SELECT_DISTINCT_ODN_BY_OLT retrieves distinct ODNs for a specific OLT, ordered by ODN.
 const SQL_SELECT_DISTINCT_ODN_BY_OLT = `SELECT DISTINCT odn FROM fats WHERE olt_ip = $1 ORDER BY odn`

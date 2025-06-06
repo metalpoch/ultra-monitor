@@ -83,13 +83,13 @@ func (repo *fatRepository) GetFatsByStates(ctx context.Context, state string) ([
 func (repo *fatRepository) GetFatsByMunicipality(ctx context.Context, state, municipality string) ([]entity.Fat, error) {
 	var res []entity.Fat
 	query := `SELECT * FROM fats WHERE state = $1 AND municipality = $2 ORDER BY id;`
-	err := repo.db.SelectContext(ctx, &res, query, state)
+	err := repo.db.SelectContext(ctx, &res, query, state, municipality)
 	return res, err
 }
 
 func (repo *fatRepository) GetFatsByCounty(ctx context.Context, state, municipality, county string) ([]entity.Fat, error) {
 	var res []entity.Fat
 	query := `SELECT * FROM fats WHERE state = $1 AND municipality = $2 AND county = $3 ORDER BY id;`
-	err := repo.db.SelectContext(ctx, &res, query, state)
+	err := repo.db.SelectContext(ctx, &res, query, state, municipality, county)
 	return res, err
 }

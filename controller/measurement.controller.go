@@ -46,7 +46,7 @@ func (ctrl MeasurementController) bytesToBbps(prev, curr, bandwidth, diffDate ui
 }
 
 func (ctrl MeasurementController) GetIPs() ([]string, error) {
-	return ctrl.olt.GetIPs()
+	return ctrl.olt.GetAllIP()
 }
 
 func (ctrl MeasurementController) GetPonsBySysname(sysname string) ([]model.Pon, error) {

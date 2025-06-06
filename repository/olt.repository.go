@@ -5,19 +5,18 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/metalpoch/ultra-monitor/entity"
-	"github.com/metalpoch/ultra-monitor/internal/constants"
 )
 
 type OltRepository interface {
 	Add(ctx context.Context, olt *entity.Olt) error
-	Update(ctx context.Context, olt entity.Olt) error
-	Delete(ctx context.Context, id int32) error
-	Olt(ctx context.Context, id int32) (entity.Olt, error)
-	Olts(ctx context.Context, page, limit uint16) ([]entity.Olt, error)
-	OltsByState(ctx context.Context, state string, page, limit uint16) ([]entity.Olt, error)
-	OltsByCounty(ctx context.Context, state, county string, page, limit uint16) ([]entity.Olt, error)
-	OltsByMunicipality(ctx context.Context, state, county, municipality string, page, limit uint16) ([]entity.Olt, error)
-	GetIPs(ctx context.Context) ([]string, error)
+	Olt(ctx context.Context, id string) (entity.Olt, error)
+	Olts(ctx context.Context) ([]entity.Olt, error)
+	Delete(ctx context.Context, id string) error
+	GetAllIP(ctx context.Context) ([]string, error)
+	GetAllSysname(ctx context.Context) ([]string, error)
+	OltsByState(ctx context.Context, state string) ([]entity.Olt, error)
+	OltsByMunicipality(ctx context.Context, state, municipality string) ([]entity.Olt, error)
+	OltsByCounty(ctx context.Context, state, municipality, county string) ([]entity.Olt, error)
 }
 
 type oltRepository struct {
@@ -29,60 +28,86 @@ func NewOltRepository(db *sqlx.DB) *oltRepository {
 }
 
 func (repo *oltRepository) Add(ctx context.Context, olt *entity.Olt) error {
-	_, err := repo.db.NamedExecContext(ctx, constants.SQL_ADD_OLT, olt)
+	query := `
+	INSERT INTO olts (ip, community, sys_name, sys_location, is_alive, last_check)
+	VALUES (:ip, :community, :sys_name, :sys_location, :is_alive, :last_check)`
+	_, err := repo.db.NamedExecContext(ctx, query, olt)
 	return err
 }
 
-func (repo *oltRepository) Olt(ctx context.Context, id int32) (entity.Olt, error) {
+func (repo *oltRepository) Olt(ctx context.Context, id string) (entity.Olt, error) {
 	var olt entity.Olt
-	err := repo.db.GetContext(ctx, &olt, constants.SQL_GET_OLT, id)
+	query := `SELECT * FROM olts WHERE ip = $1`
+	err := repo.db.GetContext(ctx, &olt, query, id)
 	if err != nil {
 		return olt, err
 	}
 	return olt, nil
 }
+func (repo *oltRepository) Olts(ctx context.Context) ([]entity.Olt, error) {
+	var res []entity.Olt
+	query := `SELECT * FROM olts ORDER BY sys_name`
+	err := repo.db.GetContext(ctx, &res, query)
+	return res, err
+}
 
-func (repo *oltRepository) Update(ctx context.Context, olt entity.Olt) error {
-	_, err := repo.db.NamedExecContext(ctx, constants.SQL_UPDATE_OLT, olt)
+func (repo *oltRepository) Delete(ctx context.Context, id string) error {
+	query := `DELETE FROM olts WHERE ip = $1`
+	_, err := repo.db.ExecContext(ctx, query, id)
 	return err
 }
 
-func (repo *oltRepository) Delete(ctx context.Context, id int32) error {
-	_, err := repo.db.ExecContext(ctx, constants.SQL_DELETE_OLT, id)
-	return err
-}
-
-func (repo *oltRepository) Olts(ctx context.Context, page, limit uint16) ([]entity.Olt, error) {
+func (repo *oltRepository) OltsByState(ctx context.Context, state string) ([]entity.Olt, error) {
 	var res []entity.Olt
-	offset := (page - 1) * limit
-	err := repo.db.SelectContext(ctx, &res, constants.SQL_GET_ALL_OLTS, limit, offset)
+	query := `
+    SELECT DISTINCT olts.*
+    FROM olts
+    JOIN fats ON fats.olt_ip = olts.ip
+    WHERE fats.state = $1
+    ORDER BY olts.sys_name`
+	err := repo.db.SelectContext(ctx, &res, query, state)
 	return res, err
 }
 
-func (repo *oltRepository) OltsByState(ctx context.Context, state string, page, limit uint16) ([]entity.Olt, error) {
+func (repo *oltRepository) OltsByMunicipality(ctx context.Context, state, municipality string) ([]entity.Olt, error) {
 	var res []entity.Olt
-	offset := (page - 1) * limit
-	err := repo.db.SelectContext(ctx, &res, constants.SQL_GET_OLTS_BY_STATE, state, limit, offset)
+	query := `
+	SELECT DISTINCT olts.*
+	FROM olts
+	JOIN fats ON fats.olt_ip = olts.ip
+	WHERE fats.state = $1 AND fats.municipality = $2
+	ORDER BY olts.sys_name`
+	err := repo.db.SelectContext(ctx, &res, query, state, municipality)
 	return res, err
 }
 
-func (repo *oltRepository) OltsByCounty(ctx context.Context, state, county string, page, limit uint16) ([]entity.Olt, error) {
+func (repo *oltRepository) OltsByCounty(ctx context.Context, state, municipality, county string) ([]entity.Olt, error) {
 	var res []entity.Olt
-	offset := (page - 1) * limit
-	err := repo.db.SelectContext(ctx, &res, constants.SQL_GET_OLTS_BY_COUNTY, state, county, limit, offset)
+	query := `
+	SELECT DISTINCT olts.*
+	FROM olts
+	JOIN fats ON fats.olt_ip = olts.ip
+	WHERE fats.state = $1 AND fats.municipality = $2 AND fats.county = $3
+	ORDER BY olts.sys_name`
+
+	err := repo.db.SelectContext(ctx, &res, query, state, municipality, county)
 	return res, err
 }
 
-func (repo *oltRepository) OltsByMunicipality(ctx context.Context, state, county, municipality string, page, limit uint16) ([]entity.Olt, error) {
-	var res []entity.Olt
-	offset := (page - 1) * limit
-	err := repo.db.SelectContext(ctx, &res, constants.SQL_GET_OLTS_BY_MUNICIPALITY, state, county, municipality, limit, offset)
-	return res, err
-}
-
-func (repo *oltRepository) GetIPs(ctx context.Context) ([]string, error) {
+func (repo *oltRepository) GetAllIP(ctx context.Context) ([]string, error) {
 	var res []string
-	err := repo.db.SelectContext(ctx, &res, constants.SQL_GET_OLTS_IPS)
+	query := `SELECT DISTINCT ip FROM olts ORDER BY ip`
+	err := repo.db.SelectContext(ctx, &res, query)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (repo *oltRepository) GetAllSysname(ctx context.Context) ([]string, error) {
+	var res []string
+	query := `SELECT DISTINCT sysname FROM olts ORDER BY sysname`
+	err := repo.db.SelectContext(ctx, &res, query)
 	if err != nil {
 		return nil, err
 	}

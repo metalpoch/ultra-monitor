@@ -24,7 +24,7 @@ func (ctrl OltController) AddOlt(olt dto.NewOlt) error {
 }
 
 func (ctrl OltController) ShowAllOlt(csv bool) ([]model.Olt, error) {
-	olts, err := ctrl.Usecase.Olts(constants.DEFAULT_PAGE, constants.DEFAULT_LIMIT)
+	olts, err := ctrl.Usecase.Olts()
 	if err != nil {
 		return nil, err
 	}
@@ -62,10 +62,6 @@ func (ctrl OltController) ShowAllOlt(csv bool) ([]model.Olt, error) {
 	return nil, nil
 }
 
-func (d OltController) Update(id int, olt dto.NewOlt) error {
-	return d.Usecase.Update(id, olt)
-}
-
-func (d OltController) Delete(id int) error {
+func (d OltController) Delete(id string) error {
 	return d.Usecase.Delete(id)
 }

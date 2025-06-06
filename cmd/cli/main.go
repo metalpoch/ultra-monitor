@@ -79,30 +79,13 @@ func main() {
 						},
 					},
 					{
-						Name:  "update",
-						Usage: "update a device by id",
-						Flags: []cli.Flag{
-							&cli.IntFlag{Name: "id", Usage: "olt id", Required: true},
-							&cli.StringFlag{Name: "ip", Usage: "new ip"},
-							&cli.StringFlag{Name: "community", Usage: "new community"},
-						},
-						Action: func(cCtx *cli.Context) error {
-							err := controller.NewOltController(db).
-								Update(cCtx.Int("id"), dto.NewOlt{
-									IP:        cCtx.String("ip"),
-									Community: cCtx.String("community"),
-								})
-							return err
-						},
-					},
-					{
 						Name:  "delete",
 						Usage: "delete a device by id",
 						Flags: []cli.Flag{
-							&cli.IntFlag{Name: "id", Usage: "olt id", Required: true},
+							&cli.StringFlag{Name: "ip", Usage: "olt ip", Required: true},
 						},
 						Action: func(cCtx *cli.Context) error {
-							err := controller.NewOltController(db).Delete(cCtx.Int("id"))
+							err := controller.NewOltController(db).Delete(cCtx.String("ip"))
 							return err
 						},
 					},
@@ -143,7 +126,7 @@ func main() {
 							var mu sync.Mutex
 
 							for {
-								olts, err := controller.NewOltController(db).Usecase.Olts(constants.DEFAULT_PAGE, constants.DEFAULT_LIMIT)
+								olts, err := controller.NewOltController(db).Usecase.Olts()
 								if err != nil {
 									log.Fatalln(err)
 								}
@@ -212,7 +195,7 @@ func main() {
 							}()
 
 							for {
-								olts, err := controller.NewOltController(db).Usecase.Olts(constants.DEFAULT_PAGE, constants.DEFAULT_LIMIT)
+								olts, err := controller.NewOltController(db).Usecase.Olts()
 								if err != nil {
 									log.Fatalln(err)
 								}

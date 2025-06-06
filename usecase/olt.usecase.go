@@ -40,113 +40,93 @@ func (uc *OltUsecase) Add(olt dto.NewOlt) error {
 	})
 }
 
-func (uc *OltUsecase) Update(id int, olt dto.NewOlt) error {
+func (uc *OltUsecase) Olt(ip string) (model.Olt, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	e, err := uc.repo.Olt(ctx, int32(id))
-	if err != nil {
-		return err
-	}
-
-	if olt.IP != "" {
-		e.IP = olt.IP
-	}
-	if olt.Community != "" {
-		e.Community = olt.Community
-	}
-	return uc.repo.Update(ctx, e)
-}
-
-func (uc *OltUsecase) Delete(id int) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	return uc.repo.Delete(ctx, int32(id))
-
-}
-
-func (uc *OltUsecase) Olt(id int) (model.Olt, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	e, err := uc.repo.Olt(ctx, int32(id))
+	e, err := uc.repo.Olt(ctx, ip)
 	return (model.Olt)(e), err
 }
 
-func (uc *OltUsecase) Olts(page, limit uint16) ([]model.Olt, error) {
-	var olt []model.Olt
+func (uc *OltUsecase) Olts() ([]model.Olt, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, err := uc.repo.Olts(ctx, page, limit)
-	if err != nil {
-		return nil, err
-	}
-
+	res, err := uc.repo.Olts(ctx)
+	var olts []model.Olt
 	for _, e := range res {
-		olt = append(olt, (model.Olt)(e))
+		olts = append(olts, (model.Olt)(e))
 	}
 
-	return olt, err
+	return olts, err
 }
 
-func (uc *OltUsecase) OltsByState(state string, page, limit uint16) ([]model.Olt, error) {
-	var olt []model.Olt
+func (uc *OltUsecase) Delete(ip string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+	return uc.repo.Delete(ctx, ip)
 
-	res, err := uc.repo.OltsByState(ctx, state, page, limit)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, e := range res {
-		olt = append(olt, (model.Olt)(e))
-	}
-
-	return olt, err
 }
 
-func (uc *OltUsecase) OltsByCounty(state, county string, page, limit uint16) ([]model.Olt, error) {
-	var olt []model.Olt
+func (uc *OltUsecase) GetAllIP() ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
-	res, err := uc.repo.OltsByCounty(ctx, state, county, page, limit)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, e := range res {
-		olt = append(olt, (model.Olt)(e))
-	}
-
-	return olt, err
-}
-func (uc *OltUsecase) OltsByMunicipality(state, county, municipality string, page, limit uint16) ([]model.Olt, error) {
-	var olt []model.Olt
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	res, err := uc.repo.OltsByMunicipality(ctx, state, county, municipality, page, limit)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, e := range res {
-		olt = append(olt, (model.Olt)(e))
-	}
-
-	return olt, err
+	return uc.repo.GetAllIP(ctx)
 }
 
-func (uc *OltUsecase) GetIPs() ([]string, error) {
+func (uc *OltUsecase) GetAllSysname() ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	return uc.repo.GetAllSysname(ctx)
+}
+
+func (uc *OltUsecase) OltsByState(state string) ([]model.Olt, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, err := uc.repo.GetIPs(ctx)
+	res, err := uc.repo.OltsByState(ctx, state)
 	if err != nil {
 		return nil, err
 	}
-	return res, err
+
+	var olts []model.Olt
+	for _, e := range res {
+		olts = append(olts, (model.Olt)(e))
+	}
+
+	return olts, err
+}
+
+func (uc *OltUsecase) OltsByMunicipality(state, municipality string) ([]model.Olt, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err := uc.repo.OltsByMunicipality(ctx, state, municipality)
+	if err != nil {
+		return nil, err
+	}
+
+	var olts []model.Olt
+	for _, e := range res {
+		olts = append(olts, (model.Olt)(e))
+	}
+
+	return olts, err
+}
+
+func (uc *OltUsecase) OltsByCounty(state, municipality, county string) ([]model.Olt, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err := uc.repo.OltsByCounty(ctx, state, municipality, county)
+	if err != nil {
+		return nil, err
+	}
+
+	var olts []model.Olt
+	for _, e := range res {
+		olts = append(olts, (model.Olt)(e))
+	}
+
+	return olts, err
 }

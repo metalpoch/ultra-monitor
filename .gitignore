@@ -8,11 +8,6 @@
 *.so
 *.dylib
 dist/
-update/dist/
-auth/dist/
-measurement/dist/
-report/dist/
-
 
 # Test binary, built with `go test -c`
 *.test
@@ -40,5 +35,27 @@ go.work.sum
 mocks/
 data/
 .go-version
-config.develop.json
-config.product.json
+
+
+
+
+# WEB
+
+# build output
+web/dist/
+
+# generated types
+web/.astro/
+
+# dependencies
+web/node_modules/
+
+# logs
+web/npm-debug.log*
+web/yarn-debug.log*
+web/yarn-error.log*
+web/pnpm-debug.log*
+
+# environment variables
+web/.env
+web/.env.production

@@ -1,0 +1,91 @@
+---
+import { Image } from "astro:assets";
+import dashboardIcon from "../../assets/icons/dashboard.svg";
+import trafficIcon from "../../assets/icons/traffic.svg";
+import trendIcon from "../../assets/icons/trend.svg";
+import reportIcon from "../../assets/icons/report.svg";
+import adminIcon from "../../assets/icons/admin.svg";
+import LogoutIcon from "../../assets/icons/logout.svg";
+
+const { title } = Astro.props;
+const routes = [
+    {
+        name: "Dashboard",
+        path: "/",
+        icon: dashboardIcon,
+        alt: "icono del dashboard",
+        title: "Vista rápida del comportamiento la red.",
+    },
+    {
+        name: "Tráfico",
+        path: "/traffic",
+        icon: trafficIcon,
+        alt: "icono de tráfico",
+        title: "Obtenga las mediciones de tráfico.",
+    },
+    {
+        name: "Tendencia",
+        path: "/trend",
+        icon: trendIcon,
+        alt: "icono de tendencia",
+        title: "Comportamiento estadistico del tráfico.",
+    },
+    {
+        name: "Reportes",
+        path: "/report",
+        icon: reportIcon,
+        alt: "icono de reportes",
+        title: "Reportes estaticos de la gerencia.",
+    },
+    {
+        name: "Administración",
+        path: "/admin",
+        icon: adminIcon,
+        alt: "icono de admin",
+        title: "Panel administrativo.",
+    },
+];
+---
+
+<nav class="w-full self-start px-10 py-7 flex flex-wrap gap-4">
+    <h1 class="text-3xl font-bold">{title}</h1>
+    <section class="w-full flex gap-2 items-center">
+        <p>Vista:</p>
+        <ul class="flex gap-2">
+            {
+                routes.map((route) => (
+                    <li
+                        class={`px-2 py-1 border-2 rounded-lg border-[hsl(217,33%,20%)] ${route.name === title ? "bg-cyan-500" : ""}`}
+                    >
+                        <a
+                            href={route.path}
+                            class="flex gap-1"
+                            title={route.title}
+                        >
+                            <Image
+                                src={route.icon}
+                                width={20}
+                                height={20}
+                                alt={route.alt}
+                            />
+                            {route.name}
+                        </a>
+                    </li>
+                ))
+            }
+        </ul>
+        <button
+            type="button"
+            class="flex gap-1 px-2 py-1 border-2 rounded-lg border-[hsl(217,33%,20%)]"
+            onclick="sessionStorage.removeItem('access_token'); window.location.href = '/auth/login';"
+        >
+            <Image
+                src={LogoutIcon}
+                width={20}
+                height={20}
+                alt="Cerrar sesión"
+            />
+            Salir
+        </button>
+    </section>
+</nav>

@@ -1,26 +1,13 @@
 ---
-import LoginForm from "../components/LoginForm";
-import Layout from "../layouts/LoginLayout.astro";
+import Layout from "../layouts/Layout.astro";
 ---
 
-<Layout>
-	<main
-		class="lg:w-1/3 md:w-1/2 p-5 flex flex-col gap-5 content-center rounded bg-[#121b31] border-2 border-[hsl(217,33%,20%)]"
-	>
-		<div>
-			<img src="./src/assets/logo.svg" width="200px" class="m-auto" />
-			<h1 class="text-3xl text-center">Ultra Monitor</h1>
-			<h2 class="text-center text-slate-400">
-				Iniciar sesión en tu cuenta
-			</h2>
-		</div>
-		<LoginForm client:visible />
-	</main>
+<Layout title="Dashboard">
+    <main
+        class="mx-10 p-5 flex flex-col gap-5 content-center rounded bg-[#121b31] border-2 border-[hsl(217,33%,20%)]"
+    >
+        <p>Keloke</p>
+        <p>Keloke</p>
+        <p>Keloke</p>
+    </main>
 </Layout>
-
-<script is:inline>
-	const token = sessionStorage.getItem("access_token");
-	if (token) {
-		window.location.href = "/dashboard";
-	}
-</script>

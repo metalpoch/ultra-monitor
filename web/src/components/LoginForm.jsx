@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import PasswordIcon from './icons/Password';
-import UserIcon from './icons/User';
+import PasswordIcon from './icons/PasswordIcon';
+import UserIcon from './icons/UserIcon';
 
 const BASE_URL = import.meta.env.PUBLIC_AUTH_URL
 
@@ -27,7 +27,7 @@ export default function LoginForm() {
     if (response.token) {
       const token = response.token;
       sessionStorage.setItem("access_token", JSON.stringify(token));
-      window.location.href = "/dashboard"
+      window.location.href = "/"
     } else {
       setError(response.error);
     }
@@ -40,7 +40,7 @@ export default function LoginForm() {
         <section className="flex items-center gap-1 border border-[hsl(217,33%,20%)] bg-[#0f1729] p-2 rounded-xs focus-within:ring-2 focus-within:ring-blue-500">
           <UserIcon className="w-5" />
           <input
-            className="bg-[#0f1729] focus:outline-none"
+            className="w-full bg-[#f1729] focus:outline-none"
             id="username"
             type="text"
             onChange={({ target }) => setUsername(target.value)}
@@ -53,7 +53,7 @@ export default function LoginForm() {
         <section className="flex items-center gap-2 border border-[hsl(217,33%,20%)] bg-[#0f1729] p-2 rounded-xs focus-within:ring-2 focus-within:ring-blue-500">
           <PasswordIcon className="w-5" />
           <input
-            className="bg-[##f1729]  focus:outline-none"
+            className="w-full bg-[#f1729] focus:outline-none"
             id="password"
             type="password"
             onChange={({ target }) => setPassword(target.value)}

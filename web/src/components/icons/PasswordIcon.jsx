@@ -1,4 +1,4 @@
-export default function PasswordIcon({ className = '', ...props }) {
+export default function ({ className = '', ...props }) {
   return (
     <svg
       viewBox="0 0 24 24"

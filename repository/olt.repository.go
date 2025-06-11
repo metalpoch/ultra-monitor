@@ -47,7 +47,7 @@ func (repo *oltRepository) Olt(ctx context.Context, id string) (entity.Olt, erro
 func (repo *oltRepository) Olts(ctx context.Context) ([]entity.Olt, error) {
 	var res []entity.Olt
 	query := `SELECT * FROM olts ORDER BY sys_name`
-	err := repo.db.GetContext(ctx, &res, query)
+	err := repo.db.SelectContext(ctx, &res, query)
 	return res, err
 }
 

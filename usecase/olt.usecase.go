@@ -53,6 +53,10 @@ func (uc *OltUsecase) Olts() ([]model.Olt, error) {
 	defer cancel()
 
 	res, err := uc.repo.Olts(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	var olts []model.Olt
 	for _, e := range res {
 		olts = append(olts, (model.Olt)(e))

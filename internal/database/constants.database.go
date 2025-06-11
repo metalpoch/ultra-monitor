@@ -71,6 +71,15 @@ CREATE TABLE IF NOT EXISTS traffic_pons (
     FOREIGN KEY (pon_id) REFERENCES pons(id)
 );`
 
+const SQL_TABLE_TRAFFIC_PON_SUMMARY string = `
+CREATE TABLE IF NOT EXISTS traffic_pons_summary (
+    day DATE NOT NULL PRIMARY KEY,
+    mbps_in DOUBLE PRECISION,
+    mbps_out DOUBLE PRECISION,
+    mbytes_in_sec DOUBLE PRECISION,
+    mbytes_out_sec DOUBLE PRECISION
+);`
+
 const SQL_TABLE_MEASUREMENT_ONT string = `
 CREATE TABLE IF NOT EXISTS measurement_onts (
     pon_id INTEGER NOT NULL,

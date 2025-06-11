@@ -2,10 +2,13 @@ package controller
 
 import (
 	"os"
+	"time"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jmoiron/sqlx"
+	"github.com/metalpoch/ultra-monitor/internal/cache"
 	"github.com/metalpoch/ultra-monitor/internal/constants"
+	"github.com/metalpoch/ultra-monitor/internal/dto"
 	"github.com/metalpoch/ultra-monitor/usecase"
 )
 
@@ -13,8 +16,8 @@ type PonController struct {
 	Usecase usecase.PonUsecase
 }
 
-func NewInterfaceController(db *sqlx.DB) *PonController {
-	return &PonController{*usecase.NewPonUsecase(db)}
+func NewPonController(db *sqlx.DB, cache *cache.Redis) *PonController {
+	return &PonController{*usecase.NewPonUsecase(db, cache)}
 }
 
 func (ctrl PonController) ShowAllInterfaces(sysname string, csv bool) error {
@@ -53,4 +56,13 @@ func (ctrl PonController) ShowAllInterfaces(sysname string, csv bool) error {
 	}
 
 	return nil
+}
+
+func (ctrl PonController) SummaryTraffic(date time.Time) error {
+	return ctrl.Usecase.UpdateSummaryTraffic(
+		dto.RangeDate{
+			InitDate: time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location()),
+			EndDate:  time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, int(time.Second-time.Nanosecond), date.Location()),
+		},
+	)
 }

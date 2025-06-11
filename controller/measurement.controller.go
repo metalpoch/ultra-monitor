@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/metalpoch/ultra-monitor/internal/cache"
 	"github.com/metalpoch/ultra-monitor/internal/snmp"
 	"github.com/metalpoch/ultra-monitor/model"
 	"github.com/metalpoch/ultra-monitor/usecase"
@@ -21,11 +22,11 @@ type MeasurementController struct {
 	pon     *usecase.PonUsecase
 }
 
-func NewMeasurementController(db *sqlx.DB) *MeasurementController {
+func NewMeasurementController(db *sqlx.DB, cache *cache.Redis) *MeasurementController {
 	return &MeasurementController{
 		usecase.NewMeasurementUsecase(db),
 		usecase.NewOltUsecase(db),
-		usecase.NewPonUsecase(db),
+		usecase.NewPonUsecase(db, cache),
 	}
 }
 

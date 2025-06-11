@@ -10,6 +10,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/metalpoch/ultra-monitor/controller"
+	"github.com/metalpoch/ultra-monitor/internal/cache"
 	"github.com/metalpoch/ultra-monitor/internal/constants"
 	"github.com/metalpoch/ultra-monitor/internal/database"
 	"github.com/metalpoch/ultra-monitor/internal/dto"
@@ -19,6 +20,7 @@ import (
 )
 
 var db *sqlx.DB
+var redisCache *cache.Redis
 var rdb *redis.Client
 var jwtSecret string
 
@@ -50,6 +52,7 @@ func init() {
 	}
 
 	rdb = redis.NewClient(opt)
+	redisCache = cache.NewCache(cacheURI)
 }
 
 func main() {
@@ -120,7 +123,7 @@ func main() {
 								return fmt.Errorf("inverval time invalid")
 							}
 
-							ctrl := controller.NewMeasurementController(db)
+							ctrl := controller.NewMeasurementController(db, redisCache)
 
 							started := make(map[string]struct{})
 							var mu sync.Mutex
@@ -158,7 +161,7 @@ func main() {
 							if interval < 30 {
 								return fmt.Errorf("inverval time invalid")
 							}
-							ctrl := controller.NewMeasurementController(db)
+							ctrl := controller.NewMeasurementController(db, redisCache)
 
 							started := make(map[string]struct{})
 							var mu sync.Mutex
@@ -234,6 +237,23 @@ func main() {
 									mu.Unlock()
 								}
 							}
+						},
+					},
+				},
+			},
+			{
+				Name:  "summary",
+				Usage: "get the summary traffic from the devices and store into the database",
+				Subcommands: []*cli.Command{
+					{
+						Name:  "traffic-pon",
+						Usage: "Olt pon traffic summary by day",
+						Flags: []cli.Flag{
+							&cli.TimestampFlag{Name: "date", Usage: "date to get data", Layout: "2006-01-02", Required: true, Timezone: time.Local},
+						},
+						Action: func(cCtx *cli.Context) error {
+							err := controller.NewPonController(db, redisCache).SummaryTraffic(*cCtx.Timestamp("date"))
+							return err
 						},
 					},
 				},

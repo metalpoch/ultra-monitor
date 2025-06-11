@@ -12,6 +12,14 @@ type TrafficPon struct {
 	Date      time.Time `db:"date"`
 }
 
+type TrafficSummary struct {
+	Day       time.Time `db:"day"`
+	MbpsIn    float64   `db:"mbps_in"`
+	MbpsOut   float64   `db:"mbps_out"`
+	MbytesIn  float64   `db:"mbytes_in_sec"`
+	MbytesOut float64   `db:"mbytes_out_sec"`
+}
+
 type TrafficOnt struct {
 	Date             time.Time `db:"date"`
 	Despt            string    `db:"despt"`
@@ -33,12 +41,4 @@ type Traffic struct {
 	Bandwidth float64   `db:"bandwidth_mbps_sec"`
 	MBpsIn    float64   `db:"mbytes_in_sec"`
 	MBpsOut   float64   `db:"mbytes_out_sec"`
-}
-
-type TrafficTrend struct {
-	Day     time.Time `db:"day"`
-	MbpsIn  float64   `db:"mbps_in"`
-	MbpsOut float64   `db:"mbps_out"`
-	MBpsIn  float64   `db:"mbytes_in_sec"`
-	MBpsOut float64   `db:"mbytes_out_sec"`
 }

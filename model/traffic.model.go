@@ -36,14 +36,14 @@ type Traffic struct {
 }
 
 type TrafficTrendForecast struct {
-	Historical []TrafficTrend `json:"historical"`
-	Forecast   []TrafficTrend `json:"forecast"`
+	Historical []TrafficSummary `json:"historical"`
+	Forecast   []TrafficSummary `json:"forecast"`
 }
 
-type TrafficTrend struct {
-	Day     time.Time `json:"day"`
-	MbpsIn  float64   `json:"mbps_in"`
-	MbpsOut float64   `json:"mbps_out"`
-	MBpsIn  float64   `json:"mbytes_in_sec"`
-	MBpsOut float64   `json:"mbytes_out_sec"`
+type TrafficSummary struct {
+	Day       time.Time `json:"day"`
+	MbpsIn    float64   `json:"mbps_in"`
+	MbpsOut   float64   `json:"mbps_out"`
+	MbytesIn  float64   `json:"mbytes_in_sec"`
+	MbytesOut float64   `json:"mbytes_out_sec"`
 }

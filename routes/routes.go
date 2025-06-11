@@ -11,7 +11,6 @@ func Init(app *fiber.App, db *sqlx.DB, cache *cache.Redis, secret []byte, report
 	NewFatRoutes(app, db)
 	NewOltRoutes(app, db)
 	NewOntRoutes(app, db, cache)
-	NewPonRoutes(app, db)
-	NewTrafficRoutes(app, db, cache)
+	NewPonRoutes(app, db, cache)
 	NewReportRoutes(app, db, cache, reportsDir)
 }

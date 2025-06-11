@@ -139,9 +139,9 @@ func (uc *PonUsecase) TrafficByPon(sysname string, shell, card, port int, dates 
 	return traffic, err
 }
 
-func (uc *PonUsecase) GetDailyAveragedHourlyMaxTrafficTrends(futureDays int, dates dto.RangeDate) (*model.TrafficTrendForecast, error) {
+func (uc *PonUsecase) GetTrafficPonForecast(futureDays int, dates dto.RangeDate) (*model.TrafficTrendForecast, error) {
 	var traffic []model.TrafficSummary
-	key := fmt.Sprintf("averagedHourlyMaxTraffic:%d:%d", dates.InitDate.Unix(), dates.EndDate.Unix())
+	key := fmt.Sprintf("trafficPonForecast:%d:%d", dates.InitDate.Unix(), dates.EndDate.Unix())
 	err := uc.cache.FindOne(context.Background(), key, &traffic)
 	if err == redis.Nil {
 		res, err := uc.repo.GetDailyAveragedHourlyMaxTrafficTrends(context.Background(), dates.InitDate, dates.EndDate)

@@ -22,5 +22,5 @@ func NewPonRoutes(app *fiber.App, db *sqlx.DB, cache *cache.Redis) {
 	route.Get("/traffic/odn/:state/:odn", hdlr.TrafficByODN)
 	route.Get("/traffic/pon/:sysname/:shell/:card/:port", hdlr.TrafficPon)
 	route.Get("/traffic/summary", hdlr.GetTrafficSummary)
-	route.Get("/traffic/forecast", hdlr.DailyAveragedHourlyMaxTrafficTrends)
+	route.Get("/traffic/forecast", hdlr.GetTrafficPonForecast)
 }

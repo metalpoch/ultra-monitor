@@ -56,20 +56,6 @@ func (hdlr *PonHandler) GetByOltAndPort(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func (hdlr *PonHandler) GetTrafficSummary(c fiber.Ctx) error {
-	var dates dto.RangeDate
-	if err := c.Bind().Query(&dates); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-
-	res, err := hdlr.Usecase.GetTrafficSummary(dates)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-
-	return c.JSON(res)
-}
-
 func (hdlr *PonHandler) TrafficByState(c fiber.Ctx) error {
 	state, err := url.QueryUnescape(c.Params("state"))
 	if err != nil {
@@ -200,7 +186,21 @@ func (hdlr *PonHandler) TrafficPon(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func (hdlr *PonHandler) DailyAveragedHourlyMaxTrafficTrends(c fiber.Ctx) error {
+func (hdlr *PonHandler) GetTrafficSummary(c fiber.Ctx) error {
+	var dates dto.RangeDate
+	if err := c.Bind().Query(&dates); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetTrafficSummary(dates)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+func (hdlr *PonHandler) GetTrafficPonForecast(c fiber.Ctx) error {
 	futureDays, err := strconv.Atoi(c.Query("days", "-1"))
 	if err != nil || futureDays < 1 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "days must be a positive integer"})
@@ -211,7 +211,7 @@ func (hdlr *PonHandler) DailyAveragedHourlyMaxTrafficTrends(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.GetDailyAveragedHourlyMaxTrafficTrends(futureDays, *dates)
+	res, err := hdlr.Usecase.GetTrafficPonForecast(futureDays, *dates)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}

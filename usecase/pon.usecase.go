@@ -215,10 +215,7 @@ func (uc *PonUsecase) GetTrafficPonForecast(futureDays int, dates dto.RangeDate)
 }
 
 func (uc *PonUsecase) UpdateSummaryTraffic(dates dto.RangeDate) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	res, err := uc.repo.GetDailyAveragedHourlyMaxTrafficTrends(ctx, dates.InitDate, dates.EndDate)
+	res, err := uc.repo.GetDailyAveragedHourlyMaxTrafficTrends(context.Background(), dates.InitDate, dates.EndDate)
 	if err != nil {
 		return err
 	}
@@ -226,7 +223,7 @@ func (uc *PonUsecase) UpdateSummaryTraffic(dates dto.RangeDate) error {
 		return sql.ErrNoRows
 	}
 
-	return uc.repo.UpsertSummaryTraffic(ctx, res[0])
+	return uc.repo.UpsertSummaryTraffic(context.Background(), res[0])
 }
 
 func (uc *PonUsecase) GetTrafficSummary(dates dto.RangeDate) ([]model.TrafficSummary, error) {

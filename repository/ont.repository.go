@@ -2,17 +2,25 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/metalpoch/ultra-monitor/entity"
+	"github.com/metalpoch/ultra-monitor/repository/internal/model"
 )
 
 type OntRepository interface {
-	GetOntStatusByState(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.OntStatusCountsByState, error)
-	GetOntStatusByODN(ctx context.Context, state, municipality, county, odn string, initDate, endDate time.Time) ([]entity.OntStatusCountsByState, error)
-	GetOntStatusByOltIP(ctx context.Context, ip string, initDate, endDate time.Time) ([]entity.OntStatusCountsByState, error)
-	GetOntStatusBySysname(ctx context.Context, sysname string, initDate, endDate time.Time) ([]entity.OntStatusCountsByState, error)
+	UpdateStatusSummary(ctx context.Context, counts []entity.OntSummaryStatusCounts) error
+	GetDailyAveragedHourlyStatusSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.OntSummaryStatusCounts, error)
+	GetStatusSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.OntSummaryStatus, error)
+	GetStatusIPSummary(ctx context.Context, ip string, initDate, endDate time.Time) ([]entity.GetStatusStateSummary, error)
+	GetStatusStateSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.GetStatusStateSummary, error)
+	GetStatusByStateSummary(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.OntSummaryStatus, error)
+	GetStatusMunicipalitySummary(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.GetStatusStateSummary, error)
+	GetStatusCountySummary(ctx context.Context, state, municipality string, initDate, endDate time.Time) ([]entity.GetStatusCountySummary, error)
+	GetStatusOdnSummary(ctx context.Context, state, municipality, county string, initDate, endDate time.Time) ([]entity.GetStatusCountySummary, error)
 	TrafficOnt(ctx context.Context, ponID int, idx int64, initDate, endDate time.Time) ([]entity.TrafficOnt, error)
 	TrafficOntByDespt(ctx context.Context, despt string, initDate, endDate time.Time) ([]entity.TrafficOnt, error)
 }
@@ -25,160 +33,237 @@ func NewOntRepository(db *sqlx.DB) *ontRepository {
 	return &ontRepository{db}
 }
 
-func (repo *ontRepository) GetOntStatusByState(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.OntStatusCountsByState, error) {
-	var res []entity.OntStatusCountsByState
-	query := `
-	WITH ranked_status AS (
+func (repo *ontRepository) GetDailyAveragedHourlyStatusSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.OntSummaryStatusCounts, error) {
+	var counts []model.StatusCounts
+	countsQuery := `
         SELECT
-            olts.sys_name AS sysname,
-            DATE_TRUNC('day', measurement_onts.date) AS date,
-            measurement_onts.pon_id,
-            measurement_onts.idx,
-            MIN(
-                CASE
-                    WHEN control_run_status = 1 THEN 1
-                    WHEN control_run_status = 2 THEN 2
-                    ELSE 3
-                END
-            ) AS status_priority
-        FROM measurement_onts
-        JOIN pons ON measurement_onts.pon_id = pons.id
-        JOIN olts ON pons.olt_ip = olts.ip
-        JOIN fats ON fats.olt_ip = olts.ip
-        WHERE fats.state = $1 AND measurement_onts.date BETWEEN $2 AND $3
-        GROUP BY sysname, DATE_TRUNC('day', measurement_onts.date), measurement_onts.pon_id, measurement_onts.idx
-    )
+            DATE_TRUNC('day', m.date) AS day,
+            m.pon_id,
+            p.olt_ip,
+            COUNT(*) FILTER (WHERE m.control_run_status = 1) AS actives,
+            COUNT(*) FILTER (WHERE m.control_run_status = 2) AS inactives,
+            COUNT(*) FILTER (WHERE m.control_run_status NOT IN (1, 2)) AS unknowns
+        FROM measurement_onts m
+        JOIN pons p ON p.id = m.pon_id
+        WHERE m.date BETWEEN $1 AND $2
+        GROUP BY day, m.pon_id, p.olt_ip
+        ORDER BY day, m.pon_id, p.olt_ip;
+    `
+	err := repo.db.SelectContext(ctx, &counts, countsQuery, initDate, endDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var metas []model.FatMeta
+	metaQuery := `
+        SELECT p.id AS pon_id, f.id AS fat_id, p.olt_ip
+        FROM pons p
+        JOIN fats f ON f.olt_ip = p.olt_ip
+    `
+	err = repo.db.SelectContext(ctx, &metas, metaQuery)
+	if err != nil {
+		return nil, err
+	}
+	metaMap := make(map[int32]model.FatMeta)
+	for _, m := range metas {
+		metaMap[m.PonID] = m
+	}
+
+	type groupKey struct {
+		Day   time.Time
+		FatID int32
+		OltIP string
+	}
+	grouped := make(map[groupKey]*entity.OntSummaryStatusCounts)
+
+	for _, c := range counts {
+		meta, ok := metaMap[c.PonID]
+		if !ok {
+			continue
+		}
+		key := groupKey{
+			Day:   c.Day,
+			FatID: meta.FatID,
+			OltIP: c.OltIP,
+		}
+		if _, exists := grouped[key]; !exists {
+			grouped[key] = &entity.OntSummaryStatusCounts{
+				Day:           c.Day,
+				FatID:         meta.FatID,
+				OltIP:         c.OltIP,
+				PonsCount:     0,
+				ActiveCount:   0,
+				InactiveCount: 0,
+				UnknownCount:  0,
+			}
+		}
+		grouped[key].PonsCount++
+		grouped[key].ActiveCount += c.Actives
+		grouped[key].InactiveCount += c.Inactives
+		grouped[key].UnknownCount += c.Unknowns
+	}
+
+	var res []entity.OntSummaryStatusCounts
+	for _, v := range grouped {
+		res = append(res, *v)
+	}
+	return res, nil
+}
+
+func (repo *ontRepository) UpdateStatusSummary(ctx context.Context, counts []entity.OntSummaryStatusCounts) error {
+	const fieldCount = 7
+	query := `
+    INSERT INTO ont_summary_status_count (
+        day, fat_id, olt_ip, ports_pon, actives, inactives, unknowns
+    ) VALUES `
+	valueStrings := make([]string, 0, len(counts))
+	valueArgs := make([]interface{}, 0, len(counts)*fieldCount)
+
+	for i, c := range counts {
+		valueStrings = append(valueStrings, fmt.Sprintf("($%d,$%d,$%d,$%d,$%d,$%d,$%d)",
+			i*fieldCount+1, i*fieldCount+2, i*fieldCount+3, i*fieldCount+4, i*fieldCount+5, i*fieldCount+6, i*fieldCount+7))
+		valueArgs = append(valueArgs,
+			c.Day, c.FatID, c.OltIP, c.PonsCount, c.ActiveCount, c.InactiveCount, c.UnknownCount)
+	}
+
+	query += strings.Join(valueStrings, ", ")
+	query += `
+    ON CONFLICT (day, fat_id, olt_ip) DO UPDATE SET
+        ports_pon = EXCLUDED.ports_pon,
+        actives = EXCLUDED.actives,
+        inactives = EXCLUDED.inactives,
+        unknowns = EXCLUDED.unknowns`
+
+	_, err := repo.db.ExecContext(ctx, query, valueArgs...)
+	return err
+}
+
+func (repo *ontRepository) GetStatusSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.OntSummaryStatus, error) {
+	var res []entity.OntSummaryStatus
+	query := `
     SELECT
-        sysname,
-        date,
-        COUNT(DISTINCT pon_id) AS ports_pon,
-        SUM(CASE WHEN status_priority = 1 THEN 1 ELSE 0 END) AS actives,
-        SUM(CASE WHEN status_priority = 2 THEN 1 ELSE 0 END) AS inactives,
-        SUM(CASE WHEN status_priority = 3 THEN 1 ELSE 0 END) AS unknowns,
-        COUNT(*) AS total
-    FROM ranked_status
-    GROUP BY sysname, date
-    ORDER BY sysname, date;`
-	err := repo.db.SelectContext(ctx, &res, query, state, initDate, endDate)
+        day,
+        SUM(ports_pon) AS ports_pon,
+        SUM(actives) AS actives,
+        SUM(inactives) AS inactives,
+        SUM(unknowns) AS unknowns
+    FROM ont_summary_status_count AS ont
+    WHERE day BETWEEN '2025-05-16' AND '2025-06-16'
+    GROUP BY day
+    ORDER BY day;`
+	err := repo.db.SelectContext(ctx, &res, query, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
 	return res, err
 }
 
-func (repo *ontRepository) GetOntStatusByODN(ctx context.Context, state, municipality, county, odn string, initDate, endDate time.Time) ([]entity.OntStatusCountsByState, error) {
-	var res []entity.OntStatusCountsByState
+func (repo *ontRepository) GetStatusIPSummary(ctx context.Context, ip string, initDate, endDate time.Time) ([]entity.GetStatusStateSummary, error) {
+	var res []entity.GetStatusStateSummary
 	query := `
-	WITH ranked_status AS (
-        SELECT
-            olts.sys_name AS sysname,
-            DATE_TRUNC('day', measurement_onts.date) AS date,
-            measurement_onts.pon_id,
-            measurement_onts.idx,
-            MIN(
-                CASE
-                    WHEN control_run_status = 1 THEN 1
-                    WHEN control_run_status = 2 THEN 2
-                    ELSE 3
-                END
-            ) AS status_priority
-        FROM measurement_onts
-        JOIN pons ON measurement_onts.pon_id = pons.id
-        JOIN olts ON pons.olt_ip = olts.ip
-        JOIN fats ON fats.olt_ip = olts.ip
-		WHERE 
-			fats.state = $1
-			AND fats.municipality = $2
-			AND fats.county = $3
-			AND fats.odn = $4
-			AND measurement_onts.date BETWEEN $5 AND $6
-        GROUP BY sysname, DATE_TRUNC('day', measurement_onts.date), measurement_onts.pon_id, measurement_onts.idx
-    )
     SELECT
-        sysname,
-        date,
-        COUNT(DISTINCT pon_id) AS ports_pon,
-        SUM(CASE WHEN status_priority = 1 THEN 1 ELSE 0 END) AS actives,
-        SUM(CASE WHEN status_priority = 2 THEN 1 ELSE 0 END) AS inactives,
-        SUM(CASE WHEN status_priority = 3 THEN 1 ELSE 0 END) AS unknowns,
-        COUNT(*) AS total
-    FROM ranked_status
-    GROUP BY sysname, date
-    ORDER BY sysname, date;`
-
-	err := repo.db.SelectContext(ctx, &res, query, state, municipality, county, odn, initDate, endDate)
+        day,
+        olt_ip AS ip,
+        SUM(ports_pon) AS ports_pon,
+        SUM(actives) AS actives,
+        SUM(inactives) AS inactives,
+        SUM(unknowns) AS unknowns
+    FROM ont_summary_status_count AS ont
+    WHERE olt_ip = $1 AND day BETWEEN $2 AND $3
+    GROUP BY day, ip
+    ORDER BY day;`
+	err := repo.db.SelectContext(ctx, &res, query, ip, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
 	return res, err
 }
 
-func (repo *ontRepository) GetOntStatusByOltIP(ctx context.Context, ip string, initDate, endDate time.Time) ([]entity.OntStatusCountsByState, error) {
-	var res []entity.OntStatusCountsByState
+func (repo *ontRepository) GetStatusStateSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.GetStatusStateSummary, error) {
+	var res []entity.GetStatusStateSummary
 	query := `
-	WITH ranked_status AS (
-        SELECT
-            olts.sys_name AS sysname,
-            DATE_TRUNC('day', measurement_onts.date) AS date,
-            measurement_onts.pon_id,
-            measurement_onts.idx,
-            MIN(
-                CASE
-                    WHEN control_run_status = 1 THEN 1
-                    WHEN control_run_status = 2 THEN 2
-                    ELSE 3
-                END
-            ) AS status_priority
-        FROM measurement_onts
-        JOIN pons ON measurement_onts.pon_id = pons.id
-        JOIN olts ON pons.olt_ip = olts.ip
-        WHERE olts.ip = $1 AND measurement_onts.date BETWEEN $2 AND $3
-        GROUP BY sysname, DATE_TRUNC('day', measurement_onts.date), measurement_onts.pon_id, measurement_onts.idx
-    )
     SELECT
-        sysname,
-        date,
-        COUNT(DISTINCT pon_id) AS ports_pon,
-        SUM(CASE WHEN status_priority = 1 THEN 1 ELSE 0 END) AS actives,
-        SUM(CASE WHEN status_priority = 2 THEN 1 ELSE 0 END) AS inactives,
-        SUM(CASE WHEN status_priority = 3 THEN 1 ELSE 0 END) AS unknowns,
-        COUNT(*) AS total
-    FROM ranked_status
-    GROUP BY sysname, date
-    ORDER BY sysname, date;`
-	err := repo.db.SelectContext(ctx, &res, query, ip, initDate, endDate)
+        ont.day AS day,
+        fats.state AS state,
+        SUM(ont.ports_pon) AS ports_pon,
+        SUM(ont.actives) AS actives,
+        SUM(ont.inactives) AS inactives,
+        SUM(ont.unknowns) AS unknowns
+    FROM ont_summary_status_count AS ont
+    JOIN fats ON fats.id = ont.fat_id
+    WHERE day BETWEEN $1 AND $2
+    GROUP BY day, state
+    ORDER BY state, day;`
+	err := repo.db.SelectContext(ctx, &res, query, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
 	return res, err
 }
 
-func (repo *ontRepository) GetOntStatusBySysname(ctx context.Context, sysname string, initDate, endDate time.Time) ([]entity.OntStatusCountsByState, error) {
-	var res []entity.OntStatusCountsByState
+func (repo *ontRepository) GetStatusByStateSummary(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.OntSummaryStatus, error) {
+	var res []entity.OntSummaryStatus
 	query := `
-	WITH ranked_status AS (
-        SELECT
-            olts.sys_name AS sysname,
-            DATE_TRUNC('day', measurement_onts.date) AS date,
-            measurement_onts.pon_id,
-            measurement_onts.idx,
-            MIN(
-                CASE
-                    WHEN control_run_status = 1 THEN 1
-                    WHEN control_run_status = 2 THEN 2
-                    ELSE 3
-                END
-            ) AS status_priority
-        FROM measurement_onts
-        JOIN pons ON measurement_onts.pon_id = pons.id
-        JOIN olts ON pons.olt_ip = olts.ip
-        WHERE olts.sys_name = $1 AND measurement_onts.date BETWEEN $2 AND $3
-        GROUP BY sysname, DATE_TRUNC('day', measurement_onts.date), measurement_onts.pon_id, measurement_onts.idx
-    )
     SELECT
-        sysname,
-        date,
-        COUNT(DISTINCT pon_id) AS ports_pon,
-        SUM(CASE WHEN status_priority = 1 THEN 1 ELSE 0 END) AS actives,
-        SUM(CASE WHEN status_priority = 2 THEN 1 ELSE 0 END) AS inactives,
-        SUM(CASE WHEN status_priority = 3 THEN 1 ELSE 0 END) AS unknowns,
-        COUNT(*) AS total
-    FROM ranked_status
-    GROUP BY sysname, date
-    ORDER BY sysname, date;`
+        ont.day AS day,
+        SUM(ont.ports_pon) AS ports_pon,
+        SUM(ont.actives) AS actives,
+        SUM(ont.inactives) AS inactives,
+        SUM(ont.unknowns) AS unknowns
+    FROM ont_summary_status_count AS ont
+    JOIN fats ON fats.id = ont.fat_id
+    WHERE fats.state = $1 day BETWEEN $2 AND $3
+    GROUP BY day, state
+    ORDER BY state, day;`
+	err := repo.db.SelectContext(ctx, &res, query, state, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+	return res, err
+}
 
-	err := repo.db.SelectContext(ctx, &res, query, sysname, initDate, endDate)
+func (repo *ontRepository) GetStatusMunicipalitySummary(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.GetStatusStateSummary, error) {
+	var res []entity.GetStatusStateSummary
+	query := `
+    SELECT
+        ont.day AS day,
+        fats.municipality AS municipality,
+        SUM(ont.ports_pon) AS ports_pon,
+        SUM(ont.actives) AS actives,
+        SUM(ont.inactives) AS inactives,
+        SUM(ont.unknowns) AS unknowns
+    FROM ont_summary_status_count AS ont
+    JOIN fats ON fats.id = ont.fat_id
+    WHERE fats.state = $1 AND day BETWEEN $2 AND $3
+    GROUP BY day, municipality
+    ORDER BY municipality, day;`
+	err := repo.db.SelectContext(ctx, &res, query, state, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+	return res, err
+}
+
+func (repo *ontRepository) GetStatusCountySummary(ctx context.Context, state, municipality string, initDate, endDate time.Time) ([]entity.GetStatusCountySummary, error) {
+	var res []entity.GetStatusCountySummary
+	query := `
+    SELECT
+        ont.day AS day,
+        fats.county AS county,
+        SUM(ont.ports_pon) AS ports_pon,
+        SUM(ont.actives) AS actives,
+        SUM(ont.inactives) AS inactives,
+        SUM(ont.unknowns) AS unknowns
+    FROM ont_summary_status_count AS ont
+    JOIN fats ON fats.id = ont.fat_id
+    WHERE fats.state = $1 AND fats.municipality = $2 AND day BETWEEN $3 AND $4
+    GROUP BY day, county
+    ORDER BY county, day;`
+	err := repo.db.SelectContext(ctx, &res, query, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+	return res, err
+}
+
+func (repo *ontRepository) GetStatusOdnSummary(ctx context.Context, state, municipality, county string, initDate, endDate time.Time) ([]entity.GetStatusCountySummary, error) {
+	var res []entity.GetStatusCountySummary
+	query := `
+    SELECT
+        ont.day AS day,
+        fats.odn AS odn,
+        SUM(ont.ports_pon) AS ports_pon,
+        SUM(ont.actives) AS actives,
+        SUM(ont.inactives) AS inactives,
+        SUM(ont.unknowns) AS unknowns
+    FROM ont_summary_status_count AS ont
+    JOIN fats ON fats.id = ont.fat_id
+    WHERE fats.state = $1 AND fats.municipality = $2 AND fats.county = $3 AND day BETWEEN $4 AND $5
+    GROUP BY day, odn
+    ORDER BY odn, day;`
+	err := repo.db.SelectContext(ctx, &res, query, state, municipality, county, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
 	return res, err
 }
 

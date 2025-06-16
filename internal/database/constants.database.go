@@ -80,6 +80,19 @@ CREATE TABLE IF NOT EXISTS traffic_pons_summary (
     mbytes_out_sec DOUBLE PRECISION
 );`
 
+const SQL_TABLE_ONT_SUMMARY_STATUS_COUNTS string = `
+CREATE TABLE IF NOT EXISTS ont_summary_status_count (
+    day DATE NOT NULL,
+    fat_id INTEGER NOT NULL,
+    olt_ip VARCHAR(15) NOT NULL,
+    ports_pon INTEGER NOT NULL,
+    actives INTEGER NOT NULL,
+    inactives INTEGER NOT NULL,
+    unknowns INTEGER NOT NULL,
+    PRIMARY KEY (day, fat_id, olt_ip),
+    FOREIGN KEY (fat_id) REFERENCES fats(id)
+);`
+
 const SQL_TABLE_MEASUREMENT_ONT string = `
 CREATE TABLE IF NOT EXISTS measurement_onts (
     pon_id INTEGER NOT NULL,
@@ -125,6 +138,7 @@ const SQL_INDEX_MEASUREMENT_ONT_DATE string = `CREATE INDEX IF NOT EXISTS idx_me
 const SQL_INDEX_MEASUREMENT_ONT_IDX string = `CREATE INDEX IF NOT EXISTS idx_measurement_onts_pon_id ON measurement_onts(idx);`
 const SQL_INDEX_MEASUREMENT_ONT_DESPT string = `CREATE INDEX IF NOT EXISTS idx_measurement_onts_despt ON measurement_onts(despt);`
 const SQL_INDEX_MEASUREMENT_ONT_PON_ID string = `CREATE INDEX IF NOT EXISTS idx_measurement_onts_pon_id ON measurement_onts(pon_id);`
+const SQL_INDEX_MEASUREMENT_ONT_PON_STATS string = `CREATE INDEX IF NOT EXISTS idx_measurement_onts_stats ON measurement_onts (date, pon_id, control_run_status) INCLUDE (idx);`
 
 const SQL_INDEX_REPORT_CATEGORY string = `CREATE INDEX IF NOT EXISTS idx_reports_category ON reports(category);`
 const SQL_INDEX_REPORT_USER_ID string = `CREATE INDEX IF NOT EXISTS idx_reports_user_id ON reports(user_id);`

@@ -2,36 +2,43 @@ package model
 
 import "time"
 
-type OntStatusCounts struct {
-	Date          time.Time `json:"date"`
+type OntSummaryStatusCounts struct {
+	Day           time.Time `json:"day"`
+	FatID         int32     `json:"fat_id"`
+	OltIP         string    `json:"olt_ip"`
+	PonsCount     uint64    `json:"ports_pon"`
+	ActiveCount   uint64    `json:"actives"`
+	InactiveCount uint64    `json:"inactives"`
+	UnknownCount  uint64    `json:"unknowns"`
+}
+
+type OntSummaryStatus struct {
+	Day           time.Time `json:"day"`
+	PonsCount     uint64    `json:"ports_pon"`
+	ActiveCount   uint64    `json:"actives"`
+	InactiveCount uint64    `json:"inactives"`
+	UnknownCount  uint64    `json:"unknowns"`
+}
+
+type GetStatusStateSummary struct {
+	Day           time.Time `json:"day"`
 	State         string    `json:"state"`
-	PonsCount     uint64    `json:"pons_count"`
+	PonsCount     uint64    `json:"ports_pon"`
 	ActiveCount   uint64    `json:"actives"`
 	InactiveCount uint64    `json:"inactives"`
 	UnknownCount  uint64    `json:"unknowns"`
-	TotalCount    uint64    `json:"total"`
 }
 
-type OntStatusCountsByState struct {
-	Date          time.Time `json:"date"`
-	Sysname       string    `json:"sysname"`
-	PonsCount     uint64    `json:"pons_count"`
+type GetStatusCountySummary struct {
+	Day           time.Time `json:"day"`
+	County        string    `json:"county"`
+	PonsCount     uint64    `json:"ports_pon"`
 	ActiveCount   uint64    `json:"actives"`
 	InactiveCount uint64    `json:"inactives"`
 	UnknownCount  uint64    `json:"unknowns"`
-	TotalCount    uint64    `json:"total"`
-}
-
-type OntForecastBase struct {
-	Date          time.Time `json:"date"`
-	PonsCount     uint64    `json:"pons_count"`
-	ActiveCount   uint64    `json:"actives"`
-	InactiveCount uint64    `json:"inactives"`
-	UnknownCount  uint64    `json:"unknowns"`
-	TotalCount    uint64    `json:"total"`
 }
 
 type OntStatusForecast struct {
-	Historical []OntForecastBase `json:"historical"`
-	Forecast   []OntForecastBase `json:"forecast"`
+	Historical []OntSummaryStatus `json:"historical"`
+	Forecast   []OntSummaryStatus `json:"forecast"`
 }

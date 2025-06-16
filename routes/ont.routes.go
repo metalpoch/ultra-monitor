@@ -15,14 +15,16 @@ func NewOntRoutes(app *fiber.App, db *sqlx.DB, cache *cache.Redis) {
 
 	route := app.Group("/api/ont")
 
-	route.Get("/status/:state", hdlr.OntStatusByState)
-	route.Get("/status/:state/:municipality/:county/:odn", hdlr.OntStatusByOdn)
-	route.Get("/status/by-olt/:ip", hdlr.OntStatusByOltIP)
-	route.Get("/status/by-sysname/:sysname", hdlr.OntStatusBySysname)
+	route.Get("/status/ip/:ip", hdlr.OntStatusIPSummary)
+	route.Get("/status/state", hdlr.OntStatusStateSummary)
+	route.Get("/status/state/:state", hdlr.OntStatusByStateSummary)
+	route.Get("/status/municipality/:state", hdlr.OntStatusMunicipalitySummary)
+	route.Get("/status/county/:state/:municipality", hdlr.OntStatusCountySummary)
+	route.Get("/status/odn/:state/:municipality/:county", hdlr.OntStatusOdnSummary)
 
 	route.Get("/traffic/by-id/:ponID/:idx", hdlr.TrafficOnt)
 	route.Get("/traffic/by-despt/:despt", hdlr.TrafficOntByDespt)
 
+	route.Get("/forecast/status", hdlr.GetStatusSummaryForecast)
 	route.Get("/forecast/status/:state", hdlr.OntStatusByStateForecast)
-	route.Get("/forecast/status/:state/:municipality/:county/:odn", hdlr.OntStatusByODNForecast)
 }

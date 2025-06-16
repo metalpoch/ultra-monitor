@@ -256,6 +256,17 @@ func main() {
 							return err
 						},
 					},
+					{
+						Name:  "status-ont",
+						Usage: "Ont status summary by day",
+						Flags: []cli.Flag{
+							&cli.TimestampFlag{Name: "date", Usage: "date to get data", Layout: "2006-01-02", Required: true, Timezone: time.Local},
+						},
+						Action: func(cCtx *cli.Context) error {
+							err := controller.NewOntController(db, redisCache).StatusSummary(*cCtx.Timestamp("date"))
+							return err
+						},
+					},
 				},
 			},
 		},

@@ -31,6 +31,7 @@ func createTablesAndIndexes(db *sqlx.DB) error {
 		SQL_TABLE_TRAFFIC_PON_SUMMARY,
 		SQL_TABLE_MEASUREMENT_ONT,
 		SQL_TABLE_FAT,
+		SQL_TABLE_ONT_SUMMARY_STATUS_COUNTS,
 	}
 	indexQueries := []string{
 		SQL_INDEX_FAT_STATE,
@@ -45,6 +46,7 @@ func createTablesAndIndexes(db *sqlx.DB) error {
 		SQL_INDEX_REPORT_CATEGORY,
 		SQL_INDEX_REPORT_USER_ID,
 		SQL_INDEX_USERS_USERNAME,
+		SQL_INDEX_MEASUREMENT_ONT_PON_STATS,
 	}
 
 	for _, q := range tableQueries {

@@ -1,13 +1,193 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { formatDayField } from "../utils/format";
+import CardBps from "../components/dashboard/CardBps.astro";
+import CardMbps from "../components/dashboard/CardMbps.astro";
+import CardUser from "../components/dashboard/CardUser.astro";
+import Image from "astro/components/Image.astro";
+import pulseIcon from "../assets/icons/pulse.svg";
+import usersIcon from "../assets/icons/users.svg";
+
+const now = new Date();
+const endDate = new Date(
+  now.getFullYear(),
+  now.getMonth(),
+  now.getDate(),
+  0,
+  0,
+  0,
+  0
+);
+
+const initDate = new Date(endDate);
+initDate.setFullYear(initDate.getFullYear() - 1);
+
+const { traffic, trafficErr } = await fetch(
+  `http://10.120.93.114/api/pon/traffic/summary?initDate=${initDate.toISOString()}&endDate=${endDate.toISOString()}`
+)
+  .then((res) => res.json())
+  .then((traffic) => ({ traffic: formatDayField(traffic), trafficErr: null }))
+  .catch((trafficErr) => ({ traffic: null, trafficErr }));
+
+const { ontStatusState, onStatusErr } = await fetch(
+  `http://10.120.93.114/api/ont/status/state?initDate=${initDate.toISOString()}&endDate=${endDate.toISOString()}`
+)
+  .then((res) => res.json())
+  .then((status) => ({ ontStatusState: status, onStatusErr: null }))
+  .catch((onStatusErr) => ({ ontStatusState: null, onStatusErr }));
+
+const ontStatus =
+  ontStatusState &&
+  ontStatusState.reduce((acc: any, curr: any) => {
+    const dayKey = curr.day;
+    if (!acc[dayKey]) {
+      acc[dayKey] = {
+        day: dayKey,
+        ports_pon: 0,
+        actives: 0,
+        inactives: 0,
+        unknowns: 0,
+      };
+    }
+
+    // Add the current item's values to the respective day's totals
+    acc[dayKey].ports_pon += curr.ports_pon;
+    acc[dayKey].actives += curr.actives;
+    acc[dayKey].inactives += curr.inactives;
+    acc[dayKey].unknowns += curr.unknowns;
+
+    return acc;
+  }, {});
+
+// card: traffic total
+const trafficInit = traffic && Object.values(traffic)[0];
+const totalTrafficInit = trafficInit.mbps_in + trafficInit.mbps_out;
+
+const trafficEnd =
+  traffic && Object.values(traffic)[Object.values(traffic).length - 1];
+const totalTrafficEnd = trafficEnd.mbps_in + trafficEnd.mbps_out;
+
+const trafficGrowth =
+  ((totalTrafficEnd - totalTrafficInit) * 100) / totalTrafficInit;
+const strTrafficGrowth = `${trafficGrowth >= 0 ? "+" : ""}${trafficGrowth.toFixed(2)}%`;
+
+//card: volumen total
+console.log(trafficInit, trafficEnd);
+const volumeInit = trafficInit.mbytes_in_sec + trafficInit.mbytes_out_sec;
+const volumeEnd = trafficEnd.mbytes_in_sec + trafficEnd.mbytes_out_sec;
+const totalVolumeGrowth = ((volumeEnd - volumeInit) * 100) / volumeInit;
+const strTotalVolumeGrowth = `${totalVolumeGrowth >= 0 ? "+" : ""}${totalVolumeGrowth.toFixed(2)}%`;
+
+// card: active users
+const statusInit = ontStatus && Object.values(ontStatus)[0];
+const statusEnd =
+  ontStatus && Object.values(ontStatus)[Object.values(ontStatus).length - 1];
+// const userGrowth = 100 - (statusInit.actives * 100) / statusEnd.actives;
+const userGrowth =
+  ((statusEnd.actives - statusInit.actives) * 100) / statusInit.actives;
+const strUserGrowth = `${userGrowth >= 0 ? "+" : ""}${userGrowth.toFixed(2)}%`;
+
+// card: ont faults
+const faults =
+  ((statusEnd.unknowns - statusInit.unknowns) * 100) / statusInit.unknowns;
+const strFaults = `${faults >= 0 ? "+" : ""}${faults.toFixed(2)}%`;
 ---
 
 <Layout title="Dashboard">
-    <main
-        class="mx-10 p-5 flex flex-col gap-5 content-center rounded bg-[#121b31] border-2 border-[hsl(217,33%,20%)]"
-    >
-        <p>Keloke</p>
-        <p>Keloke</p>
-        <p>Keloke</p>
-    </main>
+  <main class="w-full flex flex-wrap gap-5 justify-evenly px-10">
+    <section class="w-full flex gap-5">
+      <article
+        class="flex flex-col gap-2 px-6 py-3 w-1/3 rounded bg-[#121b31] border-2 border-[hsl(217,33%,20%)]"
+      >
+        <div class="w-full flex justify-between">
+          <h2 class="text-slate-400">Tráfico Total</h2>
+          <Image src={pulseIcon} width={20} height={20} alt="icono de pulso" />
+        </div>
+        <h3 class="font-bold text-3xl">
+          {(totalTrafficEnd / 1000).toFixed(1)} Gbps
+        </h3>
+        <p class="text-slate-400 text-sm">{strTrafficGrowth} de crecimiento</p>
+        {
+          trafficGrowth > 0 ? (
+            <p class="text-green-300 text-sm">↑ {strTrafficGrowth}</p>
+          ) : (
+            <p class="text-red-300 text-sm">↓ {strTrafficGrowth}</p>
+          )
+        }
+      </article>
+
+      <article
+        class="flex flex-col gap-2 px-6 py-3 w-1/3 rounded bg-[#121b31] border-2 border-[hsl(217,33%,20%)]"
+      >
+        <div class="w-full flex justify-between">
+          <h2 class="text-slate-400">Volumen Total</h2>
+          <Image src={usersIcon} width={20} height={20} alt="icono de pulso" />
+        </div>
+        <h3 class="font-bold text-2xl">
+          {(volumeEnd / 1000).toFixed(1)} GByte/sec
+        </h3>
+        <p class="text-slate-400 text-sm">
+          {strTotalVolumeGrowth} de crecimiento
+        </p>
+        {
+          userGrowth > 0 ? (
+            <p class="text-green-300 text-sm">↑ {strTotalVolumeGrowth}</p>
+          ) : (
+            <p class="text-red-300 text-sm">↓ {strTotalVolumeGrowth}</p>
+          )
+        }
+      </article>
+      <article
+        class="flex flex-col gap-2 px-6 py-3 w-1/3 rounded bg-[#121b31] border-2 border-[hsl(217,33%,20%)]"
+      >
+        <div class="w-full flex justify-between">
+          <h2 class="text-slate-400">Usuarios Activos</h2>
+          <Image src={usersIcon} width={20} height={20} alt="icono de pulso" />
+        </div>
+        <h3 class="font-bold text-3xl">
+          {
+            new Intl.NumberFormat("es-ES", {
+              notation: "compact",
+              maximumFractionDigits: 2,
+            }).format(statusEnd.actives)
+          }
+        </h3>
+        <p class="text-slate-400 text-sm">{strUserGrowth} de crecimiento</p>
+        {
+          userGrowth > 0 ? (
+            <p class="text-green-300 text-sm">↑ {strUserGrowth}</p>
+          ) : (
+            <p class="text-red-300 text-sm">↓ {strUserGrowth}</p>
+          )
+        }
+      </article>
+      <article
+        class="flex flex-col gap-2 px-6 py-3 w-1/3 rounded bg-[#121b31] border-2 border-[hsl(217,33%,20%)]"
+      >
+        <div class="w-full flex justify-between">
+          <h2 class="text-slate-400">ONT con fallas</h2>
+          <Image src={usersIcon} width={20} height={20} alt="icono de pulso" />
+        </div>
+        <h3 class="font-bold text-3xl">
+          {
+            new Intl.NumberFormat("es-ES", {
+              notation: "compact",
+              maximumFractionDigits: 2,
+            }).format(statusEnd.unknowns)
+          }
+        </h3>
+        <p class="text-slate-400 text-sm">{strFaults} de crecimiento</p>
+        {
+          faults < 0 ? (
+            <p class="text-green-300 text-sm">↓ {strFaults}</p>
+          ) : (
+            <p class="text-red-300 text-sm">↑ {strFaults}</p>
+          )
+        }
+      </article>
+    </section>
+    <CardBps traffic={traffic} err={trafficErr} />
+    <CardMbps traffic={traffic} err={trafficErr} />
+    <CardUser data={ontStatus} err={onStatusErr} />
+  </main>
 </Layout>

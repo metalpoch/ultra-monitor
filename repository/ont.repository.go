@@ -15,12 +15,12 @@ type OntRepository interface {
 	UpdateStatusSummary(ctx context.Context, counts []entity.OntSummaryStatusCounts) error
 	GetDailyAveragedHourlyStatusSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.OntSummaryStatusCounts, error)
 	GetStatusSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.OntSummaryStatus, error)
-	GetStatusIPSummary(ctx context.Context, ip string, initDate, endDate time.Time) ([]entity.GetStatusStateSummary, error)
-	GetStatusStateSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.GetStatusStateSummary, error)
+	GetStatusIPSummary(ctx context.Context, ip string, initDate, endDate time.Time) ([]entity.OntSummaryStatus, error)
+	GetStatusStateSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.GetStatusSummary, error)
 	GetStatusByStateSummary(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.OntSummaryStatus, error)
-	GetStatusMunicipalitySummary(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.GetStatusStateSummary, error)
-	GetStatusCountySummary(ctx context.Context, state, municipality string, initDate, endDate time.Time) ([]entity.GetStatusCountySummary, error)
-	GetStatusOdnSummary(ctx context.Context, state, municipality, county string, initDate, endDate time.Time) ([]entity.GetStatusCountySummary, error)
+	GetStatusMunicipalitySummary(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.GetStatusSummary, error)
+	GetStatusCountySummary(ctx context.Context, state, municipality string, initDate, endDate time.Time) ([]entity.GetStatusSummary, error)
+	GetStatusOdnSummary(ctx context.Context, state, municipality, county string, initDate, endDate time.Time) ([]entity.GetStatusSummary, error)
 	TrafficOnt(ctx context.Context, ponID int, idx int64, initDate, endDate time.Time) ([]entity.TrafficOnt, error)
 	TrafficOntByDespt(ctx context.Context, despt string, initDate, endDate time.Time) ([]entity.TrafficOnt, error)
 }
@@ -148,37 +148,36 @@ func (repo *ontRepository) GetStatusSummary(ctx context.Context, initDate, endDa
         SUM(inactives) AS inactives,
         SUM(unknowns) AS unknowns
     FROM ont_summary_status_count AS ont
-    WHERE day BETWEEN '2025-05-16' AND '2025-06-16'
+    WHERE day BETWEEN $1 AND $2
     GROUP BY day
     ORDER BY day;`
 	err := repo.db.SelectContext(ctx, &res, query, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
 	return res, err
 }
 
-func (repo *ontRepository) GetStatusIPSummary(ctx context.Context, ip string, initDate, endDate time.Time) ([]entity.GetStatusStateSummary, error) {
-	var res []entity.GetStatusStateSummary
+func (repo *ontRepository) GetStatusIPSummary(ctx context.Context, ip string, initDate, endDate time.Time) ([]entity.OntSummaryStatus, error) {
+	var res []entity.OntSummaryStatus
 	query := `
     SELECT
         day,
-        olt_ip AS ip,
         SUM(ports_pon) AS ports_pon,
         SUM(actives) AS actives,
         SUM(inactives) AS inactives,
         SUM(unknowns) AS unknowns
-    FROM ont_summary_status_count AS ont
+    FROM ont_summary_status_count
     WHERE olt_ip = $1 AND day BETWEEN $2 AND $3
-    GROUP BY day, ip
+    GROUP BY day
     ORDER BY day;`
 	err := repo.db.SelectContext(ctx, &res, query, ip, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
 	return res, err
 }
 
-func (repo *ontRepository) GetStatusStateSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.GetStatusStateSummary, error) {
-	var res []entity.GetStatusStateSummary
+func (repo *ontRepository) GetStatusStateSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.GetStatusSummary, error) {
+	var res []entity.GetStatusSummary
 	query := `
     SELECT
         ont.day AS day,
-        fats.state AS state,
+        fats.state AS description,
         SUM(ont.ports_pon) AS ports_pon,
         SUM(ont.actives) AS actives,
         SUM(ont.inactives) AS inactives,
@@ -196,26 +195,26 @@ func (repo *ontRepository) GetStatusByStateSummary(ctx context.Context, state st
 	var res []entity.OntSummaryStatus
 	query := `
     SELECT
-        ont.day AS day,
-        SUM(ont.ports_pon) AS ports_pon,
-        SUM(ont.actives) AS actives,
-        SUM(ont.inactives) AS inactives,
-        SUM(ont.unknowns) AS unknowns
-    FROM ont_summary_status_count AS ont
-    JOIN fats ON fats.id = ont.fat_id
-    WHERE fats.state = $1 day BETWEEN $2 AND $3
-    GROUP BY day, state
-    ORDER BY state, day;`
+        day,
+        SUM(ports_pon) AS ports_pon,
+        SUM(actives) AS actives,
+        SUM(inactives) AS inactives,
+        SUM(unknowns) AS unknowns
+    FROM ont_summary_status_count
+    JOIN fats ON fats.id = fat_id
+    WHERE fats.state = $1 AND day BETWEEN $2 AND $3
+    GROUP BY day
+    ORDER BY day;`
 	err := repo.db.SelectContext(ctx, &res, query, state, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
 	return res, err
 }
 
-func (repo *ontRepository) GetStatusMunicipalitySummary(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.GetStatusStateSummary, error) {
-	var res []entity.GetStatusStateSummary
+func (repo *ontRepository) GetStatusMunicipalitySummary(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.GetStatusSummary, error) {
+	var res []entity.GetStatusSummary
 	query := `
     SELECT
         ont.day AS day,
-        fats.municipality AS municipality,
+        fats.municipality AS description,
         SUM(ont.ports_pon) AS ports_pon,
         SUM(ont.actives) AS actives,
         SUM(ont.inactives) AS inactives,
@@ -229,12 +228,12 @@ func (repo *ontRepository) GetStatusMunicipalitySummary(ctx context.Context, sta
 	return res, err
 }
 
-func (repo *ontRepository) GetStatusCountySummary(ctx context.Context, state, municipality string, initDate, endDate time.Time) ([]entity.GetStatusCountySummary, error) {
-	var res []entity.GetStatusCountySummary
+func (repo *ontRepository) GetStatusCountySummary(ctx context.Context, state, municipality string, initDate, endDate time.Time) ([]entity.GetStatusSummary, error) {
+	var res []entity.GetStatusSummary
 	query := `
     SELECT
         ont.day AS day,
-        fats.county AS county,
+        fats.county AS description,
         SUM(ont.ports_pon) AS ports_pon,
         SUM(ont.actives) AS actives,
         SUM(ont.inactives) AS inactives,
@@ -244,16 +243,16 @@ func (repo *ontRepository) GetStatusCountySummary(ctx context.Context, state, mu
     WHERE fats.state = $1 AND fats.municipality = $2 AND day BETWEEN $3 AND $4
     GROUP BY day, county
     ORDER BY county, day;`
-	err := repo.db.SelectContext(ctx, &res, query, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+	err := repo.db.SelectContext(ctx, &res, query, state, municipality, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
 	return res, err
 }
 
-func (repo *ontRepository) GetStatusOdnSummary(ctx context.Context, state, municipality, county string, initDate, endDate time.Time) ([]entity.GetStatusCountySummary, error) {
-	var res []entity.GetStatusCountySummary
+func (repo *ontRepository) GetStatusOdnSummary(ctx context.Context, state, municipality, county string, initDate, endDate time.Time) ([]entity.GetStatusSummary, error) {
+	var res []entity.GetStatusSummary
 	query := `
     SELECT
         ont.day AS day,
-        fats.odn AS odn,
+        fats.odn AS description,
         SUM(ont.ports_pon) AS ports_pon,
         SUM(ont.actives) AS actives,
         SUM(ont.inactives) AS inactives,

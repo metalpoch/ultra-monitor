@@ -22,8 +22,8 @@ func NewOntRoutes(app *fiber.App, db *sqlx.DB, cache *cache.Redis) {
 	route.Get("/status/county/:state/:municipality", hdlr.OntStatusCountySummary)
 	route.Get("/status/odn/:state/:municipality/:county", hdlr.OntStatusOdnSummary)
 
-	route.Get("/traffic/by-id/:ponID/:idx", hdlr.TrafficOnt)
-	route.Get("/traffic/by-despt/:despt", hdlr.TrafficOntByDespt)
+	route.Get("/traffic/id/:ponID/:idx", hdlr.TrafficOnt)
+	route.Get("/traffic/despt/:despt", hdlr.TrafficOntByDespt)
 
 	route.Get("/forecast/status", hdlr.GetStatusSummaryForecast)
 	route.Get("/forecast/status/:state", hdlr.OntStatusByStateForecast)

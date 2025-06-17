@@ -24,7 +24,7 @@ func NewOntUsecase(db *sqlx.DB, cache *cache.Redis) *OntUsecase {
 	return &OntUsecase{repository.NewOntRepository(db), cache}
 }
 
-func (uc *OntUsecase) GetStatusIPSummary(ip string, dates dto.RangeDate) ([]model.GetStatusStateSummary, error) {
+func (uc *OntUsecase) GetStatusIPSummary(ip string, dates dto.RangeDate) ([]model.OntSummaryStatus, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -33,14 +33,14 @@ func (uc *OntUsecase) GetStatusIPSummary(ip string, dates dto.RangeDate) ([]mode
 		return nil, err
 	}
 
-	var summary []model.GetStatusStateSummary
+	var summary []model.OntSummaryStatus
 	for _, r := range res {
-		summary = append(summary, (model.GetStatusStateSummary)(r))
+		summary = append(summary, (model.OntSummaryStatus)(r))
 	}
 	return summary, nil
 }
 
-func (uc *OntUsecase) GetStatusStateSummary(dates dto.RangeDate) ([]model.GetStatusStateSummary, error) {
+func (uc *OntUsecase) GetStatusStateSummary(dates dto.RangeDate) ([]model.GetStatusSummary, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -49,9 +49,9 @@ func (uc *OntUsecase) GetStatusStateSummary(dates dto.RangeDate) ([]model.GetSta
 		return nil, err
 	}
 
-	var summary []model.GetStatusStateSummary
+	var summary []model.GetStatusSummary
 	for _, r := range res {
-		summary = append(summary, (model.GetStatusStateSummary)(r))
+		summary = append(summary, (model.GetStatusSummary)(r))
 	}
 	return summary, nil
 }
@@ -72,7 +72,7 @@ func (uc *OntUsecase) GetStatusByStateSummary(state string, dates dto.RangeDate)
 	return summary, nil
 }
 
-func (uc *OntUsecase) GetStatusMunicipalitySummary(state string, dates dto.RangeDate) ([]model.GetStatusStateSummary, error) {
+func (uc *OntUsecase) GetStatusMunicipalitySummary(state string, dates dto.RangeDate) ([]model.GetStatusSummary, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -81,14 +81,14 @@ func (uc *OntUsecase) GetStatusMunicipalitySummary(state string, dates dto.Range
 		return nil, err
 	}
 
-	var summary []model.GetStatusStateSummary
+	var summary []model.GetStatusSummary
 	for _, r := range res {
-		summary = append(summary, (model.GetStatusStateSummary)(r))
+		summary = append(summary, (model.GetStatusSummary)(r))
 	}
 	return summary, nil
 }
 
-func (uc *OntUsecase) GetStatusCountySummary(state, municipality string, dates dto.RangeDate) ([]model.GetStatusCountySummary, error) {
+func (uc *OntUsecase) GetStatusCountySummary(state, municipality string, dates dto.RangeDate) ([]model.GetStatusSummary, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -97,14 +97,14 @@ func (uc *OntUsecase) GetStatusCountySummary(state, municipality string, dates d
 		return nil, err
 	}
 
-	var summary []model.GetStatusCountySummary
+	var summary []model.GetStatusSummary
 	for _, r := range res {
-		summary = append(summary, (model.GetStatusCountySummary)(r))
+		summary = append(summary, (model.GetStatusSummary)(r))
 	}
 	return summary, nil
 }
 
-func (uc *OntUsecase) GetStatusOdnSummary(state, municipality, county string, dates dto.RangeDate) ([]model.GetStatusCountySummary, error) {
+func (uc *OntUsecase) GetStatusOdnSummary(state, municipality, county string, dates dto.RangeDate) ([]model.GetStatusSummary, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -113,9 +113,9 @@ func (uc *OntUsecase) GetStatusOdnSummary(state, municipality, county string, da
 		return nil, err
 	}
 
-	var summary []model.GetStatusCountySummary
+	var summary []model.GetStatusSummary
 	for _, r := range res {
-		summary = append(summary, (model.GetStatusCountySummary)(r))
+		summary = append(summary, (model.GetStatusSummary)(r))
 	}
 	return summary, nil
 }
@@ -214,15 +214,12 @@ func (uc *OntUsecase) GetStatusByStateForecast(state string, futureDays int) (*m
 }
 
 func (use *OntUsecase) TrafficOnt(ponID int, idx int64, dates dto.RangeDate) ([]model.TrafficOnt, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
 	if !utils.IsDateRangeWithin7Days(dates.InitDate, dates.EndDate) {
 		return nil, fmt.Errorf("the date range invalor or cannot be greater than 7 days")
 	}
 
 	var traffic []model.TrafficOnt
-	res, err := use.repo.TrafficOnt(ctx, ponID, idx, dates.InitDate, dates.EndDate)
+	res, err := use.repo.TrafficOnt(context.Background(), ponID, idx, dates.InitDate, dates.EndDate)
 	if err != nil {
 		return nil, err
 	}

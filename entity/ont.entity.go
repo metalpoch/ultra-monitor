@@ -20,18 +20,9 @@ type OntSummaryStatus struct {
 	UnknownCount  uint64    `db:"unknowns"`
 }
 
-type GetStatusStateSummary struct {
+type GetStatusSummary struct {
 	Day           time.Time `db:"day"`
-	State         string    `db:"state"`
-	PonsCount     uint64    `db:"ports_pon"`
-	ActiveCount   uint64    `db:"actives"`
-	InactiveCount uint64    `db:"inactives"`
-	UnknownCount  uint64    `db:"unknowns"`
-}
-
-type GetStatusCountySummary struct {
-	Day           time.Time `db:"day"`
-	County        string    `db:"county"`
+	Description   string    `db:"description"`
 	PonsCount     uint64    `db:"ports_pon"`
 	ActiveCount   uint64    `db:"actives"`
 	InactiveCount uint64    `db:"inactives"`

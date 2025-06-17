@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/url"
 	"strconv"
 
@@ -62,12 +63,12 @@ func (hdlr *PonHandler) TrafficByState(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	dates := new(dto.RangeDate)
-	if err := c.Bind().Query(dates); err != nil {
+	var dates dto.RangeDate
+	if err := c.Bind().Query(&dates); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.TrafficByState(state, *dates)
+	res, err := hdlr.Usecase.TrafficByState(state, dates)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -86,12 +87,12 @@ func (hdlr *PonHandler) TrafficByMunicipaly(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	dates := new(dto.RangeDate)
-	if err := c.Bind().Query(dates); err != nil {
+	var dates dto.RangeDate
+	if err := c.Bind().Query(&dates); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.TrafficByMunicipaly(state, municipality, *dates)
+	res, err := hdlr.Usecase.TrafficByMunicipaly(state, municipality, dates)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -100,6 +101,7 @@ func (hdlr *PonHandler) TrafficByMunicipaly(c fiber.Ctx) error {
 }
 
 func (hdlr *PonHandler) TrafficByCounty(c fiber.Ctx) error {
+	fmt.Println(c.Params("state"), c.Params("municipality"), c.Params("county"))
 	state, err := url.QueryUnescape(c.Params("state"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -115,12 +117,12 @@ func (hdlr *PonHandler) TrafficByCounty(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	dates := new(dto.RangeDate)
-	if err := c.Bind().Query(dates); err != nil {
+	var dates dto.RangeDate
+	if err := c.Bind().Query(&dates); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.TrafficByCounty(state, municipality, county, *dates)
+	res, err := hdlr.Usecase.TrafficByCounty(state, municipality, county, dates)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -134,17 +136,27 @@ func (hdlr *PonHandler) TrafficByODN(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
+	municipality, err := url.QueryUnescape(c.Params("municipality"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	county, err := url.QueryUnescape(c.Params("county"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
 	odn, err := url.QueryUnescape(c.Params("odn"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	dates := new(dto.RangeDate)
-	if err := c.Bind().Query(dates); err != nil {
+	var dates dto.RangeDate
+	if err := c.Bind().Query(&dates); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.TrafficByODN(state, odn, *dates)
+	res, err := hdlr.Usecase.TrafficByODN(state, municipality, county, odn, dates)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -173,12 +185,12 @@ func (hdlr *PonHandler) TrafficPon(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	dates := new(dto.RangeDate)
-	if err := c.Bind().Query(dates); err != nil {
+	var dates dto.RangeDate
+	if err := c.Bind().Query(&dates); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.TrafficByPon(sysname, shell, card, port, *dates)
+	res, err := hdlr.Usecase.TrafficByPon(sysname, shell, card, port, dates)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

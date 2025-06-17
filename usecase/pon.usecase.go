@@ -55,10 +55,7 @@ func (uc *PonUsecase) PonByOltAndPort(sysname string, shell, card, port int) (*m
 }
 
 func (uc *PonUsecase) TrafficByState(state string, dates dto.RangeDate) ([]model.Traffic, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	res, err := uc.repo.TrafficByState(ctx, state, dates.InitDate, dates.EndDate)
+	res, err := uc.repo.TrafficByState(context.Background(), state, dates.InitDate, dates.EndDate)
 	if err != nil {
 		return nil, err
 	}
@@ -105,11 +102,11 @@ func (uc *PonUsecase) TrafficByCounty(state, municipality, county string, dates 
 	return traffic, err
 }
 
-func (uc *PonUsecase) TrafficByODN(state, odn string, dates dto.RangeDate) ([]model.Traffic, error) {
+func (uc *PonUsecase) TrafficByODN(state, municipality, county, odn string, dates dto.RangeDate) ([]model.Traffic, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, err := uc.repo.TrafficByODN(ctx, state, odn, dates.InitDate, dates.EndDate)
+	res, err := uc.repo.TrafficByODN(ctx, state, municipality, county, odn, dates.InitDate, dates.EndDate)
 	if err != nil {
 		return nil, err
 	}

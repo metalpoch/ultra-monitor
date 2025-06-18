@@ -1,0 +1,36 @@
+---
+import UsersIcon from "../../../assets/icons/users.svg";
+
+import Image from "astro/components/Image.astro";
+const { data, err } = Astro.props;
+
+const init = data && Object.values(data)[0];
+const end = data && Object.values(data)[Object.values(data).length - 1];
+const userGrowth = ((end.actives - init.actives) * 100) / init.actives;
+const strUserGrowth = `${userGrowth >= 0 ? "+" : ""}${userGrowth.toFixed(2)}%`;
+---
+
+<article
+  class="flex flex-1/3 md:flex-1/5 flex-col gap-2 px-6 py-3 w-1/3 rounded bg-[#121b31] border-2 border-[hsl(217,33%,20%)]"
+>
+  <div class="w-full flex justify-between">
+    <h2 class="text-slate-400">Usuarios Activos</h2>
+    <Image src={UsersIcon} width={20} height={20} alt="icono de pulso" />
+  </div>
+  <h3 class="font-bold text-3xl">
+    {
+      new Intl.NumberFormat("es-ES", {
+        notation: "compact",
+        maximumFractionDigits: 2,
+      }).format(end.actives)
+    }
+  </h3>
+  <p class="text-slate-400 text-sm">{strUserGrowth} de crecimiento</p>
+  {
+    userGrowth > 0 ? (
+      <p class="text-green-300 text-sm">↑ {strUserGrowth}</p>
+    ) : (
+      <p class="text-red-300 text-sm">↓ {strUserGrowth}</p>
+    )
+  }
+</article>

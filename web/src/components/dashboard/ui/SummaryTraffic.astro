@@ -1,0 +1,34 @@
+---
+import pulseIcon from "../../../assets/icons/pulse.svg";
+import Image from "astro/components/Image.astro";
+const { data, err } = Astro.props;
+
+const init = data && Object.values(data)[0];
+const totalInit = init.mbps_in + init.mbps_out;
+
+const end = data && Object.values(data)[Object.values(data).length - 1];
+const totalEnd = end.mbps_in + end.mbps_out;
+
+const traffic = ((totalEnd - totalInit) * 100) / totalInit;
+const strTraffic = `${traffic >= 0 ? "+" : ""}${traffic.toFixed(2)}%`;
+---
+
+<article
+  class="flex flex-1/3 md:flex-1/5 flex-col gap-2 px-6 py-3 w-1/3 rounded bg-[#121b31] border-2 border-[hsl(217,33%,20%)]"
+>
+  <div class="w-full flex justify-between">
+    <h2 class="text-slate-400">Tráfico Total</h2>
+    <Image src={pulseIcon} width={20} height={20} alt="icono de pulso" />
+  </div>
+  <h3 class="font-bold text-3xl">
+    {(totalEnd / 1000).toFixed(1)} Gbps
+  </h3>
+  <p class="text-slate-400 text-sm">{strTraffic} de crecimiento</p>
+  {
+    traffic > 0 ? (
+      <p class="text-green-300 text-sm">↑ {strTraffic}</p>
+    ) : (
+      <p class="text-red-300 text-sm">↓ {strTraffic}</p>
+    )
+  }
+</article>

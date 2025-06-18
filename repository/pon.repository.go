@@ -292,7 +292,17 @@ func (repo *ponRepository) UpsertSummaryTraffic(ctx context.Context, counts []en
 
 func (repo *ponRepository) GetTrafficSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.TrafficTotalSummary, error) {
 	var res []entity.TrafficTotalSummary
-	query := `SELECT day, mbps_in, mbps_out, mbytes_in_sec, mbytes_out_sec FROM traffic_pons_summary WHERE day BETWEEN $1 AND $2 ORDER BY day;`
+	query := `
+    SELECT
+        day,
+        SUM(mbps_in),
+        SUM(mbps_out),
+        SUM(mbytes_in_sec),
+        SUM(mbytes_out_sec)
+    FROM traffic_pons_summary
+    WHERE day BETWEEN $1 AND $2
+    GROUP BY day
+    ORDER BY day;`
 	err := sqlx.SelectContext(ctx, repo.db, &res, query, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
 	return res, err
 }

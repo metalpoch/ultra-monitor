@@ -3,10 +3,10 @@ import BoxIcon from "../../../assets/icons/box.svg";
 import Image from "astro/components/Image.astro";
 const { data, err } = Astro.props;
 
-const init = data && Object.values(data)[0];
+const init = data && data[0];
 const totalInit = init.mbytes_in_sec + init.mbytes_out_sec;
 
-const end = data && Object.values(data)[Object.values(data).length - 1];
+const end = data && data[data.length - 1];
 const totalEnd = end.mbytes_in_sec + end.mbytes_out_sec;
 
 const volume = ((totalEnd - totalInit) * 100) / totalInit;
@@ -14,7 +14,7 @@ const strVolume = `${volume >= 0 ? "+" : ""}${volume.toFixed(2)}%`;
 ---
 
 <article
-  class="flex flex-1/3 md:flex-1/5 flex-col gap-2 px-6 py-3 w-1/3 rounded bg-[#121b31] border-2 border-[hsl(217,33%,20%)]"
+  class="flex flex-1/3 md:flex-1/5 flex-col gap-2 px-6 py-3 w-1/3 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]"
 >
   <div class="w-full flex justify-between">
     <h2 class="text-slate-400">Volumen Total</h2>

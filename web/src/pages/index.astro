@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { formatDayField } from "../utils/format";
+import Form from "../components/dashboard/Form";
 import ChartBps from "../components/dashboard/ui/ChartBps.astro";
 import ChartMbps from "../components/dashboard/ui/ChartMbps.astro";
 import ChartUser from "../components/dashboard/ui/ChartUser.astro";
@@ -23,23 +24,44 @@ const initDate = new Date(endDate);
 initDate.setFullYear(initDate.getFullYear() - 1);
 
 const { traffic, trafficErr } = await fetch(
-  `http://10.120.93.114/api/pon/traffic/summary?initDate=${initDate.toISOString()}&endDate=${endDate.toISOString()}`
+  `http://10.120.93.114/api/pon/traffic/summary/states?initDate=${initDate.toISOString()}&endDate=${endDate.toISOString()}`
 )
   .then((res) => res.json())
   .then((traffic) => ({ traffic: formatDayField(traffic), trafficErr: null }))
   .catch((trafficErr) => ({ traffic: null, trafficErr }));
 
-const { ontStatusState, onStatusErr } = await fetch(
+const { ontStatus, onStatusErr } = await fetch(
   `http://10.120.93.114/api/ont/status/state?initDate=${initDate.toISOString()}&endDate=${endDate.toISOString()}`
 )
   .then((res) => res.json())
-  .then((status) => ({ ontStatusState: status, onStatusErr: null }))
-  .catch((onStatusErr) => ({ ontStatusState: null, onStatusErr }));
+  .then((ontStatus) => ({ ontStatus, onStatusErr: null }))
+  .catch((onStatusErr) => ({ ontStatus: null, onStatusErr }));
 
-console.log(traffic);
-const ontStatus =
-  ontStatusState &&
-  ontStatusState.reduce((acc: any, curr: any) => {
+const totalTraffic =
+  traffic &&
+  traffic.reduce((acc: any, curr: any) => {
+    const dayKey = curr.day;
+    if (!acc[dayKey]) {
+      acc[dayKey] = {
+        day: dayKey,
+        mbps_in: 0,
+        mbps_out: 0,
+        mbytes_in_sec: 0,
+        mbytes_out_sec: 0,
+      };
+    }
+
+    acc[dayKey].mbps_in += curr.mbps_in;
+    acc[dayKey].mbps_out += curr.mbps_out;
+    acc[dayKey].mbytes_in_sec += curr.mbytes_in_sec;
+    acc[dayKey].mbytes_out_sec += curr.mbytes_out_sec;
+
+    return acc;
+  }, {});
+
+const ontStatusState =
+  ontStatus &&
+  ontStatus.reduce((acc: any, curr: any) => {
     const dayKey = curr.day;
     if (!acc[dayKey]) {
       acc[dayKey] = {
@@ -51,7 +73,6 @@ const ontStatus =
       };
     }
 
-    // Add the current item's values to the respective day's totals
     acc[dayKey].ports_pon += curr.ports_pon;
     acc[dayKey].actives += curr.actives;
     acc[dayKey].inactives += curr.inactives;
@@ -63,14 +84,21 @@ const ontStatus =
 
 <Layout title="Dashboard">
   <main class="w-full flex flex-wrap gap-5 justify-evenly px-10">
+    <Form client:load />
     <section class="w-full flex flex-wrap gap-5">
-      <SummaryTraffic data={traffic} err={trafficErr} />
-      <SummaryVolume data={traffic} err={trafficErr} />
-      <SummaryUsers data={ontStatus} err={onStatusErr} />
-      <SummaryFaults data={ontStatus} err={onStatusErr} />
+      <SummaryTraffic
+        data={traffic && Object.values(totalTraffic)}
+        err={trafficErr}
+      />
+      <SummaryVolume
+        data={traffic && Object.values(totalTraffic)}
+        err={trafficErr}
+      />
+      <SummaryUsers data={ontStatusState} err={onStatusErr} />
+      <SummaryFaults data={ontStatusState} err={onStatusErr} />
     </section>
-    <ChartBps traffic={traffic} err={trafficErr} />
-    <ChartMbps traffic={traffic} err={trafficErr} />
+    <ChartBps data={traffic} err={trafficErr} />
+    <ChartMbps data={traffic} err={trafficErr} />
     <ChartUser data={ontStatus} err={onStatusErr} />
   </main>
 </Layout>

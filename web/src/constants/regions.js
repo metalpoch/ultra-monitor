@@ -1,4 +1,4 @@
-const REGIONS = [
+export const REGIONS = [
   { value: "andina", label: "Región Andina" },
   { value: "capital", label: "Región Capital" },
   { value: "central", label: "Región Central" },
@@ -8,7 +8,7 @@ const REGIONS = [
   { value: "oriental", label: "Región Oriental" },
 ];
 
-const STATES_BY_REGION = {
+export const STATES_BY_REGION = {
   andina: [
     { value: "MERIDA", label: "Mérida" },
     { value: "TACHIRA", label: "Táchira" },

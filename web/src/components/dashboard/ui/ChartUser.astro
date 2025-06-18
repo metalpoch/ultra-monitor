@@ -4,11 +4,11 @@ const { data, err } = Astro.props;
 ---
 
 <section
-  class="flex flex-col w-full gap-2 px-6 py-3 rounded bg-[#121b31] border-2 border-[hsl(217,33%,20%)]"
+  class="flex flex-col w-full gap-2 px-6 py-3 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]"
 >
   <h class="text-2xl font-semibold">Crecimiento de Usuarios</h>
   <p class="text-slate-400 text-sm">
     Evolución de usuarios activos e inactivos.
   </p>
-  <UserGrowthChart data={Object.values(data)} client:load />
+  <UserGrowthChart data={data} client:load />
 </section>

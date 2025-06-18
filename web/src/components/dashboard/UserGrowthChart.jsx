@@ -7,17 +7,35 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { useStore } from "@nanostores/react";
+import { filterStatusData } from "../../utils/filterTrafficData";
+import {
+  selectedLevel,
+  selectedRegion,
+  selectedState,
+} from "../../stores/dashboard";
 
 export default function UserGrowthChart({ data }) {
+  const $selectedLevel = useStore(selectedLevel);
+  const $selectedRegion = useStore(selectedRegion);
+  const $selectedState = useStore(selectedState);
+
+  const filteredData = filterStatusData(
+    data,
+    $selectedLevel,
+    $selectedRegion,
+    $selectedState
+  );
+
   return (
     <div
       style={{
         width: "100%",
-        height: 300 /* o cualquier altura fija o relativa */,
+        height: 300,
       }}
     >
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data}>
+        <AreaChart data={filteredData}>
           <XAxis dataKey="date" />
           <YAxis />
           <Tooltip />

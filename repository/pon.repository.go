@@ -295,10 +295,10 @@ func (repo *ponRepository) GetTrafficSummary(ctx context.Context, initDate, endD
 	query := `
     SELECT
         day,
-        SUM(mbps_in),
-        SUM(mbps_out),
-        SUM(mbytes_in_sec),
-        SUM(mbytes_out_sec)
+        SUM(mbps_in) AS mbps_in,
+        SUM(mbps_out) AS mbps_out,
+        SUM(mbytes_in_sec) AS mbytes_in_sec,
+        SUM(mbytes_out_sec) AS mbytes_out_sec
     FROM traffic_pons_summary
     WHERE day BETWEEN $1 AND $2
     GROUP BY day

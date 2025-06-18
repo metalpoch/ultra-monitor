@@ -13,11 +13,13 @@ type TrafficPon struct {
 }
 
 type TrafficSummary struct {
-	Day       time.Time `db:"day"`
-	MbpsIn    float64   `db:"mbps_in"`
-	MbpsOut   float64   `db:"mbps_out"`
-	MbytesIn  float64   `db:"mbytes_in_sec"`
-	MbytesOut float64   `db:"mbytes_out_sec"`
+	Day          time.Time `db:"day"`
+	FatID        int32     `db:"fat_id"`
+	OltIP        string    `db:"olt_ip"`
+	MbpsIn       float64   `db:"mbps_in"`
+	MbpsOut      float64   `db:"mbps_out"`
+	MbytesInSec  float64   `db:"mbytes_in_sec"`
+	MbytesOutSec float64   `db:"mbytes_out_sec"`
 }
 
 type TrafficOnt struct {

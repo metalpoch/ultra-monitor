@@ -161,8 +161,8 @@ func (uc *PonUsecase) GetTrafficPonForecast(futureDays int, dates dto.RangeDate)
 	for _, t := range traffic {
 		mbpsIn = append(mbpsIn, t.MbpsIn)
 		mbpsOut = append(mbpsOut, t.MbpsOut)
-		mbytesIn = append(mbytesIn, t.MbytesIn)
-		mbytesOut = append(mbytesOut, t.MbytesOut)
+		mbytesIn = append(mbytesIn, t.MbytesInSec)
+		mbytesOut = append(mbytesOut, t.MbytesOutSec)
 	}
 
 	var (
@@ -197,11 +197,11 @@ func (uc *PonUsecase) GetTrafficPonForecast(futureDays int, dates dto.RangeDate)
 	}
 	for i := 1; i <= futureDays; i++ {
 		forecast = append(forecast, model.TrafficSummary{
-			Day:       lastDay.AddDate(0, 0, i),
-			MbpsIn:    predMbpsIn[i-1],
-			MbpsOut:   predMbpsOut[i-1],
-			MbytesIn:  predMbytesIn[i-1],
-			MbytesOut: predMbytesOut[i-1],
+			Day:          lastDay.AddDate(0, 0, i),
+			MbpsIn:       predMbpsIn[i-1],
+			MbpsOut:      predMbpsOut[i-1],
+			MbytesInSec:  predMbytesIn[i-1],
+			MbytesOutSec: predMbytesOut[i-1],
 		})
 	}
 
@@ -220,7 +220,7 @@ func (uc *PonUsecase) UpdateSummaryTraffic(dates dto.RangeDate) error {
 		return sql.ErrNoRows
 	}
 
-	return uc.repo.UpsertSummaryTraffic(context.Background(), res[0])
+	return uc.repo.UpsertSummaryTraffic(context.Background(), res)
 }
 
 func (uc *PonUsecase) GetTrafficSummary(dates dto.RangeDate) ([]model.TrafficSummary, error) {

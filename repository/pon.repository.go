@@ -2,10 +2,13 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/metalpoch/ultra-monitor/entity"
+	"github.com/metalpoch/ultra-monitor/repository/internal/model"
 )
 
 type PonRepository interface {
@@ -18,7 +21,7 @@ type PonRepository interface {
 	TrafficByOLT(ctx context.Context, sysname string, initDate, endDate time.Time) ([]entity.Traffic, error)
 	TrafficByPon(ctx context.Context, sysname, ifname string, initDate, endDate time.Time) ([]entity.Traffic, error)
 	GetDailyAveragedHourlyMaxTrafficTrends(ctx context.Context, initDate, endDate time.Time) ([]entity.TrafficSummary, error)
-	UpsertSummaryTraffic(ctx context.Context, traffic entity.TrafficSummary) error
+	UpsertSummaryTraffic(ctx context.Context, traffic []entity.TrafficSummary) error
 	GetTrafficSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.TrafficSummary, error)
 }
 
@@ -169,44 +172,116 @@ func (repo *ponRepository) TrafficByPon(ctx context.Context, sysname, ifname str
 }
 
 func (repo *ponRepository) GetDailyAveragedHourlyMaxTrafficTrends(ctx context.Context, initDate, endDate time.Time) ([]entity.TrafficSummary, error) {
-	var trends []entity.TrafficSummary
-	query := `
-    WITH hourly_max AS (
+	trendsQuery := `
         SELECT
-            DATE(date) AS day,
-            EXTRACT(HOUR FROM date) AS hour,
-            MAX(bps_in) AS max_bps_in,
-            MAX(bps_out) AS max_bps_out,
-            MAX(bytes_in_sec) AS max_bytes_in_sec,
-            MAX(bytes_out_sec) AS max_bytes_out_sec
-        FROM traffic_pons
-        GROUP BY day, hour
-    )
-    SELECT
-        day,
-        AVG(max_bps_in) / 1e6 AS mbps_in,
-        AVG(max_bps_out) / 1e6 AS mbps_out,
-        AVG(max_bytes_in_sec) / 1e6 AS mbytes_in_sec,
-        AVG(max_bytes_out_sec) / 1e6 AS mbytes_out_sec
-    FROM hourly_max
-    WHERE day BETWEEN $1 AND $2
-    GROUP BY day
-    ORDER BY day;`
-	err := repo.db.SelectContext(ctx, &trends, query, initDate, endDate)
-	return trends, err
+            day,
+            pon_id,
+            AVG(max_bps_in) / 1e6 AS mbps_in,
+            AVG(max_bps_out) / 1e6 AS mbps_out,
+            AVG(max_bytes_in_sec) / 1e6 AS mbytes_in_sec,
+            AVG(max_bytes_out_sec) / 1e6 AS mbytes_out_sec
+        FROM (
+            SELECT
+                DATE(date) AS day,
+                pon_id,
+                EXTRACT(HOUR FROM date) AS hour,
+                MAX(bps_in) AS max_bps_in,
+                MAX(bps_out) AS max_bps_out,
+                MAX(bytes_in_sec) AS max_bytes_in_sec,
+                MAX(bytes_out_sec) AS max_bytes_out_sec
+            FROM traffic_pons
+            WHERE date BETWEEN $1 AND $2
+            GROUP BY day, pon_id, hour
+        ) hourly_max
+        GROUP BY day, pon_id
+        ORDER BY day, pon_id;`
+
+	var trends []model.TrafficTrend
+	err := repo.db.SelectContext(ctx, &trends, trendsQuery, initDate, endDate)
+	if err != nil {
+		return nil, err
+	}
+
+	metaQuery := `
+        SELECT DISTINCT p.id AS pon_id, f.id AS fat_id, p.olt_ip
+        FROM pons p
+        JOIN fats f ON f.olt_ip = p.olt_ip;`
+
+	var metas []model.TrafficMeta
+	err = repo.db.SelectContext(ctx, &metas, metaQuery)
+	if err != nil {
+		return nil, err
+	}
+	metaMap := make(map[int32]model.TrafficMeta)
+	for _, m := range metas {
+		metaMap[m.PonID] = m
+	}
+
+	type groupKey struct {
+		Day   time.Time
+		FatID int32
+		OltIP string
+	}
+	grouped := make(map[groupKey]*entity.TrafficSummary)
+	for _, t := range trends {
+		meta, ok := metaMap[t.PonID]
+		if !ok {
+			continue
+		}
+		key := groupKey{
+			Day:   t.Day,
+			FatID: meta.FatID,
+			OltIP: meta.OltIP,
+		}
+		if _, exists := grouped[key]; !exists {
+			grouped[key] = &entity.TrafficSummary{
+				Day:          t.Day,
+				FatID:        meta.FatID,
+				OltIP:        meta.OltIP,
+				MbpsIn:       0,
+				MbpsOut:      0,
+				MbytesInSec:  0,
+				MbytesOutSec: 0,
+			}
+		}
+		grouped[key].MbpsIn += t.MbpsIn
+		grouped[key].MbpsOut += t.MbpsOut
+		grouped[key].MbytesInSec += t.MbytesInSec
+		grouped[key].MbytesOutSec += t.MbytesOutSec
+	}
+
+	var res []entity.TrafficSummary
+	for _, v := range grouped {
+		res = append(res, *v)
+	}
+	return res, nil
 }
 
-func (repo *ponRepository) UpsertSummaryTraffic(ctx context.Context, traffic entity.TrafficSummary) error {
+func (repo *ponRepository) UpsertSummaryTraffic(ctx context.Context, counts []entity.TrafficSummary) error {
+	const fieldCount = 7
 	query := `
-    INSERT INTO traffic_pons_summary (day, mbps_in, mbps_out, mbytes_in_sec, mbytes_out_sec)
-    VALUES (:day, :mbps_in, :mbps_out, :mbytes_in_sec, :mbytes_out_sec)
-    ON CONFLICT (day) DO UPDATE SET
-        mbps_in = EXCLUDED.mbps_in,
-        mbps_out = EXCLUDED.mbps_out,
-        mbytes_in_sec = EXCLUDED.mbytes_in_sec,
-        mbytes_out_sec = EXCLUDED.mbytes_out_sec;
-    `
-	_, err := repo.db.NamedExecContext(ctx, query, traffic)
+        INSERT INTO traffic_pons_summary (
+            day, fat_id, olt_ip, mbps_in, mbps_out, mbytes_in_sec, mbytes_out_sec
+        ) VALUES `
+	valueStrings := make([]string, 0, len(counts))
+	valueArgs := make([]interface{}, 0, len(counts)*fieldCount)
+
+	for i, c := range counts {
+		valueStrings = append(valueStrings, fmt.Sprintf("($%d,$%d,$%d,$%d,$%d,$%d,$%d)",
+			i*fieldCount+1, i*fieldCount+2, i*fieldCount+3, i*fieldCount+4, i*fieldCount+5, i*fieldCount+6, i*fieldCount+7))
+		valueArgs = append(valueArgs,
+			c.Day, c.FatID, c.OltIP, c.MbpsIn, c.MbpsOut, c.MbytesInSec, c.MbytesOutSec)
+	}
+
+	query += strings.Join(valueStrings, ", ")
+	query += `
+	    ON CONFLICT (day, fat_id, olt_ip) DO UPDATE SET
+    	    mbps_in = EXCLUDED.mbps_in,
+	        mbps_out = EXCLUDED.mbps_out,
+	        mbytes_in_sec = EXCLUDED.mbytes_in_sec,
+	        mbytes_out_sec = EXCLUDED.mbytes_out_sec`
+
+	_, err := repo.db.ExecContext(ctx, query, valueArgs...)
 	return err
 }
 

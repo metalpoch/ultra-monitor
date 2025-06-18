@@ -22,6 +22,23 @@ type TrafficSummary struct {
 	MbytesOutSec float64   `db:"mbytes_out_sec"`
 }
 
+type TrafficTotalSummary struct {
+	Day          time.Time `db:"day"`
+	MbpsIn       float64   `db:"mbps_in"`
+	MbpsOut      float64   `db:"mbps_out"`
+	MbytesInSec  float64   `db:"mbytes_in_sec"`
+	MbytesOutSec float64   `db:"mbytes_out_sec"`
+}
+
+type TrafficInfoSummary struct {
+	Day          time.Time `db:"day"`
+	Description  string    `db:"description"`
+	MbpsIn       float64   `db:"mbps_in"`
+	MbpsOut      float64   `db:"mbps_out"`
+	MbytesInSec  float64   `db:"mbytes_in_sec"`
+	MbytesOutSec float64   `db:"mbytes_out_sec"`
+}
+
 type TrafficOnt struct {
 	Date             time.Time `db:"date"`
 	Despt            string    `db:"despt"`

@@ -15,9 +15,6 @@ func NewPonRoutes(app *fiber.App, db *sqlx.DB, cache *cache.Redis) {
 
 	route := app.Group("/api/pon")
 
-	route.Get("/:sysname", hdlr.GetAllByDevice)
-	route.Get("/:sysname/:shell/:card/:port", hdlr.GetByOltAndPort)
-
 	route.Get("/traffic/port/:sysname/:shell/:card/:port", hdlr.TrafficPon)
 	route.Get("/traffic/location/:state", hdlr.TrafficByState)
 	route.Get("/traffic/location/:state/:municipality/", hdlr.TrafficByMunicipaly)
@@ -25,5 +22,13 @@ func NewPonRoutes(app *fiber.App, db *sqlx.DB, cache *cache.Redis) {
 	route.Get("/traffic/location/:state/:municipality/:county/:odn", hdlr.TrafficByODN)
 
 	route.Get("/traffic/summary", hdlr.GetTrafficSummary)
+	route.Get("/traffic/summary/states", hdlr.GetTrafficStatesSummary)
+	route.Get("/traffic/summary/municipality/:state", hdlr.GetTrafficMunicipalitySummary)
+	route.Get("/traffic/summary/county/:state/:municipality", hdlr.GetTrafficCountySummary)
+	route.Get("/traffic/summary/odn/:state/:municipality/:county", hdlr.GetTrafficOdnSummary)
+
 	route.Get("/traffic/forecast", hdlr.GetTrafficPonForecast)
+
+	route.Get("/:sysname", hdlr.GetAllByDevice)
+	route.Get("/:sysname/:shell/:card/:port", hdlr.GetByOltAndPort)
 }

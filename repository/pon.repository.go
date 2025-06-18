@@ -21,8 +21,13 @@ type PonRepository interface {
 	TrafficByOLT(ctx context.Context, sysname string, initDate, endDate time.Time) ([]entity.Traffic, error)
 	TrafficByPon(ctx context.Context, sysname, ifname string, initDate, endDate time.Time) ([]entity.Traffic, error)
 	GetDailyAveragedHourlyMaxTrafficTrends(ctx context.Context, initDate, endDate time.Time) ([]entity.TrafficSummary, error)
+
 	UpsertSummaryTraffic(ctx context.Context, traffic []entity.TrafficSummary) error
-	GetTrafficSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.TrafficSummary, error)
+	GetTrafficSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.TrafficTotalSummary, error)
+	GetTrafficStatesSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.TrafficInfoSummary, error)
+	GetTrafficMunicipalitySummary(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.TrafficInfoSummary, error)
+	GetTrafficCountySummary(ctx context.Context, state, municipality string, initDate, endDate time.Time) ([]entity.TrafficInfoSummary, error)
+	GetTrafficOdnSummary(ctx context.Context, state, municipality, county string, initDate, endDate time.Time) ([]entity.TrafficInfoSummary, error)
 }
 
 type ponRepository struct {
@@ -285,9 +290,85 @@ func (repo *ponRepository) UpsertSummaryTraffic(ctx context.Context, counts []en
 	return err
 }
 
-func (repo *ponRepository) GetTrafficSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.TrafficSummary, error) {
-	var res []entity.TrafficSummary
-	query := `SELECT * FROM traffic_pons_summary WHERE day BETWEEN $1 AND $2 ORDER BY day;`
+func (repo *ponRepository) GetTrafficSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.TrafficTotalSummary, error) {
+	var res []entity.TrafficTotalSummary
+	query := `SELECT day, mbps_in, mbps_out, mbytes_in_sec, mbytes_out_sec FROM traffic_pons_summary WHERE day BETWEEN $1 AND $2 ORDER BY day;`
 	err := sqlx.SelectContext(ctx, repo.db, &res, query, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+	return res, err
+}
+
+func (repo *ponRepository) GetTrafficStatesSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.TrafficInfoSummary, error) {
+	var res []entity.TrafficInfoSummary
+	query := `
+    SELECT
+        traffic.day AS day,
+        fats.state AS description,
+        SUM(traffic.mbps_in) AS mbps_in,
+        SUM(traffic.mbps_out) AS mbps_out,
+        SUM(traffic.mbytes_in_sec) AS mbytes_in_sec,
+        SUM(traffic.mbytes_out_sec) AS mbytes_out_sec
+    FROM traffic_pons_summary AS traffic
+    JOIN fats ON fats.olt_ip = traffic.olt_ip
+    WHERE day BETWEEN $1 AND $2
+    GROUP BY day, state
+    ORDER BY state, day;`
+	err := sqlx.SelectContext(ctx, repo.db, &res, query, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+	return res, err
+}
+
+func (repo *ponRepository) GetTrafficMunicipalitySummary(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.TrafficInfoSummary, error) {
+	var res []entity.TrafficInfoSummary
+	query := `
+    SELECT
+        traffic.day AS day,
+        fats.municipality AS description,
+        SUM(traffic.mbps_in) AS mbps_in,
+        SUM(traffic.mbps_out) AS mbps_out,
+        SUM(traffic.mbytes_in_sec) AS mbytes_in_sec,
+        SUM(traffic.mbytes_out_sec) AS mbytes_out_sec
+    FROM traffic_pons_summary AS traffic
+    JOIN fats ON fats.olt_ip = traffic.olt_ip
+    WHERE fats.state = $1 AND day BETWEEN $2 AND $3
+    GROUP BY day, municipality
+    ORDER BY municipality, day;`
+	err := sqlx.SelectContext(ctx, repo.db, &res, query, state, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+	return res, err
+}
+
+func (repo *ponRepository) GetTrafficCountySummary(ctx context.Context, state, municipality string, initDate, endDate time.Time) ([]entity.TrafficInfoSummary, error) {
+	var res []entity.TrafficInfoSummary
+	query := `
+    SELECT
+        traffic.day AS day,
+        fats.county AS description,
+        SUM(traffic.mbps_in) AS mbps_in,
+        SUM(traffic.mbps_out) AS mbps_out,
+        SUM(traffic.mbytes_in_sec) AS mbytes_in_sec,
+        SUM(traffic.mbytes_out_sec) AS mbytes_out_sec
+    FROM traffic_pons_summary AS traffic
+    JOIN fats ON fats.olt_ip = traffic.olt_ip
+    WHERE fats.state = $1 AND fats.municipality = $2 AND day BETWEEN $3 AND $4
+    GROUP BY day, county
+    ORDER BY county, day;`
+	err := sqlx.SelectContext(ctx, repo.db, &res, query, state, municipality, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+	return res, err
+}
+
+func (repo *ponRepository) GetTrafficOdnSummary(ctx context.Context, state, municipality, county string, initDate, endDate time.Time) ([]entity.TrafficInfoSummary, error) {
+	var res []entity.TrafficInfoSummary
+	query := `
+    SELECT
+        traffic.day AS day,
+        fats.odn AS description,
+        SUM(traffic.mbps_in) AS mbps_in,
+        SUM(traffic.mbps_out) AS mbps_out,
+        SUM(traffic.mbytes_in_sec) AS mbytes_in_sec,
+        SUM(traffic.mbytes_out_sec) AS mbytes_out_sec
+    FROM traffic_pons_summary AS traffic
+    JOIN fats ON fats.olt_ip = traffic.olt_ip
+    WHERE fats.state = $1 AND fats.municipality = $2 AND fats.county = $3 AND day BETWEEN $4 AND $5
+    GROUP BY day, odn
+    ORDER BY odn, day;`
+	err := sqlx.SelectContext(ctx, repo.db, &res, query, state, municipality, county, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
 	return res, err
 }

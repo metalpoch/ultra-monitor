@@ -223,7 +223,7 @@ func (uc *PonUsecase) UpdateSummaryTraffic(dates dto.RangeDate) error {
 	return uc.repo.UpsertSummaryTraffic(context.Background(), res)
 }
 
-func (uc *PonUsecase) GetTrafficSummary(dates dto.RangeDate) ([]model.TrafficSummary, error) {
+func (uc *PonUsecase) GetTrafficSummary(dates dto.RangeDate) ([]model.TrafficTotalSummary, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -232,9 +232,77 @@ func (uc *PonUsecase) GetTrafficSummary(dates dto.RangeDate) ([]model.TrafficSum
 		return nil, err
 	}
 
-	var traffic []model.TrafficSummary
+	var traffic []model.TrafficTotalSummary
 	for _, t := range res {
-		traffic = append(traffic, (model.TrafficSummary)(t))
+		traffic = append(traffic, (model.TrafficTotalSummary)(t))
+	}
+
+	return traffic, err
+}
+
+func (uc *PonUsecase) GetTrafficStatesSummary(dates dto.RangeDate) ([]model.TrafficInfoSummary, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	res, err := uc.repo.GetTrafficStatesSummary(ctx, dates.InitDate, dates.EndDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var traffic []model.TrafficInfoSummary
+	for _, t := range res {
+		traffic = append(traffic, (model.TrafficInfoSummary)(t))
+	}
+
+	return traffic, err
+}
+
+func (uc *PonUsecase) GetTrafficMunicipalitySummary(state string, dates dto.RangeDate) ([]model.TrafficInfoSummary, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	res, err := uc.repo.GetTrafficMunicipalitySummary(ctx, state, dates.InitDate, dates.EndDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var traffic []model.TrafficInfoSummary
+	for _, t := range res {
+		traffic = append(traffic, (model.TrafficInfoSummary)(t))
+	}
+
+	return traffic, err
+}
+
+func (uc *PonUsecase) GetTrafficCountySummary(state, municipality string, dates dto.RangeDate) ([]model.TrafficInfoSummary, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	res, err := uc.repo.GetTrafficCountySummary(ctx, state, municipality, dates.InitDate, dates.EndDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var traffic []model.TrafficInfoSummary
+	for _, t := range res {
+		traffic = append(traffic, (model.TrafficInfoSummary)(t))
+	}
+
+	return traffic, err
+}
+
+func (uc *PonUsecase) GetTrafficOdnSummary(state, municipality, county string, dates dto.RangeDate) ([]model.TrafficInfoSummary, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	res, err := uc.repo.GetTrafficOdnSummary(ctx, state, municipality, county, dates.InitDate, dates.EndDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var traffic []model.TrafficInfoSummary
+	for _, t := range res {
+		traffic = append(traffic, (model.TrafficInfoSummary)(t))
 	}
 
 	return traffic, err

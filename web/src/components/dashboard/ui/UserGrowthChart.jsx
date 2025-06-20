@@ -1,6 +1,6 @@
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
@@ -8,19 +8,19 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useStore } from "@nanostores/react";
-import { filterTrafficData } from "../../utils/filterTrafficData";
+import { filterStatusData } from "../../../utils/filterTrafficData";
 import {
   selectedLevel,
   selectedRegion,
   selectedState,
-} from "../../stores/dashboard";
+} from "../../../stores/dashboard";
 
-export default function TrafficChartBps({ data }) {
+export default function UserGrowthChart({ data }) {
   const $selectedLevel = useStore(selectedLevel);
   const $selectedRegion = useStore(selectedRegion);
   const $selectedState = useStore(selectedState);
 
-  const filteredData = filterTrafficData(
+  const filteredData = filterStatusData(
     data,
     $selectedLevel,
     $selectedRegion,
@@ -28,30 +28,43 @@ export default function TrafficChartBps({ data }) {
   );
 
   return (
-    <div style={{ width: "100%", height: 300 }}>
+    <div
+      style={{
+        width: "100%",
+        height: 300,
+      }}
+    >
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart width={500} height={300} data={filteredData}>
-          <XAxis dataKey="day" />
+        <AreaChart data={filteredData}>
+          <XAxis dataKey="date" />
           <YAxis />
           <Tooltip />
           <Legend />
-          <Line
+          <Area
             type="monotone"
-            dataKey="mbps_in"
-            name="Mbps In"
+            dataKey="actives"
+            name="Activos"
             stroke="#3b82f6"
             fill="#3b82f6"
             strokeWidth="3"
           />
-          <Line
+          <Area
             type="monotone"
-            dataKey="mbps_out"
-            name="Mbps Out"
+            dataKey="inactives"
+            name="Inactivos"
             stroke="#f59e0b"
             fill="#f59e0b"
             strokeWidth="3"
           />
-        </LineChart>
+          <Area
+            type="monotone"
+            dataKey="unknowns"
+            name="Fallas"
+            stroke="red"
+            fill="red"
+            strokeWidth="3"
+          />
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );

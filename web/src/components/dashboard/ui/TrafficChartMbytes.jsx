@@ -8,12 +8,12 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useStore } from "@nanostores/react";
-import { filterTrafficData } from "../../utils/filterTrafficData";
+import { filterTrafficData } from "../../../utils/filterTrafficData";
 import {
   selectedLevel,
   selectedRegion,
   selectedState,
-} from "../../stores/dashboard";
+} from "../../../stores/dashboard";
 
 export default function TrafficChartMbytes({ data }) {
   const $selectedLevel = useStore(selectedLevel);

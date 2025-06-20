@@ -1,19 +1,19 @@
 import { useStore } from "@nanostores/react";
-import warningIcon from "../../assets/icons/warning.svg";
+import pulseIcon from "../../../assets/icons/pulse.svg";
 import {
   selectedLevel,
   selectedRegion,
   selectedState,
-} from "../../stores/dashboard";
-import convert from "../../utils/convert";
-import { filterStatusData } from "../../utils/filterTrafficData";
+} from "../../../stores/dashboard";
+import convert from "../../../utils/convert";
+import { filterTrafficData } from "../../../utils/filterTrafficData";
 
-export default function SummaryUserFaults({ data }) {
+export default function SummaryTraffic({ data }) {
   const $selectedLevel = useStore(selectedLevel);
   const $selectedRegion = useStore(selectedRegion);
   const $selectedState = useStore(selectedState);
 
-  const filteredData = filterStatusData(
+  const filteredData = filterTrafficData(
     data,
     $selectedLevel,
     $selectedRegion,
@@ -24,9 +24,9 @@ export default function SummaryUserFaults({ data }) {
     return (
       <article className="flex flex-1/3 md:flex-1/5 flex-col gap-2 px-6 py-3 w-1/3 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]">
         <div className="w-full flex justify-between">
-          <h2 className="text-slate-400">Usuarios con fallas</h2>
+          <h2 className="text-slate-400">Tráfico Total</h2>
           <img
-            src={warningIcon.src ?? warningIcon}
+            src={pulseIcon.src ?? pulseIcon}
             width={20}
             height={20}
             alt="icono de pulso"
@@ -39,32 +39,34 @@ export default function SummaryUserFaults({ data }) {
   }
 
   const init = filteredData[0];
-  const totalInit = init.unknowns + init.unknowns;
-
   const end = filteredData[filteredData.length - 1];
-  const totalEnd = end.unknowns + end.unknowns;
 
-  const usersDiff = ((totalEnd - totalInit) * 100) / (totalInit || 1);
-  const users = `${convert.qty(totalEnd)}`;
-  const strUsers = `${usersDiff >= 0 ? "+" : ""}${usersDiff.toFixed(2)}%`;
+  const totalInit = init.mbps_in + init.mbps_out;
+  const totalEnd = end.mbps_in + end.mbps_out;
+
+  const trafficPercent = ((totalEnd - totalInit) * 100) / (totalInit || 1);
+  const traffic = `${convert.traffic(totalEnd)}bps`;
+  const strTraffic = `${trafficPercent >= 0 ? "+" : ""}${trafficPercent.toFixed(
+    2
+  )}%`;
 
   return (
     <article className="flex flex-1/3 md:flex-1/5 flex-col gap-2 px-6 py-3 w-1/3 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]">
       <div className="w-full flex justify-between">
-        <h2 className="text-slate-400">Usuarios con fallas</h2>
+        <h2 className="text-slate-400">Tráfico Total</h2>
         <img
-          src={warningIcon.src ?? warningIcon}
+          src={pulseIcon.src ?? pulseIcon}
           width={20}
           height={20}
           alt="icono de pulso"
         />
       </div>
-      <h3 className="font-bold text-3xl">{users}</h3>
-      <p className="text-slate-400 text-sm">{strUsers} de disminución</p>
-      {usersDiff <= 0 ? (
-        <p className="text-green-300 text-sm">↑ {strUsers}</p>
+      <h3 className="font-bold text-3xl">{traffic}</h3>
+      <p className="text-slate-400 text-sm">{strTraffic} de crecimiento</p>
+      {trafficPercent > 0 ? (
+        <p className="text-green-300 text-sm">↑ {strTraffic}</p>
       ) : (
-        <p className="text-red-300 text-sm">↓ {strUsers}</p>
+        <p className="text-red-300 text-sm">↓ {strTraffic}</p>
       )}
     </article>
   );

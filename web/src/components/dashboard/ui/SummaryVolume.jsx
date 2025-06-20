@@ -1,13 +1,13 @@
 import { useStore } from "@nanostores/react";
-import boxIcon from "../../assets/icons/box.svg";
+import boxIcon from "../../../assets/icons/box.svg";
 import {
   selectedLevel,
   selectedRegion,
   selectedState,
-} from "../../stores/dashboard";
-import convert from "../../utils/convert";
+} from "../../../stores/dashboard";
+import convert from "../../../utils/convert";
 
-import { filterTrafficData } from "../../utils/filterTrafficData";
+import { filterTrafficData } from "../../../utils/filterTrafficData";
 
 export default function SummaryVolume({ data }) {
   const $selectedLevel = useStore(selectedLevel);

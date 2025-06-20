@@ -1,14 +1,14 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { dayField } from "../utils/convert";
-import Form from "../components/dashboard/Form";
-import ChartBps from "../components/dashboard/ui/ChartBps.astro";
-import ChartMbps from "../components/dashboard/ui/ChartMbps.astro";
-import ChartUser from "../components/dashboard/ui/ChartUser.astro";
-import SummaryTraffic from "../components/dashboard/ui/SummaryTraffic.astro";
-import SummaryVolume from "../components/dashboard/ui/SummaryVolume.astro";
-import SummaryUsers from "../components/dashboard/ui/SummaryUsers.astro";
-import SummaryFaults from "../components/dashboard/ui/SummaryFaults.astro";
+import Form from "../components/dashboard/ui/Form";
+import ChartBps from "../components/dashboard/ChartBps.astro";
+import ChartMbps from "../components/dashboard/ChartMbps.astro";
+import ChartUser from "../components/dashboard/ChartUser.astro";
+import SummaryTraffic from "../components/dashboard/SummaryTraffic.astro";
+import SummaryVolume from "../components/dashboard/SummaryVolume.astro";
+import SummaryUsers from "../components/dashboard/SummaryUsers.astro";
+import SummaryFaults from "../components/dashboard/SummaryFaults.astro";
 const now = new Date();
 const endDate = new Date(
   now.getFullYear(),

@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import SelectField from "../ui/SelectField";
-import { REGIONS, STATES_BY_REGION } from "../../constants/regions";
+import SelectField from "../../ui/SelectField";
+import { REGIONS, STATES_BY_REGION } from "../../../constants/regions";
 import {
   selectedLevel,
   selectedRegion,
   selectedState,
-} from "../../stores/dashboard";
+} from "../../../stores/dashboard";
 
 export default function Form() {
   const [selectedLevelValue, setSelectedLevelValue] = useState("");

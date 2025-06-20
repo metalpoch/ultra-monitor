@@ -7,32 +7,32 @@ const { title } = Astro.props;
 
 <!doctype html>
 <html lang="es">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Ultra Monitor: dashboard</title>
-	</head>
-	<body>
-		<Navbar title={title} />
-		<slot />
-	</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Gestor Ultra: dashboard</title>
+  </head>
+  <body>
+    <Navbar title={title} />
+    <slot />
+  </body>
 </html>
 
 <script is:inline>
-	if (!sessionStorage.getItem("access_token")) {
-		window.location.href = "/auth/login";
-	}
+  if (!sessionStorage.getItem("access_token")) {
+    window.location.href = "/auth/login";
+  }
 </script>
 
 <style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-		background-color: #0f1729;
-		color: hsl(210 40% 98%);
-	}
+  html,
+  body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #0f1729;
+    color: hsl(210 40% 98%);
+  }
 </style>

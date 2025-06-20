@@ -32,7 +32,6 @@ function sumTrafficByDay(data) {
  */
 function sumStatusByDay(data) {
   const grouped = {};
-
   data.forEach((item) => {
     if (!grouped[item.day]) {
       grouped[item.day] = {

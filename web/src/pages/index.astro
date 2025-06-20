@@ -1,6 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { formatDayField } from "../utils/format";
+import { dayField } from "../utils/convert";
 import Form from "../components/dashboard/Form";
 import ChartBps from "../components/dashboard/ui/ChartBps.astro";
 import ChartMbps from "../components/dashboard/ui/ChartMbps.astro";
@@ -27,7 +27,7 @@ const { traffic, trafficErr } = await fetch(
   `http://10.120.93.114/api/pon/traffic/summary/states?initDate=${initDate.toISOString()}&endDate=${endDate.toISOString()}`
 )
   .then((res) => res.json())
-  .then((traffic) => ({ traffic: formatDayField(traffic), trafficErr: null }))
+  .then((traffic) => ({ traffic: dayField(traffic), trafficErr: null }))
   .catch((trafficErr) => ({ traffic: null, trafficErr }));
 
 const { ontStatus, onStatusErr } = await fetch(
@@ -36,66 +36,16 @@ const { ontStatus, onStatusErr } = await fetch(
   .then((res) => res.json())
   .then((ontStatus) => ({ ontStatus, onStatusErr: null }))
   .catch((onStatusErr) => ({ ontStatus: null, onStatusErr }));
-
-const totalTraffic =
-  traffic &&
-  traffic.reduce((acc: any, curr: any) => {
-    const dayKey = curr.day;
-    if (!acc[dayKey]) {
-      acc[dayKey] = {
-        day: dayKey,
-        mbps_in: 0,
-        mbps_out: 0,
-        mbytes_in_sec: 0,
-        mbytes_out_sec: 0,
-      };
-    }
-
-    acc[dayKey].mbps_in += curr.mbps_in;
-    acc[dayKey].mbps_out += curr.mbps_out;
-    acc[dayKey].mbytes_in_sec += curr.mbytes_in_sec;
-    acc[dayKey].mbytes_out_sec += curr.mbytes_out_sec;
-
-    return acc;
-  }, {});
-
-const ontStatusState =
-  ontStatus &&
-  ontStatus.reduce((acc: any, curr: any) => {
-    const dayKey = curr.day;
-    if (!acc[dayKey]) {
-      acc[dayKey] = {
-        day: dayKey,
-        ports_pon: 0,
-        actives: 0,
-        inactives: 0,
-        unknowns: 0,
-      };
-    }
-
-    acc[dayKey].ports_pon += curr.ports_pon;
-    acc[dayKey].actives += curr.actives;
-    acc[dayKey].inactives += curr.inactives;
-    acc[dayKey].unknowns += curr.unknowns;
-
-    return acc;
-  }, {});
 ---
 
 <Layout title="Dashboard">
   <main class="w-full flex flex-wrap gap-5 justify-evenly px-10">
     <Form client:load />
     <section class="w-full flex flex-wrap gap-5">
-      <SummaryTraffic
-        data={traffic && Object.values(totalTraffic)}
-        err={trafficErr}
-      />
-      <SummaryVolume
-        data={traffic && Object.values(totalTraffic)}
-        err={trafficErr}
-      />
-      <SummaryUsers data={ontStatusState} err={onStatusErr} />
-      <SummaryFaults data={ontStatusState} err={onStatusErr} />
+      <SummaryTraffic data={traffic} err={trafficErr} />
+      <SummaryVolume data={traffic} err={trafficErr} />
+      <SummaryUsers data={ontStatus} err={onStatusErr} />
+      <SummaryFaults data={ontStatus} err={onStatusErr} />
     </section>
     <ChartBps data={traffic} err={trafficErr} />
     <ChartMbps data={traffic} err={trafficErr} />

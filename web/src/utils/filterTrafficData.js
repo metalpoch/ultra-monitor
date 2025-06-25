@@ -50,6 +50,28 @@ function sumStatusByDay(data) {
   return Object.values(grouped);
 }
 
+function sumStatusByDayAndDescription(data) {
+  const grouped = {};
+  data.forEach((item) => {
+    const key = `${item.day}|${item.description}`;
+    if (!grouped[key]) {
+      grouped[key] = {
+        day: item.day,
+        description: item.description,
+        ports_pon: 0,
+        actives: 0,
+        inactives: 0,
+        unknowns: 0,
+      };
+    }
+    grouped[key].ports_pon += item.ports_pon || 0;
+    grouped[key].actives += item.actives || 0;
+    grouped[key].inactives += item.inactives || 0;
+    grouped[key].unknowns += item.unknowns || 0;
+  });
+  return Object.values(grouped);
+}
+
 /**
  * Filtra y agrupa los datos según los filtros seleccionados.
  * @param {Array} data - Datos originales.
@@ -112,4 +134,19 @@ export function filterStatusData(
   }
 
   return sumStatusByDay(data);
+}
+
+/**
+ * Filtra y agrupa los datos según los filtros seleccionados y el tipo de agrupación.
+ * @param {Array} data - Datos originales.
+ * @param {string} selectedRegion - nombre de la región.
+ * @returns {Array} - Datos agrupados por day y description.
+ */
+export function groupFilteredStatusData(data, selectedRegion) {
+  if (selectedRegion) {
+    const states = STATES_BY_REGION[selectedRegion]?.map((s) => s.value) || [];
+    const filtered = data.filter((item) => states.includes(item.description));
+    return sumStatusByDayAndDescription(filtered);
+  }
+  return sumStatusByDayAndDescription(data);
 }

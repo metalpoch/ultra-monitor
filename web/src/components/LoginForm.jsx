@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import PasswordIcon from './icons/PasswordIcon';
-import UserIcon from './icons/UserIcon';
+import { useState } from "react";
+import PasswordIcon from "./icons/PasswordIcon";
+import UserIcon from "./icons/UserIcon";
 
-const BASE_URL = import.meta.env.PUBLIC_AUTH_URL
+const BASE_URL = `${import.meta.env.PUBLIC_API_URL}/auth`;
 
 const userLogin = async (username, password) => {
   return fetch(`${BASE_URL}/signin`, {
@@ -27,16 +27,22 @@ export default function LoginForm() {
     if (response.token) {
       const token = response.token;
       sessionStorage.setItem("access_token", JSON.stringify(token));
-      window.location.href = "/"
+      window.location.href = "/";
     } else {
       setError(response.error);
     }
-  }
+  };
 
   return (
     <>
-      <form method="POST" onSubmit={handleSubmit} className="flex flex-col gap-1">
-        <label htmlFor="username" className="text-gray-200">Usuario</label>
+      <form
+        method="POST"
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-1"
+      >
+        <label htmlFor="username" className="text-gray-200">
+          Usuario
+        </label>
         <section className="flex items-center gap-1 border border-[hsl(217,33%,20%)] bg-[#0f1729] p-2 rounded-xs focus-within:ring-2 focus-within:ring-blue-500">
           <UserIcon className="w-5" />
           <input
@@ -49,7 +55,9 @@ export default function LoginForm() {
           />
         </section>
 
-        <label htmlFor="password" className="text-gray-200 mt-4">Contraseña</label>
+        <label htmlFor="password" className="text-gray-200 mt-4">
+          Contraseña
+        </label>
         <section className="flex items-center gap-2 border border-[hsl(217,33%,20%)] bg-[#0f1729] p-2 rounded-xs focus-within:ring-2 focus-within:ring-blue-500">
           <PasswordIcon className="w-5" />
           <input
@@ -72,4 +80,3 @@ export default function LoginForm() {
     </>
   );
 }
-

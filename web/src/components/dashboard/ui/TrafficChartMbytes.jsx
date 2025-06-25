@@ -9,6 +9,7 @@ import {
 } from "recharts";
 import { useStore } from "@nanostores/react";
 import { filterTrafficData } from "../../../utils/filterTrafficData";
+import { COLOR } from "../../../constants/colors";
 import {
   selectedLevel,
   selectedRegion,
@@ -39,16 +40,16 @@ export default function TrafficChartMbytes({ data }) {
             type="monotone"
             dataKey="mbytes_in_sec"
             name="Mbyte In"
-            stroke="#3b82f6"
-            fill="#3b82f6"
+            stroke={COLOR[0]}
+            fill={COLOR[0]}
             strokeWidth="3"
           />
           <Line
             type="monotone"
             dataKey="mbytes_out_sec"
             name="Mbyte Out"
-            stroke="#f59e0b"
-            fill="#f59e0b"
+            stroke={COLOR[1]}
+            fill={COLOR[1]}
             strokeWidth="3"
           />
         </LineChart>

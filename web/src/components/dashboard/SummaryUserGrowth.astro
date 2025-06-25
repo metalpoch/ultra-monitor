@@ -1,0 +1,11 @@
+---
+import UserGrowthTable from "./ui/UserGrowthTable";
+
+const { data, err } = Astro.props;
+---
+
+<section
+  class="flex flex-wrap w-full gap-2 py-3 justify-evenly items-center rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]"
+>
+  <UserGrowthTable data={data} client:load />
+</section>

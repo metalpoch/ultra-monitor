@@ -21,6 +21,7 @@ export default function Form() {
         { value: "", label: "-" },
         ...REGIONS.sort((a, b) => a.label.localeCompare(b.label)),
       ]);
+      setSelectedStateValue("");
     } else {
       setRegions([]);
       setSelectedRegionValue("");
@@ -37,6 +38,7 @@ export default function Form() {
           .flat()
           .sort((a, b) => a.label.localeCompare(b.label)),
       ]);
+      setSelectedStateValue("");
     } else {
       setSelectedStateValue("");
     }

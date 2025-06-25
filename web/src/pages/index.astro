@@ -5,10 +5,15 @@ import Form from "../components/dashboard/ui/Form";
 import ChartBps from "../components/dashboard/ChartBps.astro";
 import ChartMbps from "../components/dashboard/ChartMbps.astro";
 import ChartUser from "../components/dashboard/ChartUser.astro";
+import ChartUserRadar from "../components/dashboard/ChartUserRadar.astro";
+import TableUserGrowth from "../components/dashboard/SummaryUserGrowth.astro";
 import SummaryTraffic from "../components/dashboard/SummaryTraffic.astro";
 import SummaryVolume from "../components/dashboard/SummaryVolume.astro";
 import SummaryUsers from "../components/dashboard/SummaryUsers.astro";
 import SummaryFaults from "../components/dashboard/SummaryFaults.astro";
+
+const BASE_URL = import.meta.env.PUBLIC_API_URL;
+
 const now = new Date();
 const endDate = new Date(
   now.getFullYear(),
@@ -19,22 +24,21 @@ const endDate = new Date(
   0,
   0
 );
-
 const initDate = new Date(endDate);
 initDate.setFullYear(initDate.getFullYear() - 1);
 
 const { traffic, trafficErr } = await fetch(
-  `http://10.120.93.114/api/pon/traffic/summary/states?initDate=${initDate.toISOString()}&endDate=${endDate.toISOString()}`
+  `${BASE_URL}/pon/traffic/summary/states?initDate=${initDate.toISOString()}&endDate=${endDate.toISOString()}`
 )
   .then((res) => res.json())
   .then((traffic) => ({ traffic: dayField(traffic), trafficErr: null }))
   .catch((trafficErr) => ({ traffic: null, trafficErr }));
 
 const { ontStatus, onStatusErr } = await fetch(
-  `http://10.120.93.114/api/ont/status/state?initDate=${initDate.toISOString()}&endDate=${endDate.toISOString()}`
+  `${BASE_URL}/ont/status/state?initDate=${initDate.toISOString()}&endDate=${endDate.toISOString()}`
 )
   .then((res) => res.json())
-  .then((ontStatus) => ({ ontStatus, onStatusErr: null }))
+  .then((ontStatus) => ({ ontStatus: dayField(ontStatus), onStatusErr: null }))
   .catch((onStatusErr) => ({ ontStatus: null, onStatusErr }));
 ---
 
@@ -47,8 +51,14 @@ const { ontStatus, onStatusErr } = await fetch(
       <SummaryUsers data={ontStatus} err={onStatusErr} />
       <SummaryFaults data={ontStatus} err={onStatusErr} />
     </section>
-    <ChartBps data={traffic} err={trafficErr} />
-    <ChartMbps data={traffic} err={trafficErr} />
-    <ChartUser data={ontStatus} err={onStatusErr} />
+    <div class="w-full flex flex-wrap gap-5">
+      <ChartBps data={traffic} err={trafficErr} />
+      <ChartMbps data={traffic} err={trafficErr} />
+    </div>
+    <div class="w-full flex flex-wrap gap-5">
+      <ChartUser data={ontStatus} err={onStatusErr} />
+      <ChartUserRadar data={ontStatus} err={onStatusErr} />
+    </div>
+    <!-- <TableUserGrowth data={ontStatus} err={onStatusErr} /> -->
   </main>
 </Layout>

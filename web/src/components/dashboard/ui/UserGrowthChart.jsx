@@ -9,6 +9,7 @@ import {
 } from "recharts";
 import { useStore } from "@nanostores/react";
 import { filterStatusData } from "../../../utils/filterTrafficData";
+import { COLOR } from "../../../constants/colors";
 import {
   selectedLevel,
   selectedRegion,
@@ -28,15 +29,10 @@ export default function UserGrowthChart({ data }) {
   );
 
   return (
-    <div
-      style={{
-        width: "100%",
-        height: 300,
-      }}
-    >
+    <div style={{ width: "100%", height: 300 }}>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={filteredData}>
-          <XAxis dataKey="date" />
+          <XAxis dataKey="day" />
           <YAxis />
           <Tooltip />
           <Legend />
@@ -44,24 +40,24 @@ export default function UserGrowthChart({ data }) {
             type="monotone"
             dataKey="actives"
             name="Activos"
-            stroke="#3b82f6"
-            fill="#3b82f6"
+            stroke={COLOR[0]}
+            fill={COLOR[0]}
             strokeWidth="3"
           />
           <Area
             type="monotone"
             dataKey="inactives"
             name="Inactivos"
-            stroke="#f59e0b"
-            fill="#f59e0b"
+            stroke={COLOR[1]}
+            fill={COLOR[1]}
             strokeWidth="3"
           />
           <Area
             type="monotone"
             dataKey="unknowns"
             name="Fallas"
-            stroke="red"
-            fill="red"
+            stroke={COLOR[2]}
+            fill={COLOR[2]}
             strokeWidth="3"
           />
         </AreaChart>

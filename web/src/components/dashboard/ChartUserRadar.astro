@@ -1,0 +1,14 @@
+---
+import UserGrowthRadar from "./ui/UserGrowthRadar";
+const { data, err } = Astro.props;
+---
+
+<section
+  class="flex flex-col flex-1 md:flex-1/4 gap-2 px-6 py-3 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]"
+>
+  <h class="text-2xl font-semibold">Radar de Usuarios</h>
+  <p class="text-slate-400 text-sm">
+    Evolución de usuarios activos e inactivos.
+  </p>
+  <UserGrowthRadar data={data} client:load />
+</section>

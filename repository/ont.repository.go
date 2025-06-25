@@ -8,7 +8,6 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/metalpoch/ultra-monitor/entity"
-	"github.com/metalpoch/ultra-monitor/repository/internal/model"
 )
 
 type OntRepository interface {
@@ -34,80 +33,71 @@ func NewOntRepository(db *sqlx.DB) *ontRepository {
 }
 
 func (repo *ontRepository) GetDailyAveragedHourlyStatusSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.OntSummaryStatusCounts, error) {
-	var counts []model.StatusCounts
-	countsQuery := `
+	var res []entity.OntSummaryStatusCounts
+	query := `
+    WITH daily_status AS (
         SELECT
             DATE_TRUNC('day', m.date) AS day,
             m.pon_id,
             p.olt_ip,
-            COUNT(*) FILTER (WHERE m.control_run_status = 1) AS actives,
-            COUNT(*) FILTER (WHERE m.control_run_status = 2) AS inactives,
-            COUNT(*) FILTER (WHERE m.control_run_status NOT IN (1, 2)) AS unknowns
+            m.despt,
+            BOOL_OR(m.control_run_status = 1) AS was_active,
+            BOOL_OR(m.control_run_status = 2) AS was_inactive
         FROM measurement_onts m
         JOIN pons p ON p.id = m.pon_id
         WHERE m.date BETWEEN $1 AND $2
-        GROUP BY day, m.pon_id, p.olt_ip
-        ORDER BY day, m.pon_id, p.olt_ip;
-    `
-	err := repo.db.SelectContext(ctx, &counts, countsQuery, initDate, endDate)
-	if err != nil {
-		return nil, err
-	}
+        GROUP BY day, m.pon_id, p.olt_ip, m.despt
+    ),
+    despt_status AS (
+        SELECT
+            day,
+            pon_id,
+            olt_ip,
+            despt,
+            CASE
+                WHEN was_active THEN 1
+                WHEN was_inactive THEN 2
+                ELSE 3 -- desconocido
+            END AS final_status
+        FROM daily_status
+    ),
+    status_counts AS (
+        SELECT
+            day,
+            pon_id,
+            olt_ip,
+            COUNT(*) FILTER (WHERE final_status = 1) AS actives,
+            COUNT(*) FILTER (WHERE final_status = 2) AS inactives,
+            COUNT(*) FILTER (WHERE final_status = 3) AS unknowns
+        FROM despt_status
+        GROUP BY day, pon_id, olt_ip
+    ),
+    status_with_fat AS (
+        SELECT
+            sc.day,
+            sc.pon_id,
+            sc.olt_ip,
+            sc.actives,
+            sc.inactives,
+            sc.unknowns,
+            f.id AS fat_id
+        FROM status_counts sc
+        JOIN fats f ON f.olt_ip = sc.olt_ip
+    )
+    SELECT
+        day,
+        fat_id,
+        olt_ip,
+        COUNT(pon_id) AS ports_pon,
+        SUM(actives) AS actives,
+        SUM(inactives) AS inactives,
+        SUM(unknowns) AS unknowns
+    FROM status_with_fat
+    GROUP BY day, fat_id, olt_ip
+    ORDER BY day, fat_id, olt_ip;`
 
-	var metas []model.FatMeta
-	metaQuery := `
-        SELECT p.id AS pon_id, f.id AS fat_id, p.olt_ip
-        FROM pons p
-        JOIN fats f ON f.olt_ip = p.olt_ip
-    `
-	err = repo.db.SelectContext(ctx, &metas, metaQuery)
-	if err != nil {
-		return nil, err
-	}
-	metaMap := make(map[int32]model.FatMeta)
-	for _, m := range metas {
-		metaMap[m.PonID] = m
-	}
-
-	type groupKey struct {
-		Day   time.Time
-		FatID int32
-		OltIP string
-	}
-	grouped := make(map[groupKey]*entity.OntSummaryStatusCounts)
-
-	for _, c := range counts {
-		meta, ok := metaMap[c.PonID]
-		if !ok {
-			continue
-		}
-		key := groupKey{
-			Day:   c.Day,
-			FatID: meta.FatID,
-			OltIP: c.OltIP,
-		}
-		if _, exists := grouped[key]; !exists {
-			grouped[key] = &entity.OntSummaryStatusCounts{
-				Day:           c.Day,
-				FatID:         meta.FatID,
-				OltIP:         c.OltIP,
-				PonsCount:     0,
-				ActiveCount:   0,
-				InactiveCount: 0,
-				UnknownCount:  0,
-			}
-		}
-		grouped[key].PonsCount++
-		grouped[key].ActiveCount += c.Actives
-		grouped[key].InactiveCount += c.Inactives
-		grouped[key].UnknownCount += c.Unknowns
-	}
-
-	var res []entity.OntSummaryStatusCounts
-	for _, v := range grouped {
-		res = append(res, *v)
-	}
-	return res, nil
+	err := repo.db.SelectContext(ctx, &res, query)
+	return res, err
 }
 
 func (repo *ontRepository) UpdateStatusSummary(ctx context.Context, counts []entity.OntSummaryStatusCounts) error {

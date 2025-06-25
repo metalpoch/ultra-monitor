@@ -95,37 +95,49 @@ func (repo *ontRepository) GetDailyAveragedHourlyStatusSummary(ctx context.Conte
     FROM status_with_fat
     GROUP BY day, fat_id, olt_ip
     ORDER BY day, fat_id, olt_ip;`
-
-	err := repo.db.SelectContext(ctx, &res, query, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+	err := repo.db.SelectContext(ctx, &res, query, initDate, endDate)
 	return res, err
 }
 
 func (repo *ontRepository) UpdateStatusSummary(ctx context.Context, counts []entity.OntSummaryStatusCounts) error {
 	const fieldCount = 7
-	query := `
-    INSERT INTO ont_summary_status_count (
-        day, fat_id, olt_ip, ports_pon, actives, inactives, unknowns
-    ) VALUES `
-	valueStrings := make([]string, 0, len(counts))
-	valueArgs := make([]interface{}, 0, len(counts)*fieldCount)
+	const maxParams = 65535
+	const maxRows = maxParams / fieldCount // 9362
 
-	for i, c := range counts {
-		valueStrings = append(valueStrings, fmt.Sprintf("($%d,$%d,$%d,$%d,$%d,$%d,$%d)",
-			i*fieldCount+1, i*fieldCount+2, i*fieldCount+3, i*fieldCount+4, i*fieldCount+5, i*fieldCount+6, i*fieldCount+7))
-		valueArgs = append(valueArgs,
-			c.Day, c.FatID, c.OltIP, c.PonsCount, c.ActiveCount, c.InactiveCount, c.UnknownCount)
+	for start := 0; start < len(counts); start += maxRows {
+		end := start + maxRows
+		if end > len(counts) {
+			end = len(counts)
+		}
+		batch := counts[start:end]
+
+		query := `
+        INSERT INTO ont_summary_status_count (
+            day, fat_id, olt_ip, ports_pon, actives, inactives, unknowns
+        ) VALUES `
+		valueStrings := make([]string, 0, len(batch))
+		valueArgs := make([]interface{}, 0, len(batch)*fieldCount)
+
+		for i, c := range batch {
+			valueStrings = append(valueStrings, fmt.Sprintf("($%d,$%d,$%d,$%d,$%d,$%d,$%d)",
+				i*fieldCount+1, i*fieldCount+2, i*fieldCount+3, i*fieldCount+4, i*fieldCount+5, i*fieldCount+6, i*fieldCount+7))
+			valueArgs = append(valueArgs,
+				c.Day, c.FatID, c.OltIP, c.PonsCount, c.ActiveCount, c.InactiveCount, c.UnknownCount)
+		}
+
+		query += strings.Join(valueStrings, ", ")
+		query += `
+        ON CONFLICT (day, fat_id, olt_ip) DO UPDATE SET
+            ports_pon = EXCLUDED.ports_pon,
+            actives = EXCLUDED.actives,
+            inactives = EXCLUDED.inactives,
+            unknowns = EXCLUDED.unknowns`
+
+		if _, err := repo.db.ExecContext(ctx, query, valueArgs...); err != nil {
+			return err
+		}
 	}
-
-	query += strings.Join(valueStrings, ", ")
-	query += `
-    ON CONFLICT (day, fat_id, olt_ip) DO UPDATE SET
-        ports_pon = EXCLUDED.ports_pon,
-        actives = EXCLUDED.actives,
-        inactives = EXCLUDED.inactives,
-        unknowns = EXCLUDED.unknowns`
-
-	_, err := repo.db.ExecContext(ctx, query, valueArgs...)
-	return err
+	return nil
 }
 
 func (repo *ontRepository) GetStatusSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.OntSummaryStatus, error) {

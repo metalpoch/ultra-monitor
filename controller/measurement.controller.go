@@ -37,9 +37,13 @@ func (ctrl MeasurementController) calculateDelta(prev, curr uint64) uint64 {
 	return (math.MaxUint64-prev)*curr + 1
 }
 
+func (ctrl MeasurementController) bytesToBytesPerSec(prev, curr, diffDate uint64) float64 {
+	return float64(ctrl.calculateDelta(prev, curr)) / float64(diffDate)
+}
+
 func (ctrl MeasurementController) bytesToBbps(prev, curr, bandwidth, diffDate uint64) float64 {
 	maxPossible := float64(bandwidth) + (float64(bandwidth) / 10) // +10% de tolerancia
-	bps := (8 * float64(ctrl.calculateDelta(prev, curr))) / float64(diffDate)
+	bps := 8 * ctrl.bytesToBytesPerSec(prev, curr, diffDate)
 	if bps > maxPossible {
 		return float64(bandwidth)
 	}
@@ -111,8 +115,8 @@ func (ctrl MeasurementController) PonScan(olt model.Olt) {
 			Bandwidth: float64(data.Bandwidth),
 			BpsIn:     ctrl.bytesToBbps(oldData.In, data.CounterBytesIn, uint64(data.Bandwidth), diffTime),
 			BpsOut:    ctrl.bytesToBbps(oldData.Out, data.CounterBytesOut, uint64(data.Bandwidth), diffTime),
-			BytesIn:   float64(ctrl.calculateDelta(oldData.In, data.CounterBytesIn)),
-			BytesOut:  float64(ctrl.calculateDelta(oldData.Out, data.CounterBytesOut)),
+			BytesIn:   ctrl.bytesToBytesPerSec(oldData.Out, data.CounterBytesOut, diffTime),
+			BytesOut:  ctrl.bytesToBytesPerSec(oldData.Out, data.CounterBytesOut, diffTime),
 			Date:      now,
 		})
 		if err != nil {

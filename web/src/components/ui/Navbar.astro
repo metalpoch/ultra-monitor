@@ -9,131 +9,116 @@ import LogoutIcon from "../../assets/icons/logout.svg";
 
 const { title } = Astro.props;
 const routes = [
-    {
-        name: "Dashboard",
-        path: "/",
-        icon: dashboardIcon,
-        alt: "icono del dashboard",
-        title: "Vista rápida del comportamiento la red.",
-    },
-    {
-        name: "Tráfico",
-        path: "/traffic",
-        icon: trafficIcon,
-        alt: "icono de tráfico",
-        title: "Obtenga las mediciones de tráfico.",
-    },
-    {
-        name: "Tendencia",
-        path: "/trend",
-        icon: trendIcon,
-        alt: "icono de tendencia",
-        title: "Comportamiento estadistico del tráfico.",
-    },
-    {
-        name: "Reportes",
-        path: "/report",
-        icon: reportIcon,
-        alt: "icono de reportes",
-        title: "Reportes estaticos de la gerencia.",
-    },
-    {
-        name: "Administración",
-        path: "/admin",
-        icon: adminIcon,
-        alt: "icono de admin",
-        title: "Panel administrativo.",
-    },
+  {
+    name: "Dashboard",
+    path: "/",
+    icon: dashboardIcon,
+    alt: "icono del dashboard",
+    title: "Vista rápida del comportamiento la red.",
+  },
+  {
+    name: "Tráfico",
+    path: "/traffic",
+    icon: trafficIcon,
+    alt: "icono de tráfico",
+    title: "Obtenga las mediciones de tráfico.",
+  },
+  {
+    name: "Tendencia",
+    path: "/trend",
+    icon: trendIcon,
+    alt: "icono de tendencia",
+    title: "Comportamiento estadistico del tráfico.",
+  },
+  {
+    name: "Reportes",
+    path: "/report",
+    icon: reportIcon,
+    alt: "icono de reportes",
+    title: "Reportes estaticos de la gerencia.",
+  },
+  {
+    name: "Administración",
+    path: "/admin",
+    icon: adminIcon,
+    alt: "icono de admin",
+    title: "Panel administrativo.",
+  },
 ];
 ---
 
 <nav class="w-full self-start px-4 py-4 flex flex-wrap gap-4 items-center">
-    <h1 class="text-3xl font-bold">{title}</h1>
-    <section class="w-full px-6 flex md:flex-row gap-2 items-center relative">
-        <p class="hidden md:block">Vista:</p>
-        <!-- Mobile Select Button -->
-        <div class="w-full md:hidden">
-            <button
-                id="menu-toggle"
-                type="button"
-                class="w-full flex justify-between items-center px-3 py-2 border-2 rounded-lg border-[hsl(217,33%,20%)] bg-[#121b31] text-white"
-                onclick="document.getElementById('mobile-menu').classList.toggle('hidden')"
-            >
-                <span>Seleccionar vista</span>
-                <svg
-                    class="w-4 h-4 ml-2"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M19 9l-7 7-7-7"></path>
-                </svg>
-            </button>
-            <ul
-                id="mobile-menu"
-                class="absolute left-0 right-0 mt-2 bg-[#121b31] border-2 border-[hsl(217,33%,20%)] rounded-lg shadow-lg z-10 hidden"
-            >
-                {
-                    routes.map((route) => (
-                        <li>
-                            <a
-                                href={route.path}
-                                class={`flex gap-2 items-center px-4 py-2 hover:bg-cyan-700 ${route.name === title ? "bg-cyan-500" : ""}`}
-                                title={route.title}
-                            >
-                                <Image
-                                    src={route.icon}
-                                    width={20}
-                                    height={20}
-                                    alt={route.alt}
-                                />
-                                {route.name}
-                            </a>
-                        </li>
-                    ))
-                }
-            </ul>
-        </div>
-        <!-- Desktop Horizontal Menu -->
-        <ul class="hidden md:flex gap-2">
-            {
-                routes.map((route) => (
-                    <li
-                        class={`px-2 py-1 border-2 rounded-lg border-[hsl(217,33%,20%)] ${route.name === title ? "bg-cyan-500" : ""}`}
-                    >
-                        <a
-                            href={route.path}
-                            class="flex gap-1"
-                            title={route.title}
-                        >
-                            <Image
-                                src={route.icon}
-                                width={20}
-                                height={20}
-                                alt={route.alt}
-                            />
-                            {route.name}
-                        </a>
-                    </li>
-                ))
-            }
-        </ul>
-        <button
-            type="button"
-            class="flex gap-1 px-2 py-1 border-2 rounded-lg border-[hsl(217,33%,20%)]"
-            onclick="sessionStorage.removeItem('access_token'); window.location.href = '/auth/login';"
+  <section class="w-full px-6 flex md:flex-row gap-2 items-center relative">
+    <p class="hidden md:block">Vista:</p>
+    <!-- Mobile Select Button -->
+    <div class="w-full md:hidden">
+      <button
+        id="menu-toggle"
+        type="button"
+        class="w-full flex justify-between items-center px-3 py-2 border-2 rounded-lg border-[hsl(217,33%,20%)] bg-[#121b31] text-white"
+        onclick="document.getElementById('mobile-menu').classList.toggle('hidden')"
+      >
+        <span>Seleccionar vista</span>
+        <svg
+          class="w-4 h-4 ml-2"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          viewBox="0 0 24 24"
         >
-            <Image
-                src={LogoutIcon}
-                width={20}
-                height={20}
-                alt="Cerrar sesión"
-            />
-            Salir
-        </button>
-    </section>
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M19 9l-7 7-7-7"></path>
+        </svg>
+      </button>
+      <ul
+        id="mobile-menu"
+        class="absolute left-0 right-0 mt-2 bg-[#121b31] border-2 border-[hsl(217,33%,20%)] rounded-lg shadow-lg z-10 hidden"
+      >
+        {
+          routes.map((route) => (
+            <li>
+              <a
+                href={route.path}
+                class={`flex gap-2 items-center px-4 py-2 ${route.name === title ? "bg-cyan-500" : ""}`}
+                title={route.title}
+              >
+                <Image
+                  src={route.icon}
+                  width={20}
+                  height={20}
+                  alt={route.alt}
+                />
+                {route.name}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+    <!-- Desktop Horizontal Menu -->
+    <ul class="hidden md:flex gap-2">
+      {
+        routes.map((route) => (
+          <li
+            class={`px-2 py-1 border-2 rounded-lg border-[hsl(217,33%,20%)] hover:bg-cyan-700 duration-200 ${route.name === title ? "bg-cyan-500 font-semibold text-slate-700" : ""}`}
+          >
+            <a href={route.path} class="flex gap-1" title={route.title}>
+              <Image src={route.icon} width={20} height={20} alt={route.alt} />
+              {route.name}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <button
+      type="button"
+      class="flex gap-1 px-2 py-1 border-2 rounded-lg border-[hsl(217,33%,20%)] bg-red-950 hover:bg-red-900 duration-200"
+      onclick="sessionStorage.removeItem('access_token'); window.location.href = '/auth/login';"
+    >
+      <Image src={LogoutIcon} width={20} height={20} alt="Cerrar sesión" />
+      Salir
+    </button>
+  </section>
 </nav>

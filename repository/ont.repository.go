@@ -57,50 +57,36 @@ func (repo *ontRepository) GetDailyAveragedHourlyStatusSummary(ctx context.Conte
             CASE
                 WHEN was_active THEN 1
                 WHEN was_inactive THEN 2
-                ELSE 3 -- desconocido
+                ELSE 3
             END AS final_status
         FROM daily_status
     ),
     status_counts AS (
         SELECT
             day,
-            pon_id,
             olt_ip,
-            COUNT(*) FILTER (WHERE final_status = 1) AS actives,
-            COUNT(*) FILTER (WHERE final_status = 2) AS inactives,
-            COUNT(*) FILTER (WHERE final_status = 3) AS unknowns
+            COUNT(DISTINCT pon_id) AS ports_pon,
+            SUM(CASE WHEN final_status = 1 THEN 1 ELSE 0 END) AS actives,
+            SUM(CASE WHEN final_status = 2 THEN 1 ELSE 0 END) AS inactives,
+            SUM(CASE WHEN final_status = 3 THEN 1 ELSE 0 END) AS unknowns
         FROM despt_status
-        GROUP BY day, pon_id, olt_ip
-    ),
-    status_with_fat AS (
-        SELECT
-            sc.day,
-            sc.pon_id,
-            sc.olt_ip,
-            sc.actives,
-            sc.inactives,
-            sc.unknowns,
-            f.id AS fat_id
-        FROM status_counts sc
-        JOIN fats f ON f.olt_ip = sc.olt_ip
+        GROUP BY day, olt_ip
     )
     SELECT
         day,
-        fat_id,
         olt_ip,
-        COUNT(pon_id) AS ports_pon,
-        SUM(actives) AS actives,
-        SUM(inactives) AS inactives,
-        SUM(unknowns) AS unknowns
-    FROM status_with_fat
-    GROUP BY day, fat_id, olt_ip
-    ORDER BY day, fat_id, olt_ip;`
+        ports_pon,
+        actives,
+        inactives,
+        unknowns
+    FROM status_counts
+    ORDER BY day, olt_ip;`
 	err := repo.db.SelectContext(ctx, &res, query, initDate, endDate)
 	return res, err
 }
 
 func (repo *ontRepository) UpdateStatusSummary(ctx context.Context, counts []entity.OntSummaryStatusCounts) error {
-	const fieldCount = 7
+	const fieldCount = 6
 	const maxParams = 65535
 	const maxRows = maxParams / fieldCount // 9362
 
@@ -112,22 +98,20 @@ func (repo *ontRepository) UpdateStatusSummary(ctx context.Context, counts []ent
 		batch := counts[start:end]
 
 		query := `
-        INSERT INTO ont_summary_status_count (
-            day, fat_id, olt_ip, ports_pon, actives, inactives, unknowns
-        ) VALUES `
+        INSERT INTO ont_summary_status_count (day, olt_ip, ports_pon, actives, inactives, unknowns) VALUES `
 		valueStrings := make([]string, 0, len(batch))
 		valueArgs := make([]interface{}, 0, len(batch)*fieldCount)
 
 		for i, c := range batch {
-			valueStrings = append(valueStrings, fmt.Sprintf("($%d,$%d,$%d,$%d,$%d,$%d,$%d)",
-				i*fieldCount+1, i*fieldCount+2, i*fieldCount+3, i*fieldCount+4, i*fieldCount+5, i*fieldCount+6, i*fieldCount+7))
+			valueStrings = append(valueStrings, fmt.Sprintf("($%d,$%d,$%d,$%d,$%d,$%d)",
+				i*fieldCount+1, i*fieldCount+2, i*fieldCount+3, i*fieldCount+4, i*fieldCount+5, i*fieldCount+6))
 			valueArgs = append(valueArgs,
-				c.Day, c.FatID, c.OltIP, c.PonsCount, c.ActiveCount, c.InactiveCount, c.UnknownCount)
+				c.Day, c.OltIP, c.PonsCount, c.ActiveCount, c.InactiveCount, c.UnknownCount)
 		}
 
 		query += strings.Join(valueStrings, ", ")
 		query += `
-        ON CONFLICT (day, fat_id, olt_ip) DO UPDATE SET
+        ON CONFLICT (day, olt_ip) DO UPDATE SET
             ports_pon = EXCLUDED.ports_pon,
             actives = EXCLUDED.actives,
             inactives = EXCLUDED.inactives,

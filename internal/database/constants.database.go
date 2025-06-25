@@ -87,14 +87,13 @@ CREATE TABLE IF NOT EXISTS traffic_pons_summary (
 const SQL_TABLE_ONT_SUMMARY_STATUS_COUNTS string = `
 CREATE TABLE IF NOT EXISTS ont_summary_status_count (
     day DATE NOT NULL,
-    fat_id INTEGER NOT NULL,
     olt_ip VARCHAR(15) NOT NULL,
     ports_pon INTEGER NOT NULL,
     actives INTEGER NOT NULL,
     inactives INTEGER NOT NULL,
     unknowns INTEGER NOT NULL,
-    PRIMARY KEY (day, fat_id, olt_ip),
-    FOREIGN KEY (fat_id) REFERENCES fats(id)
+    PRIMARY KEY (day, olt_ip),
+    FOREIGN KEY (olt_ip) REFERENCES olts(ip)
 );`
 
 const SQL_TABLE_MEASUREMENT_ONT string = `

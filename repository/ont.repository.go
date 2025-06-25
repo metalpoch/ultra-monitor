@@ -96,7 +96,7 @@ func (repo *ontRepository) GetDailyAveragedHourlyStatusSummary(ctx context.Conte
     GROUP BY day, fat_id, olt_ip
     ORDER BY day, fat_id, olt_ip;`
 
-	err := repo.db.SelectContext(ctx, &res, query)
+	err := repo.db.SelectContext(ctx, &res, query, initDate, endDate)
 	return res, err
 }
 

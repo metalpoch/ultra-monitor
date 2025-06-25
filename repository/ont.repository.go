@@ -162,21 +162,31 @@ func (repo *ontRepository) GetStatusStateSummary(ctx context.Context, initDate, 
 	var res []entity.GetStatusSummary
 	query := `
     SELECT
-        ont.day AS day,
-        fats.state AS description,
-        SUM(ont.ports_pon) AS ports_pon,
-        SUM(ont.actives) AS actives,
-        SUM(ont.inactives) AS inactives,
-        SUM(ont.unknowns) AS unknowns
-    FROM ont_summary_status_count AS ont
-    JOIN fats ON fats.id = ont.fat_id
-    WHERE day BETWEEN $1 AND $2
+        day,
+        state AS description,
+        SUM(ports_pon) AS ports_pon,
+        SUM(actives) AS actives,
+        SUM(inactives) AS inactives,
+        SUM(unknowns) AS unknowns
+    FROM (
+        SELECT
+            ont.day,
+            fats.state,
+            ont.olt_ip,
+            MAX(ont.ports_pon) AS ports_pon,
+            MAX(ont.actives) AS actives,
+            MAX(ont.inactives) AS inactives,
+            MAX(ont.unknowns) AS unknowns
+        FROM ont_summary_status_count AS ont
+        JOIN fats ON fats.olt_ip = ont.olt_ip
+        WHERE ont.day BETWEEN $1 AND $2
+        GROUP BY ont.day, fats.state, ont.olt_ip
+    ) AS daily_ip
     GROUP BY day, state
     ORDER BY state, day;`
 	err := repo.db.SelectContext(ctx, &res, query, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
 	return res, err
 }
-
 func (repo *ontRepository) GetStatusByStateSummary(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.OntSummaryStatus, error) {
 	var res []entity.OntSummaryStatus
 	query := `
@@ -186,9 +196,19 @@ func (repo *ontRepository) GetStatusByStateSummary(ctx context.Context, state st
         SUM(actives) AS actives,
         SUM(inactives) AS inactives,
         SUM(unknowns) AS unknowns
-    FROM ont_summary_status_count
-    JOIN fats ON fats.id = fat_id
-    WHERE fats.state = $1 AND day BETWEEN $2 AND $3
+    FROM (
+        SELECT
+            ont.day,
+            ont.olt_ip,
+            MAX(ont.ports_pon) AS ports_pon,
+            MAX(ont.actives) AS actives,
+            MAX(ont.inactives) AS inactives,
+            MAX(ont.unknowns) AS unknowns
+        FROM ont_summary_status_count AS ont
+        JOIN fats ON fats.olt_ip = ont.olt_ip
+        WHERE fats.state = $1 AND ont.day BETWEEN $2 AND $3
+        GROUP BY ont.day, ont.olt_ip
+    ) AS daily_ip
     GROUP BY day
     ORDER BY day;`
 	err := repo.db.SelectContext(ctx, &res, query, state, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
@@ -199,34 +219,55 @@ func (repo *ontRepository) GetStatusMunicipalitySummary(ctx context.Context, sta
 	var res []entity.GetStatusSummary
 	query := `
     SELECT
-        ont.day AS day,
-        fats.municipality AS description,
-        SUM(ont.ports_pon) AS ports_pon,
-        SUM(ont.actives) AS actives,
-        SUM(ont.inactives) AS inactives,
-        SUM(ont.unknowns) AS unknowns
-    FROM ont_summary_status_count AS ont
-    JOIN fats ON fats.id = ont.fat_id
-    WHERE fats.state = $1 AND day BETWEEN $2 AND $3
+        day,
+        municipality AS description,
+        SUM(ports_pon) AS ports_pon,
+        SUM(actives) AS actives,
+        SUM(inactives) AS inactives,
+        SUM(unknowns) AS unknowns
+    FROM (
+        SELECT
+            ont.day,
+            fats.municipality,
+            ont.olt_ip,
+            MAX(ont.ports_pon) AS ports_pon,
+            MAX(ont.actives) AS actives,
+            MAX(ont.inactives) AS inactives,
+            MAX(ont.unknowns) AS unknowns
+        FROM ont_summary_status_count AS ont
+        JOIN fats ON fats.olt_ip = ont.olt_ip
+        WHERE fats.state = $1 AND ont.day BETWEEN $2 AND $3
+        GROUP BY ont.day, fats.municipality, ont.olt_ip
+    ) AS daily_ip
     GROUP BY day, municipality
     ORDER BY municipality, day;`
 	err := repo.db.SelectContext(ctx, &res, query, state, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
 	return res, err
 }
-
 func (repo *ontRepository) GetStatusCountySummary(ctx context.Context, state, municipality string, initDate, endDate time.Time) ([]entity.GetStatusSummary, error) {
 	var res []entity.GetStatusSummary
 	query := `
     SELECT
-        ont.day AS day,
-        fats.county AS description,
-        SUM(ont.ports_pon) AS ports_pon,
-        SUM(ont.actives) AS actives,
-        SUM(ont.inactives) AS inactives,
-        SUM(ont.unknowns) AS unknowns
-    FROM ont_summary_status_count AS ont
-    JOIN fats ON fats.id = ont.fat_id
-    WHERE fats.state = $1 AND fats.municipality = $2 AND day BETWEEN $3 AND $4
+        day,
+        county AS description,
+        SUM(ports_pon) AS ports_pon,
+        SUM(actives) AS actives,
+        SUM(inactives) AS inactives,
+        SUM(unknowns) AS unknowns
+    FROM (
+        SELECT
+            ont.day,
+            fats.county,
+            ont.olt_ip,
+            MAX(ont.ports_pon) AS ports_pon,
+            MAX(ont.actives) AS actives,
+            MAX(ont.inactives) AS inactives,
+            MAX(ont.unknowns) AS unknowns
+        FROM ont_summary_status_count AS ont
+        JOIN fats ON fats.olt_ip = ont.olt_ip
+        WHERE fats.state = $1 AND fats.municipality = $2 AND ont.day BETWEEN $3 AND $4
+        GROUP BY ont.day, fats.county, ont.olt_ip
+    ) AS daily_ip
     GROUP BY day, county
     ORDER BY county, day;`
 	err := repo.db.SelectContext(ctx, &res, query, state, municipality, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
@@ -237,15 +278,26 @@ func (repo *ontRepository) GetStatusOdnSummary(ctx context.Context, state, munic
 	var res []entity.GetStatusSummary
 	query := `
     SELECT
-        ont.day AS day,
-        fats.odn AS description,
-        SUM(ont.ports_pon) AS ports_pon,
-        SUM(ont.actives) AS actives,
-        SUM(ont.inactives) AS inactives,
-        SUM(ont.unknowns) AS unknowns
-    FROM ont_summary_status_count AS ont
-    JOIN fats ON fats.id = ont.fat_id
-    WHERE fats.state = $1 AND fats.municipality = $2 AND fats.county = $3 AND day BETWEEN $4 AND $5
+        day,
+        odn AS description,
+        SUM(ports_pon) AS ports_pon,
+        SUM(actives) AS actives,
+        SUM(inactives) AS inactives,
+        SUM(unknowns) AS unknowns
+    FROM (
+        SELECT
+            ont.day,
+            fats.odn,
+            ont.olt_ip,
+            MAX(ont.ports_pon) AS ports_pon,
+            MAX(ont.actives) AS actives,
+            MAX(ont.inactives) AS inactives,
+            MAX(ont.unknowns) AS unknowns
+        FROM ont_summary_status_count AS ont
+        JOIN fats ON fats.olt_ip = ont.olt_ip
+        WHERE fats.state = $1 AND fats.municipality = $2 AND fats.county = $3 AND ont.day BETWEEN $4 AND $5
+        GROUP BY ont.day, fats.odn, ont.olt_ip
+    ) AS daily_ip
     GROUP BY day, odn
     ORDER BY odn, day;`
 	err := repo.db.SelectContext(ctx, &res, query, state, municipality, county, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))

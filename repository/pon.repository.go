@@ -8,7 +8,6 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/metalpoch/ultra-monitor/entity"
-	"github.com/metalpoch/ultra-monitor/repository/internal/model"
 )
 
 type PonRepository interface {
@@ -177,7 +176,22 @@ func (repo *ponRepository) TrafficByPon(ctx context.Context, sysname, ifname str
 }
 
 func (repo *ponRepository) GetDailyAveragedHourlyMaxTrafficTrends(ctx context.Context, initDate, endDate time.Time) ([]entity.TrafficSummary, error) {
-	trendsQuery := `
+	var res []entity.TrafficSummary
+	query := `
+    WITH hourly_max AS (
+        SELECT
+            DATE(date) AS day,
+            pon_id,
+            EXTRACT(HOUR FROM date) AS hour,
+            MAX(bps_in) AS max_bps_in,
+            MAX(bps_out) AS max_bps_out,
+            MAX(bytes_in_sec) AS max_bytes_in_sec,
+            MAX(bytes_out_sec) AS max_bytes_out_sec
+        FROM traffic_pons
+        WHERE date BETWEEN $1 AND $2
+        GROUP BY day, pon_id, hour
+    ),
+    hourly_avg AS (
         SELECT
             day,
             pon_id,
@@ -185,102 +199,55 @@ func (repo *ponRepository) GetDailyAveragedHourlyMaxTrafficTrends(ctx context.Co
             AVG(max_bps_out) / 1e6 AS mbps_out,
             AVG(max_bytes_in_sec) / 1e6 AS mbytes_in_sec,
             AVG(max_bytes_out_sec) / 1e6 AS mbytes_out_sec
-        FROM (
-            SELECT
-                DATE(date) AS day,
-                pon_id,
-                EXTRACT(HOUR FROM date) AS hour,
-                MAX(bps_in) AS max_bps_in,
-                MAX(bps_out) AS max_bps_out,
-                MAX(bytes_in_sec) AS max_bytes_in_sec,
-                MAX(bytes_out_sec) AS max_bytes_out_sec
-            FROM traffic_pons
-            WHERE date BETWEEN $1 AND $2
-            GROUP BY day, pon_id, hour
-        ) hourly_max
+        FROM hourly_max
         GROUP BY day, pon_id
-        ORDER BY day, pon_id;`
+    ),
+    joined_data AS (
+        SELECT
+            hm.day,
+            hm.pon_id,
+            hm.mbps_in,
+            hm.mbps_out,
+            hm.mbytes_in_sec,
+            hm.mbytes_out_sec,
+            p.olt_ip
+        FROM hourly_avg hm
+        JOIN pons p ON p.id = hm.pon_id
+    )
+    SELECT
+        day,
+        olt_ip,
+        SUM(mbps_in) AS mbps_in,
+        SUM(mbps_out) AS mbps_out,
+        SUM(mbytes_in_sec) AS mbytes_in_sec,
+        SUM(mbytes_out_sec) AS mbytes_out_sec
+    FROM joined_data
+    GROUP BY day, olt_ip
+    ORDER BY day, olt_ip;`
 
-	var trends []model.TrafficTrend
-	err := repo.db.SelectContext(ctx, &trends, trendsQuery, initDate, endDate)
-	if err != nil {
-		return nil, err
-	}
-
-	metaQuery := `
-        SELECT DISTINCT p.id AS pon_id, f.id AS fat_id, p.olt_ip
-        FROM pons p
-        JOIN fats f ON f.olt_ip = p.olt_ip;`
-
-	var metas []model.TrafficMeta
-	err = repo.db.SelectContext(ctx, &metas, metaQuery)
-	if err != nil {
-		return nil, err
-	}
-	metaMap := make(map[int32]model.TrafficMeta)
-	for _, m := range metas {
-		metaMap[m.PonID] = m
-	}
-
-	type groupKey struct {
-		Day   time.Time
-		FatID int32
-		OltIP string
-	}
-	grouped := make(map[groupKey]*entity.TrafficSummary)
-	for _, t := range trends {
-		meta, ok := metaMap[t.PonID]
-		if !ok {
-			continue
-		}
-		key := groupKey{
-			Day:   t.Day,
-			FatID: meta.FatID,
-			OltIP: meta.OltIP,
-		}
-		if _, exists := grouped[key]; !exists {
-			grouped[key] = &entity.TrafficSummary{
-				Day:          t.Day,
-				FatID:        meta.FatID,
-				OltIP:        meta.OltIP,
-				MbpsIn:       0,
-				MbpsOut:      0,
-				MbytesInSec:  0,
-				MbytesOutSec: 0,
-			}
-		}
-		grouped[key].MbpsIn += t.MbpsIn
-		grouped[key].MbpsOut += t.MbpsOut
-		grouped[key].MbytesInSec += t.MbytesInSec
-		grouped[key].MbytesOutSec += t.MbytesOutSec
-	}
-
-	var res []entity.TrafficSummary
-	for _, v := range grouped {
-		res = append(res, *v)
-	}
-	return res, nil
+	err := repo.db.SelectContext(ctx, &res, query, initDate, endDate)
+	return res, err
 }
 
 func (repo *ponRepository) UpsertSummaryTraffic(ctx context.Context, counts []entity.TrafficSummary) error {
-	const fieldCount = 7
+	const fieldCount = 6
 	query := `
         INSERT INTO traffic_pons_summary (
-            day, fat_id, olt_ip, mbps_in, mbps_out, mbytes_in_sec, mbytes_out_sec
+            day, olt_ip, mbps_in, mbps_out, mbytes_in_sec, mbytes_out_sec
         ) VALUES `
 	valueStrings := make([]string, 0, len(counts))
 	valueArgs := make([]interface{}, 0, len(counts)*fieldCount)
 
 	for i, c := range counts {
-		valueStrings = append(valueStrings, fmt.Sprintf("($%d,$%d,$%d,$%d,$%d,$%d,$%d)",
-			i*fieldCount+1, i*fieldCount+2, i*fieldCount+3, i*fieldCount+4, i*fieldCount+5, i*fieldCount+6, i*fieldCount+7))
+		valueStrings = append(valueStrings, fmt.Sprintf("($%d,$%d,$%d,$%d,$%d,$%d)",
+			i*fieldCount+1, i*fieldCount+2, i*fieldCount+3, i*fieldCount+4, i*fieldCount+5, i*fieldCount+6))
 		valueArgs = append(valueArgs,
-			c.Day, c.FatID, c.OltIP, c.MbpsIn, c.MbpsOut, c.MbytesInSec, c.MbytesOutSec)
+			c.Day, c.OltIP, c.MbpsIn, c.MbpsOut, c.MbytesInSec, c.MbytesOutSec)
 	}
 
 	query += strings.Join(valueStrings, ", ")
 	query += `
-	    ON CONFLICT (day, fat_id, olt_ip) DO UPDATE SET
+	    ON CONFLICT (day, olt_ip) DO UPDATE SET
     	    mbps_in = EXCLUDED.mbps_in,
 	        mbps_out = EXCLUDED.mbps_out,
 	        mbytes_in_sec = EXCLUDED.mbytes_in_sec,
@@ -310,18 +277,32 @@ func (repo *ponRepository) GetTrafficSummary(ctx context.Context, initDate, endD
 func (repo *ponRepository) GetTrafficStatesSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.TrafficInfoSummary, error) {
 	var res []entity.TrafficInfoSummary
 	query := `
+    WITH unique_traffic AS (
+        SELECT
+            day,
+            olt_ip,
+            SUM(mbps_in) AS mbps_in,
+            SUM(mbps_out) AS mbps_out,
+            SUM(mbytes_in_sec) AS mbytes_in_sec,
+            SUM(mbytes_out_sec) AS mbytes_out_sec
+        FROM traffic_pons_summary
+        WHERE day BETWEEN $1 AND $2
+        GROUP BY day, olt_ip
+    ),
+    unique_fats AS (
+        SELECT DISTINCT ON (olt_ip) olt_ip, state FROM fats
+    )
     SELECT
-        traffic.day AS day,
-        fats.state AS description,
-        SUM(traffic.mbps_in) AS mbps_in,
-        SUM(traffic.mbps_out) AS mbps_out,
-        SUM(traffic.mbytes_in_sec) AS mbytes_in_sec,
-        SUM(traffic.mbytes_out_sec) AS mbytes_out_sec
-    FROM traffic_pons_summary AS traffic
-    JOIN fats ON fats.olt_ip = traffic.olt_ip
-    WHERE day BETWEEN $1 AND $2
-    GROUP BY day, state
-    ORDER BY state, day;`
+        ut.day,
+        f.state AS description,
+        SUM(ut.mbps_in) AS mbps_in,
+        SUM(ut.mbps_out) AS mbps_out,
+        SUM(ut.mbytes_in_sec) AS mbytes_in_sec,
+        SUM(ut.mbytes_out_sec) AS mbytes_out_sec
+    FROM unique_traffic ut
+    JOIN unique_fats f ON f.olt_ip = ut.olt_ip
+    GROUP BY ut.day, f.state
+    ORDER BY ut.day, f.state;`
 	err := sqlx.SelectContext(ctx, repo.db, &res, query, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
 	return res, err
 }
@@ -329,56 +310,98 @@ func (repo *ponRepository) GetTrafficStatesSummary(ctx context.Context, initDate
 func (repo *ponRepository) GetTrafficMunicipalitySummary(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.TrafficInfoSummary, error) {
 	var res []entity.TrafficInfoSummary
 	query := `
+    WITH unique_traffic AS (
+        SELECT
+            day,
+            olt_ip,
+            SUM(mbps_in) AS mbps_in,
+            SUM(mbps_out) AS mbps_out,
+            SUM(mbytes_in_sec) AS mbytes_in_sec,
+            SUM(mbytes_out_sec) AS mbytes_out_sec
+        FROM traffic_pons_summary
+        WHERE day BETWEEN $1 AND $2
+        GROUP BY day, olt_ip
+    ),
+    unique_fats AS (
+        SELECT DISTINCT ON (olt_ip) olt_ip, municipality FROM fats WHERE state = $3
+    )
     SELECT
-        traffic.day AS day,
-        fats.municipality AS description,
-        SUM(traffic.mbps_in) AS mbps_in,
-        SUM(traffic.mbps_out) AS mbps_out,
-        SUM(traffic.mbytes_in_sec) AS mbytes_in_sec,
-        SUM(traffic.mbytes_out_sec) AS mbytes_out_sec
-    FROM traffic_pons_summary AS traffic
-    JOIN fats ON fats.olt_ip = traffic.olt_ip
-    WHERE fats.state = $1 AND day BETWEEN $2 AND $3
-    GROUP BY day, municipality
-    ORDER BY municipality, day;`
-	err := sqlx.SelectContext(ctx, repo.db, &res, query, state, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+        ut.day,
+        f.municipality AS description,
+        SUM(ut.mbps_in) AS mbps_in,
+        SUM(ut.mbps_out) AS mbps_out,
+        SUM(ut.mbytes_in_sec) AS mbytes_in_sec,
+        SUM(ut.mbytes_out_sec) AS mbytes_out_sec
+    FROM unique_traffic ut
+    JOIN unique_fats f ON f.olt_ip = ut.olt_ip
+    GROUP BY ut.day, f.municipality
+    ORDER BY ut.day, f.municipality;`
+	err := sqlx.SelectContext(ctx, repo.db, &res, query, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"), state)
 	return res, err
 }
 
 func (repo *ponRepository) GetTrafficCountySummary(ctx context.Context, state, municipality string, initDate, endDate time.Time) ([]entity.TrafficInfoSummary, error) {
 	var res []entity.TrafficInfoSummary
 	query := `
+    WITH unique_traffic AS (
+        SELECT
+            day,
+            olt_ip,
+            SUM(mbps_in) AS mbps_in,
+            SUM(mbps_out) AS mbps_out,
+            SUM(mbytes_in_sec) AS mbytes_in_sec,
+            SUM(mbytes_out_sec) AS mbytes_out_sec
+        FROM traffic_pons_summary
+        WHERE day BETWEEN $1 AND $2
+        GROUP BY day, olt_ip
+    ),
+    unique_fats AS (
+        SELECT DISTINCT ON (olt_ip) olt_ip, county FROM fats WHERE state = $3 AND municipality = $4
+    )
     SELECT
-        traffic.day AS day,
-        fats.county AS description,
-        SUM(traffic.mbps_in) AS mbps_in,
-        SUM(traffic.mbps_out) AS mbps_out,
-        SUM(traffic.mbytes_in_sec) AS mbytes_in_sec,
-        SUM(traffic.mbytes_out_sec) AS mbytes_out_sec
-    FROM traffic_pons_summary AS traffic
-    JOIN fats ON fats.olt_ip = traffic.olt_ip
-    WHERE fats.state = $1 AND fats.municipality = $2 AND day BETWEEN $3 AND $4
-    GROUP BY day, county
-    ORDER BY county, day;`
-	err := sqlx.SelectContext(ctx, repo.db, &res, query, state, municipality, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+        ut.day,
+        f.county AS description,
+        SUM(ut.mbps_in) AS mbps_in,
+        SUM(ut.mbps_out) AS mbps_out,
+        SUM(ut.mbytes_in_sec) AS mbytes_in_sec,
+        SUM(ut.mbytes_out_sec) AS mbytes_out_sec
+    FROM unique_traffic ut
+    JOIN unique_fats f ON f.olt_ip = ut.olt_ip
+    GROUP BY ut.day, f.county
+    ORDER BY ut.day, f.county;`
+	err := sqlx.SelectContext(ctx, repo.db, &res, query, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"), state, municipality)
 	return res, err
 }
 
 func (repo *ponRepository) GetTrafficOdnSummary(ctx context.Context, state, municipality, county string, initDate, endDate time.Time) ([]entity.TrafficInfoSummary, error) {
 	var res []entity.TrafficInfoSummary
 	query := `
+    WITH unique_traffic AS (
+        SELECT
+            day,
+            olt_ip,
+            SUM(mbps_in) AS mbps_in,
+            SUM(mbps_out) AS mbps_out,
+            SUM(mbytes_in_sec) AS mbytes_in_sec,
+            SUM(mbytes_out_sec) AS mbytes_out_sec
+        FROM traffic_pons_summary
+        WHERE day BETWEEN $1 AND $2
+        GROUP BY day, olt_ip
+    ),
+    unique_fats AS (
+        SELECT DISTINCT ON (olt_ip) olt_ip, odn FROM fats WHERE state = $3 AND municipality = $4 AND municipality = $5
+    )
     SELECT
-        traffic.day AS day,
-        fats.odn AS description,
-        SUM(traffic.mbps_in) AS mbps_in,
-        SUM(traffic.mbps_out) AS mbps_out,
-        SUM(traffic.mbytes_in_sec) AS mbytes_in_sec,
-        SUM(traffic.mbytes_out_sec) AS mbytes_out_sec
-    FROM traffic_pons_summary AS traffic
-    JOIN fats ON fats.olt_ip = traffic.olt_ip
-    WHERE fats.state = $1 AND fats.municipality = $2 AND fats.county = $3 AND day BETWEEN $4 AND $5
-    GROUP BY day, odn
-    ORDER BY odn, day;`
-	err := sqlx.SelectContext(ctx, repo.db, &res, query, state, municipality, county, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+        ut.day,
+        f.odn AS description,
+        SUM(ut.mbps_in) AS mbps_in,
+        SUM(ut.mbps_out) AS mbps_out,
+        SUM(ut.mbytes_in_sec) AS mbytes_in_sec,
+        SUM(ut.mbytes_out_sec) AS mbytes_out_sec
+    FROM unique_traffic ut
+    JOIN unique_fats f ON f.olt_ip = ut.olt_ip
+    GROUP BY ut.day, f.odn
+    ORDER BY ut.day, f.odn;`
+	err := sqlx.SelectContext(ctx, repo.db, &res, query, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"), state, municipality, county)
 	return res, err
 }

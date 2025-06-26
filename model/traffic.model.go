@@ -42,7 +42,6 @@ type TrafficTrendForecast struct {
 
 type TrafficSummary struct {
 	Day          time.Time `json:"day"`
-	FatID        int32     `json:"fat_id"`
 	OltIP        string    `json:"olt_ip"`
 	MbpsIn       float64   `json:"mbps_in"`
 	MbpsOut      float64   `json:"mbps_out"`

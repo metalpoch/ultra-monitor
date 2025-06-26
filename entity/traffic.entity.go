@@ -14,7 +14,6 @@ type TrafficPon struct {
 
 type TrafficSummary struct {
 	Day          time.Time `db:"day"`
-	FatID        int32     `db:"fat_id"`
 	OltIP        string    `db:"olt_ip"`
 	MbpsIn       float64   `db:"mbps_in"`
 	MbpsOut      float64   `db:"mbps_out"`

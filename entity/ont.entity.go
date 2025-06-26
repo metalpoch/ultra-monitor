@@ -18,6 +18,7 @@ type OntSummaryStatus struct {
 	InactiveCount uint64    `db:"inactives"`
 	UnknownCount  uint64    `db:"unknowns"`
 }
+
 type GetStatusSummary struct {
 	Day           time.Time `db:"day"`
 	Description   string    `db:"description"`

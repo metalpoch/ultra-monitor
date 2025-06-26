@@ -24,9 +24,11 @@ func NewFatRoutes(app *fiber.App, db *sqlx.DB) {
 	route.Get("/info/location/", hdlr.GetStates)
 	route.Get("/info/location/:state/", hdlr.GetMunicipality)
 	route.Get("/info/location/:state/:municipality/", hdlr.GetCounty)
+	route.Get("/info/location/:state/:municipality/:county", hdlr.GetOdn)
 
 	// Fat info by location
 	route.Get("/location/:state", hdlr.GetFatsByStates)
 	route.Get("/location/:state/:municipality", hdlr.GetFatsByMunicipality)
 	route.Get("/location/:state/:municipality/:county", hdlr.GetFatsByCounty)
+	route.Get("/location/:state/:municipality/:county/:odn", hdlr.GetFatsBytOdn)
 }

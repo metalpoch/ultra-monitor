@@ -31,7 +31,7 @@ export default function UserGrowthChart({ data }) {
       <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
         <PolarGrid />
         <PolarAngleAxis dataKey="description" />
-        <PolarRadiusAxis />
+        <PolarRadiusAxis angle={90} tick={false} />
         <Radar
           name={groupedData[0].description}
           dataKey="value"

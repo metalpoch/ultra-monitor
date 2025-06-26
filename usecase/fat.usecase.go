@@ -109,6 +109,18 @@ func (use *FatUsecase) GetCounty(state, municipality string) ([]string, error) {
 	return res, nil
 }
 
+func (use *FatUsecase) GetOdn(state, municipality, county string) ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetOdn(ctx, state, municipality, county)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
 func (use *FatUsecase) GetFatsByStates(state string) ([]model.Fat, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -148,6 +160,23 @@ func (use *FatUsecase) GetFatsByCounty(state, municipality, county string) ([]mo
 	defer cancel()
 
 	res, err := use.repo.GetFatsByCounty(ctx, state, municipality, county)
+	if err != nil {
+		return nil, err
+	}
+
+	var fats []model.Fat
+	for _, e := range res {
+		fats = append(fats, (model.Fat)(e))
+	}
+
+	return fats, nil
+}
+
+func (use *FatUsecase) GetFatsBytOdn(state, municipality, county, odn string) ([]model.Fat, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetFatsBytOdn(ctx, state, municipality, county, odn)
 	if err != nil {
 		return nil, err
 	}

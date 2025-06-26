@@ -15,9 +15,11 @@ type FatRepository interface {
 	GetStates(ctx context.Context) ([]string, error)
 	GetMunicipality(ctx context.Context, state string) ([]string, error)
 	GetCounty(ctx context.Context, state, municipality string) ([]string, error)
+	GetOdn(ctx context.Context, state, municipality, county string) ([]string, error)
 	GetFatsByStates(ctx context.Context, state string) ([]entity.Fat, error)
 	GetFatsByMunicipality(ctx context.Context, state, municipality string) ([]entity.Fat, error)
 	GetFatsByCounty(ctx context.Context, state, municipality, county string) ([]entity.Fat, error)
+	GetFatsBytOdn(ctx context.Context, state, municipality, county, odn string) ([]entity.Fat, error)
 }
 
 type fatRepository struct {
@@ -89,6 +91,13 @@ func (repo *fatRepository) GetCounty(ctx context.Context, state, municipality st
 	return res, err
 }
 
+func (repo *fatRepository) GetOdn(ctx context.Context, state, municipality, county string) ([]string, error) {
+	var res []string
+	query := `SELECT DISTINCT odn FROM fats WHERE state = $1 AND municipality = $2 AND municipality = $3 ORDER BY odn;`
+	err := repo.db.SelectContext(ctx, &res, query, state, municipality, county)
+	return res, err
+}
+
 func (repo *fatRepository) GetFatsByStates(ctx context.Context, state string) ([]entity.Fat, error) {
 	var res []entity.Fat
 	query := `SELECT * FROM fats WHERE state = $1 ORDER BY id;`
@@ -107,5 +116,12 @@ func (repo *fatRepository) GetFatsByCounty(ctx context.Context, state, municipal
 	var res []entity.Fat
 	query := `SELECT * FROM fats WHERE state = $1 AND municipality = $2 AND county = $3 ORDER BY id;`
 	err := repo.db.SelectContext(ctx, &res, query, state, municipality, county)
+	return res, err
+}
+
+func (repo *fatRepository) GetFatsBytOdn(ctx context.Context, state, municipality, county, odn string) ([]entity.Fat, error) {
+	var res []entity.Fat
+	query := `SELECT * FROM fats WHERE state = $1 AND municipality = $2 AND county = $3 AND odn = $4 ORDER BY id;`
+	err := repo.db.SelectContext(ctx, &res, query, state, municipality, county, odn)
 	return res, err
 }

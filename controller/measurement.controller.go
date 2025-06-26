@@ -115,7 +115,7 @@ func (ctrl MeasurementController) PonScan(olt model.Olt) {
 			Bandwidth: float64(data.Bandwidth),
 			BpsIn:     ctrl.bytesToBbps(oldData.In, data.CounterBytesIn, uint64(data.Bandwidth), diffTime),
 			BpsOut:    ctrl.bytesToBbps(oldData.Out, data.CounterBytesOut, uint64(data.Bandwidth), diffTime),
-			BytesIn:   ctrl.bytesToBytesPerSec(oldData.Out, data.CounterBytesOut, diffTime),
+			BytesIn:   ctrl.bytesToBytesPerSec(oldData.In, data.CounterBytesIn, diffTime),
 			BytesOut:  ctrl.bytesToBytesPerSec(oldData.Out, data.CounterBytesOut, diffTime),
 			Date:      now,
 		})

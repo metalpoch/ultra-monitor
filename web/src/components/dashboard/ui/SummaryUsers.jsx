@@ -39,13 +39,11 @@ export default function SummaryUsers({ data }) {
   }
 
   const init = filteredData[0];
-  const totalInit = init.actives + init.actives;
 
   const end = filteredData[filteredData.length - 1];
-  const totalEnd = end.actives + end.actives;
 
-  const usersDiff = ((totalEnd - totalInit) * 100) / (totalInit || 1);
-  const users = `${convert.qty(totalEnd)}`;
+  const usersDiff = ((end.actives - init.actives) * 100) / (init.actives || 1);
+  const users = `${convert.qty(end.actives)}`;
   const strUsers = `${usersDiff >= 0 ? "+" : ""}${usersDiff.toFixed(2)}%`;
 
   return (

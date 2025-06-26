@@ -39,13 +39,11 @@ export default function SummaryUserFaults({ data }) {
   }
 
   const init = filteredData[0];
-  const totalInit = init.unknowns + init.unknowns;
-
   const end = filteredData[filteredData.length - 1];
-  const totalEnd = end.unknowns + end.unknowns;
 
-  const usersDiff = ((totalEnd - totalInit) * 100) / (totalInit || 1);
-  const users = `${convert.qty(totalEnd)}`;
+  const usersDiff =
+    ((end.unknowns - init.unknowns) * 100) / (init.unknowns || 1);
+  const users = `${convert.qty(end.unknowns)}`;
   const strUsers = `${usersDiff >= 0 ? "+" : ""}${usersDiff.toFixed(2)}%`;
 
   return (

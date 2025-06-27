@@ -76,7 +76,7 @@ export default function UserGrowthChart({ data }) {
   }
 
   return (
-    <div style={{ width: "100%", height: 300 }}>
+    <div style={{ width: "100%", height: 175 }}>
       <ResponsiveContainer width="100%" height="100%">
         {radarChart}
       </ResponsiveContainer>

@@ -48,16 +48,16 @@ const { ontStatus, onStatusErr } = await fetch(
     <section class="w-full flex flex-wrap gap-5">
       <SummaryTraffic data={traffic} err={trafficErr} />
       <SummaryVolume data={traffic} err={trafficErr} />
-      <SummaryUsers data={ontStatus} err={onStatusErr} />
-      <SummaryFaults data={ontStatus} err={onStatusErr} />
     </section>
     <div class="w-full flex flex-wrap gap-5">
       <ChartBps data={traffic} err={trafficErr} />
       <ChartMbps data={traffic} err={trafficErr} />
     </div>
     <div class="w-full flex flex-wrap gap-5">
-      <ChartUser data={ontStatus} err={onStatusErr} />
+      <SummaryUsers data={ontStatus} err={onStatusErr} />
+      <SummaryFaults data={ontStatus} err={onStatusErr} />
       <ChartUserRadar data={ontStatus} err={onStatusErr} />
+      <ChartUser data={ontStatus} err={onStatusErr} />
     </div>
     <!-- <TableUserGrowth data={ontStatus} err={onStatusErr} /> -->
   </main>

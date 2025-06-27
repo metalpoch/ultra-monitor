@@ -57,13 +57,15 @@ export default function SummaryUserFaults({ data }) {
           alt="icono de pulso"
         />
       </div>
-      <h3 className="font-bold text-3xl">{users}</h3>
-      <p className="text-slate-400 text-sm">{strUsers} de disminución</p>
-      {usersDiff <= 0 ? (
-        <p className="text-green-300 text-sm">↑ {strUsers}</p>
-      ) : (
-        <p className="text-red-300 text-sm">↓ {strUsers}</p>
-      )}
+      <div className="h-full flex flex-col items-center justify-center">
+        <h3 className="font-bold text-3xl">{users}</h3>
+        <p className="text-slate-400 text-sm">{strUsers} de disminución</p>
+        {usersDiff <= 0 ? (
+          <p className="text-green-300 text-sm">↑ {strUsers}</p>
+        ) : (
+          <p className="text-red-300 text-sm">↓ {strUsers}</p>
+        )}
+      </div>
     </article>
   );
 }

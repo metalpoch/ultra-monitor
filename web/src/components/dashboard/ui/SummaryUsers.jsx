@@ -23,7 +23,7 @@ export default function SummaryUsers({ data }) {
   if (!filteredData || filteredData.length < 2) {
     return (
       <article className="flex flex-1/3 md:flex-1/5 flex-col gap-2 px-6 py-3 w-1/3 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]">
-        <div className="w-full flex justify-between">
+        <div className="w-full flex justify-between ">
           <h2 className="text-slate-400">Usuarios Activos</h2>
           <img
             src={userIcon.src ?? userIcon}
@@ -47,8 +47,8 @@ export default function SummaryUsers({ data }) {
   const strUsers = `${usersDiff >= 0 ? "+" : ""}${usersDiff.toFixed(2)}%`;
 
   return (
-    <article className="flex flex-1/3 md:flex-1/5 flex-col gap-2 px-6 py-3 w-1/3 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]">
-      <div className="w-full flex justify-between">
+    <article className="flex flex-1/3 md:flex-1/5  flex-col gap-2 px-6 py-3 w-1/3 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]">
+      <div className="w-full flex justify-between ">
         <h2 className="text-slate-400">Usuarios Activos</h2>
         <img
           src={userIcon.src ?? userIcon}
@@ -57,13 +57,15 @@ export default function SummaryUsers({ data }) {
           alt="icono de pulso"
         />
       </div>
-      <h3 className="font-bold text-3xl">{users}</h3>
-      <p className="text-slate-400 text-sm">{strUsers} de crecimiento</p>
-      {usersDiff > 0 ? (
-        <p className="text-green-300 text-sm">↑ {strUsers}</p>
-      ) : (
-        <p className="text-red-300 text-sm">↓ {strUsers}</p>
-      )}
+      <div className="h-full flex flex-col items-center justify-center">
+        <h3 className="font-bold text-3xl">{users}</h3>
+        <p className="text-slate-400 text-sm">{strUsers} de crecimiento</p>
+        {usersDiff > 0 ? (
+          <p className="text-green-300 text-sm">↑ {strUsers}</p>
+        ) : (
+          <p className="text-red-300 text-sm">↓ {strUsers}</p>
+        )}
+      </div>
     </article>
   );
 }

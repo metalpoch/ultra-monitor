@@ -54,25 +54,11 @@ func (uc *PonUsecase) PonByOltAndPort(sysname string, shell, card, port int) (*m
 	return (*model.Pon)(&pon), nil
 }
 
-func (uc *PonUsecase) TrafficByState(state string, dates dto.RangeDate) ([]model.Traffic, error) {
-	res, err := uc.repo.TrafficByState(context.Background(), state, dates.InitDate, dates.EndDate)
-	if err != nil {
-		return nil, err
-	}
-
-	var traffic []model.Traffic
-	for _, t := range res {
-		traffic = append(traffic, (model.Traffic)(t))
-	}
-
-	return traffic, err
-}
-
-func (uc *PonUsecase) TrafficByMunicipaly(state, municipality string, dates dto.RangeDate) ([]model.Traffic, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (uc *PonUsecase) TrafficOlt(sysname string, dates dto.RangeDate) ([]model.Traffic, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	res, err := uc.repo.TrafficByMunicipality(ctx, state, municipality, dates.InitDate, dates.EndDate)
+	res, err := uc.repo.TrafficOlt(ctx, sysname, dates.InitDate, dates.EndDate)
 	if err != nil {
 		return nil, err
 	}
@@ -85,41 +71,8 @@ func (uc *PonUsecase) TrafficByMunicipaly(state, municipality string, dates dto.
 	return traffic, err
 }
 
-func (uc *PonUsecase) TrafficByCounty(state, municipality, county string, dates dto.RangeDate) ([]model.Traffic, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	res, err := uc.repo.TrafficByCounty(ctx, state, municipality, county, dates.InitDate, dates.EndDate)
-	if err != nil {
-		return nil, err
-	}
-
-	var traffic []model.Traffic
-	for _, t := range res {
-		traffic = append(traffic, (model.Traffic)(t))
-	}
-
-	return traffic, err
-}
-
-func (uc *PonUsecase) TrafficByODN(state, municipality, county, odn string, dates dto.RangeDate) ([]model.Traffic, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	res, err := uc.repo.TrafficByODN(ctx, state, municipality, county, odn, dates.InitDate, dates.EndDate)
-	if err != nil {
-		return nil, err
-	}
-
-	var traffic []model.Traffic
-	for _, t := range res {
-		traffic = append(traffic, (model.Traffic)(t))
-	}
-
-	return traffic, err
-}
 func (uc *PonUsecase) TrafficByPon(sysname string, shell, card, port int, dates dto.RangeDate) ([]model.Traffic, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	ifname := fmt.Sprintf("GPON %d/%d/%d", shell, card, port)

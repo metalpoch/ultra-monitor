@@ -13,14 +13,9 @@ import (
 type PonRepository interface {
 	PonsByOLT(ctx context.Context, sysname string) ([]entity.Pon, error)
 	PonByPort(ctx context.Context, sysname, port string) (entity.Pon, error)
-	TrafficByState(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.Traffic, error)
-	TrafficByMunicipality(ctx context.Context, state, municipality string, initDate, endDate time.Time) ([]entity.Traffic, error)
-	TrafficByCounty(ctx context.Context, state, municipality, county string, initDate, endDate time.Time) ([]entity.Traffic, error)
-	TrafficByODN(ctx context.Context, state, municipality, county, odn string, initDate, endDate time.Time) ([]entity.Traffic, error)
-	TrafficByOLT(ctx context.Context, sysname string, initDate, endDate time.Time) ([]entity.Traffic, error)
+	TrafficOlt(ctx context.Context, sysname string, initDate, endDate time.Time) ([]entity.Traffic, error)
 	TrafficByPon(ctx context.Context, sysname, ifname string, initDate, endDate time.Time) ([]entity.Traffic, error)
 	GetDailyAveragedHourlyMaxTrafficTrends(ctx context.Context, initDate, endDate time.Time) ([]entity.TrafficSummary, error)
-
 	UpsertSummaryTraffic(ctx context.Context, traffic []entity.TrafficSummary) error
 	GetTrafficSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.TrafficTotalSummary, error)
 	GetTrafficStatesSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.TrafficInfoSummary, error)
@@ -152,6 +147,53 @@ func (repo *ponRepository) TrafficByOLT(ctx context.Context, sysname string, ini
     GROUP BY DATE_TRUNC('minute', date)
     ORDER BY date;`
 	err := sqlx.SelectContext(ctx, repo.db, &res, query, sysname, initDate, endDate)
+	return res, err
+}
+
+func (repo *ponRepository) TrafficOlt(ctx context.Context, sysname string, initDate, endDate time.Time) ([]entity.Traffic, error) {
+	var res []entity.Traffic
+	// Clausurado por que los genios que llevan los Fats tienen duplicados lso registros para el mismo puerto
+	// query := `
+	// DATE_TRUNC('minute', tr.date) AS date,
+	//   p.if_name,
+	//   MAX(tr.bps_in) AS bps_in,
+	//   MAX(tr.bps_out) AS bps_out,
+	//   MAX(tr.bandwidth_mbps_sec) AS bandwidth_mbps_sec,
+	//   MAX(tr.bytes_in_sec) AS bytes_in_sec,
+	//   MAX(tr.bytes_out_sec) AS bytes_out_sec,
+	//   f.odn,
+	//   f.fat,
+	//   f.region,
+	//   f.state,
+	//   f.municipality,
+	//   f.county
+	// FROM traffic_pons AS tr
+	// JOIN pons AS p ON p.id = tr.pon_id
+	// JOIN fats AS f ON f.olt_ip = p.olt_ip
+	// JOIN olts AS o ON o.ip = p.olt_ip
+	// WHERE
+	//   o.sys_name = $1
+	//   AND date BETWEEN $2 AND $3
+	//   AND CAST(regexp_replace(split_part(p.if_name, ' ', 2), '^(\d+)/(\d+)/(\d+)$', '\1') AS INTEGER) = f.pon_shell
+	//   AND CAST(regexp_replace(split_part(p.if_name, ' ', 2), '^(\d+)/(\d+)/(\d+)$', '\2') AS INTEGER) = f.pon_card
+	//   AND CAST(regexp_replace(split_part(p.if_name, ' ', 2), '^(\d+)/(\d+)/(\d+)$', '\3') AS INTEGER) = f.pon_port
+	// GROUP BY
+	//   date, p.if_name, f.odn, f.fat, f.region, f.state, f.municipality, f.county;`
+	query := `
+    SELECT
+        DATE_TRUNC('minute', tr.date) AS date,
+        MAX(tr.bps_in) / 1000000 AS mbps_in,
+        MAX(tr.bps_out) / 1000000 AS mbps_out,
+        MAX(tr.bandwidth_mbps_sec) AS bandwidth_mbps_sec,
+        MAX(tr.bytes_in_sec) / 1000000 AS mbytes_in_sec,
+        MAX(tr.bytes_out_sec) / 1000000 AS mbytes_out_sec
+    FROM traffic_pons AS tr
+    JOIN pons AS p ON p.id = tr.pon_id
+    JOIN olts AS o ON o.ip = p.olt_ip
+    WHERE o.sys_name = $1 AND date BETWEEN $2 AND $3
+    GROUP BY DATE_TRUNC('minute', tr.date)
+    ORDER BY date;`
+	err := repo.db.SelectContext(ctx, &res, query, sysname, initDate, endDate)
 	return res, err
 }
 

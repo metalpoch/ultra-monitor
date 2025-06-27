@@ -24,7 +24,7 @@ func NewUserUsecase(db *sqlx.DB, secret []byte) *UserUsecase {
 }
 
 func (uc *UserUsecase) Create(newUser *dto.NewUser) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	bytesPsw, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), 14)
@@ -48,7 +48,7 @@ func (uc *UserUsecase) Create(newUser *dto.NewUser) error {
 }
 
 func (uc *UserUsecase) Login(email string, password string) (*model.Login, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	res, err := uc.repo.UserByUsername(ctx, email)
@@ -73,7 +73,7 @@ func (uc *UserUsecase) Login(email string, password string) (*model.Login, error
 }
 
 func (uc *UserUsecase) GetUser(id int) (*model.User, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	res, err := uc.repo.UserByID(ctx, id)
@@ -92,7 +92,7 @@ func (uc *UserUsecase) GetUser(id int) (*model.User, error) {
 }
 
 func (uc *UserUsecase) Disable(id int) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if err := uc.repo.Disable(ctx, id); err != nil {
@@ -102,7 +102,7 @@ func (uc *UserUsecase) Disable(id int) error {
 }
 
 func (uc *UserUsecase) Enable(id int) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if err := uc.repo.Enable(ctx, id); err != nil {
@@ -112,7 +112,7 @@ func (uc *UserUsecase) Enable(id int) error {
 }
 
 func (uc *UserUsecase) ChangePassword(id int, user *dto.ChangePassword) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	res, err := uc.repo.UserByID(ctx, id)

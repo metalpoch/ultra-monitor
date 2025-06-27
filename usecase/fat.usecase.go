@@ -74,7 +74,7 @@ func (use *FatUsecase) GetByID(id int) (model.Fat, error) {
 }
 
 func (use *FatUsecase) GetStates() ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	res, err := use.repo.GetStates(ctx)
@@ -86,7 +86,7 @@ func (use *FatUsecase) GetStates() ([]string, error) {
 }
 
 func (use *FatUsecase) GetMunicipality(state string) ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	res, err := use.repo.GetMunicipality(ctx, state)
@@ -98,7 +98,7 @@ func (use *FatUsecase) GetMunicipality(state string) ([]string, error) {
 }
 
 func (use *FatUsecase) GetCounty(state, municipality string) ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	res, err := use.repo.GetCounty(ctx, state, municipality)
@@ -110,7 +110,7 @@ func (use *FatUsecase) GetCounty(state, municipality string) ([]string, error) {
 }
 
 func (use *FatUsecase) GetOdn(state, municipality, county string) ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	res, err := use.repo.GetOdn(ctx, state, municipality, county)

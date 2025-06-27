@@ -25,7 +25,7 @@ func NewOntUsecase(db *sqlx.DB, cache *cache.Redis) *OntUsecase {
 }
 
 func (uc *OntUsecase) GetStatusIPSummary(ip string, dates dto.RangeDate) ([]model.OntSummaryStatus, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	res, err := uc.repo.GetStatusIPSummary(ctx, ip, dates.InitDate, dates.EndDate)
@@ -41,7 +41,7 @@ func (uc *OntUsecase) GetStatusIPSummary(ip string, dates dto.RangeDate) ([]mode
 }
 
 func (uc *OntUsecase) GetStatusStateSummary(dates dto.RangeDate) ([]model.GetStatusSummary, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	res, err := uc.repo.GetStatusStateSummary(ctx, dates.InitDate, dates.EndDate)
@@ -57,7 +57,7 @@ func (uc *OntUsecase) GetStatusStateSummary(dates dto.RangeDate) ([]model.GetSta
 }
 
 func (uc *OntUsecase) GetStatusByStateSummary(state string, dates dto.RangeDate) ([]model.OntSummaryStatus, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	res, err := uc.repo.GetStatusByStateSummary(ctx, state, dates.InitDate, dates.EndDate)
@@ -73,7 +73,7 @@ func (uc *OntUsecase) GetStatusByStateSummary(state string, dates dto.RangeDate)
 }
 
 func (uc *OntUsecase) GetStatusMunicipalitySummary(state string, dates dto.RangeDate) ([]model.GetStatusSummary, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	res, err := uc.repo.GetStatusMunicipalitySummary(ctx, state, dates.InitDate, dates.EndDate)
@@ -89,7 +89,7 @@ func (uc *OntUsecase) GetStatusMunicipalitySummary(state string, dates dto.Range
 }
 
 func (uc *OntUsecase) GetStatusCountySummary(state, municipality string, dates dto.RangeDate) ([]model.GetStatusSummary, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	res, err := uc.repo.GetStatusCountySummary(ctx, state, municipality, dates.InitDate, dates.EndDate)
@@ -105,7 +105,7 @@ func (uc *OntUsecase) GetStatusCountySummary(state, municipality string, dates d
 }
 
 func (uc *OntUsecase) GetStatusOdnSummary(state, municipality, county string, dates dto.RangeDate) ([]model.GetStatusSummary, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	res, err := uc.repo.GetStatusOdnSummary(ctx, state, municipality, county, dates.InitDate, dates.EndDate)
@@ -121,7 +121,7 @@ func (uc *OntUsecase) GetStatusOdnSummary(state, municipality, county string, da
 }
 
 func (uc *OntUsecase) GetStatusSummaryForecast(futureDays int) (*model.OntStatusForecast, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	initDate, endDate := utils.DateRangeFromYear()
@@ -231,7 +231,7 @@ func (use *OntUsecase) TrafficOnt(ponID int, idx int64, dates dto.RangeDate) ([]
 }
 
 func (use *OntUsecase) TrafficOntByDespt(despt string, dates dto.RangeDate) ([]model.TrafficOnt, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	var traffic []model.TrafficOnt

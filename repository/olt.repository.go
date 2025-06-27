@@ -15,8 +15,6 @@ type OltRepository interface {
 	GetAllIP(ctx context.Context) ([]string, error)
 	GetAllSysname(ctx context.Context) ([]string, error)
 	OltsByState(ctx context.Context, state string) ([]entity.Olt, error)
-	OltsByMunicipality(ctx context.Context, state, municipality string) ([]entity.Olt, error)
-	OltsByCounty(ctx context.Context, state, municipality, county string) ([]entity.Olt, error)
 }
 
 type oltRepository struct {
@@ -57,43 +55,6 @@ func (repo *oltRepository) Delete(ctx context.Context, id string) error {
 	return err
 }
 
-func (repo *oltRepository) OltsByState(ctx context.Context, state string) ([]entity.Olt, error) {
-	var res []entity.Olt
-	query := `
-    SELECT DISTINCT olts.*
-    FROM olts
-    JOIN fats ON fats.olt_ip = olts.ip
-    WHERE fats.state = $1
-    ORDER BY olts.sys_name`
-	err := repo.db.SelectContext(ctx, &res, query, state)
-	return res, err
-}
-
-func (repo *oltRepository) OltsByMunicipality(ctx context.Context, state, municipality string) ([]entity.Olt, error) {
-	var res []entity.Olt
-	query := `
-	SELECT DISTINCT olts.*
-	FROM olts
-	JOIN fats ON fats.olt_ip = olts.ip
-	WHERE fats.state = $1 AND fats.municipality = $2
-	ORDER BY olts.sys_name`
-	err := repo.db.SelectContext(ctx, &res, query, state, municipality)
-	return res, err
-}
-
-func (repo *oltRepository) OltsByCounty(ctx context.Context, state, municipality, county string) ([]entity.Olt, error) {
-	var res []entity.Olt
-	query := `
-	SELECT DISTINCT olts.*
-	FROM olts
-	JOIN fats ON fats.olt_ip = olts.ip
-	WHERE fats.state = $1 AND fats.municipality = $2 AND fats.county = $3
-	ORDER BY olts.sys_name`
-
-	err := repo.db.SelectContext(ctx, &res, query, state, municipality, county)
-	return res, err
-}
-
 func (repo *oltRepository) GetAllIP(ctx context.Context) ([]string, error) {
 	var res []string
 	query := `SELECT DISTINCT ip FROM olts ORDER BY ip`
@@ -112,4 +73,25 @@ func (repo *oltRepository) GetAllSysname(ctx context.Context) ([]string, error) 
 		return nil, err
 	}
 	return res, nil
+}
+
+func (repo *oltRepository) OltsByState(ctx context.Context, state string) ([]entity.Olt, error) {
+	var res []entity.Olt
+	query := `
+	SELECT DISTINCT
+		olts.*,
+		fats.state,
+		fats.municipality,
+		fats.county,
+		fats.odn,
+		fats.fat,
+		fats.pon_shell,
+		fats.pon_card,
+		fats.pon_port
+	FROM olts
+	LEFT JOIN fats ON fats.olt_ip = olts.ip
+	WHERE fats.state = $1
+	ORDER BY olts.sys_name;`
+	err := repo.db.SelectContext(ctx, &res, query, state)
+	return res, err
 }

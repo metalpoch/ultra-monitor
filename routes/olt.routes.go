@@ -22,6 +22,4 @@ func NewOltRoutes(app *fiber.App, db *sqlx.DB) {
 	route.Get("/sysname", hdlr.GetAllSysname)
 
 	route.Get("/location/:state", hdlr.GetOltsByState)
-	route.Get("/location/:state/:municipality", hdlr.GetOltsByMunicipality)
-	route.Get("/location/:state/:municipality/:county", hdlr.GetOltsByCounty)
 }

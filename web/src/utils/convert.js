@@ -37,4 +37,37 @@ export const dayField = (dataArray) => {
   });
 };
 
-export default { traffic, qty, dayField };
+export const getDateRange = (period) => {
+  const endDate = new Date();
+  const initDate = new Date(endDate);
+
+  if (period === "1d") {
+    initDate.setDate(initDate.getDate() - 1);
+  } else if (period === "7d") {
+    initDate.setDate(initDate.getDate() - 7);
+  } else if (period === "1m") {
+    initDate.setMonth(initDate.getMonth() - 1);
+  } else {
+    throw new Error('Período no válido. Use: "1d", "7d" o "1m"');
+  }
+
+  const formatToISO = (date) => {
+    const pad = (num) => num.toString().padStart(2, "0");
+
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+    const seconds = pad(date.getSeconds());
+
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}-04:00`;
+  };
+
+  return {
+    initDate: formatToISO(initDate),
+    endDate: formatToISO(endDate),
+  };
+};
+
+export default { traffic, qty, dayField, getDateRange };

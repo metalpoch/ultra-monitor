@@ -1,36 +1,40 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react";
 
-export default function useFetch(url, options) {
-    const [data, setData] = useState(null);
-    const [status, setStatus] = useState(null);
-    const [loading, setLoading] = useState(null);
-    const [error, setError] = useState(null);
+export default function useFetch(url, options = {}) {
+  const [data, setData] = useState(null);
+  const [status, setStatus] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
+  const fetchData = useCallback(() => {
+    if (!url) return;
+    const abortController = new AbortController();
+    setLoading(true);
+    setError(null);
+    setData(null);
 
-    if (!url || !options) {
-        return { data, status, loading, error }
-    }
+    fetch(url, { ...options, signal: abortController.signal })
+      .then((res) => {
+        setStatus(res.status);
+        return res.json();
+      })
+      .then((res) => setData(res))
+      .catch((err) => {
+        if (err.name === "AbortError") {
+          console.warn("Petición Abortada");
+        } else {
+          setError(err);
+        }
+      })
+      .finally(() => setLoading(false));
 
-    useEffect(() => {
-        const abortController = new AbortController();
-        setLoading(true);
-        fetch(url, { ...options, signal: abortController.signal })
-            .then((res) => {
-                setStatus(res.status)
-                return res.json()
-            })
-            .then((res) => setData(res))
-            .finally(() => setLoading(false))
-            .catch((error) => {
-                if (error.name === "AbortError") {
-                    console.warn("Petición Abortada");
-                } else if (error.name != "SyntaxError") {
-                    setError(error);
-                }
-            });
+    return () => abortController.abort();
+  }, [url, JSON.stringify(options)]);
 
-        return () => abortController.abort();
-    }, [url, options]);
+  useEffect(() => {
+    const abort = fetchData();
+    return abort;
+  }, [fetchData]);
 
-    return { data, status, loading, error };
-};
+  return { data, status, loading, error, refetch: fetchData };
+}

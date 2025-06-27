@@ -1,7 +1,14 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import Form from "../components/traffic/ui/Form";
+import TrafficChart from "../components/traffic/ui/TrafficChart";
 ---
 
 <Layout title="Tráfico">
-  <h1>Traffic</h1>
+  <main class="w-full flex flex-wrap gap-5 justify-evenly px-10">
+    <Form client:load />
+    <section class="w-full flex flex-wrap gap-5">
+      <TrafficChart client:load />
+    </section>
+  </main>
 </Layout>

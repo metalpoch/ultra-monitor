@@ -1,8 +1,7 @@
-export default function InputField({
+export default function DatalistField({
   id,
   label,
-  icon: Icon,
-  type = "text",
+  options,
   value,
   onChange,
   placeholder,
@@ -17,17 +16,27 @@ export default function InputField({
       <section
         className={`flex items-center gap-2 border border-[hsl(217,33%,20%)] bg-[#0f1729] p-2 rounded-xs focus-within:ring-2 focus-within:ring-blue-500 ${className}`}
       >
-        {Icon && <Icon className="w-5" />}
         <input
-          className="w-full bg-[#f1729] focus:outline-none"
+          className="w-full bg-[#0f1729] text-gray-200 focus:outline-none"
           id={id}
-          type={type}
+          list={`${id}-datalist`}
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          required
+          autoComplete="off"
           {...props}
         />
+        <datalist id={`${id}-datalist`}>
+          {options.map((option) =>
+            typeof option === "string" ? (
+              <option key={option} value={option} />
+            ) : (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            )
+          )}
+        </datalist>
       </section>
     </div>
   );

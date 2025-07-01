@@ -1,4 +1,4 @@
 import { atom } from "nanostores";
 
-export const trafficFormDate = atom("");
-export const trafficForm = atom({ state: "", type: "", value: "" });
+export const ontData = atom({});
+export const trafficData = atom({});

@@ -18,7 +18,12 @@ export default function Form() {
     if (selectedLevelValue) {
       selectedLevel.set(selectedLevelValue);
       setRegions([
-        { value: "", label: "-" },
+        {
+          value: "",
+          label: "Seleccionar región",
+          disabled: true,
+          hidden: true,
+        },
         ...REGIONS.sort((a, b) => a.label.localeCompare(b.label)),
       ]);
       setSelectedStateValue("");
@@ -33,7 +38,12 @@ export default function Form() {
     if (selectedRegionValue) {
       selectedRegion.set(selectedRegionValue);
       setStates([
-        { value: "", label: "-" },
+        {
+          value: "",
+          label: "Seleccionar estado",
+          disabled: true,
+          hidden: true,
+        },
         ...Object.values(STATES_BY_REGION[selectedRegionValue])
           .flat()
           .sort((a, b) => a.label.localeCompare(b.label)),

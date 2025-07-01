@@ -1,13 +1,16 @@
 import { useEffect, useState, useMemo } from "react";
 import SelectField from "../../ui/SelectField";
 import DatalistField from "../../ui/DatalistField";
-import { trafficForm, trafficFormDate } from "../../../stores/traffic";
+import { trafficData, ontData } from "../../../stores/traffic";
 import { REGIONS, STATES_BY_REGION } from "../../../constants/regions";
 import useFetch from "../../../hooks/useFetch";
+import { getDateRange } from "../../../utils/convert";
 
 const BASE_URL = import.meta.env.PUBLIC_API_URL;
 
 export default function Form() {
+  const [trafficURL, setTrafficURL] = useState("");
+  const [ontStatusURL, setOntStatusURL] = useState("");
   const [selectedDate, setSelectedDate] = useState("1d");
   const [selectedRegion, setSelectedRegion] = useState("");
   const [selectedState, setSelectedState] = useState("");
@@ -16,6 +19,12 @@ export default function Form() {
   const [selectedOdn, setSelectedOdn] = useState("");
   const [selectedOlt, setSelectedOlt] = useState("");
   const [selectedFat, setSelectedFat] = useState("");
+
+  const dataTraffic = useFetch(trafficURL);
+  const dataOnt = useFetch(ontStatusURL);
+
+  useEffect(() => trafficData.set(dataTraffic), [dataTraffic]);
+  useEffect(() => ontData.set(dataOnt), [dataOnt]);
 
   const url = selectedState
     ? `${BASE_URL}/olt/location/${encodeURIComponent(selectedState)}`
@@ -104,7 +113,6 @@ export default function Form() {
       .filter((item) => item.value);
   }, [filteredOlts]);
 
-  useEffect(() => trafficFormDate.set(selectedDate), [selectedDate]);
   useEffect(() => {
     setSelectedState("");
     setSelectedMunicipality("");
@@ -139,37 +147,38 @@ export default function Form() {
     if (selectedOlt) {
       setSelectedFat("");
       setSelectedOdn("");
-      trafficForm.set({
-        state: selectedState,
-        type: "olt",
-        value: selectedOlt,
-      });
+
+      const sysname = encodeURIComponent(selectedOlt);
+      const { initDate, endDate } = getDateRange(selectedDate);
+      const rangeDate = `initDate=${initDate}&endDate=${endDate}`;
+      setTrafficURL(`${BASE_URL}/pon/traffic/${sysname}?${rangeDate}`);
+      setOntStatusURL(`${BASE_URL}/ont/status/sysname/${sysname}?${rangeDate}`);
     }
-  }, [selectedOlt]);
+  }, [selectedOlt, selectedDate]);
 
   useEffect(() => {
     if (selectedFat) {
       setSelectedOlt("");
       setSelectedOdn("");
-      trafficForm.set({
-        state: selectedState,
-        type: "fat",
-        value: selectedFat,
-      });
+
+      const param = encodeURIComponent(selectedFat);
+      const { initDate, endDate } = getDateRange(selectedDate);
+      const rangeDate = `initDate=${initDate}&endDate=${endDate}`;
+      setTrafficURL(`${BASE_URL}/fat/traffic/${param}?${rangeDate}`);
     }
-  }, [selectedFat]);
+  }, [selectedFat, selectedDate]);
 
   useEffect(() => {
     if (selectedOdn) {
       setSelectedOlt("");
       setSelectedFat("");
-      trafficForm.set({
-        state: selectedState,
-        type: "odn",
-        value: selectedOdn,
-      });
+
+      const param = encodeURIComponent(selectedOdn);
+      const { initDate, endDate } = getDateRange(selectedDate);
+      const rangeDate = `initDate=${initDate}&endDate=${endDate}`;
+      setTrafficURL(`${BASE_URL}/odn/traffic/${param}?${rangeDate}`);
     }
-  }, [selectedOdn]);
+  }, [selectedOdn, selectedDate]);
 
   return (
     <form className="w-full p-5 flex flex-wrap gap-5 content-center rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]">

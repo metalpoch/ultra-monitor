@@ -9,47 +9,50 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { COLOR } from "../../../constants/colors";
-import { trafficData, ontData } from "../../../stores/traffic";
+import { ontData, trafficData } from "../../../stores/traffic";
 import { dayField } from "../../../utils/convert";
 
-export default function TrafficChart() {
-  const { data, status, loading, error, refetch } = useStore(trafficData);
-
-  if (error) {
-    alert(JSON.stringify(error));
-    return;
-  }
-  const traffic = data && dayField(data);
-
-  if (loading) return <span className="mx-auto py-20 loader"></span>;
-  if (traffic)
+export default function OntStatusChart() {
+  const { data } = useStore(ontData);
+  const { loading } = useStore(trafficData);
+  const ontStatus = data && dayField(data);
+  if (ontStatus && !loading)
     return (
       <section className="w-full h-[300px] flex flex-col flex-1 sm:flex-2 px-6 py-3 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]">
-        <h1 className="text-2xl font-semibold">Tráfico de Red</h1>
+        <h1 className="text-2xl font-semibold">Crecimiento de ONT</h1>
         <p className="text-slate-400 text-sm">
-          Monitoreo del tráfico de entrada y salida.
+          Evolución de los ONT, activos, inactivos y fallas.
         </p>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart width={500} height={300} data={traffic}>
+          <LineChart width={500} height={300} data={ontStatus}>
             <XAxis dataKey="day" />
             <YAxis />
             <Tooltip />
             <Legend />
             <Line
               type="monotone"
-              dataKey="mbps_in"
-              name="Mbps In"
-              stroke={COLOR[0]}
-              fill={COLOR[0]}
+              dataKey="actives"
+              name="Activos"
+              stroke={COLOR[5]}
+              fill={COLOR[5]}
               strokeWidth="3"
               dot={false}
             />
             <Line
               type="monotone"
-              dataKey="mbps_out"
-              name="Mbps Out"
-              stroke={COLOR[1]}
-              fill={COLOR[1]}
+              dataKey="inactives"
+              name="Inactivos"
+              stroke={COLOR[6]}
+              fill={COLOR[6]}
+              strokeWidth="3"
+              dot={false}
+            />
+            <Line
+              type="monotone"
+              dataKey="unknowns"
+              name="Fallas"
+              stroke={COLOR[7]}
+              fill={COLOR[7]}
               strokeWidth="3"
               dot={false}
             />

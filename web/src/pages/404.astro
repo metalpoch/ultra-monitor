@@ -1,0 +1,12 @@
+---
+import { Image } from "astro:assets";
+import Layout from "../layouts/Login.astro";
+import cat from "../assets/404.gif";
+---
+
+<Layout>
+  <main class="flex flex-col items-center justify-center">
+    <Image src={cat} width={400} height={400} alt="Cat saying NO" />
+    <h1 class="text-5xl">Esta ruta no existe.</h1>
+  </main>
+</Layout>

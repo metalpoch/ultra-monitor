@@ -189,7 +189,12 @@ export default function Form() {
           id="region"
           label="Región"
           options={[
-            { value: "", label: "-" },
+            {
+              value: "",
+              label: "Seleccionar región",
+              disabled: true,
+              hidden: true,
+            },
             ...REGIONS.sort((a, b) => a.label.localeCompare(b.label)),
           ]}
           value={selectedRegion}
@@ -197,21 +202,33 @@ export default function Form() {
         />
         <SelectField
           id="state"
-          label="Estado"
+          label="Estado*"
           options={[
-            { value: "", label: "-" },
-            ...(STATES_BY_REGION[selectedRegion] || []),
+            {
+              value: "",
+              label: "Seleccionar estado",
+              disabled: true,
+              hidden: true,
+            },
+            ...(STATES_BY_REGION[selectedRegion] ||
+              Object.values(STATES_BY_REGION)
+                .flat()
+                .toSorted((a, b) => a.label.localeCompare(b.label))),
           ]}
           value={selectedState}
           onChange={({ target }) => setSelectedState(target.value)}
-          disabled={!selectedRegion}
         />
         {selectedState && (
           <SelectField
             id="municipality"
             label="Municipio"
             options={[
-              { value: "", label: "-" },
+              {
+                value: "",
+                label: "Seleccionar municipio",
+                disabled: true,
+                hidden: true,
+              },
               ...municipalities.map((m) => ({ value: m, label: m })),
             ]}
             value={selectedMunicipality}
@@ -224,7 +241,12 @@ export default function Form() {
             id="county"
             label="Parroquia"
             options={[
-              { value: "", label: "-" },
+              {
+                value: "",
+                label: "Seleccionar parroquia",
+                disabled: true,
+                hidden: true,
+              },
               ...counties.map((c) => ({ value: c, label: c })),
             ]}
             value={selectedCounty}

@@ -20,7 +20,12 @@ export default function SelectField({
         {...props}
       >
         {options.map((option) => (
-          <option key={option.value} value={option.value}>
+          <option
+            key={option.value}
+            value={option.value}
+            disabled={option.disabled}
+            hidden={option.hidden}
+          >
             {option.label}
           </option>
         ))}

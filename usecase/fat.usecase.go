@@ -20,7 +20,7 @@ func NewFatUsecase(db *sqlx.DB) *FatUsecase {
 }
 
 func (use *FatUsecase) GetAll(pag dto.Pagination) ([]model.Fat, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := use.repo.AllFat(ctx, pag.Page, pag.Limit)
@@ -37,7 +37,7 @@ func (use *FatUsecase) GetAll(pag dto.Pagination) ([]model.Fat, error) {
 }
 
 func (use *FatUsecase) AddFat(fat model.Fat) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	entityFat := (entity.Fat)(fat)
@@ -50,7 +50,7 @@ func (use *FatUsecase) AddFat(fat model.Fat) error {
 }
 
 func (use *FatUsecase) DeleteOne(id int) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	err := use.repo.DeleteOne(ctx, int32(id))
@@ -62,7 +62,7 @@ func (use *FatUsecase) DeleteOne(id int) error {
 }
 
 func (use *FatUsecase) GetByID(id int) (model.Fat, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := use.repo.GetByID(ctx, int32(id))
@@ -74,7 +74,7 @@ func (use *FatUsecase) GetByID(id int) (model.Fat, error) {
 }
 
 func (use *FatUsecase) GetStates() ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := use.repo.GetStates(ctx)
@@ -86,7 +86,7 @@ func (use *FatUsecase) GetStates() ([]string, error) {
 }
 
 func (use *FatUsecase) GetMunicipality(state string) ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := use.repo.GetMunicipality(ctx, state)
@@ -98,7 +98,7 @@ func (use *FatUsecase) GetMunicipality(state string) ([]string, error) {
 }
 
 func (use *FatUsecase) GetCounty(state, municipality string) ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := use.repo.GetCounty(ctx, state, municipality)
@@ -110,7 +110,7 @@ func (use *FatUsecase) GetCounty(state, municipality string) ([]string, error) {
 }
 
 func (use *FatUsecase) GetOdn(state, municipality, county string) ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := use.repo.GetOdn(ctx, state, municipality, county)
@@ -122,7 +122,7 @@ func (use *FatUsecase) GetOdn(state, municipality, county string) ([]string, err
 }
 
 func (use *FatUsecase) GetFatsByStates(state string) ([]model.Fat, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := use.repo.GetFatsByStates(ctx, state)
@@ -139,7 +139,7 @@ func (use *FatUsecase) GetFatsByStates(state string) ([]model.Fat, error) {
 }
 
 func (use *FatUsecase) GetFatsByMunicipality(state, municipality string) ([]model.Fat, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := use.repo.GetFatsByMunicipality(ctx, state, municipality)
@@ -156,7 +156,7 @@ func (use *FatUsecase) GetFatsByMunicipality(state, municipality string) ([]mode
 }
 
 func (use *FatUsecase) GetFatsByCounty(state, municipality, county string) ([]model.Fat, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := use.repo.GetFatsByCounty(ctx, state, municipality, county)
@@ -173,7 +173,7 @@ func (use *FatUsecase) GetFatsByCounty(state, municipality, county string) ([]mo
 }
 
 func (use *FatUsecase) GetFatsBytOdn(state, municipality, county, odn string) ([]model.Fat, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := use.repo.GetFatsBytOdn(ctx, state, municipality, county, odn)

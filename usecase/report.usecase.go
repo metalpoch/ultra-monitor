@@ -21,7 +21,7 @@ func NewReportUsecase(db *sqlx.DB) *ReportUsecase {
 }
 
 func (use *ReportUsecase) Add(rp dto.NewReport) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	newReport := &entity.Report{
@@ -39,7 +39,7 @@ func (use *ReportUsecase) Add(rp dto.NewReport) (string, error) {
 }
 
 func (use *ReportUsecase) Get(id string) (*model.Report, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := use.repo.Get(ctx, uuid.Must(uuid.Parse(id)))
@@ -50,7 +50,7 @@ func (use *ReportUsecase) Get(id string) (*model.Report, error) {
 }
 
 func (use *ReportUsecase) GetReportsByUser(userID int, page dto.Pagination) ([]model.Report, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := use.repo.GetReportsByUser(ctx, int32(userID), page.Page, page.Limit)
@@ -66,7 +66,7 @@ func (use *ReportUsecase) GetReportsByUser(userID int, page dto.Pagination) ([]m
 }
 
 func (use *ReportUsecase) GetReportsByCategory(category string, page dto.Pagination) ([]model.Report, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := use.repo.GetReportsByCategory(ctx, category, page.Page, page.Limit)
@@ -82,7 +82,7 @@ func (use *ReportUsecase) GetReportsByCategory(category string, page dto.Paginat
 }
 
 func (use *ReportUsecase) GetCategories() ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := use.repo.GetCategories(ctx)
@@ -94,7 +94,7 @@ func (use *ReportUsecase) GetCategories() ([]string, error) {
 }
 
 func (use *ReportUsecase) Delete(id string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	return use.repo.Delete(ctx, uuid.Must(uuid.Parse(id)))

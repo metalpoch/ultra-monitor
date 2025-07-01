@@ -27,7 +27,7 @@ func NewPonUsecase(db *sqlx.DB, cache *cache.Redis) *PonUsecase {
 
 func (uc *PonUsecase) GetAllByDevice(sysname string) ([]model.Pon, error) {
 	var interfaces []model.Pon
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := uc.repo.PonsByOLT(ctx, sysname)
@@ -43,7 +43,7 @@ func (uc *PonUsecase) GetAllByDevice(sysname string) ([]model.Pon, error) {
 }
 
 func (uc *PonUsecase) PonByOltAndPort(sysname string, shell, card, port int) (*model.Pon, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	ifname := fmt.Sprintf("GPON %d/%d/%d", shell, card, port)
@@ -55,7 +55,7 @@ func (uc *PonUsecase) PonByOltAndPort(sysname string, shell, card, port int) (*m
 }
 
 func (uc *PonUsecase) TrafficOlt(sysname string, dates dto.RangeDate) ([]model.Traffic, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := uc.repo.TrafficOlt(ctx, sysname, dates.InitDate, dates.EndDate)
@@ -72,7 +72,7 @@ func (uc *PonUsecase) TrafficOlt(sysname string, dates dto.RangeDate) ([]model.T
 }
 
 func (uc *PonUsecase) TrafficByPon(sysname string, shell, card, port int, dates dto.RangeDate) ([]model.Traffic, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	ifname := fmt.Sprintf("GPON %d/%d/%d", shell, card, port)
@@ -177,7 +177,7 @@ func (uc *PonUsecase) UpdateSummaryTraffic(dates dto.RangeDate) error {
 }
 
 func (uc *PonUsecase) GetTrafficSummary(dates dto.RangeDate) ([]model.TrafficTotalSummary, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := uc.repo.GetTrafficSummary(ctx, dates.InitDate, dates.EndDate)
@@ -194,7 +194,7 @@ func (uc *PonUsecase) GetTrafficSummary(dates dto.RangeDate) ([]model.TrafficTot
 }
 
 func (uc *PonUsecase) GetTrafficStatesSummary(dates dto.RangeDate) ([]model.TrafficInfoSummary, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := uc.repo.GetTrafficStatesSummary(ctx, dates.InitDate, dates.EndDate)
@@ -211,7 +211,7 @@ func (uc *PonUsecase) GetTrafficStatesSummary(dates dto.RangeDate) ([]model.Traf
 }
 
 func (uc *PonUsecase) GetTrafficMunicipalitySummary(state string, dates dto.RangeDate) ([]model.TrafficInfoSummary, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := uc.repo.GetTrafficMunicipalitySummary(ctx, state, dates.InitDate, dates.EndDate)
@@ -228,7 +228,7 @@ func (uc *PonUsecase) GetTrafficMunicipalitySummary(state string, dates dto.Rang
 }
 
 func (uc *PonUsecase) GetTrafficCountySummary(state, municipality string, dates dto.RangeDate) ([]model.TrafficInfoSummary, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := uc.repo.GetTrafficCountySummary(ctx, state, municipality, dates.InitDate, dates.EndDate)
@@ -245,7 +245,7 @@ func (uc *PonUsecase) GetTrafficCountySummary(state, municipality string, dates 
 }
 
 func (uc *PonUsecase) GetTrafficOdnSummary(state, municipality, county string, dates dto.RangeDate) ([]model.TrafficInfoSummary, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := uc.repo.GetTrafficOdnSummary(ctx, state, municipality, county, dates.InitDate, dates.EndDate)

@@ -41,7 +41,7 @@ func (uc *OltUsecase) Add(olt dto.NewOlt) error {
 }
 
 func (uc *OltUsecase) Olt(ip string) (model.Olt, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	e, err := uc.repo.Olt(ctx, ip)
@@ -49,7 +49,7 @@ func (uc *OltUsecase) Olt(ip string) (model.Olt, error) {
 }
 
 func (uc *OltUsecase) Olts() ([]model.Olt, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := uc.repo.Olts(ctx)
@@ -66,26 +66,26 @@ func (uc *OltUsecase) Olts() ([]model.Olt, error) {
 }
 
 func (uc *OltUsecase) Delete(ip string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	return uc.repo.Delete(ctx, ip)
 
 }
 
 func (uc *OltUsecase) GetAllIP() ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	return uc.repo.GetAllIP(ctx)
 }
 
 func (uc *OltUsecase) GetAllSysname() ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	return uc.repo.GetAllSysname(ctx)
 }
 
 func (uc *OltUsecase) OltsByState(state string) ([]model.Olt, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := uc.repo.OltsByState(ctx, state)

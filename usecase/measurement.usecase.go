@@ -19,20 +19,20 @@ func NewMeasurementUsecase(db *sqlx.DB) *MeasurementUsecase {
 }
 
 func (uc *MeasurementUsecase) UpsertOlt(olt model.Olt) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	return uc.repo.UpsertOlt(ctx, (entity.Olt)(olt))
 }
 
 func (uc *MeasurementUsecase) UpsertPon(element model.Pon) (int32, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	id, err := uc.repo.UpsertPon(ctx, (entity.Pon)(element))
 	return id, err
 }
 
 func (uc *MeasurementUsecase) GetTemportalMeasurementPon(id int32) (*model.MeasurementPon, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := uc.repo.GetTemportalMeasurementPon(ctx, id)
@@ -44,19 +44,19 @@ func (uc *MeasurementUsecase) GetTemportalMeasurementPon(id int32) (*model.Measu
 }
 
 func (uc *MeasurementUsecase) UpsertTemportalMeasurementPon(measurement model.MeasurementPon) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	return uc.repo.UpsertTemportalMeasurementPon(ctx, (entity.MeasurementPon)(measurement))
 }
 
 func (uc *MeasurementUsecase) InsertTrafficPon(measurement model.TrafficPon) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	return uc.repo.InsertTrafficPon(ctx, (entity.TrafficPon)(measurement))
 }
 
 func (uc *MeasurementUsecase) InsertManyOnt(measurements []model.MeasurementOnt) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	var data []entity.MeasurementOnt

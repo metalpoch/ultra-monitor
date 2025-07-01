@@ -31,6 +31,24 @@ func (hdlr *OntHandler) OntStatusIPSummary(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
+func (hdlr *OntHandler) GetStatusSysnameSummary(c fiber.Ctx) error {
+	sysname, err := url.QueryUnescape(c.Params("sysname"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	var dates dto.RangeDate
+	if err := c.Bind().Query(&dates); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetStatusSysnameSummary(sysname, dates)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(res)
+}
+
 func (hdlr *OntHandler) OntStatusStateSummary(c fiber.Ctx) error {
 	var dates dto.RangeDate
 	if err := c.Bind().Query(&dates); err != nil {

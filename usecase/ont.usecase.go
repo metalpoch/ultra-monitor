@@ -40,6 +40,22 @@ func (uc *OntUsecase) GetStatusIPSummary(ip string, dates dto.RangeDate) ([]mode
 	return summary, nil
 }
 
+func (uc *OntUsecase) GetStatusSysnameSummary(sysname string, dates dto.RangeDate) ([]model.OntSummaryStatus, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	res, err := uc.repo.GetStatusSysnameSummary(ctx, sysname, dates.InitDate, dates.EndDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var summary []model.OntSummaryStatus
+	for _, r := range res {
+		summary = append(summary, (model.OntSummaryStatus)(r))
+	}
+	return summary, nil
+}
+
 func (uc *OntUsecase) GetStatusStateSummary(dates dto.RangeDate) ([]model.GetStatusSummary, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

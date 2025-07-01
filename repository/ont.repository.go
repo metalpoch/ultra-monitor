@@ -15,6 +15,7 @@ type OntRepository interface {
 	GetDailyAveragedHourlyStatusSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.OntSummaryStatusCounts, error)
 	GetStatusSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.OntSummaryStatus, error)
 	GetStatusIPSummary(ctx context.Context, ip string, initDate, endDate time.Time) ([]entity.OntSummaryStatus, error)
+	GetStatusSysnameSummary(ctx context.Context, sysname string, initDate, endDate time.Time) ([]entity.OntSummaryStatus, error)
 	GetStatusStateSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.GetStatusSummary, error)
 	GetStatusByStateSummary(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.OntSummaryStatus, error)
 	GetStatusMunicipalitySummary(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.GetStatusSummary, error)
@@ -155,6 +156,24 @@ func (repo *ontRepository) GetStatusIPSummary(ctx context.Context, ip string, in
     GROUP BY day
     ORDER BY day;`
 	err := repo.db.SelectContext(ctx, &res, query, ip, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+	return res, err
+}
+
+func (repo *ontRepository) GetStatusSysnameSummary(ctx context.Context, sysname string, initDate, endDate time.Time) ([]entity.OntSummaryStatus, error) {
+	var res []entity.OntSummaryStatus
+	query := `
+    SELECT
+        day,
+        SUM(ports_pon) AS ports_pon,
+        SUM(actives) AS actives,
+        SUM(inactives) AS inactives,
+        SUM(unknowns) AS unknowns
+    FROM ont_summary_status_count
+    JOIN olts ON olts.ip = olt_ip
+    WHERE olts.sys_name = $1 AND day BETWEEN $2 AND $3
+    GROUP BY day
+    ORDER BY day;`
+	err := repo.db.SelectContext(ctx, &res, query, sysname, initDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
 	return res, err
 }
 

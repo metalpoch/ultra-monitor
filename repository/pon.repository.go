@@ -54,8 +54,8 @@ func (repo *ponRepository) TrafficByState(ctx context.Context, state string, ini
         SUM(traffic_pons.bps_in) / 1000000 AS mbps_in,
         SUM(traffic_pons.bps_out) / 1000000 AS mbps_out,
         SUM(traffic_pons.bandwidth_mbps_sec) / 1000000 AS bandwidth_mbps_sec,
-        SUM(traffic_pons.bytes_in_sec) / 1000000 AS mbytes_in_sec,
-        SUM(traffic_pons.bytes_out_sec) / 1000000 AS mbytes_out_sec
+        SUM(traffic_pons.bytes_in) / 1000000 AS mbytes_in,
+        SUM(traffic_pons.bytes_out) / 1000000 AS mbytes_out
     FROM traffic_pons
     JOIN pons ON pons.id = traffic_pons.pon_id
     JOIN olts ON olts.ip = pons.olt_ip
@@ -75,8 +75,8 @@ func (repo *ponRepository) TrafficByMunicipality(ctx context.Context, state, mun
         SUM(traffic_pons.bps_in) / 1000000 AS mbps_in,
         SUM(traffic_pons.bps_out) / 1000000 AS mbps_out,
         SUM(traffic_pons.bandwidth_mbps_sec) / 1000000 AS bandwidth_mbps_sec,
-        SUM(traffic_pons.bytes_in_sec) / 1000000 AS mbytes_in_sec,
-        SUM(traffic_pons.bytes_out_sec) / 1000000 AS mbytes_out_sec
+        SUM(traffic_pons.bytes_in) / 1000000 AS mbytes_in,
+        SUM(traffic_pons.bytes_out) / 1000000 AS mbytes_out
     FROM traffic_pons
     JOIN pons ON pons.id = traffic_pons.pon_id
     JOIN olts ON olts.ip = pons.olt_ip
@@ -96,8 +96,8 @@ func (repo *ponRepository) TrafficByCounty(ctx context.Context, state, municipal
         SUM(traffic_pons.bps_in) / 1000000 AS mbps_in,
         SUM(traffic_pons.bps_out) / 1000000 AS mbps_out,
         SUM(traffic_pons.bandwidth_mbps_sec) / 1000000 AS bandwidth_mbps_sec,
-        SUM(traffic_pons.bytes_in_sec) / 1000000 AS mbytes_in_sec,
-        SUM(traffic_pons.bytes_out_sec) / 1000000 AS mbytes_out_sec
+        SUM(traffic_pons.bytes_in) / 1000000 AS mbytes_in,
+        SUM(traffic_pons.bytes_out) / 1000000 AS mbytes_out
     FROM traffic_pons
     JOIN pons ON pons.id = traffic_pons.pon_id
     JOIN olts ON olts.ip = pons.olt_ip
@@ -117,8 +117,8 @@ func (repo *ponRepository) TrafficByODN(ctx context.Context, state, municipality
         SUM(traffic_pons.bps_in) / 1000000 AS mbps_in,
         SUM(traffic_pons.bps_out) / 1000000 AS mbps_out,
         SUM(traffic_pons.bandwidth_mbps_sec) / 1000000 AS bandwidth_mbps_sec,
-        SUM(traffic_pons.bytes_in_sec) / 1000000 AS mbytes_in_sec,
-        SUM(traffic_pons.bytes_out_sec) / 1000000 AS mbytes_out_sec
+        SUM(traffic_pons.bytes_in) / 1000000 AS mbytes_in,
+        SUM(traffic_pons.bytes_out) / 1000000 AS mbytes_out
     FROM traffic_pons
     JOIN pons ON pons.id = traffic_pons.pon_id
     JOIN olts ON olts.ip = pons.olt_ip
@@ -138,8 +138,8 @@ func (repo *ponRepository) TrafficByOLT(ctx context.Context, sysname string, ini
         SUM(traffic_pons.bps_in) / 1000000 AS mbps_in,
         SUM(traffic_pons.bps_out) / 1000000 AS mbps_out,
         SUM(traffic_pons.bandwidth_mbps_sec) / 1000000 AS bandwidth_mbps_sec,
-        SUM(traffic_pons.bytes_in_sec) / 1000000 AS mbytes_in,
-        SUM(traffic_pons.bytes_out_sec) / 1000000 AS mbytes_out
+        SUM(traffic_pons.bytes_in) / 1000000 AS mbytes_in,
+        SUM(traffic_pons.bytes_out) / 1000000 AS mbytes_out
     FROM traffic_pons 
     JOIN pons ON pons.id = traffic_pons.pon_id
     JOIN olts ON olts.ip = pons.olt_ip
@@ -152,41 +152,14 @@ func (repo *ponRepository) TrafficByOLT(ctx context.Context, sysname string, ini
 
 func (repo *ponRepository) TrafficOlt(ctx context.Context, sysname string, initDate, endDate time.Time) ([]entity.Traffic, error) {
 	var res []entity.Traffic
-	// Clausurado por que los genios que llevan los Fats tienen duplicados lso registros para el mismo puerto
-	// query := `
-	// DATE_TRUNC('minute', tr.date) AS date,
-	//   p.if_name,
-	//   MAX(tr.bps_in) AS bps_in,
-	//   MAX(tr.bps_out) AS bps_out,
-	//   MAX(tr.bandwidth_mbps_sec) AS bandwidth_mbps_sec,
-	//   MAX(tr.bytes_in_sec) AS bytes_in_sec,
-	//   MAX(tr.bytes_out_sec) AS bytes_out_sec,
-	//   f.odn,
-	//   f.fat,
-	//   f.region,
-	//   f.state,
-	//   f.municipality,
-	//   f.county
-	// FROM traffic_pons AS tr
-	// JOIN pons AS p ON p.id = tr.pon_id
-	// JOIN fats AS f ON f.olt_ip = p.olt_ip
-	// JOIN olts AS o ON o.ip = p.olt_ip
-	// WHERE
-	//   o.sys_name = $1
-	//   AND date BETWEEN $2 AND $3
-	//   AND CAST(regexp_replace(split_part(p.if_name, ' ', 2), '^(\d+)/(\d+)/(\d+)$', '\1') AS INTEGER) = f.pon_shell
-	//   AND CAST(regexp_replace(split_part(p.if_name, ' ', 2), '^(\d+)/(\d+)/(\d+)$', '\2') AS INTEGER) = f.pon_card
-	//   AND CAST(regexp_replace(split_part(p.if_name, ' ', 2), '^(\d+)/(\d+)/(\d+)$', '\3') AS INTEGER) = f.pon_port
-	// GROUP BY
-	//   date, p.if_name, f.odn, f.fat, f.region, f.state, f.municipality, f.county;`
 	query := `
     SELECT
         DATE_TRUNC('minute', tr.date) AS date,
         MAX(tr.bps_in) / 1000000 AS mbps_in,
         MAX(tr.bps_out) / 1000000 AS mbps_out,
         MAX(tr.bandwidth_mbps_sec) AS bandwidth_mbps_sec,
-        MAX(tr.bytes_in_sec) / 1000000 AS mbytes_in_sec,
-        MAX(tr.bytes_out_sec) / 1000000 AS mbytes_out_sec
+        MAX(tr.bytes_in) / 1000000 AS mbytes_in,
+        MAX(tr.bytes_out) / 1000000 AS mbytes_out
     FROM traffic_pons AS tr
     JOIN pons AS p ON p.id = tr.pon_id
     JOIN olts AS o ON o.ip = p.olt_ip
@@ -205,8 +178,8 @@ func (repo *ponRepository) TrafficByPon(ctx context.Context, sysname, ifname str
         SUM(traffic_pons.bps_in) / 1000000 AS mbps_in,
         SUM(traffic_pons.bps_out) / 1000000 AS mbps_out,
         SUM(traffic_pons.bandwidth_mbps_sec) / 1000000 AS bandwidth_mbps_sec,
-        SUM(traffic_pons.bytes_in_sec) / 1000000 AS mbytes_in_sec,
-        SUM(traffic_pons.bytes_out_sec) / 1000000 AS mbytes_out_sec
+        SUM(traffic_pons.bytes_in) / 1000000 AS mbytes_in,
+        SUM(traffic_pons.bytes_out) / 1000000 AS mbytes_out
     FROM traffic_pons 
     JOIN pons ON pons.id = traffic_pons.pon_id
     JOIN olts ON olts.ip = pons.olt_ip
@@ -227,8 +200,8 @@ func (repo *ponRepository) GetDailyAveragedHourlyMaxTrafficTrends(ctx context.Co
             EXTRACT(HOUR FROM date) AS hour,
             MAX(bps_in) AS max_bps_in,
             MAX(bps_out) AS max_bps_out,
-            MAX(bytes_in_sec) AS max_bytes_in_sec,
-            MAX(bytes_out_sec) AS max_bytes_out_sec
+            MAX(bytes_in) AS max_bytes_in,
+            MAX(bytes_out) AS max_bytes_out
         FROM traffic_pons
         WHERE date BETWEEN $1 AND $2
         GROUP BY day, pon_id, hour
@@ -239,8 +212,8 @@ func (repo *ponRepository) GetDailyAveragedHourlyMaxTrafficTrends(ctx context.Co
             pon_id,
             AVG(max_bps_in) / 1e6 AS mbps_in,
             AVG(max_bps_out) / 1e6 AS mbps_out,
-            AVG(max_bytes_in_sec) / 1e6 AS mbytes_in_sec,
-            AVG(max_bytes_out_sec) / 1e6 AS mbytes_out_sec
+            AVG(max_bytes_in) / 1e6 AS mbytes_in,
+            AVG(max_bytes_out) / 1e6 AS mbytes_out
         FROM hourly_max
         GROUP BY day, pon_id
     ),
@@ -250,8 +223,8 @@ func (repo *ponRepository) GetDailyAveragedHourlyMaxTrafficTrends(ctx context.Co
             hm.pon_id,
             hm.mbps_in,
             hm.mbps_out,
-            hm.mbytes_in_sec,
-            hm.mbytes_out_sec,
+            hm.mbytes_in,
+            hm.mbytes_out,
             p.olt_ip
         FROM hourly_avg hm
         JOIN pons p ON p.id = hm.pon_id
@@ -261,8 +234,8 @@ func (repo *ponRepository) GetDailyAveragedHourlyMaxTrafficTrends(ctx context.Co
         olt_ip,
         SUM(mbps_in) AS mbps_in,
         SUM(mbps_out) AS mbps_out,
-        SUM(mbytes_in_sec) AS mbytes_in_sec,
-        SUM(mbytes_out_sec) AS mbytes_out_sec
+        SUM(mbytes_in) AS mbytes_in,
+        SUM(mbytes_out) AS mbytes_out
     FROM joined_data
     GROUP BY day, olt_ip
     ORDER BY day, olt_ip;`
@@ -275,7 +248,7 @@ func (repo *ponRepository) UpsertSummaryTraffic(ctx context.Context, counts []en
 	const fieldCount = 6
 	query := `
         INSERT INTO traffic_pons_summary (
-            day, olt_ip, mbps_in, mbps_out, mbytes_in_sec, mbytes_out_sec
+            day, olt_ip, mbps_in, mbps_out, mbytes_in, mbytes_out
         ) VALUES `
 	valueStrings := make([]string, 0, len(counts))
 	valueArgs := make([]interface{}, 0, len(counts)*fieldCount)
@@ -292,8 +265,8 @@ func (repo *ponRepository) UpsertSummaryTraffic(ctx context.Context, counts []en
 	    ON CONFLICT (day, olt_ip) DO UPDATE SET
     	    mbps_in = EXCLUDED.mbps_in,
 	        mbps_out = EXCLUDED.mbps_out,
-	        mbytes_in_sec = EXCLUDED.mbytes_in_sec,
-	        mbytes_out_sec = EXCLUDED.mbytes_out_sec`
+	        mbytes_in = EXCLUDED.mbytes_in,
+	        mbytes_out = EXCLUDED.mbytes_out`
 
 	_, err := repo.db.ExecContext(ctx, query, valueArgs...)
 	return err
@@ -306,8 +279,8 @@ func (repo *ponRepository) GetTrafficSummary(ctx context.Context, initDate, endD
         day,
         SUM(mbps_in) AS mbps_in,
         SUM(mbps_out) AS mbps_out,
-        SUM(mbytes_in_sec) AS mbytes_in_sec,
-        SUM(mbytes_out_sec) AS mbytes_out_sec
+        SUM(mbytes_in) AS mbytes_in,
+        SUM(mbytes_out) AS mbytes_out
     FROM traffic_pons_summary
     WHERE day BETWEEN $1 AND $2
     GROUP BY day
@@ -325,8 +298,8 @@ func (repo *ponRepository) GetTrafficStatesSummary(ctx context.Context, initDate
             olt_ip,
             SUM(mbps_in) AS mbps_in,
             SUM(mbps_out) AS mbps_out,
-            SUM(mbytes_in_sec) AS mbytes_in_sec,
-            SUM(mbytes_out_sec) AS mbytes_out_sec
+            SUM(mbytes_in) AS mbytes_in,
+            SUM(mbytes_out) AS mbytes_out
         FROM traffic_pons_summary
         WHERE day BETWEEN $1 AND $2
         GROUP BY day, olt_ip
@@ -339,8 +312,8 @@ func (repo *ponRepository) GetTrafficStatesSummary(ctx context.Context, initDate
         f.state AS description,
         SUM(ut.mbps_in) AS mbps_in,
         SUM(ut.mbps_out) AS mbps_out,
-        SUM(ut.mbytes_in_sec) AS mbytes_in_sec,
-        SUM(ut.mbytes_out_sec) AS mbytes_out_sec
+        SUM(ut.mbytes_in) AS mbytes_in,
+        SUM(ut.mbytes_out) AS mbytes_out
     FROM unique_traffic ut
     JOIN unique_fats f ON f.olt_ip = ut.olt_ip
     GROUP BY ut.day, f.state
@@ -358,8 +331,8 @@ func (repo *ponRepository) GetTrafficMunicipalitySummary(ctx context.Context, st
             olt_ip,
             SUM(mbps_in) AS mbps_in,
             SUM(mbps_out) AS mbps_out,
-            SUM(mbytes_in_sec) AS mbytes_in_sec,
-            SUM(mbytes_out_sec) AS mbytes_out_sec
+            SUM(mbytes_in) AS mbytes_in,
+            SUM(mbytes_out) AS mbytes_out
         FROM traffic_pons_summary
         WHERE day BETWEEN $1 AND $2
         GROUP BY day, olt_ip
@@ -372,8 +345,8 @@ func (repo *ponRepository) GetTrafficMunicipalitySummary(ctx context.Context, st
         f.municipality AS description,
         SUM(ut.mbps_in) AS mbps_in,
         SUM(ut.mbps_out) AS mbps_out,
-        SUM(ut.mbytes_in_sec) AS mbytes_in_sec,
-        SUM(ut.mbytes_out_sec) AS mbytes_out_sec
+        SUM(ut.mbytes_in) AS mbytes_in,
+        SUM(ut.mbytes_out) AS mbytes_out
     FROM unique_traffic ut
     JOIN unique_fats f ON f.olt_ip = ut.olt_ip
     GROUP BY ut.day, f.municipality
@@ -391,8 +364,8 @@ func (repo *ponRepository) GetTrafficCountySummary(ctx context.Context, state, m
             olt_ip,
             SUM(mbps_in) AS mbps_in,
             SUM(mbps_out) AS mbps_out,
-            SUM(mbytes_in_sec) AS mbytes_in_sec,
-            SUM(mbytes_out_sec) AS mbytes_out_sec
+            SUM(mbytes_in) AS mbytes_in,
+            SUM(mbytes_out) AS mbytes_out
         FROM traffic_pons_summary
         WHERE day BETWEEN $1 AND $2
         GROUP BY day, olt_ip
@@ -405,8 +378,8 @@ func (repo *ponRepository) GetTrafficCountySummary(ctx context.Context, state, m
         f.county AS description,
         SUM(ut.mbps_in) AS mbps_in,
         SUM(ut.mbps_out) AS mbps_out,
-        SUM(ut.mbytes_in_sec) AS mbytes_in_sec,
-        SUM(ut.mbytes_out_sec) AS mbytes_out_sec
+        SUM(ut.mbytes_in) AS mbytes_in,
+        SUM(ut.mbytes_out) AS mbytes_out
     FROM unique_traffic ut
     JOIN unique_fats f ON f.olt_ip = ut.olt_ip
     GROUP BY ut.day, f.county
@@ -424,22 +397,22 @@ func (repo *ponRepository) GetTrafficOdnSummary(ctx context.Context, state, muni
             olt_ip,
             SUM(mbps_in) AS mbps_in,
             SUM(mbps_out) AS mbps_out,
-            SUM(mbytes_in_sec) AS mbytes_in_sec,
-            SUM(mbytes_out_sec) AS mbytes_out_sec
+            SUM(mbytes_in) AS mbytes_in,
+            SUM(mbytes_out) AS mbytes_out
         FROM traffic_pons_summary
         WHERE day BETWEEN $1 AND $2
         GROUP BY day, olt_ip
     ),
     unique_fats AS (
-        SELECT DISTINCT ON (olt_ip) olt_ip, odn FROM fats WHERE state = $3 AND municipality = $4 AND municipality = $5
+        SELECT DISTINCT ON (olt_ip) olt_ip, odn FROM fats WHERE state = $3 AND municipality = $4 AND county = $5
     )
     SELECT
         ut.day,
         f.odn AS description,
         SUM(ut.mbps_in) AS mbps_in,
         SUM(ut.mbps_out) AS mbps_out,
-        SUM(ut.mbytes_in_sec) AS mbytes_in_sec,
-        SUM(ut.mbytes_out_sec) AS mbytes_out_sec
+        SUM(ut.mbytes_in) AS mbytes_in,
+        SUM(ut.mbytes_out) AS mbytes_out
     FROM unique_traffic ut
     JOIN unique_fats f ON f.olt_ip = ut.olt_ip
     GROUP BY ut.day, f.odn

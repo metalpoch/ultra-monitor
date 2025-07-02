@@ -345,11 +345,11 @@ func (repo *ontRepository) TrafficOnt(ctx context.Context, ponID int, idx int64,
         CASE
             WHEN curr_bytes_in < prev_bytes_in THEN ((18446744073709551615 - prev_bytes_in) + curr_bytes_in) / (time_diff * 1000000)
             ELSE (curr_bytes_in - prev_bytes_in) / (time_diff * 1000000)
-        END AS mbytes_in_sec,
+        END AS mbytes_in,
         CASE
             WHEN curr_bytes_out < prev_bytes_out THEN ((18446744073709551615 - prev_bytes_out) + curr_bytes_out) / (time_diff * 1000000)
             ELSE (curr_bytes_out - prev_bytes_out) / (time_diff * 1000000)
-        END AS mbytes_out_sec
+        END AS mbytes_out
     FROM (
         SELECT
             date,
@@ -397,11 +397,11 @@ func (repo *ontRepository) TrafficOntByDespt(ctx context.Context, despt string, 
         CASE
             WHEN curr_bytes_in < prev_bytes_in THEN ((18446744073709551615 - prev_bytes_in) + curr_bytes_in) / (time_diff * 1000000)
             ELSE (curr_bytes_in - prev_bytes_in) / (time_diff * 1000000)
-        END AS mbytes_in_sec,
+        END AS mbytes_in,
         CASE
             WHEN curr_bytes_out < prev_bytes_out THEN ((18446744073709551615 - prev_bytes_out) + curr_bytes_out) / (time_diff * 1000000)
             ELSE (curr_bytes_out - prev_bytes_out) / (time_diff * 1000000)
-        END AS mbytes_out_sec
+        END AS mbytes_out
     FROM (
         SELECT
             date,

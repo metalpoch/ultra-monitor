@@ -34,7 +34,7 @@ func (ctrl MeasurementController) calculateDelta(prev, curr uint64) uint64 {
 	if curr >= prev {
 		return curr - prev
 	}
-	return (math.MaxUint64-prev)*curr + 1
+	return (math.MaxUint64 - prev) + curr + 1
 }
 
 func (ctrl MeasurementController) bytesToBytesPerSec(prev, curr, diffDate uint64) float64 {
@@ -115,8 +115,8 @@ func (ctrl MeasurementController) PonScan(olt model.Olt) {
 			Bandwidth: float64(data.Bandwidth),
 			BpsIn:     ctrl.bytesToBbps(oldData.In, data.CounterBytesIn, uint64(data.Bandwidth), diffTime),
 			BpsOut:    ctrl.bytesToBbps(oldData.Out, data.CounterBytesOut, uint64(data.Bandwidth), diffTime),
-			BytesIn:   ctrl.bytesToBytesPerSec(oldData.In, data.CounterBytesIn, diffTime),
-			BytesOut:  ctrl.bytesToBytesPerSec(oldData.Out, data.CounterBytesOut, diffTime),
+			BytesIn:   float64(ctrl.calculateDelta(oldData.In, data.CounterBytesIn)),
+			BytesOut:  float64(ctrl.calculateDelta(oldData.Out, data.CounterBytesOut)),
 			Date:      now,
 		})
 		if err != nil {

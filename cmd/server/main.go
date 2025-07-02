@@ -74,7 +74,7 @@ func main() {
 		JSONDecoder:     json.Unmarshal,
 		BodyLimit:       100 * 1024 * 1024, // 100 mb
 		ServerHeader:    "KURBIL01",
-		AppName:         "Ultra Monitor",
+		AppName:         "Gestor Ultra",
 		CaseSensitive:   true,
 		StrictRouting:   true,
 	})

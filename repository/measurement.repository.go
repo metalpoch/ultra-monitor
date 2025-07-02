@@ -74,8 +74,8 @@ func (repo *measurementRepository) UpsertTemportalMeasurementPon(ctx context.Con
 
 func (repo *measurementRepository) InsertTrafficPon(ctx context.Context, traffic entity.TrafficPon) error {
 	query := `
-    INSERT INTO traffic_pons (pon_id, date, bps_in, bps_out, bandwidth_mbps_sec, bytes_in_sec, bytes_out_sec)
-    VALUES (:pon_id, :date, :bps_in, :bps_out, :bandwidth_mbps_sec, :bytes_in_sec, :bytes_out_sec)`
+    INSERT INTO traffic_pons (pon_id, date, bps_in, bps_out, bandwidth_mbps_sec, bytes_in, bytes_out)
+    VALUES (:pon_id, :date, :bps_in, :bps_out, :bandwidth_mbps_sec, :bytes_in, :bytes_out)`
 	_, err := repo.db.NamedExecContext(ctx, query, traffic)
 	return err
 }

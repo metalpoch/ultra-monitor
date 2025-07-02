@@ -30,8 +30,8 @@ export default function VolumenChart() {
             <Legend />
             <Line
               type="monotone"
-              dataKey="mbytes_in_sec"
-              name="MBps In"
+              dataKey="mbytes_in"
+              name="MBytes In"
               stroke={COLOR[2]}
               fill={COLOR[2]}
               strokeWidth="3"
@@ -39,8 +39,8 @@ export default function VolumenChart() {
             />
             <Line
               type="monotone"
-              dataKey="mbytes_out_sec"
-              name="MBps Out"
+              dataKey="mbytes_out"
+              name="MBytes Out"
               stroke={COLOR[3]}
               fill={COLOR[3]}
               strokeWidth="3"

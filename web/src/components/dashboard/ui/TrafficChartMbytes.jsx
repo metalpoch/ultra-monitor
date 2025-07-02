@@ -39,7 +39,7 @@ export default function TrafficChartMbytes({ data }) {
           <Line
             type="monotone"
             dataKey="mbytes_in"
-            name="Mbyte In"
+            name="Mbytes In"
             stroke={COLOR[0]}
             fill={COLOR[0]}
             strokeWidth="3"
@@ -47,7 +47,7 @@ export default function TrafficChartMbytes({ data }) {
           <Line
             type="monotone"
             dataKey="mbytes_out"
-            name="Mbyte Out"
+            name="Mbytes Out"
             stroke={COLOR[1]}
             fill={COLOR[1]}
             strokeWidth="3"

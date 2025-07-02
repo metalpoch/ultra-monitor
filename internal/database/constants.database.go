@@ -65,8 +65,8 @@ CREATE TABLE IF NOT EXISTS traffic_pons (
     bps_in DOUBLE PRECISION,
     bps_out DOUBLE PRECISION,
     bandwidth_mbps_sec DOUBLE PRECISION,
-    bytes_in_sec DOUBLE PRECISION,
-    bytes_out_sec DOUBLE PRECISION,
+    bytes_in DOUBLE PRECISION,
+    bytes_out DOUBLE PRECISION,
     date TIMESTAMP NOT NULL,
     FOREIGN KEY (pon_id) REFERENCES pons(id)
 );`
@@ -77,8 +77,8 @@ CREATE TABLE IF NOT EXISTS traffic_pons_summary (
     olt_ip VARCHAR(15) NOT NULL,
     mbps_in DOUBLE PRECISION,
     mbps_out DOUBLE PRECISION,
-    mbytes_in_sec DOUBLE PRECISION,
-    mbytes_out_sec DOUBLE PRECISION,
+    mbytes_in DOUBLE PRECISION,
+    mbytes_out DOUBLE PRECISION,
     PRIMARY KEY (day, olt_ip),
     FOREIGN KEY (olt_ip) REFERENCES olts(ip)
 );`

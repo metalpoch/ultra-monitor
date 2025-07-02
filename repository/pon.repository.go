@@ -284,7 +284,7 @@ func (repo *ponRepository) UpsertSummaryTraffic(ctx context.Context, counts []en
 		valueStrings = append(valueStrings, fmt.Sprintf("($%d,$%d,$%d,$%d,$%d,$%d)",
 			i*fieldCount+1, i*fieldCount+2, i*fieldCount+3, i*fieldCount+4, i*fieldCount+5, i*fieldCount+6))
 		valueArgs = append(valueArgs,
-			c.Day, c.OltIP, c.MbpsIn, c.MbpsOut, c.MbytesInSec, c.MbytesOutSec)
+			c.Day, c.OltIP, c.MbpsIn, c.MbpsOut, c.MbytesIn, c.MbytesOut)
 	}
 
 	query += strings.Join(valueStrings, ", ")

@@ -7,8 +7,8 @@ type TrafficPon struct {
 	BpsIn     float64   `json:"bps_in"`
 	BpsOut    float64   `json:"bps_out"`
 	Bandwidth float64   `json:"bandwidth_mbps_sec"`
-	BytesIn   float64   `json:"bytes_in_sec"`
-	BytesOut  float64   `json:"bytes_out_sec"`
+	BytesIn   float64   `json:"bytes_in"`
+	BytesOut  float64   `json:"bytes_out"`
 	Date      time.Time `json:"date"`
 }
 
@@ -22,8 +22,8 @@ type TrafficOnt struct {
 	ControlRunStatus int8      `json:"control_run_status"`
 	MbpsIn           float64   `json:"mbps_in"`
 	MbpsOut          float64   `json:"mbps_out"`
-	MBpsIn           float64   `json:"mbytes_in_sec"`
-	MBpsOut          float64   `json:"mbytes_out_sec"`
+	MbytesIn         float64   `json:"mbytes_in"`
+	MbytesOut        float64   `json:"mbytes_out"`
 }
 
 type Traffic struct {
@@ -31,8 +31,8 @@ type Traffic struct {
 	MbpsIn    float64   `json:"mbps_in"`
 	MbpsOut   float64   `json:"mbps_out"`
 	Bandwidth float64   `json:"bandwidth_mbps_sec"`
-	MBpsIn    float64   `json:"mbytes_in_sec"`
-	MBpsOut   float64   `json:"mbytes_out_sec"`
+	MbytesIn  float64   `json:"mbytes_in"`
+	MbytesOut float64   `json:"mbytes_out"`
 }
 
 type TrafficTrendForecast struct {
@@ -41,27 +41,27 @@ type TrafficTrendForecast struct {
 }
 
 type TrafficSummary struct {
-	Day          time.Time `json:"day"`
-	OltIP        string    `json:"olt_ip"`
-	MbpsIn       float64   `json:"mbps_in"`
-	MbpsOut      float64   `json:"mbps_out"`
-	MbytesInSec  float64   `json:"mbytes_in_sec"`
-	MbytesOutSec float64   `json:"mbytes_out_sec"`
+	Day       time.Time `json:"day"`
+	OltIP     string    `json:"olt_ip"`
+	MbpsIn    float64   `json:"mbps_in"`
+	MbpsOut   float64   `json:"mbps_out"`
+	MbytesIn  float64   `json:"mbytes_in"`
+	MbytesOut float64   `json:"mbytes_out"`
 }
 
 type TrafficTotalSummary struct {
-	Day          time.Time `json:"day"`
-	MbpsIn       float64   `json:"mbps_in"`
-	MbpsOut      float64   `json:"mbps_out"`
-	MbytesInSec  float64   `json:"mbytes_in_sec"`
-	MbytesOutSec float64   `json:"mbytes_out_sec"`
+	Day       time.Time `json:"day"`
+	MbpsIn    float64   `json:"mbps_in"`
+	MbpsOut   float64   `json:"mbps_out"`
+	MbytesIn  float64   `json:"mbytes_in"`
+	MbytesOut float64   `json:"mbytes_out"`
 }
 
 type TrafficInfoSummary struct {
-	Day          time.Time `json:"day"`
-	Description  string    `json:"description"`
-	MbpsIn       float64   `json:"mbps_in"`
-	MbpsOut      float64   `json:"mbps_out"`
-	MbytesInSec  float64   `json:"mbytes_in_sec"`
-	MbytesOutSec float64   `json:"mbytes_out_sec"`
+	Day         time.Time `json:"day"`
+	Description string    `json:"description"`
+	MbpsIn      float64   `json:"mbps_in"`
+	MbpsOut     float64   `json:"mbps_out"`
+	MbytesIn    float64   `json:"mbytes_in"`
+	MbytesOut   float64   `json:"mbytes_out"`
 }

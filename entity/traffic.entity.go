@@ -7,35 +7,35 @@ type TrafficPon struct {
 	BpsIn     float64   `db:"bps_in"`
 	BpsOut    float64   `db:"bps_out"`
 	Bandwidth float64   `db:"bandwidth_mbps_sec"`
-	BytesIn   float64   `db:"bytes_in_sec"`
-	BytesOut  float64   `db:"bytes_out_sec"`
+	BytesIn   float64   `db:"bytes_in"`
+	BytesOut  float64   `db:"bytes_out"`
 	Date      time.Time `db:"date"`
 }
 
 type TrafficSummary struct {
-	Day          time.Time `db:"day"`
-	OltIP        string    `db:"olt_ip"`
-	MbpsIn       float64   `db:"mbps_in"`
-	MbpsOut      float64   `db:"mbps_out"`
-	MbytesInSec  float64   `db:"mbytes_in_sec"`
-	MbytesOutSec float64   `db:"mbytes_out_sec"`
+	Day       time.Time `db:"day"`
+	OltIP     string    `db:"olt_ip"`
+	MbpsIn    float64   `db:"mbps_in"`
+	MbpsOut   float64   `db:"mbps_out"`
+	MbytesIn  float64   `db:"mbytes_in"`
+	MbytesOut float64   `db:"mbytes_out"`
 }
 
 type TrafficTotalSummary struct {
-	Day          time.Time `db:"day"`
-	MbpsIn       float64   `db:"mbps_in"`
-	MbpsOut      float64   `db:"mbps_out"`
-	MbytesInSec  float64   `db:"mbytes_in_sec"`
-	MbytesOutSec float64   `db:"mbytes_out_sec"`
+	Day       time.Time `db:"day"`
+	MbpsIn    float64   `db:"mbps_in"`
+	MbpsOut   float64   `db:"mbps_out"`
+	MbytesIn  float64   `db:"mbytes_in"`
+	MbytesOut float64   `db:"mbytes_out"`
 }
 
 type TrafficInfoSummary struct {
-	Day          time.Time `db:"day"`
-	Description  string    `db:"description"`
-	MbpsIn       float64   `db:"mbps_in"`
-	MbpsOut      float64   `db:"mbps_out"`
-	MbytesInSec  float64   `db:"mbytes_in_sec"`
-	MbytesOutSec float64   `db:"mbytes_out_sec"`
+	Day         time.Time `db:"day"`
+	Description string    `db:"description"`
+	MbpsIn      float64   `db:"mbps_in"`
+	MbpsOut     float64   `db:"mbps_out"`
+	MbytesIn    float64   `db:"mbytes_in"`
+	MbytesOut   float64   `db:"mbytes_out"`
 }
 
 type TrafficOnt struct {
@@ -48,8 +48,8 @@ type TrafficOnt struct {
 	ControlRunStatus int8      `db:"control_run_status"`
 	MbpsIn           float64   `db:"mbps_in"`
 	MbpsOut          float64   `db:"mbps_out"`
-	MBpsIn           float64   `db:"mbytes_in_sec"`
-	MBpsOut          float64   `db:"mbytes_out_sec"`
+	MbytesIn         float64   `db:"mbytes_in"`
+	MbytesOut        float64   `db:"mbytes_out"`
 }
 
 type Traffic struct {
@@ -57,6 +57,6 @@ type Traffic struct {
 	MbpsIn    float64   `db:"mbps_in"`
 	MbpsOut   float64   `db:"mbps_out"`
 	Bandwidth float64   `db:"bandwidth_mbps_sec"`
-	MBpsIn    float64   `db:"mbytes_in_sec"`
-	MBpsOut   float64   `db:"mbytes_out_sec"`
+	MbytesIn  float64   `db:"mbytes_in"`
+	MbytesOut float64   `db:"mbytes_out"`
 }

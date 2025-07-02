@@ -114,8 +114,8 @@ func (uc *PonUsecase) GetTrafficPonForecast(futureDays int, dates dto.RangeDate)
 	for _, t := range traffic {
 		mbpsIn = append(mbpsIn, t.MbpsIn)
 		mbpsOut = append(mbpsOut, t.MbpsOut)
-		mbytesIn = append(mbytesIn, t.MbytesInSec)
-		mbytesOut = append(mbytesOut, t.MbytesOutSec)
+		mbytesIn = append(mbytesIn, t.MbytesIn)
+		mbytesOut = append(mbytesOut, t.MbytesOut)
 	}
 
 	var (
@@ -150,11 +150,11 @@ func (uc *PonUsecase) GetTrafficPonForecast(futureDays int, dates dto.RangeDate)
 	}
 	for i := 1; i <= futureDays; i++ {
 		forecast = append(forecast, model.TrafficSummary{
-			Day:          lastDay.AddDate(0, 0, i),
-			MbpsIn:       predMbpsIn[i-1],
-			MbpsOut:      predMbpsOut[i-1],
-			MbytesInSec:  predMbytesIn[i-1],
-			MbytesOutSec: predMbytesOut[i-1],
+			Day:       lastDay.AddDate(0, 0, i),
+			MbpsIn:    predMbpsIn[i-1],
+			MbpsOut:   predMbpsOut[i-1],
+			MbytesIn:  predMbytesIn[i-1],
+			MbytesOut: predMbytesOut[i-1],
 		})
 	}
 

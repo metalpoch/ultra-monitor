@@ -40,6 +40,7 @@ const { ontStatus, onStatusErr } = await fetch(
   .then((res) => res.json())
   .then((ontStatus) => ({ ontStatus: dayField(ontStatus), onStatusErr: null }))
   .catch((onStatusErr) => ({ ontStatus: null, onStatusErr }));
+console.log(traffic);
 ---
 
 <Layout title="Dashboard">

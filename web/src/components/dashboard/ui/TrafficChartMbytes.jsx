@@ -38,7 +38,7 @@ export default function TrafficChartMbytes({ data }) {
           <Legend />
           <Line
             type="monotone"
-            dataKey="mbytes_in_sec"
+            dataKey="mbytes_in"
             name="Mbyte In"
             stroke={COLOR[0]}
             fill={COLOR[0]}
@@ -46,7 +46,7 @@ export default function TrafficChartMbytes({ data }) {
           />
           <Line
             type="monotone"
-            dataKey="mbytes_out_sec"
+            dataKey="mbytes_out"
             name="Mbyte Out"
             stroke={COLOR[1]}
             fill={COLOR[1]}

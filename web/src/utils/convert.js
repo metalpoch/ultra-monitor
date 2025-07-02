@@ -70,4 +70,10 @@ export const getDateRange = (period) => {
   };
 };
 
-export default { traffic, qty, dayField, getDateRange };
+export const parseDate = (str) => {
+  const [day, month, year] = str.split("/");
+  const fullYear = 2000 + parseInt(year, 10);
+  return new Date(fullYear, parseInt(month, 10) - 1, parseInt(day, 10));
+};
+
+export default { traffic, qty, dayField, getDateRange, parseDate };

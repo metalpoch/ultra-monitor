@@ -13,14 +13,14 @@ function sumTrafficByDay(data) {
         day: item.day,
         mbps_in: 0,
         mbps_out: 0,
-        mbytes_in_sec: 0,
-        mbytes_out_sec: 0,
+        mbytes_in: 0,
+        mbytes_out: 0,
       };
     }
     grouped[item.day].mbps_in += item.mbps_in;
     grouped[item.day].mbps_out += item.mbps_out;
-    grouped[item.day].mbytes_in_sec += item.mbytes_in_sec;
-    grouped[item.day].mbytes_out_sec += item.mbytes_out_sec;
+    grouped[item.day].mbytes_in_sec += item.mbytes_in;
+    grouped[item.day].mbytes_out_sec += item.mbytes_out;
   });
   return Object.values(grouped);
 }

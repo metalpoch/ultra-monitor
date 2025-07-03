@@ -20,6 +20,9 @@ func NewFatRoutes(app *fiber.App, db *sqlx.DB) {
 	route.Delete("/:id", hdlr.DeleteOne)
 	route.Get("/:id", hdlr.GetByID)
 
+	// Traffic
+	route.Get("/traffic/:id", hdlr.GetTraffic)
+
 	// Locations
 	route.Get("/info/location/", hdlr.GetStates)
 	route.Get("/info/location/:state/", hdlr.GetMunicipality)

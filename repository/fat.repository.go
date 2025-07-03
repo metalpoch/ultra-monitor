@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/metalpoch/ultra-monitor/entity"
@@ -12,6 +14,7 @@ type FatRepository interface {
 	AddFat(ctx context.Context, fat *entity.Fat) error
 	DeleteOne(ctx context.Context, id int32) error
 	GetByID(ctx context.Context, id int32) (entity.Fat, error)
+	GetTraffic(ctx context.Context, id int, initDate, endDate time.Time) ([]entity.Traffic, error)
 	GetStates(ctx context.Context) ([]string, error)
 	GetMunicipality(ctx context.Context, state string) ([]string, error)
 	GetCounty(ctx context.Context, state, municipality string) ([]string, error)
@@ -67,6 +70,34 @@ func (repo *fatRepository) GetByID(ctx context.Context, id int32) (entity.Fat, e
 	var res entity.Fat
 	query := `SELECT * FROM fats WHERE id = $1`
 	err := repo.db.GetContext(ctx, &res, query, id)
+	return res, err
+}
+
+func (repo *fatRepository) GetTraffic(ctx context.Context, id int, initDate, endDate time.Time) ([]entity.Traffic, error) {
+	var res []entity.Traffic
+
+	var fat entity.Fat
+	err := repo.db.GetContext(ctx, &fat, `SELECT * FROM fats WHERE id = $1`, id)
+	if err != nil {
+		return nil, err
+	}
+
+	ifName := fmt.Sprintf("GPON %d/%d/%d", fat.Shell, fat.Card, fat.Port)
+	fmt.Println(fat.OltIP, ifName, initDate, endDate)
+	query := `
+    SELECT
+        DATE_TRUNC('minute', tp.date) AS date,
+        COALESCE(SUM(tp.bps_in),0) / 1000000 AS mbps_in,
+        COALESCE(SUM(tp.bps_out),0) / 1000000 AS mbps_out,
+        COALESCE(SUM(tp.bandwidth_mbps_sec),0) / 1000000 AS bandwidth_mbps_sec,
+        COALESCE(SUM(tp.bytes_in),0) / 1000000 AS mbytes_in,
+        COALESCE(SUM(tp.bytes_out),0) / 1000000 AS mbytes_out
+    FROM traffic_pons tp
+    JOIN pons p ON p.id = tp.pon_id
+    WHERE p.olt_ip = $1 AND p.if_name = $2 AND tp.date BETWEEN $3 AND $4
+    GROUP BY DATE_TRUNC('minute', tp.date)
+    ORDER BY date;`
+	err = repo.db.SelectContext(ctx, &res, query, fat.OltIP, ifName, initDate, endDate)
 	return res, err
 }
 

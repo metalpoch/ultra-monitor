@@ -63,6 +63,24 @@ func (hdlr *FatHandler) GetByID(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
+func (hdlr *FatHandler) GetTraffic(c fiber.Ctx) error {
+	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
+	}
+
+	var dates dto.RangeDate
+	if err := c.Bind().Query(&dates); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetTraffic(id, dates)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(res)
+}
+
 func (hdlr *FatHandler) GetStates(c fiber.Ctx) error {
 	res, err := hdlr.Usecase.GetStates()
 	if err != nil {

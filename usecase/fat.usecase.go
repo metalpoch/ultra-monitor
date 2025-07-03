@@ -73,6 +73,23 @@ func (use *FatUsecase) GetByID(id int) (model.Fat, error) {
 	return (model.Fat)(res), nil
 }
 
+func (use *FatUsecase) GetTraffic(id int, dates dto.RangeDate) ([]model.Traffic, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetTraffic(ctx, id, dates.InitDate, dates.EndDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var traffic []model.Traffic
+	for _, t := range res {
+		traffic = append(traffic, (model.Traffic)(t))
+	}
+
+	return traffic, err
+}
+
 func (use *FatUsecase) GetStates() ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()

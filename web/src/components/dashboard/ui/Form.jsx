@@ -28,6 +28,9 @@ export default function Form() {
       ]);
       setSelectedStateValue("");
     } else {
+      selectedLevel.set("");
+      selectedRegion.set("");
+      selectedState.set("");
       setRegions([]);
       setSelectedRegionValue("");
       setSelectedStateValue("");

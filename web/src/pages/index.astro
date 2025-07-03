@@ -3,7 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import { dayField } from "../utils/convert";
 import Form from "../components/dashboard/ui/Form";
 import ChartBps from "../components/dashboard/ChartBps.astro";
-import ChartMbps from "../components/dashboard/ChartMbps.astro";
+import ChartVolumen from "../components/dashboard/ChartVolumen.astro";
 import ChartUser from "../components/dashboard/ChartUser.astro";
 import ChartUserRadar from "../components/dashboard/ChartUserRadar.astro";
 import TableUserGrowth from "../components/dashboard/SummaryUserGrowth.astro";
@@ -44,14 +44,16 @@ const { ontStatus, onStatusErr } = await fetch(
 
 <Layout title="Dashboard">
   <main class="w-full flex flex-wrap gap-5 justify-evenly px-10">
-    <Form client:load />
+    <div class="w-full sticky-form">
+      <Form client:load />
+    </div>
     <section class="w-full flex flex-wrap gap-5">
       <SummaryTraffic data={traffic} err={trafficErr} />
       <SummaryVolume data={traffic} err={trafficErr} />
     </section>
     <div class="w-full flex flex-wrap gap-5">
       <ChartBps data={traffic} err={trafficErr} />
-      <ChartMbps data={traffic} err={trafficErr} />
+      <ChartVolumen data={traffic} err={trafficErr} />
     </div>
     <div class="w-full flex flex-wrap gap-5">
       <SummaryUsers data={ontStatus} err={onStatusErr} />

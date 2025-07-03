@@ -16,7 +16,7 @@ import {
   selectedState,
 } from "../../../stores/dashboard";
 
-export default function TrafficChartMbytes({ data }) {
+export default function TrafficChartVolumen({ data }) {
   const $selectedLevel = useStore(selectedLevel);
   const $selectedRegion = useStore(selectedRegion);
   const $selectedState = useStore(selectedState);

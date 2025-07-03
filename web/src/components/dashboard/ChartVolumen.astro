@@ -1,5 +1,5 @@
 ---
-import TrafficChartMbytes from "./ui/TrafficChartMbytes";
+import TrafficChartVolumen from "./ui/TrafficChartVolumen";
 const { data, err } = Astro.props;
 ---
 
@@ -10,5 +10,5 @@ const { data, err } = Astro.props;
   <p class="text-slate-400 text-sm">
     Monitoreo del volumen de datos transmitidos y recibidos.
   </p>
-  <TrafficChartMbytes data={data} client:load />
+  <TrafficChartVolumen data={data} client:load />
 </section>

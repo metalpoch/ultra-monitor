@@ -34,7 +34,13 @@ export default function UserGrowthChart({ data }) {
         <AreaChart data={filteredData}>
           <XAxis dataKey="day" />
           <YAxis />
-          <Tooltip />
+          <Tooltip
+            contentStyle={{
+              color: "#e0e6ed",
+              backgroundColor: "#1a233a",
+              border: "1px solid #2d3652",
+            }}
+          />
           <Legend />
           <Area
             type="monotone"

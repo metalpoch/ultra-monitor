@@ -19,8 +19,8 @@ function sumTrafficByDay(data) {
     }
     grouped[item.day].mbps_in += item.mbps_in;
     grouped[item.day].mbps_out += item.mbps_out;
-    grouped[item.day].mbytes_in_sec += item.mbytes_in;
-    grouped[item.day].mbytes_out_sec += item.mbytes_out;
+    grouped[item.day].mbytes_in += item.mbytes_in;
+    grouped[item.day].mbytes_out += item.mbytes_out;
   });
   return Object.values(grouped);
 }

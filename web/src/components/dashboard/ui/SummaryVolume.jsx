@@ -23,9 +23,8 @@ export default function SummaryVolume({ data }) {
 
   // Filtrar volumen al momento de tener datos validos
   filteredData = filteredData.filter(
-    ({ day }) => convert.parseDate(day) >= convert.parseDate("01/07/2025")
+    ({ day }) => convert.parseDate(day) >= convert.parseDate("01/07/25")
   );
-
   if (!filteredData || filteredData.length < 2) {
     return (
       <>

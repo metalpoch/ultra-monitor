@@ -34,7 +34,13 @@ export default function TrafficChartMbytes({ data }) {
         <LineChart width={500} height={300} data={filteredData}>
           <XAxis dataKey="day" />
           <YAxis />
-          <Tooltip />
+          <Tooltip
+            contentStyle={{
+              color: "#e0e6ed",
+              backgroundColor: "#1a233a",
+              border: "1px solid #2d3652",
+            }}
+          />
           <Legend />
           <Line
             type="monotone"

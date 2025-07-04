@@ -36,17 +36,30 @@ func (use *FatUsecase) GetAll(pag dto.Pagination) ([]model.Fat, error) {
 	return taos, nil
 }
 
-func (use *FatUsecase) AddFat(fat model.Fat) error {
+func (use *FatUsecase) AddFat(fat dto.Fat) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	entityFat := (entity.Fat)(fat)
-	err := use.repo.AddFat(ctx, &entityFat)
+	id, err := use.repo.AddFat(ctx, entity.Fat{
+		Fat:          fat.Fat,
+		Region:       fat.Region,
+		State:        fat.State,
+		Municipality: fat.Municipality,
+		County:       fat.County,
+		Odn:          fat.Odn,
+		OltIP:        fat.OltIP,
+		Shell:        fat.Shell,
+		Card:         fat.Card,
+		Port:         fat.Port,
+	})
 	if err != nil {
 		return err
 	}
 
-	return nil
+	return use.repo.AddFatsOntStatusSummary(ctx, entity.FatsOntStatusSummary{
+		FatID: id,
+		Day:   fat.ReportDay,
+	})
 }
 
 func (use *FatUsecase) DeleteOne(id int) error {

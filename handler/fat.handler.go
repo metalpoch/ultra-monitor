@@ -6,7 +6,6 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/metalpoch/ultra-monitor/internal/dto"
-	"github.com/metalpoch/ultra-monitor/model"
 	"github.com/metalpoch/ultra-monitor/usecase"
 )
 
@@ -28,12 +27,12 @@ func (hdlr *FatHandler) GetAll(c fiber.Ctx) error {
 }
 
 func (hdlr *FatHandler) AddFat(c fiber.Ctx) error {
-	fat := new(model.Fat)
-	if err := c.Bind().Body(fat); err != nil {
+	var fat dto.Fat
+	if err := c.Bind().Body(&fat); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	if err := hdlr.Usecase.AddFat(*fat); err != nil {
+	if err := hdlr.Usecase.AddFat(fat); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 	return c.SendStatus(fiber.StatusCreated)

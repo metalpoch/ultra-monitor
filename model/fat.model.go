@@ -12,9 +12,18 @@ type Fat struct {
 	Odn          string    `json:"odn" csv:"odn"`
 	OltIP        string    `json:"olt_ip" csv:"olt_ip"`
 	Shell        uint8     `json:"shell" csv:"pon_shell"`
-	Port         uint8     `json:"port" csv:"pon_port"`
 	Card         uint8     `json:"card" csv:"pon_card"`
-	Latitude     float64   `json:"latitude" csv:"latitude"`
-	Longitude    float64   `json:"longitude" csv:"longitude"`
+	Port         uint8     `json:"port" csv:"pon_port"`
+	Actives      int       `db:"actives"`
+	Inactive     int       `db:"inactive"`
+	Others       int       `db:"others"`
 	CreatedAt    time.Time `json:"created_at"`
+}
+
+type FatsOntStatusSummary struct {
+	Day      time.Time `json:"day"`
+	FatID    int       `json:"fat_id"`
+	Actives  int       `json:"actives"`
+	Inactive int       `json:"inactive"`
+	Others   int       `json:"others"`
 }

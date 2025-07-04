@@ -32,6 +32,7 @@ func createTablesAndIndexes(db *sqlx.DB) error {
 		SQL_TABLE_MEASUREMENT_ONT,
 		SQL_TABLE_FAT,
 		SQL_TABLE_ONT_SUMMARY_STATUS_COUNTS,
+		SQL_TABLE_FATS_ONT_STATUS_SUMMARY,
 	}
 	indexQueries := []string{
 		SQL_INDEX_FAT_STATE,

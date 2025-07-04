@@ -122,12 +122,21 @@ CREATE TABLE IF NOT EXISTS fats (
     odn VARCHAR(128) NOT NULL,
     olt_ip VARCHAR(15) NOT NULL,
     pon_shell SMALLINT NOT NULL,
-    pon_port SMALLINT NOT NULL,
     pon_card SMALLINT NOT NULL,
-    latitude DOUBLE PRECISION,
-    longitude DOUBLE PRECISION,
+    pon_port SMALLINT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
     UNIQUE (fat, state, municipality, county, olt_ip, odn, pon_shell, pon_card, pon_port)
+);`
+
+const SQL_TABLE_FATS_ONT_STATUS_SUMMARY string = `
+CREATE TABLE IF NOT EXISTS fats_ont_status_summary (
+    day DATE NOT NULL,
+    fat_id INTEGER NOT NULL,
+    actives INTEGER,
+    inactive INTEGER,
+    others INTEGER,
+    PRIMARY KEY (day, fat_id),
+    FOREIGN KEY (fat_id) REFERENCES fats(id)
 );`
 
 const SQL_INDEX_FAT_STATE string = `CREATE INDEX IF NOT EXISTS idx_fats_state ON fats(state);`

@@ -115,7 +115,7 @@ func main() {
 						Name:  "pon",
 						Usage: "Olt pon traffic scan",
 						Flags: []cli.Flag{
-							&cli.Uint64Flag{Name: "interval", Usage: "interval time in minute", Value: 5},
+							&cli.Uint64Flag{Name: "interval", Usage: "interval time in minute", Value: 60},
 						},
 						Action: func(cCtx *cli.Context) error {
 							interval := cCtx.Uint64("interval")

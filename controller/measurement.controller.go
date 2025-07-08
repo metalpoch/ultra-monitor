@@ -63,7 +63,7 @@ func (ctrl MeasurementController) PonScan(olt model.Olt) {
 		IP:        olt.IP,
 		Community: olt.Community,
 		Timeout:   time.Duration(10 * time.Second),
-		Retries:   5,
+		Retries:   10,
 	})
 
 	ponData, err := client.PonQuery()

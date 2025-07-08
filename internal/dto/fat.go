@@ -11,10 +11,10 @@ type Fat struct {
 	Odn          string    `json:"odn"`
 	OltIP        string    `json:"olt_ip" validate:"required,ip_addr"`
 	Shell        uint8     `json:"shell"`
-	Card         uint8     `json:"card" validate:"required"`
-	Port         uint8     `json:"port" validate:"required"`
-	Actives      int       `json:"actives" validate:"required"`
-	Inactive     int       `json:"inactive" validate:"required"`
-	Others       int       `json:"others" validate:"required"`
+	Card         uint8     `json:"card"`
+	Port         uint8     `json:"port"`
+	Actives      int       `json:"actives"`
+	Inactive     int       `json:"inactive"`
+	Others       int       `json:"others"`
 	ReportDay    time.Time `json:"report_day" validate:"required"`
 }

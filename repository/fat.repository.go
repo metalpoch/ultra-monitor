@@ -83,12 +83,12 @@ func (repo *fatRepository) AddFat(ctx context.Context, fat entity.Fat) (int64, e
 
 func (repo *fatRepository) AddFatsOntStatusSummary(ctx context.Context, summary entity.FatsOntStatusSummary) error {
 	query := `
-	INSERT INTO fats_ont_status_summary (day, fat_id, actives, inactive, others)
-	VALUES (:day, :fat_id, :actives, :inactive, :others)
+	INSERT INTO fats_ont_status_summary (day, fat_id, actives, inactives, others)
+	VALUES (:day, :fat_id, :actives, :inactives, :others)
 	ON CONFLICT (day, fat_id)
 	DO UPDATE SET
 	actives = EXCLUDED.actives,
-	inactive = EXCLUDED.inactive,
+	inactives = EXCLUDED.inactives,
 	others = EXCLUDED.others;`
 	_, err := repo.db.NamedExecContext(ctx, query, summary)
 	return err

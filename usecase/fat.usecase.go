@@ -57,8 +57,11 @@ func (use *FatUsecase) AddFat(fat dto.Fat) error {
 	}
 
 	return use.repo.AddFatsOntStatusSummary(ctx, entity.FatsOntStatusSummary{
-		FatID: id,
-		Day:   fat.ReportDay,
+		FatID:     id,
+		Day:       fat.ReportDay,
+		Actives:   fat.Actives,
+		Inactives: fat.Inactive,
+		Others:    fat.Others,
 	})
 }
 

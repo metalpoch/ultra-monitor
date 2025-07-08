@@ -133,7 +133,7 @@ CREATE TABLE IF NOT EXISTS fats_ont_status_summary (
     day DATE NOT NULL,
     fat_id INTEGER NOT NULL,
     actives INTEGER,
-    inactive INTEGER,
+    inactives INTEGER,
     others INTEGER,
     PRIMARY KEY (day, fat_id),
     FOREIGN KEY (fat_id) REFERENCES fats(id)

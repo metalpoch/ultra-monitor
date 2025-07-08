@@ -32,15 +32,15 @@ type FatResponse struct {
 	Card         uint8     `db:"pon_card"`
 	Port         uint8     `db:"pon_port"`
 	Actives      int       `db:"actives"`
-	Inactive     int       `db:"inactive"`
+	Inactives    int       `db:"inactivew"`
 	Others       int       `db:"others"`
 	CreatedAt    time.Time `db:"created_at"`
 }
 
 type FatsOntStatusSummary struct {
-	Day      time.Time `db:"day"`
-	FatID    int64     `db:"fat_id"`
-	Actives  int       `db:"actives"`
-	Inactive int       `db:"inactive"`
-	Others   int       `db:"others"`
+	Day       time.Time `db:"day"`
+	FatID     int64     `db:"fat_id"`
+	Actives   int       `db:"actives"`
+	Inactives int       `db:"inactives"`
+	Others    int       `db:"others"`
 }

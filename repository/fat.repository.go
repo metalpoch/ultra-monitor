@@ -172,7 +172,7 @@ func (repo *fatRepository) GetCounty(ctx context.Context, state, municipality st
 
 func (repo *fatRepository) GetOdn(ctx context.Context, state, municipality, county string) ([]string, error) {
 	var res []string
-	query := `SELECT DISTINCT odn FROM fats WHERE state = $1 AND municipality = $2 AND municipality = $3 ORDER BY odn;`
+	query := `SELECT DISTINCT odn FROM fats WHERE state = $1 AND municipality = $2 AND county = $3 ORDER BY odn;`
 	err := repo.db.SelectContext(ctx, &res, query, state, municipality, county)
 	return res, err
 }
@@ -186,7 +186,7 @@ func (repo *fatRepository) GetFatsByStates(ctx context.Context, state string) ([
             COALESCE(s.others,0) AS others
         FROM fats f
         LEFT JOIN LATERAL (
-            SELECT s.actives, s.inactive, s.others
+            SELECT s.actives, s.inactives, s.others
             FROM fats_ont_status_summary s
             WHERE s.fat_id = f.id
             ORDER BY s.day DESC
@@ -207,7 +207,7 @@ func (repo *fatRepository) GetFatsByMunicipality(ctx context.Context, state, mun
             COALESCE(s.others,0) AS others
         FROM fats f
         LEFT JOIN LATERAL (
-            SELECT s.actives, s.inactive, s.others
+            SELECT s.actives, s.inactives, s.others
             FROM fats_ont_status_summary s
             WHERE s.fat_id = f.id
             ORDER BY s.day DESC
@@ -228,7 +228,7 @@ func (repo *fatRepository) GetFatsByCounty(ctx context.Context, state, municipal
             COALESCE(s.others,0) AS others
         FROM fats f
         LEFT JOIN LATERAL (
-            SELECT s.actives, s.inactive, s.others
+            SELECT s.actives, s.inactives, s.others
             FROM fats_ont_status_summary s
             WHERE s.fat_id = f.id
             ORDER BY s.day DESC

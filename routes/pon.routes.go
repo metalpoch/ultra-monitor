@@ -15,8 +15,13 @@ func NewPonRoutes(app *fiber.App, db *sqlx.DB, cache *cache.Redis) {
 
 	route := app.Group("/api/pon")
 
-	route.Get("/traffic/:sysname", hdlr.TrafficOlt)
-	route.Get("/traffic/:sysname/:shell/:card/:port", hdlr.TrafficPon)
+	route.Get("/traffic/olt/:sysname", hdlr.TrafficByOlt)
+	route.Get("/traffic/olt/:sysname/:shell/:card/:port", hdlr.TrafficPon)
+
+	route.Get("/traffic/location/:state", hdlr.TrafficByState)
+	route.Get("/traffic/location/:state/:municipality", hdlr.TrafficByMunicipality)
+	route.Get("/traffic/location/:state/:municipality/:county", hdlr.TrafficByCounty)
+	route.Get("/traffic/location/:state/:municipality/:county/:odn", hdlr.TrafficByODN)
 
 	route.Get("/traffic/summary", hdlr.GetTrafficSummary)
 	route.Get("/traffic/summary/states", hdlr.GetTrafficStatesSummary)

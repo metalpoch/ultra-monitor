@@ -13,8 +13,14 @@ import (
 type PonRepository interface {
 	PonsByOLT(ctx context.Context, sysname string) ([]entity.Pon, error)
 	PonByPort(ctx context.Context, sysname, port string) (entity.Pon, error)
-	TrafficOlt(ctx context.Context, sysname string, initDate, endDate time.Time) ([]entity.Traffic, error)
+
+	TrafficByState(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.Traffic, error)
+	TrafficByMunicipality(ctx context.Context, state, municipality string, initDate, endDate time.Time) ([]entity.Traffic, error)
+	TrafficByCounty(ctx context.Context, state, municipality, county string, initDate, endDate time.Time) ([]entity.Traffic, error)
+	TrafficByODN(ctx context.Context, state, municipality, county, odn string, initDate, endDate time.Time) ([]entity.Traffic, error)
+	TrafficByOLT(ctx context.Context, sysname string, initDate, endDate time.Time) ([]entity.Traffic, error)
 	TrafficByPon(ctx context.Context, sysname, ifname string, initDate, endDate time.Time) ([]entity.Traffic, error)
+
 	GetDailyAveragedHourlyMaxTrafficTrends(ctx context.Context, initDate, endDate time.Time) ([]entity.TrafficSummary, error)
 	UpsertSummaryTraffic(ctx context.Context, traffic []entity.TrafficSummary) error
 	GetTrafficSummary(ctx context.Context, initDate, endDate time.Time) ([]entity.TrafficTotalSummary, error)
@@ -49,20 +55,38 @@ func (repo *ponRepository) PonByPort(ctx context.Context, sysname, port string) 
 func (repo *ponRepository) TrafficByState(ctx context.Context, state string, initDate, endDate time.Time) ([]entity.Traffic, error) {
 	var res []entity.Traffic
 	query := `
+    WITH fats_unique AS (
+        SELECT *,
+            ROW_NUMBER() OVER (PARTITION BY olt_ip ORDER BY id DESC) AS rn
+        FROM fats
+    ),
+    traffic_hourly AS (
+        SELECT
+            pon_id,
+            DATE_TRUNC('hour', date) AS date,
+            SUM(bps_in) AS bps_in,
+            SUM(bps_out) AS bps_out,
+            SUM(bandwidth_mbps_sec) AS bandwidth_mbps_sec,
+            SUM(bytes_in) AS bytes_in,
+            SUM(bytes_out) AS bytes_out
+        FROM traffic_pons
+        WHERE date BETWEEN $2 AND $3
+        GROUP BY pon_id, date
+    )
     SELECT
-        DATE_TRUNC('minute', traffic_pons.date) AS date,
-        SUM(traffic_pons.bps_in) / 1000000 AS mbps_in,
-        SUM(traffic_pons.bps_out) / 1000000 AS mbps_out,
-        SUM(traffic_pons.bandwidth_mbps_sec) / 1000000 AS bandwidth_mbps_sec,
-        SUM(traffic_pons.bytes_in) / 1000000 AS mbytes_in,
-        SUM(traffic_pons.bytes_out) / 1000000 AS mbytes_out
-    FROM traffic_pons
-    JOIN pons ON pons.id = traffic_pons.pon_id
+        th.date,
+        SUM(th.bps_in) / 1000000 AS mbps_in,
+        SUM(th.bps_out) / 1000000 AS mbps_out,
+        SUM(th.bandwidth_mbps_sec) / 1000000 AS bandwidth_mbps_sec,
+        SUM(th.bytes_in) / 1000000 AS mbytes_in,
+        SUM(th.bytes_out) / 1000000 AS mbytes_out
+    FROM traffic_hourly th
+    JOIN pons ON pons.id = th.pon_id
     JOIN olts ON olts.ip = pons.olt_ip
-    JOIN fats ON fats.olt_ip = olts.ip
-    WHERE fats.state = $1 AND traffic_pons.date BETWEEN $2 AND $3
-    GROUP BY DATE_TRUNC('minute', date)
-    ORDER BY date;`
+    JOIN fats_unique fu ON fu.olt_ip = olts.ip AND fu.rn = 1
+    WHERE fu.state = $1
+    GROUP BY th.date, fu.state
+    ORDER BY th.date;`
 	err := sqlx.SelectContext(ctx, repo.db, &res, query, state, initDate, endDate)
 	return res, err
 }
@@ -70,20 +94,38 @@ func (repo *ponRepository) TrafficByState(ctx context.Context, state string, ini
 func (repo *ponRepository) TrafficByMunicipality(ctx context.Context, state, municipality string, initDate, endDate time.Time) ([]entity.Traffic, error) {
 	var res []entity.Traffic
 	query := `
+    WITH fats_unique AS (
+        SELECT *,
+            ROW_NUMBER() OVER (PARTITION BY olt_ip ORDER BY id DESC) AS rn
+        FROM fats
+    ),
+    traffic_hourly AS (
+        SELECT
+            pon_id,
+            DATE_TRUNC('hour', date) AS date,
+            SUM(bps_in) AS bps_in,
+            SUM(bps_out) AS bps_out,
+            SUM(bandwidth_mbps_sec) AS bandwidth_mbps_sec,
+            SUM(bytes_in) AS bytes_in,
+            SUM(bytes_out) AS bytes_out
+        FROM traffic_pons
+        WHERE date BETWEEN $3 AND $4
+        GROUP BY pon_id, date
+    )
     SELECT
-        DATE_TRUNC('minute', traffic_pons.date) AS date,
-        SUM(traffic_pons.bps_in) / 1000000 AS mbps_in,
-        SUM(traffic_pons.bps_out) / 1000000 AS mbps_out,
-        SUM(traffic_pons.bandwidth_mbps_sec) / 1000000 AS bandwidth_mbps_sec,
-        SUM(traffic_pons.bytes_in) / 1000000 AS mbytes_in,
-        SUM(traffic_pons.bytes_out) / 1000000 AS mbytes_out
-    FROM traffic_pons
-    JOIN pons ON pons.id = traffic_pons.pon_id
+        th.date,
+        SUM(th.bps_in) / 1000000 AS mbps_in,
+        SUM(th.bps_out) / 1000000 AS mbps_out,
+        SUM(th.bandwidth_mbps_sec) / 1000000 AS bandwidth_mbps_sec,
+        SUM(th.bytes_in) / 1000000 AS mbytes_in,
+        SUM(th.bytes_out) / 1000000 AS mbytes_out
+    FROM traffic_hourly th
+    JOIN pons ON pons.id = th.pon_id
     JOIN olts ON olts.ip = pons.olt_ip
-    JOIN fats ON fats.olt_ip = olts.ip
-    WHERE fats.state = $1 AND fats.municipality = $2 AND traffic_pons.date BETWEEN $3 AND $4
-    GROUP BY DATE_TRUNC('minute', date)
-    ORDER BY date;`
+    JOIN fats_unique fu ON fu.olt_ip = olts.ip AND fu.rn = 1
+    WHERE fu.state = $1 AND fu.municipality = $2
+    GROUP BY th.date, fu.state
+    ORDER BY th.date;`
 	err := sqlx.SelectContext(ctx, repo.db, &res, query, state, municipality, initDate, endDate)
 	return res, err
 }
@@ -91,20 +133,39 @@ func (repo *ponRepository) TrafficByMunicipality(ctx context.Context, state, mun
 func (repo *ponRepository) TrafficByCounty(ctx context.Context, state, municipality, county string, initDate, endDate time.Time) ([]entity.Traffic, error) {
 	var res []entity.Traffic
 	query := `
+    WITH fats_unique AS (
+        SELECT *,
+            ROW_NUMBER() OVER (PARTITION BY olt_ip ORDER BY id DESC) AS rn
+        FROM fats
+    ),
+    traffic_hourly AS (
+        SELECT
+            pon_id,
+            DATE_TRUNC('hour', date) AS date,
+            SUM(bps_in) AS bps_in,
+            SUM(bps_out) AS bps_out,
+            SUM(bandwidth_mbps_sec) AS bandwidth_mbps_sec,
+            SUM(bytes_in) AS bytes_in,
+            SUM(bytes_out) AS bytes_out
+        FROM traffic_pons
+        WHERE date BETWEEN $4 AND $5
+        GROUP BY pon_id, date
+    )
     SELECT
-        DATE_TRUNC('minute', traffic_pons.date) AS date,
-        SUM(traffic_pons.bps_in) / 1000000 AS mbps_in,
-        SUM(traffic_pons.bps_out) / 1000000 AS mbps_out,
-        SUM(traffic_pons.bandwidth_mbps_sec) / 1000000 AS bandwidth_mbps_sec,
-        SUM(traffic_pons.bytes_in) / 1000000 AS mbytes_in,
-        SUM(traffic_pons.bytes_out) / 1000000 AS mbytes_out
-    FROM traffic_pons
-    JOIN pons ON pons.id = traffic_pons.pon_id
+        th.date,
+        SUM(th.bps_in) / 1000000 AS mbps_in,
+        SUM(th.bps_out) / 1000000 AS mbps_out,
+        SUM(th.bandwidth_mbps_sec) / 1000000 AS bandwidth_mbps_sec,
+        SUM(th.bytes_in) / 1000000 AS mbytes_in,
+        SUM(th.bytes_out) / 1000000 AS mbytes_out
+    FROM traffic_hourly th
+    JOIN pons ON pons.id = th.pon_id
     JOIN olts ON olts.ip = pons.olt_ip
-    JOIN fats ON fats.olt_ip = olts.ip
-    WHERE fats.state = $1 AND fats.municipality = $2 AND fats.county = $3 AND traffic_pons.date BETWEEN $4 AND $5
-    GROUP BY DATE_TRUNC('minute', date)
-    ORDER BY date;`
+    JOIN fats_unique fu ON fu.olt_ip = olts.ip AND fu.rn = 1
+    WHERE fu.state = $1 AND fu.municipality = $2  AND fu.county = $3
+    GROUP BY th.date, fu.state
+    ORDER BY th.date;`
+
 	err := sqlx.SelectContext(ctx, repo.db, &res, query, state, municipality, county, initDate, endDate)
 	return res, err
 }
@@ -112,20 +173,38 @@ func (repo *ponRepository) TrafficByCounty(ctx context.Context, state, municipal
 func (repo *ponRepository) TrafficByODN(ctx context.Context, state, municipality, county, odn string, initDate, endDate time.Time) ([]entity.Traffic, error) {
 	var res []entity.Traffic
 	query := `
+    WITH fats_unique AS (
+        SELECT *,
+            ROW_NUMBER() OVER (PARTITION BY olt_ip ORDER BY id DESC) AS rn
+        FROM fats
+    ),
+    traffic_hourly AS (
+        SELECT
+            pon_id,
+            DATE_TRUNC('hour', date) AS date,
+            SUM(bps_in) AS bps_in,
+            SUM(bps_out) AS bps_out,
+            SUM(bandwidth_mbps_sec) AS bandwidth_mbps_sec,
+            SUM(bytes_in) AS bytes_in,
+            SUM(bytes_out) AS bytes_out
+        FROM traffic_pons
+        WHERE date BETWEEN $5 AND $6
+        GROUP BY pon_id, date
+    )
     SELECT
-        DATE_TRUNC('minute', traffic_pons.date) AS date,
-        SUM(traffic_pons.bps_in) / 1000000 AS mbps_in,
-        SUM(traffic_pons.bps_out) / 1000000 AS mbps_out,
-        SUM(traffic_pons.bandwidth_mbps_sec) / 1000000 AS bandwidth_mbps_sec,
-        SUM(traffic_pons.bytes_in) / 1000000 AS mbytes_in,
-        SUM(traffic_pons.bytes_out) / 1000000 AS mbytes_out
-    FROM traffic_pons
-    JOIN pons ON pons.id = traffic_pons.pon_id
+        th.date,
+        SUM(th.bps_in) / 1000000 AS mbps_in,
+        SUM(th.bps_out) / 1000000 AS mbps_out,
+        SUM(th.bandwidth_mbps_sec) / 1000000 AS bandwidth_mbps_sec,
+        SUM(th.bytes_in) / 1000000 AS mbytes_in,
+        SUM(th.bytes_out) / 1000000 AS mbytes_out
+    FROM traffic_hourly th
+    JOIN pons ON pons.id = th.pon_id
     JOIN olts ON olts.ip = pons.olt_ip
-    JOIN fats ON fats.olt_ip = olts.ip
-    WHERE fats.state = $1 AND fats.municipality = $2 AND fats.county = $3 AND fats.odn = $4 AND traffic_pons.date BETWEEN $5 AND $6
-    GROUP BY DATE_TRUNC('minute', date)
-    ORDER BY date;`
+    JOIN fats_unique fu ON fu.olt_ip = olts.ip
+    WHERE fu.state = $1 AND fu.municipality = $2  AND fu.county = $3 AND fu.odn = $4
+    GROUP BY th.date, fu.state
+    ORDER BY th.date;`
 	err := sqlx.SelectContext(ctx, repo.db, &res, query, state, municipality, county, odn, initDate, endDate)
 	return res, err
 }
@@ -134,7 +213,7 @@ func (repo *ponRepository) TrafficByOLT(ctx context.Context, sysname string, ini
 	var res []entity.Traffic
 	query := `
     SELECT
-        DATE_TRUNC('minute', traffic_pons.date) AS date,
+        DATE_TRUNC('hour', traffic_pons.date) AS date,
         SUM(traffic_pons.bps_in) / 1000000 AS mbps_in,
         SUM(traffic_pons.bps_out) / 1000000 AS mbps_out,
         SUM(traffic_pons.bandwidth_mbps_sec) / 1000000 AS bandwidth_mbps_sec,
@@ -144,29 +223,9 @@ func (repo *ponRepository) TrafficByOLT(ctx context.Context, sysname string, ini
     JOIN pons ON pons.id = traffic_pons.pon_id
     JOIN olts ON olts.ip = pons.olt_ip
     WHERE olts.sys_name = $1 AND traffic_pons.date BETWEEN $2 AND $3
-    GROUP BY DATE_TRUNC('minute', date)
+    GROUP BY DATE_TRUNC('hour', date)
     ORDER BY date;`
 	err := sqlx.SelectContext(ctx, repo.db, &res, query, sysname, initDate, endDate)
-	return res, err
-}
-
-func (repo *ponRepository) TrafficOlt(ctx context.Context, sysname string, initDate, endDate time.Time) ([]entity.Traffic, error) {
-	var res []entity.Traffic
-	query := `
-    SELECT
-        DATE_TRUNC('minute', tr.date) AS date,
-        MAX(tr.bps_in) / 1000000 AS mbps_in,
-        MAX(tr.bps_out) / 1000000 AS mbps_out,
-        MAX(tr.bandwidth_mbps_sec) AS bandwidth_mbps_sec,
-        MAX(tr.bytes_in) / 1000000 AS mbytes_in,
-        MAX(tr.bytes_out) / 1000000 AS mbytes_out
-    FROM traffic_pons AS tr
-    JOIN pons AS p ON p.id = tr.pon_id
-    JOIN olts AS o ON o.ip = p.olt_ip
-    WHERE o.sys_name = $1 AND date BETWEEN $2 AND $3
-    GROUP BY DATE_TRUNC('minute', tr.date)
-    ORDER BY date;`
-	err := repo.db.SelectContext(ctx, &res, query, sysname, initDate, endDate)
 	return res, err
 }
 
@@ -174,7 +233,7 @@ func (repo *ponRepository) TrafficByPon(ctx context.Context, sysname, ifname str
 	var res []entity.Traffic
 	query := `
     SELECT
-        DATE_TRUNC('minute', traffic_pons.date) AS date,
+        DATE_TRUNC('hour', traffic_pons.date) AS date,
         SUM(traffic_pons.bps_in) / 1000000 AS mbps_in,
         SUM(traffic_pons.bps_out) / 1000000 AS mbps_out,
         SUM(traffic_pons.bandwidth_mbps_sec) / 1000000 AS bandwidth_mbps_sec,
@@ -184,7 +243,7 @@ func (repo *ponRepository) TrafficByPon(ctx context.Context, sysname, ifname str
     JOIN pons ON pons.id = traffic_pons.pon_id
     JOIN olts ON olts.ip = pons.olt_ip
     WHERE olts.sys_name = $1 AND pons.if_name = $2 AND traffic_pons.date BETWEEN $3 AND $4
-    GROUP BY DATE_TRUNC('minute', date)
+    GROUP BY DATE_TRUNC('hour', date)
     ORDER BY date;`
 	err := repo.db.SelectContext(ctx, &res, query, sysname, ifname, initDate, endDate)
 	return res, err

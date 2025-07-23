@@ -25,8 +25,8 @@ const (
 	HwGponOltEthernetStatisticSendBytes     string = ".1.3.6.1.4.1.2011.6.128.1.1.4.21.1.30"
 
 	// ONT queries
-	HwGponDeviceOntDespt            string = ".1.3.6.1.4.1.2011.6.128.1.1.2.43.1.9"
-	HwGponDeviceOntSerialNumber     string = ".1.3.6.1.4.1.2011.6.128.1.1.2.43.1.3"
+	HwGponDeviceOntDespt            string = ".1.3.6.1.4.1.2011.6.128.1.1.2.43.1.9" // *
+	HwGponDeviceOntSerialNumber     string = ".1.3.6.1.4.1.2011.6.128.1.1.2.43.1.3" // *
 	HwGponDeviceOntLineProfName     string = ".1.3.6.1.4.1.2011.6.128.1.1.2.43.1.7"
 	HwGponDeviceOntControlRanging   string = ".1.3.6.1.4.1.2011.6.128.1.1.2.46.1.20"
 	HwGponDeviceOntControlMacCount  string = ".1.3.6.1.4.1.2011.6.128.1.1.2.46.1.21"
@@ -173,17 +173,19 @@ func (s snmp) PonQuery() (map[int64]PonData, error) {
 		err = s.client.BulkWalk(oidHandler.oid, func(pdu gosnmp.SnmpPDU) error {
 			index := s.extractOntIdx(pdu.Name)
 			if index == "" {
+				log.Printf("Error on proccess OID %s: index empty", pdu.Name)
 				return nil
 			}
 
 			idx, err := strconv.Atoi(index)
 			if err != nil {
+				log.Printf("Error on proccess OID %s in the index %s: %v", pdu.Name, index, err)
 				return err
 			}
 
 			pon := data[int64(idx)]
 			if err := oidHandler.handler(&pon, pdu); err != nil {
-				log.Printf("Error on proccess OID %s: %v", pdu.Name, err)
+				log.Printf("Error on proccess OID %s in the index %s: %v", pdu.Name, index, err)
 				return nil
 			}
 			data[int64(idx)] = pon

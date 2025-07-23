@@ -1,12 +1,13 @@
 package entity
 
-import "time"
+import (
+	"time"
+)
 
-type Olt struct {
+type InfoDevice struct {
+	ID           int32     `db:"id"`
 	IP           string    `db:"ip"`
-	Community    string    `db:"community"`
-	SysName      string    `db:"sys_name"`
-	SysLocation  string    `db:"sys_location"`
+	Region       string    `db:"region"`
 	State        string    `db:"state"`
 	Municipality string    `db:"municipality"`
 	County       string    `db:"county"`
@@ -15,7 +16,5 @@ type Olt struct {
 	Shell        uint8     `db:"pon_shell"`
 	Card         uint8     `db:"pon_card"`
 	Port         uint8     `db:"pon_port"`
-	IsAlive      bool      `db:"is_alive"`
-	LastCheck    time.Time `db:"last_check"`
 	CreatedAt    time.Time `db:"created_at"`
 }

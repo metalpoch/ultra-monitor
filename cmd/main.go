@@ -13,12 +13,14 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/metalpoch/ultra-monitor/internal/cache"
 	"github.com/metalpoch/ultra-monitor/internal/database"
+	"github.com/metalpoch/ultra-monitor/internal/prometheus"
 	"github.com/metalpoch/ultra-monitor/internal/validations"
 	"github.com/metalpoch/ultra-monitor/routes"
 )
 
 var db *sqlx.DB
 var redis *cache.Redis
+var prometheusClient *prometheus.Prometheus
 var jwtSecret string
 var reportsDir string
 var port string
@@ -58,13 +60,14 @@ func init() {
 		log.Fatal("error 'REDIS_URI' enviroment varables requried.")
 	}
 
-	var err error
-	db, err = database.Connect(dbURI)
-	if err != nil {
-		log.Fatal(err)
+	prometheusURL := os.Getenv("PROMETHEUS_URL")
+	if prometheusURL == "" {
+		log.Fatal("error 'PROMETHEUS_URL' enviroment varables requried.")
 	}
 
+	db = database.Connect(dbURI)
 	redis = cache.NewCache(cacheURI)
+	prometheusClient = prometheus.NewPrometheusClient(prometheusURL)
 }
 
 func main() {
@@ -82,7 +85,7 @@ func main() {
 	app.Use(logger.New())
 	app.Use(cors.New())
 
-	routes.Init(app, db, redis, []byte(jwtSecret), reportsDir)
+	routes.Init(app, db, redis, []byte(jwtSecret), reportsDir, prometheusClient)
 
 	app.Listen(":"+port, fiber.ListenConfig{
 		EnablePrefork: true,

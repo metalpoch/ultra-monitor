@@ -12,10 +12,10 @@ type InfoDeviceRepository interface {
 	AddInfo(ctx context.Context, fat entity.InfoDevice) (int64, error)
 	DeleteOne(ctx context.Context, id int32) error
 	FindByID(ctx context.Context, id int32) (entity.InfoDevice, error)
-	FindByStates(ctx context.Context, state string) ([]entity.InfoDevice, error)
-	FindByMunicipality(ctx context.Context, state, municipality string) ([]entity.InfoDevice, error)
-	FindByCounty(ctx context.Context, state, municipality, county string) ([]entity.InfoDevice, error)
-	FindBytOdn(ctx context.Context, state, municipality, county, odn string) ([]entity.InfoDevice, error)
+	FindByStates(ctx context.Context, state string, page, limit uint16) ([]entity.InfoDevice, error)
+	FindByMunicipality(ctx context.Context, state, municipality string, page, limit uint16) ([]entity.InfoDevice, error)
+	FindByCounty(ctx context.Context, state, municipality, county string, page, limit uint16) ([]entity.InfoDevice, error)
+	FindBytOdn(ctx context.Context, state, municipality, county, odn string, page, limit uint16) ([]entity.InfoDevice, error)
 }
 
 type infoDeviceRepository struct {
@@ -66,30 +66,34 @@ func (r *infoDeviceRepository) FindByID(ctx context.Context, id int32) (entity.I
 	return fat, nil
 }
 
-func (r *infoDeviceRepository) FindByStates(ctx context.Context, state string) ([]entity.InfoDevice, error) {
+func (r *infoDeviceRepository) FindByStates(ctx context.Context, state string, page, limit uint16) ([]entity.InfoDevice, error) {
 	var res []entity.InfoDevice
-	query := `SELECT * FROM info_device WHERE state = $1 ORDER BY region, municipality, county;`
-	err := r.db.SelectContext(ctx, &res, query, state)
+	offset := (page - 1) * limit
+	query := `SELECT * FROM info_device WHERE state = $1 ORDER BY region, state, municipality, county LIMIT $2 OFFSET $3;`
+	err := r.db.SelectContext(ctx, &res, query, state, limit, offset)
 	return res, err
 }
 
-func (r *infoDeviceRepository) FindByMunicipality(ctx context.Context, state, municipality string) ([]entity.InfoDevice, error) {
+func (r *infoDeviceRepository) FindByMunicipality(ctx context.Context, state, municipality string, page, limit uint16) ([]entity.InfoDevice, error) {
 	var res []entity.InfoDevice
-	query := `SELECT * FROM info_device WHERE state = $1 AND municipality = $2 ORDER BY region, county;`
-	err := r.db.SelectContext(ctx, &res, query, state, municipality)
+	offset := (page - 1) * limit
+	query := `SELECT * FROM info_device WHERE state = $1 AND municipality = $2 ORDER BY region, state, municipality, county LIMIT $3 OFFSET $4;`
+	err := r.db.SelectContext(ctx, &res, query, state, municipality, limit, offset)
 	return res, err
 }
 
-func (r *infoDeviceRepository) FindByCounty(ctx context.Context, state, municipality, county string) ([]entity.InfoDevice, error) {
+func (r *infoDeviceRepository) FindByCounty(ctx context.Context, state, municipality, county string, page, limit uint16) ([]entity.InfoDevice, error) {
 	var res []entity.InfoDevice
-	query := `SELECT * FROM info_device WHERE state = $1 AND municipality = $2 AND county = $3 ORDER BY region;`
-	err := r.db.SelectContext(ctx, &res, query, state, municipality, county)
+	offset := (page - 1) * limit
+	query := `SELECT * FROM info_device WHERE state = $1 AND municipality = $2 AND county = $3 ORDER BY region, state, municipality, county LIMIT $4 OFFSET $5;`
+	err := r.db.SelectContext(ctx, &res, query, state, municipality, county, limit, offset)
 	return res, err
 }
 
-func (r *infoDeviceRepository) FindBytOdn(ctx context.Context, state, municipality, county, odn string) ([]entity.InfoDevice, error) {
+func (r *infoDeviceRepository) FindBytOdn(ctx context.Context, state, municipality, county, odn string, page, limit uint16) ([]entity.InfoDevice, error) {
 	var res []entity.InfoDevice
-	query := `SELECT * FROM info_device WHERE state = $1 AND municipality = $2 AND county = $3 AND odn = $4 ORDER BY region;`
-	err := r.db.SelectContext(ctx, &res, query, state, municipality, county, odn)
+	offset := (page - 1) * limit
+	query := `SELECT * FROM info_device WHERE state = $1 AND municipality = $2 AND county = $3 AND odn = $4 ORDER BY region, state, municipality, county LIMIT $5 OFFSET $6;`
+	err := r.db.SelectContext(ctx, &res, query, state, municipality, county, odn, limit, offset)
 	return res, err
 }

@@ -80,11 +80,11 @@ func (use *InfoDeviceUsecase) GetByID(id int) (model.InfoDevice, error) {
 	return (model.InfoDevice)(res), nil
 }
 
-func (use *InfoDeviceUsecase) FindByStates(state string) ([]model.InfoDevice, error) {
+func (use *InfoDeviceUsecase) FindByStates(state string, pag dto.Pagination) ([]model.InfoDevice, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	res, err := use.repo.FindByStates(ctx, state)
+	res, err := use.repo.FindByStates(ctx, state, pag.Page, pag.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -97,11 +97,11 @@ func (use *InfoDeviceUsecase) FindByStates(state string) ([]model.InfoDevice, er
 	return fats, nil
 }
 
-func (use *InfoDeviceUsecase) FindByMunicipality(state, municipality string) ([]model.InfoDevice, error) {
+func (use *InfoDeviceUsecase) FindByMunicipality(state, municipality string, pag dto.Pagination) ([]model.InfoDevice, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	res, err := use.repo.FindByMunicipality(ctx, state, municipality)
+	res, err := use.repo.FindByMunicipality(ctx, state, municipality, pag.Page, pag.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -114,11 +114,11 @@ func (use *InfoDeviceUsecase) FindByMunicipality(state, municipality string) ([]
 	return fats, nil
 }
 
-func (use *InfoDeviceUsecase) FindByCounty(state, municipality, county string) ([]model.InfoDevice, error) {
+func (use *InfoDeviceUsecase) FindByCounty(state, municipality, county string, pag dto.Pagination) ([]model.InfoDevice, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	res, err := use.repo.FindByCounty(ctx, state, municipality, county)
+	res, err := use.repo.FindByCounty(ctx, state, municipality, county, pag.Page, pag.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -131,11 +131,11 @@ func (use *InfoDeviceUsecase) FindByCounty(state, municipality, county string) (
 	return fats, nil
 }
 
-func (use *InfoDeviceUsecase) FindBytOdn(state, municipality, county, odn string) ([]model.InfoDevice, error) {
+func (use *InfoDeviceUsecase) FindBytOdn(state, municipality, county, odn string, pag dto.Pagination) ([]model.InfoDevice, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	res, err := use.repo.FindBytOdn(ctx, state, municipality, county, odn)
+	res, err := use.repo.FindBytOdn(ctx, state, municipality, county, odn, pag.Page, pag.Limit)
 	if err != nil {
 		return nil, err
 	}

@@ -55,12 +55,12 @@ func (hdlr *UserHandler) GetOwn(c fiber.Ctx) error {
 }
 
 func (hdlr *UserHandler) Disable(c fiber.Ctx) error {
-	p00, err := fiber.Convert(c.Params("p00"), strconv.Atoi)
+	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	if err := hdlr.Usecase.Disable(p00); err != nil {
+	if err := hdlr.Usecase.Disable(id); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
@@ -68,12 +68,12 @@ func (hdlr *UserHandler) Disable(c fiber.Ctx) error {
 }
 
 func (hdlr *UserHandler) Enable(c fiber.Ctx) error {
-	p00, err := fiber.Convert(c.Params("p00"), strconv.Atoi)
+	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	if err := hdlr.Usecase.Enable(p00); err != nil {
+	if err := hdlr.Usecase.Enable(id); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 

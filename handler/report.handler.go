@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/url"
+	"os"
 	"path"
 	"strconv"
 
@@ -18,7 +19,7 @@ type ReportHandler struct {
 
 func (hdlr *ReportHandler) Add(c fiber.Ctx) error {
 	var newReport dto.NewReport
-	if err := c.Bind().Form(newReport); err != nil {
+	if err := c.Bind().Form(&newReport); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
@@ -49,6 +50,7 @@ func (hdlr *ReportHandler) Add(c fiber.Ctx) error {
 
 func (hdlr *ReportHandler) Get(c fiber.Ctx) error {
 	id := c.Params("id")
+
 	res, err := hdlr.Usecase.Get(id)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -66,17 +68,17 @@ func (hdlr *ReportHandler) GetCategories(c fiber.Ctx) error {
 }
 
 func (hdlr *ReportHandler) GetReportsByUser(c fiber.Ctx) error {
-	userID, err := fiber.Convert(c.Params("userID"), strconv.Atoi)
+	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	var pag dto.Pagination
-	if err := c.Bind().Query(pag); err != nil {
+	if err := c.Bind().Query(&pag); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.GetReportsByUser(userID, pag)
+	res, err := hdlr.Usecase.GetReportsByUser(id, pag)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -90,7 +92,7 @@ func (hdlr *ReportHandler) GetReportsByCategory(c fiber.Ctx) error {
 	}
 
 	var pag dto.Pagination
-	if err := c.Bind().Query(pag); err != nil {
+	if err := c.Bind().Query(&pag); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
@@ -99,4 +101,24 @@ func (hdlr *ReportHandler) GetReportsByCategory(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 	return c.JSON(res)
+}
+
+func (hdlr *ReportHandler) Delete(c fiber.Ctx) error {
+	id := c.Params("id")
+
+	if err := hdlr.Usecase.Delete(id); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	filePath := path.Join(hdlr.ReportDirectory, id)
+
+	if err := os.Remove(filePath); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete file: " + err.Error()})
+	}
+
+	if err := hdlr.Usecase.Delete(id); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
 }

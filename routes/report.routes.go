@@ -16,8 +16,11 @@ func NewReportRoutes(app *fiber.App, db *sqlx.DB, cache *cache.Redis, reportsDir
 
 	route := app.Group("/api/report")
 	route.Post("/", hdlr.Add)
-	route.Get("/:id", hdlr.Get)
+	route.Get("/file/:id", hdlr.Get)
+	route.Delete("/file/:id", hdlr.Delete)
+
 	route.Get("/categories", hdlr.GetCategories)
-	route.Get("/categories/:category", hdlr.GetReportsByCategory)
-	route.Get("/user/:userID", hdlr.GetReportsByUser)
+	route.Get("/category/:category", hdlr.GetReportsByCategory)
+
+	route.Get("/user/:id", hdlr.GetReportsByUser)
 }

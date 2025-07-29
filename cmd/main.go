@@ -147,31 +147,6 @@ func main() {
 			}); err != nil {
 				log.Fatalf("error upserting batch: %v", err)
 			}
-			// batch = append(batch, dto.Prometheus{
-			// 	Region: device.Region,
-			// 	State:  device.State,
-			// 	IP:     device.IP,
-			// 	IDX:    device.IfIndex,
-			// 	Shell:  uint8(shell),
-			// 	Card:   uint8(card),
-			// 	Port:   uint8(port),
-			// })
-
-			// 	if len(batch) == 1000 {
-			// 		if err := prometheusUsecase.Upsert(context.Background(), batch); err != nil {
-			// 			log.Fatalf("error upserting batch: %v", err)
-			// 		}
-			// 		log.Printf("Upsert exitoso para lote de 1000 dispositivos")
-			// 		batch = batch[:0]
-			// 	}
-			// }
-
-			// // Último lote
-			// if len(batch) > 0 {
-			// 	if err := prometheusUsecase.Upsert(context.Background(), batch); err != nil {
-			// 		log.Fatalf("error final upserting batch: %v", err)
-			// 	}
-			// 	log.Printf("Upsert final exitoso para %d dispositivos", len(batch))
 		}
 
 		log.Printf("Escaneo completado. Dispositivos totales: %d | ifName inválidos: %d", totalScanned, invalidFormat)

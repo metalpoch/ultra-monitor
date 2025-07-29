@@ -78,7 +78,7 @@ func init() {
 func main() {
 
 	if len(os.Args) < 2 {
-		fmt.Println("Uso: <app> [server | scan]")
+		fmt.Println("Uso: <app> [server | scan ]")
 		return
 	}
 
@@ -112,7 +112,6 @@ func main() {
 		}
 
 		prometheusUsecase := usecase.NewPrometheusUsecase(db)
-		// batch := make([]dto.Prometheus, 0, 1000)
 		invalidFormat := 0
 		totalScanned := 0
 		totalShellInZero := 0

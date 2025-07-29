@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/metalpoch/ultra-monitor/internal/utils"
@@ -55,135 +56,272 @@ func (p *Prometheus) PrometheusDeviceScan(ctx context.Context) ([]InfoDevice, er
 	return devices, nil
 }
 
-func (p *Prometheus) QueryPonTraffic(ctx context.Context, date time.Time) ([]TrafficResult, error) {
-	var allResults []TrafficResult
+func (p *Prometheus) PrometheusTrafficRegion(ctx context.Context, initDate, finalDate time.Time) (map[string][]*Traffic, error) {
+	queryBW := "sum(ifSpeed) by (region)"
+	queryBpsIn := "sum(rate(hwGponOltEthernetStatisticReceivedBytes_count[10m]) * 8) by (region)"
+	queryBpsOut := "sum(rate(hwGponOltEthernetStatisticSendBytes_count[10m]) * 8) by (region)"
+	queryBytesIn := "sum(increase(hwGponOltEthernetStatisticReceivedBytes_count[10m])) by (region)"
+	queryBytesOut := "sum(increase(hwGponOltEthernetStatisticSendBytes_count[10m])) by (region)"
 
-	start := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
-	end := start.Add(24 * time.Hour)
+	result := make(map[string][]*Traffic)
 
-	for t := start; t.Before(end); t = t.Add(5 * time.Minute) {
-		queryIn := `rate(hwGponOltEthernetStatisticReceivedBytes_count[10m])`
-		queryOut := `rate(hwGponOltEthernetStatisticSendBytes_count[10m])`
-		queryIfName := `ifName`
-		queryIfDescr := `ifDescr`
-		queryIfAlias := `ifAlias`
-		queryIfSpeed := `ifSpeed`
-		querySysLocation := `sysLocation`
-		querySysName := `sysName`
+	for t := initDate; t.Before(finalDate); t = t.Add(5 * time.Minute) {
+		mbpsBwVec, _ := p.queryVector(ctx, queryBW, t)
+		bpsInVec, _ := p.queryVector(ctx, queryBpsIn, t)
+		bpsOutVec, _ := p.queryVector(ctx, queryBpsOut, t)
+		bytesInVec, _ := p.queryVector(ctx, queryBytesIn, t)
+		bytesOutVec, _ := p.queryVector(ctx, queryBytesOut, t)
 
-		bpsInVec, err := p.queryVector(ctx, queryIn, t)
-		if err != nil {
-			return nil, err
-		}
-		bpsOutVec, err := p.queryVector(ctx, queryOut, t)
-		if err != nil {
-			return nil, err
-		}
-		ifNameVec, _ := p.queryVector(ctx, queryIfName, t)
-		ifDescrVec, _ := p.queryVector(ctx, queryIfDescr, t)
-		ifAliasVec, _ := p.queryVector(ctx, queryIfAlias, t)
-		ifSpeedVec, _ := p.queryVector(ctx, queryIfSpeed, t)
-		sysLocVec, _ := p.queryVector(ctx, querySysLocation, t)
-		sysNameVec, _ := p.queryVector(ctx, querySysName, t)
+		tempData := make(map[string]*Traffic)
 
-		results := make(map[string]*TrafficResult)
 		for _, s := range bpsInVec {
-			oltIP := s.Labels["instance"]
-			ifIndex := s.Labels["ponPortIndex"]
-			oltRegion := s.Labels["region"]
-			oltState := s.Labels["state"]
-			key := oltIP + ":" + ifIndex
-			results[key] = &TrafficResult{
-				OltIP:     oltIP,
-				OltRegion: oltRegion,
-				OltState:  oltState,
-				IfIndex:   utils.ParseInt64(ifIndex),
-				BpsIn:     s.Value * 8,
-				Time:      t,
+			key := s.Labels["region"]
+			if _, ok := tempData[key]; !ok {
+				tempData[key] = &Traffic{Time: t}
 			}
+			tempData[key].BpsIn = s.Value
 		}
 		for _, s := range bpsOutVec {
-			oltIP := s.Labels["instance"]
-			ifIndex := s.Labels["ponPortIndex"]
-			oltRegion := s.Labels["region"]
-			oltState := s.Labels["state"]
-			key := oltIP + ":" + ifIndex
-			if r, ok := results[key]; ok {
-				r.BpsOut = s.Value * 8
-			} else {
-				results[key] = &TrafficResult{
-					OltIP:     oltIP,
-					OltRegion: oltRegion,
-					OltState:  oltState,
-					IfIndex:   utils.ParseInt64(ifIndex),
-					BpsOut:    s.Value * 8,
-					Time:      t,
-				}
+			key := s.Labels["region"]
+			if _, ok := tempData[key]; !ok {
+				tempData[key] = &Traffic{Time: t}
 			}
+			tempData[key].BpsOut = s.Value
 		}
-		for _, s := range ifNameVec {
-			oltIP := s.Labels["instance"]
-			ifIndex := s.Labels["ifIndex"]
-			key := oltIP + ":" + ifIndex
-			if r, ok := results[key]; ok {
-				r.IfName = s.Labels["ifName"]
+		for _, s := range mbpsBwVec {
+			key := s.Labels["region"]
+			if _, ok := tempData[key]; !ok {
+				tempData[key] = &Traffic{Time: t}
 			}
+			tempData[key].Bandwidth = s.Value
 		}
-		for _, s := range ifDescrVec {
-			oltIP := s.Labels["instance"]
-			ifIndex := s.Labels["ifIndex"]
-			key := oltIP + ":" + ifIndex
-			if r, ok := results[key]; ok {
-				r.IfDescr = s.Labels["ifDescr"]
+		for _, s := range bytesInVec {
+			key := s.Labels["region"]
+			if _, ok := tempData[key]; !ok {
+				tempData[key] = &Traffic{Time: t}
 			}
+			tempData[key].BytesIn = s.Value
 		}
-		for _, s := range ifAliasVec {
-			oltIP := s.Labels["instance"]
-			ifIndex := s.Labels["ifIndex"]
-			key := oltIP + ":" + ifIndex
-			if r, ok := results[key]; ok {
-				r.IfAlias = s.Labels["ifAlias"]
+		for _, s := range bytesOutVec {
+			key := s.Labels["region"]
+			if _, ok := tempData[key]; !ok {
+				tempData[key] = &Traffic{Time: t}
 			}
-		}
-		for _, s := range ifSpeedVec {
-			oltIP := s.Labels["instance"]
-			ifIndex := s.Labels["ifIndex"]
-			key := oltIP + ":" + ifIndex
-			if r, ok := results[key]; ok {
-				r.IfSpeed = s.Value
-			}
+			tempData[key].BytesOut = s.Value
 		}
 
-		for _, s := range sysLocVec {
-			oltIP := s.Labels["instance"]
-			sysLocation := s.Labels["sysLocation"]
-			for _, r := range results {
-				if r.OltIP == oltIP {
-					r.SysLocation = sysLocation
-				}
-			}
-		}
-		for _, s := range sysNameVec {
-			oltIP := s.Labels["instance"]
-			sysName := s.Labels["sysName"]
-			for _, r := range results {
-				if r.OltIP == oltIP {
-					r.SysName = sysName
-				}
-			}
-		}
-
-		for _, r := range results {
-			r.BytesIn = (r.BpsIn / 8) * 300 // 5 minutos = 300 segundos
-			r.BytesOut = (r.BpsOut / 8) * 300
-			allResults = append(allResults, *r)
+		for region, traffic := range tempData {
+			result[region] = append(result[region], traffic)
 		}
 	}
 
-	return allResults, nil
+	return result, nil
 }
 
-// queryVector ejecuta una consulta instantánea y devuelve los resultados como []Result
+func (p *Prometheus) PrometheusTrafficState(ctx context.Context, initDate, finalDate time.Time) (map[string][]*Traffic, error) {
+	queryBW := "sum(ifSpeed) by (state)"
+	queryBpsIn := "sum(rate(hwGponOltEthernetStatisticReceivedBytes_count[10m]) * 8) by (state)"
+	queryBpsOut := "sum(rate(hwGponOltEthernetStatisticSendBytes_count[10m]) * 8) by (state)"
+	queryBytesIn := "sum(increase(hwGponOltEthernetStatisticReceivedBytes_count[10m])) by (state)"
+	queryBytesOut := "sum(increase(hwGponOltEthernetStatisticSendBytes_count[10m])) by (state)"
+
+	result := make(map[string][]*Traffic)
+
+	for t := initDate; t.Before(finalDate); t = t.Add(5 * time.Minute) {
+		mbpsBwVec, _ := p.queryVector(ctx, queryBW, t)
+		bpsInVec, _ := p.queryVector(ctx, queryBpsIn, t)
+		bpsOutVec, _ := p.queryVector(ctx, queryBpsOut, t)
+		bytesInVec, _ := p.queryVector(ctx, queryBytesIn, t)
+		bytesOutVec, _ := p.queryVector(ctx, queryBytesOut, t)
+
+		tempData := make(map[string]*Traffic)
+
+		for _, s := range bpsInVec {
+			key := s.Labels["state"]
+			if _, ok := tempData[key]; !ok {
+				tempData[key] = &Traffic{Time: t}
+			}
+			tempData[key].BpsIn = s.Value
+		}
+		for _, s := range bpsOutVec {
+			key := s.Labels["state"]
+			if _, ok := tempData[key]; !ok {
+				tempData[key] = &Traffic{Time: t}
+			}
+			tempData[key].BpsOut = s.Value
+		}
+		for _, s := range mbpsBwVec {
+			key := s.Labels["state"]
+			if _, ok := tempData[key]; !ok {
+				tempData[key] = &Traffic{Time: t}
+			}
+			tempData[key].Bandwidth = s.Value
+		}
+		for _, s := range bytesInVec {
+			key := s.Labels["state"]
+			if _, ok := tempData[key]; !ok {
+				tempData[key] = &Traffic{Time: t}
+			}
+			tempData[key].BytesIn = s.Value
+		}
+		for _, s := range bytesOutVec {
+			key := s.Labels["state"]
+			if _, ok := tempData[key]; !ok {
+				tempData[key] = &Traffic{Time: t}
+			}
+			tempData[key].BytesOut = s.Value
+		}
+
+		for region, traffic := range tempData {
+			result[region] = append(result[region], traffic)
+		}
+	}
+
+	return result, nil
+}
+
+func (p *Prometheus) PrometheusTrafficGroupInstance(ctx context.Context, instances []string, initDate, finalDate time.Time) (map[string][]*Traffic, error) {
+	if len(instances) == 0 {
+		return nil, fmt.Errorf("no instances provided")
+	}
+
+	instancesStr := strings.Join(instances, "|")
+
+	queryBW := fmt.Sprintf("sum(ifSpeed{instance=~'%s'}) by (instance)", instancesStr)
+	queryBpsIn := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticReceivedBytes_count{instance=~'%s'}[10m]) * 8) by (instance)", instancesStr)
+	queryBpsOut := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticSendBytes_count{instance=~'%s'}[10m]) * 8) by (instance)", instancesStr)
+	queryBytesIn := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticReceivedBytes_count{instance=~'%s'}[10m])) by (instance)", instancesStr)
+	queryBytesOut := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticSendBytes_count{instance=~'%s'}[10m])) by (instance)", instancesStr)
+
+	result := make(map[string][]*Traffic)
+
+	for t := initDate; t.Before(finalDate); t = t.Add(5 * time.Minute) {
+		mbpsBwVec, _ := p.queryVector(ctx, queryBW, t)
+		bpsInVec, _ := p.queryVector(ctx, queryBpsIn, t)
+		bpsOutVec, _ := p.queryVector(ctx, queryBpsOut, t)
+		bytesInVec, _ := p.queryVector(ctx, queryBytesIn, t)
+		bytesOutVec, _ := p.queryVector(ctx, queryBytesOut, t)
+
+		tempData := make(map[string]*Traffic)
+
+		for _, s := range bpsInVec {
+			key := s.Labels["instance"]
+			if _, ok := tempData[key]; !ok {
+				tempData[key] = &Traffic{Time: t}
+			}
+			tempData[key].BpsIn = s.Value
+		}
+		for _, s := range bpsOutVec {
+			key := s.Labels["instance"]
+			if _, ok := tempData[key]; !ok {
+				tempData[key] = &Traffic{Time: t}
+			}
+			tempData[key].BpsOut = s.Value
+		}
+		for _, s := range mbpsBwVec {
+			key := s.Labels["instance"]
+			if _, ok := tempData[key]; !ok {
+				tempData[key] = &Traffic{Time: t}
+			}
+			tempData[key].Bandwidth = s.Value
+		}
+		for _, s := range bytesInVec {
+			key := s.Labels["instance"]
+			if _, ok := tempData[key]; !ok {
+				tempData[key] = &Traffic{Time: t}
+			}
+			tempData[key].BytesIn = s.Value
+		}
+		for _, s := range bytesOutVec {
+			key := s.Labels["instance"]
+			if _, ok := tempData[key]; !ok {
+				tempData[key] = &Traffic{Time: t}
+			}
+			tempData[key].BytesOut = s.Value
+		}
+
+		for region, traffic := range tempData {
+			result[region] = append(result[region], traffic)
+		}
+	}
+
+	return result, nil
+}
+
+func (p *Prometheus) PrometheusTrafficInstance(ctx context.Context, instance string, initDate, finalDate time.Time) (map[string][]*Traffic, error) {
+	queryBW := fmt.Sprintf("sum(ifSpeed{instance='%s'}) by (ifIndex)", instance)
+	queryIfName := fmt.Sprintf("ifName{instance='%s'}", instance) // ifName{ifIndex="2097152", ifName="GPON X/Y/Z", instance="10.125.120.231", job="olt_distrito-capital", region="Capital", state="Distrito Capital"}
+	queryBpsIn := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticReceivedBytes_count{instance='%s'}[10m]) * 8) by (ponPortIndex)", instance)
+	queryBpsOut := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticSendBytes_count{instance=~'%s'}[10m]) * 8) by (ponPortIndex)", instance)
+	queryBytesIn := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticReceivedBytes_count{instance=~'%s'}[10m])) by (ponPortIndex)", instance)
+	queryBytesOut := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticSendBytes_count{instance=~'%s'}[10m])) by (ponPortIndex)", instance)
+
+	result := make(map[string][]*Traffic)
+
+	for t := initDate; t.Before(finalDate); t = t.Add(5 * time.Minute) {
+		mbpsBwVec, _ := p.queryVector(ctx, queryBW, t)
+		ifNameVec, _ := p.queryVector(ctx, queryIfName, t)
+		bpsInVec, _ := p.queryVector(ctx, queryBpsIn, t)
+		bpsOutVec, _ := p.queryVector(ctx, queryBpsOut, t)
+		bytesInVec, _ := p.queryVector(ctx, queryBytesIn, t)
+		bytesOutVec, _ := p.queryVector(ctx, queryBytesOut, t)
+
+		tempData := make(map[string]*Traffic)
+
+		for _, s := range ifNameVec {
+			key := s.Labels["ifIndex"]
+			if _, ok := tempData[key]; !ok {
+				tempData[key] = &Traffic{Time: t}
+			}
+			tempData[key].Description = s.Labels["ifName"]
+		}
+
+		for _, s := range mbpsBwVec {
+			key := s.Labels["ifIndex"]
+			if _, ok := tempData[key]; !ok {
+				tempData[key] = &Traffic{Time: t}
+			}
+			tempData[key].Bandwidth = s.Value
+		}
+
+		for _, s := range bpsInVec {
+			key := s.Labels["ponPortIndex"]
+			if _, ok := tempData[key]; !ok {
+				tempData[key] = &Traffic{Time: t}
+			}
+			tempData[key].BpsIn = s.Value
+		}
+		for _, s := range bpsOutVec {
+			key := s.Labels["ponPortIndex"]
+			if _, ok := tempData[key]; !ok {
+				tempData[key] = &Traffic{Time: t}
+			}
+			tempData[key].BpsOut = s.Value
+		}
+
+		for _, s := range bytesInVec {
+			key := s.Labels["ponPortIndex"]
+			if _, ok := tempData[key]; !ok {
+				tempData[key] = &Traffic{Time: t}
+			}
+			tempData[key].BytesIn = s.Value
+		}
+		for _, s := range bytesOutVec {
+			key := s.Labels["ponPortIndex"]
+			if _, ok := tempData[key]; !ok {
+				tempData[key] = &Traffic{Time: t}
+			}
+			tempData[key].BytesOut = s.Value
+		}
+
+		for region, traffic := range tempData {
+			result[region] = append(result[region], traffic)
+		}
+	}
+
+	return result, nil
+}
+
 func (p *Prometheus) queryVector(ctx context.Context, query string, ts time.Time) ([]dataProm, error) {
 	val, warn, err := p.client.Query(ctx, query, ts)
 	if err != nil {

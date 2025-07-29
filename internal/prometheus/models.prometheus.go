@@ -8,23 +8,23 @@ type dataProm struct {
 	Time   time.Time
 }
 
-type TrafficResult struct {
-	OltIP       string
-	OltRegion   string
-	OltState    string
-	SysLocation string
-	SysName     string
-	IfIndex     int64
-	IfName      string
-	IfDescr     string
-	IfAlias     string
-	IfSpeed     float64
+type TrafficQuery struct {
+	InitDate  time.Time
+	FinalDate time.Time
+	Region    string
+	State     string
+	Instance  string
+	PortIndex string
+}
+
+type Traffic struct {
+	Time        time.Time
+	Description string
 	BpsIn       float64
 	BpsOut      float64
 	Bandwidth   float64
 	BytesIn     float64
 	BytesOut    float64
-	Time        time.Time
 }
 
 type InfoDevice struct {

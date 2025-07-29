@@ -7,12 +7,12 @@ import (
 	"github.com/metalpoch/ultra-monitor/usecase"
 )
 
-func NewInfoDeviceRoutes(app *fiber.App, db *sqlx.DB) {
+func NewFatRoutes(app *fiber.App, db *sqlx.DB) {
 	hdlr := &handler.FatHandler{
-		Usecase: usecase.NewInfoDeviceUsecase(db),
+		Usecase: usecase.NewFatUsecase(db),
 	}
 
-	route := app.Group("/api/info-device")
+	route := app.Group("/api/fat")
 
 	// Base
 	route.Get("/", hdlr.GetAll)

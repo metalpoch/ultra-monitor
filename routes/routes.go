@@ -9,6 +9,6 @@ import (
 
 func Init(app *fiber.App, db *sqlx.DB, cache *cache.Redis, secret []byte, reportsDir string, prometheusClient *prometheus.Prometheus) {
 	NewAuthRoutes(app, db, secret)
-	NewInfoDeviceRoutes(app, db)
+	NewFatRoutes(app, db)
 	NewReportRoutes(app, db, cache, reportsDir)
 }

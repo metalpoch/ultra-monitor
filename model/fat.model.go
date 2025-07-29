@@ -2,7 +2,7 @@ package model
 
 import "time"
 
-type InfoDevice struct {
+type Fat struct {
 	ID           int32     `json:"id"`
 	IP           string    `json:"ip"`
 	Region       string    `json:"region"`
@@ -11,8 +11,8 @@ type InfoDevice struct {
 	County       string    `json:"county"`
 	Odn          string    `json:"odn"`
 	Fat          string    `json:"fat"`
-	Shell        uint8     `json:"pon_shell"`
-	Card         uint8     `json:"pon_card"`
-	Port         uint8     `json:"pon_port"`
+	Shell        uint8     `json:"shell"`
+	Card         uint8     `json:"card"`
+	Port         uint8     `json:"port"`
 	CreatedAt    time.Time `json:"created_at"`
 }

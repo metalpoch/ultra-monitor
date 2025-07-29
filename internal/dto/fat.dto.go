@@ -1,6 +1,6 @@
 package dto
 
-type InfoDevice struct {
+type Fat struct {
 	Fat          string `json:"fat" validate:"required"`
 	Region       string `json:"region" validate:"required"`
 	State        string `json:"state" validate:"required"`

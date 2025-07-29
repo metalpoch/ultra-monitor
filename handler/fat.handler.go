@@ -10,7 +10,7 @@ import (
 )
 
 type FatHandler struct {
-	Usecase *usecase.InfoDeviceUsecase
+	Usecase *usecase.FatUsecase
 }
 
 func (hdlr *FatHandler) GetAll(c fiber.Ctx) error {
@@ -27,7 +27,7 @@ func (hdlr *FatHandler) GetAll(c fiber.Ctx) error {
 }
 
 func (hdlr *FatHandler) AddInfo(c fiber.Ctx) error {
-	var info dto.InfoDevice
+	var info dto.Fat
 	if err := c.Bind().Body(&info); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

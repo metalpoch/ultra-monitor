@@ -11,15 +11,15 @@ import (
 	"github.com/metalpoch/ultra-monitor/repository"
 )
 
-type InfoDeviceUsecase struct {
-	repo repository.InfoDeviceRepository
+type FatUsecase struct {
+	repo repository.FatRepository
 }
 
-func NewInfoDeviceUsecase(db *sqlx.DB) *InfoDeviceUsecase {
-	return &InfoDeviceUsecase{repository.NewInfoDeviceRepository(db)}
+func NewFatUsecase(db *sqlx.DB) *FatUsecase {
+	return &FatUsecase{repository.NewFatRepository(db)}
 }
 
-func (use *InfoDeviceUsecase) GetAll(pag dto.Pagination) ([]model.InfoDevice, error) {
+func (use *FatUsecase) GetAll(pag dto.Pagination) ([]model.Fat, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
@@ -28,19 +28,19 @@ func (use *InfoDeviceUsecase) GetAll(pag dto.Pagination) ([]model.InfoDevice, er
 		return nil, err
 	}
 
-	var taos []model.InfoDevice
+	var taos []model.Fat
 	for _, t := range res {
-		taos = append(taos, (model.InfoDevice)(t))
+		taos = append(taos, (model.Fat)(t))
 	}
 
 	return taos, nil
 }
 
-func (use *InfoDeviceUsecase) AddInfo(info dto.InfoDevice) error {
+func (use *FatUsecase) AddInfo(info dto.Fat) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	_, err := use.repo.AddInfo(ctx, entity.InfoDevice{
+	_, err := use.repo.AddInfo(ctx, entity.Fat{
 		Fat:          info.Fat,
 		Region:       info.Region,
 		State:        info.State,
@@ -56,7 +56,7 @@ func (use *InfoDeviceUsecase) AddInfo(info dto.InfoDevice) error {
 	return err
 }
 
-func (use *InfoDeviceUsecase) DeleteOne(id int) error {
+func (use *FatUsecase) DeleteOne(id int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
@@ -68,19 +68,19 @@ func (use *InfoDeviceUsecase) DeleteOne(id int) error {
 	return nil
 }
 
-func (use *InfoDeviceUsecase) GetByID(id int) (model.InfoDevice, error) {
+func (use *FatUsecase) GetByID(id int) (model.Fat, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	res, err := use.repo.FindByID(ctx, int32(id))
 	if err != nil {
-		return model.InfoDevice{}, err
+		return model.Fat{}, err
 	}
 
-	return (model.InfoDevice)(res), nil
+	return (model.Fat)(res), nil
 }
 
-func (use *InfoDeviceUsecase) FindByStates(state string, pag dto.Pagination) ([]model.InfoDevice, error) {
+func (use *FatUsecase) FindByStates(state string, pag dto.Pagination) ([]model.Fat, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
@@ -89,15 +89,15 @@ func (use *InfoDeviceUsecase) FindByStates(state string, pag dto.Pagination) ([]
 		return nil, err
 	}
 
-	var fats []model.InfoDevice
+	var fats []model.Fat
 	for _, e := range res {
-		fats = append(fats, (model.InfoDevice)(e))
+		fats = append(fats, (model.Fat)(e))
 	}
 
 	return fats, nil
 }
 
-func (use *InfoDeviceUsecase) FindByMunicipality(state, municipality string, pag dto.Pagination) ([]model.InfoDevice, error) {
+func (use *FatUsecase) FindByMunicipality(state, municipality string, pag dto.Pagination) ([]model.Fat, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
@@ -106,15 +106,15 @@ func (use *InfoDeviceUsecase) FindByMunicipality(state, municipality string, pag
 		return nil, err
 	}
 
-	var fats []model.InfoDevice
+	var fats []model.Fat
 	for _, e := range res {
-		fats = append(fats, (model.InfoDevice)(e))
+		fats = append(fats, (model.Fat)(e))
 	}
 
 	return fats, nil
 }
 
-func (use *InfoDeviceUsecase) FindByCounty(state, municipality, county string, pag dto.Pagination) ([]model.InfoDevice, error) {
+func (use *FatUsecase) FindByCounty(state, municipality, county string, pag dto.Pagination) ([]model.Fat, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
@@ -123,15 +123,15 @@ func (use *InfoDeviceUsecase) FindByCounty(state, municipality, county string, p
 		return nil, err
 	}
 
-	var fats []model.InfoDevice
+	var fats []model.Fat
 	for _, e := range res {
-		fats = append(fats, (model.InfoDevice)(e))
+		fats = append(fats, (model.Fat)(e))
 	}
 
 	return fats, nil
 }
 
-func (use *InfoDeviceUsecase) FindBytOdn(state, municipality, county, odn string, pag dto.Pagination) ([]model.InfoDevice, error) {
+func (use *FatUsecase) FindBytOdn(state, municipality, county, odn string, pag dto.Pagination) ([]model.Fat, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
@@ -140,9 +140,9 @@ func (use *InfoDeviceUsecase) FindBytOdn(state, municipality, county, odn string
 		return nil, err
 	}
 
-	var fats []model.InfoDevice
+	var fats []model.Fat
 	for _, e := range res {
-		fats = append(fats, (model.InfoDevice)(e))
+		fats = append(fats, (model.Fat)(e))
 	}
 
 	return fats, nil

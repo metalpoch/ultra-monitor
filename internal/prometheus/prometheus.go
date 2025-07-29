@@ -16,37 +16,43 @@ type Prometheus struct {
 	client v1.API
 }
 
-type dataProm struct {
-	Labels map[string]string
-	Value  float64
-	Time   time.Time
-}
-
-type TrafficResult struct {
-	OltIP       string
-	OltRegion   string
-	OltState    string
-	SysLocation string
-	SysName     string
-	IfIndex     int64
-	IfName      string
-	IfDescr     string
-	IfAlias     string
-	IfSpeed     float64
-	BpsIn       float64
-	BpsOut      float64
-	Bandwidth   float64
-	BytesIn     float64
-	BytesOut    float64
-	Time        time.Time
-}
-
 func NewPrometheusClient(host string) *Prometheus {
 	client, err := api.NewClient(api.Config{Address: host})
 	if err != nil {
 		log.Fatal(err)
 	}
 	return &Prometheus{client: v1.NewAPI(client)}
+}
+
+func (p *Prometheus) PrometheusDeviceScan(ctx context.Context) ([]InfoDevice, error) {
+	ifNameVec, err := p.queryVector(ctx, "ifName", time.Now())
+	if err != nil {
+		return nil, err
+	}
+
+	var devices []InfoDevice
+	for _, s := range ifNameVec {
+		oltIP := s.Labels["instance"]
+		ifIndex := s.Labels["ifIndex"]
+		oltRegion := s.Labels["region"]
+		oltState := s.Labels["state"]
+		if oltIP == "" || ifIndex == "" {
+			continue
+		}
+		devices = append(devices, InfoDevice{
+			Region:  oltRegion,
+			State:   oltState,
+			IP:      oltIP,
+			IfName:  s.Labels["ifName"],
+			IfIndex: utils.ParseInt64(ifIndex),
+		})
+	}
+
+	if len(devices) == 0 {
+		return nil, fmt.Errorf("no devices found in Prometheus")
+	}
+
+	return devices, nil
 }
 
 func (p *Prometheus) QueryPonTraffic(ctx context.Context, date time.Time) ([]TrafficResult, error) {

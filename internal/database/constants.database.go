@@ -25,8 +25,8 @@ CREATE TABLE IF NOT EXISTS reports (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );`
 
-const SQL_TABLE_INFO_DEVICE string = `
-CREATE TABLE IF NOT EXISTS info_device (
+const SQL_TABLE_FAT string = `
+CREATE TABLE IF NOT EXISTS fats (
     id SERIAL PRIMARY KEY,
     ip VARCHAR(15) NOT NULL,
     region VARCHAR(128) NOT NULL,
@@ -35,11 +35,11 @@ CREATE TABLE IF NOT EXISTS info_device (
     county VARCHAR(128) NOT NULL,
     odn VARCHAR(128) NOT NULL,
     fat VARCHAR(128) NOT NULL,
-    pon_shell SMALLINT NOT NULL,
-    pon_card SMALLINT NOT NULL,
-    pon_port SMALLINT NOT NULL,
+    shell SMALLINT NOT NULL,
+    card SMALLINT NOT NULL,
+    port SMALLINT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
-    UNIQUE (fat, municipality, county, ip, odn, pon_shell, pon_card, pon_port)
+    UNIQUE (fat, municipality, county, ip, odn, shell, card, port)
 );`
 
 const SQL_TABLE_PROMETHEUS_DEVICES string = `
@@ -47,16 +47,13 @@ CREATE TABLE IF NOT EXISTS prometheus_devices (
     region VARCHAR(128) NOT NULL,
     state VARCHAR(128) NOT NULL,
     ip VARCHAR(15) NOT NULL,
-    idx INTEGER NOT NULL,
-    info_device_id INTEGER NOT NULL,
-    UNIQUE (ip, idx),
-    FOREIGN KEY (info_device_id) REFERENCES info_device(id)
+    idx BIGINT NOT NULL,
+    shell SMALLINT NOT NULL,
+    card SMALLINT NOT NULL,
+    port SMALLINT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE (ip, idx, shell, card, port)
 );`
-
-const SQL_INDEX_FAT_COUNTY string = `CREATE INDEX IF NOT EXISTS idx_fats_county ON fats(county);`
-const SQL_INDEX_FAT_MUNICIPALITY string = `CREATE INDEX IF NOT EXISTS idx_fats_municipality ON fats(municipality);`
-const SQL_INDEX_FAT_ODN string = `CREATE INDEX IF NOT EXISTS idx_fats_odn ON fats(odn);`
-const SQL_INDEX_FAT_IP string = `CREATE INDEX IF NOT EXISTS idx_fats_ip ON fats(ip);`
 
 const SQL_INDEX_REPORT_CATEGORY string = `CREATE INDEX IF NOT EXISTS idx_reports_category ON reports(category);`
 const SQL_INDEX_REPORT_USER_ID string = `CREATE INDEX IF NOT EXISTS idx_reports_user_id ON reports(user_id);`

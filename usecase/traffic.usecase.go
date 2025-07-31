@@ -69,6 +69,10 @@ func (use *TrafficUsecase) InfoInstance(ip string) ([]dto.InfoDevice, error) {
 	return res, nil
 }
 
+func (use *TrafficUsecase) Total(initDate, finalDate time.Time) ([]*prometheus.Traffic, error) {
+	return use.prometheus.TrafficTotal(context.Background(), initDate, finalDate)
+}
+
 func (use *TrafficUsecase) Region(region string, initDate, finalDate time.Time) ([]*prometheus.Traffic, error) {
 	return use.prometheus.TrafficByRegion(context.Background(), region, initDate, finalDate)
 }

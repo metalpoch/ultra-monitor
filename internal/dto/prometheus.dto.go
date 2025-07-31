@@ -28,13 +28,13 @@ type InfoDevice struct {
 }
 
 type traffic struct {
-	Time        time.Time
-	Description string
-	BpsIn       float64
-	BpsOut      float64
-	Bandwidth   float64
-	BytesIn     float64
-	BytesOut    float64
+	Time        time.Time `json:"time"`
+	Description string    `json:"description"`
+	BpsIn       float64   `json:"bps_in"`
+	BpsOut      float64   `json:"bps_out"`
+	Bandwidth   float64   `json:"bw_mbps"`
+	BytesIn     float64   `json:"bytes_in"`
+	BytesOut    float64   `json:"bytes_out"`
 }
 
 type Traffic map[string][]*traffic

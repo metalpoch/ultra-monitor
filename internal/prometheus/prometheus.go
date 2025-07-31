@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
@@ -13,19 +14,29 @@ import (
 	"github.com/prometheus/common/model"
 )
 
-type Prometheus struct {
+type Prometheus interface {
+	DeviceScan(ctx context.Context) ([]InfoDevice, error)
+	InstanceScan(ctx context.Context, ip string) ([]InfoDevice, error)
+	DeviceLocations(ctx context.Context) ([]DeviceLocation, error)
+	TrafficByRegion(ctx context.Context, region string, initDate, finalDate time.Time) ([]*Traffic, error)
+	TrafficByState(ctx context.Context, state string, initDate, finalDate time.Time) ([]*Traffic, error)
+	TrafficGroupInstance(ctx context.Context, instances []string, initDate, finalDate time.Time) ([]*Traffic, error)
+	TrafficInstanceByIndex(ctx context.Context, instance, index string, initDate, finalDate time.Time) ([]*Traffic, error)
+}
+
+type prometheus struct {
 	client v1.API
 }
 
-func NewPrometheusClient(host string) *Prometheus {
+func NewPrometheusClient(host string) *prometheus {
 	client, err := api.NewClient(api.Config{Address: host})
 	if err != nil {
 		log.Fatal(err)
 	}
-	return &Prometheus{client: v1.NewAPI(client)}
+	return &prometheus{client: v1.NewAPI(client)}
 }
 
-func (p *Prometheus) PrometheusDeviceScan(ctx context.Context) ([]InfoDevice, error) {
+func (p *prometheus) DeviceScan(ctx context.Context) ([]InfoDevice, error) {
 	ifNameVec, err := p.queryVector(ctx, "ifName", time.Now())
 	if err != nil {
 		return nil, err
@@ -56,273 +67,287 @@ func (p *Prometheus) PrometheusDeviceScan(ctx context.Context) ([]InfoDevice, er
 	return devices, nil
 }
 
-func (p *Prometheus) PrometheusTrafficRegion(ctx context.Context, initDate, finalDate time.Time) (map[string][]*Traffic, error) {
-	queryBW := "sum(ifSpeed) by (region)"
-	queryBpsIn := "sum(rate(hwGponOltEthernetStatisticReceivedBytes_count[10m]) * 8) by (region)"
-	queryBpsOut := "sum(rate(hwGponOltEthernetStatisticSendBytes_count[10m]) * 8) by (region)"
-	queryBytesIn := "sum(increase(hwGponOltEthernetStatisticReceivedBytes_count[10m])) by (region)"
-	queryBytesOut := "sum(increase(hwGponOltEthernetStatisticSendBytes_count[10m])) by (region)"
+func (p *prometheus) InstanceScan(ctx context.Context, ip string) ([]InfoDevice, error) {
+	ifNameVec, err := p.queryVector(ctx, fmt.Sprintf("ifName{instance='%s'}", ip), time.Now())
+	if err != nil {
+		return nil, err
+	}
 
-	result := make(map[string][]*Traffic)
+	var devices []InfoDevice
+	for _, s := range ifNameVec {
+		devices = append(devices, InfoDevice{
+			Region:  s.Labels["region"],
+			State:   s.Labels["state"],
+			IP:      s.Labels["instance"],
+			IfName:  s.Labels["ifName"],
+			IfIndex: utils.ParseInt64(s.Labels["ifIndex"]),
+		})
+	}
 
-	for t := initDate; t.Before(finalDate); t = t.Add(5 * time.Minute) {
-		mbpsBwVec, _ := p.queryVector(ctx, queryBW, t)
-		bpsInVec, _ := p.queryVector(ctx, queryBpsIn, t)
-		bpsOutVec, _ := p.queryVector(ctx, queryBpsOut, t)
-		bytesInVec, _ := p.queryVector(ctx, queryBytesIn, t)
-		bytesOutVec, _ := p.queryVector(ctx, queryBytesOut, t)
+	if len(devices) == 0 {
+		return nil, fmt.Errorf("no devices found in Prometheus")
+	}
 
-		tempData := make(map[string]*Traffic)
+	return devices, nil
+}
 
-		for _, s := range bpsInVec {
-			key := s.Labels["region"]
-			if _, ok := tempData[key]; !ok {
-				tempData[key] = &Traffic{Time: t}
-			}
-			tempData[key].BpsIn = s.Value
-		}
-		for _, s := range bpsOutVec {
-			key := s.Labels["region"]
-			if _, ok := tempData[key]; !ok {
-				tempData[key] = &Traffic{Time: t}
-			}
-			tempData[key].BpsOut = s.Value
-		}
-		for _, s := range mbpsBwVec {
-			key := s.Labels["region"]
-			if _, ok := tempData[key]; !ok {
-				tempData[key] = &Traffic{Time: t}
-			}
-			tempData[key].Bandwidth = s.Value
-		}
-		for _, s := range bytesInVec {
-			key := s.Labels["region"]
-			if _, ok := tempData[key]; !ok {
-				tempData[key] = &Traffic{Time: t}
-			}
-			tempData[key].BytesIn = s.Value
-		}
-		for _, s := range bytesOutVec {
-			key := s.Labels["region"]
-			if _, ok := tempData[key]; !ok {
-				tempData[key] = &Traffic{Time: t}
-			}
-			tempData[key].BytesOut = s.Value
-		}
+func (p *prometheus) DeviceLocations(ctx context.Context) ([]DeviceLocation, error) {
+	locationVec, err := p.queryVector(ctx, "count(sysName) by (region, state, instance, sysName)", time.Now())
+	if err != nil {
+		return nil, err
+	}
 
-		for region, traffic := range tempData {
-			result[region] = append(result[region], traffic)
+	var devices []DeviceLocation
+	for _, s := range locationVec {
+		devices = append(devices, DeviceLocation{
+			Region:  s.Labels["region"],
+			State:   s.Labels["state"],
+			IP:      s.Labels["instance"],
+			SysName: s.Labels["sysName"],
+		})
+	}
+
+	if len(devices) == 0 {
+		return nil, fmt.Errorf("no devices found in Prometheus")
+	}
+
+	return devices, nil
+}
+
+func (p *prometheus) TrafficByRegion(ctx context.Context, region string, initDate, finalDate time.Time) ([]*Traffic, error) {
+	queryBW := fmt.Sprintf("sum(ifSpeed{region='%s'})", region)
+	queryBpsIn := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticReceivedBytes_count{region='%s'}[10m]) * 8)", region)
+	queryBpsOut := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticSendBytes_count{region='%s'}[10m]) * 8)", region)
+	queryBytesIn := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticReceivedBytes_count{region='%s'}[10m]))", region)
+	queryBytesOut := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticSendBytes_count{region='%s'}[10m]))", region)
+
+	r := v1.Range{
+		Start: initDate,
+		End:   finalDate,
+		Step:  5 * time.Minute,
+	}
+
+	mbpsBwResult, _, _ := p.client.QueryRange(ctx, queryBW, r)
+	bpsInResult, _, _ := p.client.QueryRange(ctx, queryBpsIn, r)
+	bpsOutResult, _, _ := p.client.QueryRange(ctx, queryBpsOut, r)
+	bytesInResult, _, _ := p.client.QueryRange(ctx, queryBytesIn, r)
+	bytesOutResult, _, _ := p.client.QueryRange(ctx, queryBytesOut, r)
+
+	mbpsBwMatrix, _ := mbpsBwResult.(model.Matrix)
+	bpsInMatrix, _ := bpsInResult.(model.Matrix)
+	bpsOutMatrix, _ := bpsOutResult.(model.Matrix)
+	bytesInMatrix, _ := bytesInResult.(model.Matrix)
+	bytesOutMatrix, _ := bytesOutResult.(model.Matrix)
+
+	trafficMap := make(map[int64]*Traffic)
+
+	processMatrix := func(matrix model.Matrix, updateFunc func(*Traffic, float64)) {
+		for _, serie := range matrix {
+			for _, point := range serie.Values {
+				key := int64(point.Timestamp) / 1000
+				if _, ok := trafficMap[key]; !ok {
+					trafficMap[key] = &Traffic{Time: time.Unix(key, 0)}
+				}
+				updateFunc(trafficMap[key], float64(point.Value))
+			}
 		}
 	}
+
+	processMatrix(mbpsBwMatrix, func(t *Traffic, val float64) { t.Bandwidth = val })
+	processMatrix(bpsInMatrix, func(t *Traffic, val float64) { t.BpsIn = val })
+	processMatrix(bpsOutMatrix, func(t *Traffic, val float64) { t.BpsOut = val })
+	processMatrix(bytesInMatrix, func(t *Traffic, val float64) { t.BytesIn = val })
+	processMatrix(bytesOutMatrix, func(t *Traffic, val float64) { t.BytesOut = val })
+
+	result := make([]*Traffic, 0, len(trafficMap))
+	for _, traffic := range trafficMap {
+		result = append(result, traffic)
+	}
+
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Time.Before(result[j].Time)
+	})
 
 	return result, nil
 }
 
-func (p *Prometheus) PrometheusTrafficState(ctx context.Context, initDate, finalDate time.Time) (map[string][]*Traffic, error) {
-	queryBW := "sum(ifSpeed) by (state)"
-	queryBpsIn := "sum(rate(hwGponOltEthernetStatisticReceivedBytes_count[10m]) * 8) by (state)"
-	queryBpsOut := "sum(rate(hwGponOltEthernetStatisticSendBytes_count[10m]) * 8) by (state)"
-	queryBytesIn := "sum(increase(hwGponOltEthernetStatisticReceivedBytes_count[10m])) by (state)"
-	queryBytesOut := "sum(increase(hwGponOltEthernetStatisticSendBytes_count[10m])) by (state)"
+func (p *prometheus) TrafficByState(ctx context.Context, state string, initDate, finalDate time.Time) ([]*Traffic, error) {
+	queryBW := fmt.Sprintf("sum(ifSpeed{state='%s'})", state)
+	queryBpsIn := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticReceivedBytes_count{state='%s'}[10m]) * 8)", state)
+	queryBpsOut := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticSendBytes_count{state='%s'}[10m]) * 8)", state)
+	queryBytesIn := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticReceivedBytes_count{state='%s'}[10m]))", state)
+	queryBytesOut := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticSendBytes_count{state='%s'}[10m]))", state)
 
-	result := make(map[string][]*Traffic)
+	r := v1.Range{
+		Start: initDate,
+		End:   finalDate,
+		Step:  5 * time.Minute,
+	}
 
-	for t := initDate; t.Before(finalDate); t = t.Add(5 * time.Minute) {
-		mbpsBwVec, _ := p.queryVector(ctx, queryBW, t)
-		bpsInVec, _ := p.queryVector(ctx, queryBpsIn, t)
-		bpsOutVec, _ := p.queryVector(ctx, queryBpsOut, t)
-		bytesInVec, _ := p.queryVector(ctx, queryBytesIn, t)
-		bytesOutVec, _ := p.queryVector(ctx, queryBytesOut, t)
+	mbpsBwResult, _, _ := p.client.QueryRange(ctx, queryBW, r)
+	bpsInResult, _, _ := p.client.QueryRange(ctx, queryBpsIn, r)
+	bpsOutResult, _, _ := p.client.QueryRange(ctx, queryBpsOut, r)
+	bytesInResult, _, _ := p.client.QueryRange(ctx, queryBytesIn, r)
+	bytesOutResult, _, _ := p.client.QueryRange(ctx, queryBytesOut, r)
 
-		tempData := make(map[string]*Traffic)
+	mbpsBwMatrix, _ := mbpsBwResult.(model.Matrix)
+	bpsInMatrix, _ := bpsInResult.(model.Matrix)
+	bpsOutMatrix, _ := bpsOutResult.(model.Matrix)
+	bytesInMatrix, _ := bytesInResult.(model.Matrix)
+	bytesOutMatrix, _ := bytesOutResult.(model.Matrix)
 
-		for _, s := range bpsInVec {
-			key := s.Labels["state"]
-			if _, ok := tempData[key]; !ok {
-				tempData[key] = &Traffic{Time: t}
-			}
-			tempData[key].BpsIn = s.Value
-		}
-		for _, s := range bpsOutVec {
-			key := s.Labels["state"]
-			if _, ok := tempData[key]; !ok {
-				tempData[key] = &Traffic{Time: t}
-			}
-			tempData[key].BpsOut = s.Value
-		}
-		for _, s := range mbpsBwVec {
-			key := s.Labels["state"]
-			if _, ok := tempData[key]; !ok {
-				tempData[key] = &Traffic{Time: t}
-			}
-			tempData[key].Bandwidth = s.Value
-		}
-		for _, s := range bytesInVec {
-			key := s.Labels["state"]
-			if _, ok := tempData[key]; !ok {
-				tempData[key] = &Traffic{Time: t}
-			}
-			tempData[key].BytesIn = s.Value
-		}
-		for _, s := range bytesOutVec {
-			key := s.Labels["state"]
-			if _, ok := tempData[key]; !ok {
-				tempData[key] = &Traffic{Time: t}
-			}
-			tempData[key].BytesOut = s.Value
-		}
+	trafficMap := make(map[int64]*Traffic)
 
-		for region, traffic := range tempData {
-			result[region] = append(result[region], traffic)
+	processMatrix := func(matrix model.Matrix, updateFunc func(*Traffic, float64)) {
+		for _, serie := range matrix {
+			for _, point := range serie.Values {
+				key := int64(point.Timestamp) / 1000
+				if _, ok := trafficMap[key]; !ok {
+					trafficMap[key] = &Traffic{Time: time.Unix(key, 0)}
+				}
+				updateFunc(trafficMap[key], float64(point.Value))
+			}
 		}
 	}
+
+	processMatrix(mbpsBwMatrix, func(t *Traffic, val float64) { t.Bandwidth = val })
+	processMatrix(bpsInMatrix, func(t *Traffic, val float64) { t.BpsIn = val })
+	processMatrix(bpsOutMatrix, func(t *Traffic, val float64) { t.BpsOut = val })
+	processMatrix(bytesInMatrix, func(t *Traffic, val float64) { t.BytesIn = val })
+	processMatrix(bytesOutMatrix, func(t *Traffic, val float64) { t.BytesOut = val })
+
+	result := make([]*Traffic, 0, len(trafficMap))
+	for _, traffic := range trafficMap {
+		result = append(result, traffic)
+	}
+
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Time.Before(result[j].Time)
+	})
 
 	return result, nil
 }
 
-func (p *Prometheus) PrometheusTrafficGroupInstance(ctx context.Context, instances []string, initDate, finalDate time.Time) (map[string][]*Traffic, error) {
+func (p *prometheus) TrafficGroupInstance(ctx context.Context, instances []string, initDate, finalDate time.Time) ([]*Traffic, error) {
 	if len(instances) == 0 {
 		return nil, fmt.Errorf("no instances provided")
 	}
 
 	instancesStr := strings.Join(instances, "|")
+	queryBW := fmt.Sprintf("sum(ifSpeed{instance=~'%s'})", instancesStr)
+	queryBpsIn := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticReceivedBytes_count{instance=~'%s'}[10m]) * 8)", instancesStr)
+	queryBpsOut := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticSendBytes_count{instance=~'%s'}[10m]) * 8)", instancesStr)
+	queryBytesIn := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticReceivedBytes_count{instance=~'%s'}[10m]))", instancesStr)
+	queryBytesOut := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticSendBytes_count{instance=~'%s'}[10m]))", instancesStr)
 
-	queryBW := fmt.Sprintf("sum(ifSpeed{instance=~'%s'}) by (instance)", instancesStr)
-	queryBpsIn := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticReceivedBytes_count{instance=~'%s'}[10m]) * 8) by (instance)", instancesStr)
-	queryBpsOut := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticSendBytes_count{instance=~'%s'}[10m]) * 8) by (instance)", instancesStr)
-	queryBytesIn := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticReceivedBytes_count{instance=~'%s'}[10m])) by (instance)", instancesStr)
-	queryBytesOut := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticSendBytes_count{instance=~'%s'}[10m])) by (instance)", instancesStr)
+	r := v1.Range{
+		Start: initDate,
+		End:   finalDate,
+		Step:  5 * time.Minute,
+	}
 
-	result := make(map[string][]*Traffic)
+	mbpsBwResult, _, _ := p.client.QueryRange(ctx, queryBW, r)
+	bpsInResult, _, _ := p.client.QueryRange(ctx, queryBpsIn, r)
+	bpsOutResult, _, _ := p.client.QueryRange(ctx, queryBpsOut, r)
+	bytesInResult, _, _ := p.client.QueryRange(ctx, queryBytesIn, r)
+	bytesOutResult, _, _ := p.client.QueryRange(ctx, queryBytesOut, r)
 
-	for t := initDate; t.Before(finalDate); t = t.Add(5 * time.Minute) {
-		mbpsBwVec, _ := p.queryVector(ctx, queryBW, t)
-		bpsInVec, _ := p.queryVector(ctx, queryBpsIn, t)
-		bpsOutVec, _ := p.queryVector(ctx, queryBpsOut, t)
-		bytesInVec, _ := p.queryVector(ctx, queryBytesIn, t)
-		bytesOutVec, _ := p.queryVector(ctx, queryBytesOut, t)
+	mbpsBwMatrix, _ := mbpsBwResult.(model.Matrix)
+	bpsInMatrix, _ := bpsInResult.(model.Matrix)
+	bpsOutMatrix, _ := bpsOutResult.(model.Matrix)
+	bytesInMatrix, _ := bytesInResult.(model.Matrix)
+	bytesOutMatrix, _ := bytesOutResult.(model.Matrix)
 
-		tempData := make(map[string]*Traffic)
+	trafficMap := make(map[int64]*Traffic)
 
-		for _, s := range bpsInVec {
-			key := s.Labels["instance"]
-			if _, ok := tempData[key]; !ok {
-				tempData[key] = &Traffic{Time: t}
+	processMatrix := func(matrix model.Matrix, updateFunc func(*Traffic, float64)) {
+		for _, serie := range matrix {
+			for _, point := range serie.Values {
+				key := int64(point.Timestamp) / 1000
+				if _, ok := trafficMap[key]; !ok {
+					trafficMap[key] = &Traffic{Time: time.Unix(key, 0)}
+				}
+				updateFunc(trafficMap[key], float64(point.Value))
 			}
-			tempData[key].BpsIn = s.Value
-		}
-		for _, s := range bpsOutVec {
-			key := s.Labels["instance"]
-			if _, ok := tempData[key]; !ok {
-				tempData[key] = &Traffic{Time: t}
-			}
-			tempData[key].BpsOut = s.Value
-		}
-		for _, s := range mbpsBwVec {
-			key := s.Labels["instance"]
-			if _, ok := tempData[key]; !ok {
-				tempData[key] = &Traffic{Time: t}
-			}
-			tempData[key].Bandwidth = s.Value
-		}
-		for _, s := range bytesInVec {
-			key := s.Labels["instance"]
-			if _, ok := tempData[key]; !ok {
-				tempData[key] = &Traffic{Time: t}
-			}
-			tempData[key].BytesIn = s.Value
-		}
-		for _, s := range bytesOutVec {
-			key := s.Labels["instance"]
-			if _, ok := tempData[key]; !ok {
-				tempData[key] = &Traffic{Time: t}
-			}
-			tempData[key].BytesOut = s.Value
-		}
-
-		for region, traffic := range tempData {
-			result[region] = append(result[region], traffic)
 		}
 	}
+
+	processMatrix(mbpsBwMatrix, func(t *Traffic, val float64) { t.Bandwidth = val })
+	processMatrix(bpsInMatrix, func(t *Traffic, val float64) { t.BpsIn = val })
+	processMatrix(bpsOutMatrix, func(t *Traffic, val float64) { t.BpsOut = val })
+	processMatrix(bytesInMatrix, func(t *Traffic, val float64) { t.BytesIn = val })
+	processMatrix(bytesOutMatrix, func(t *Traffic, val float64) { t.BytesOut = val })
+
+	result := make([]*Traffic, 0, len(trafficMap))
+	for _, traffic := range trafficMap {
+		result = append(result, traffic)
+	}
+
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Time.Before(result[j].Time)
+	})
 
 	return result, nil
 }
 
-func (p *Prometheus) PrometheusTrafficInstance(ctx context.Context, instance string, initDate, finalDate time.Time) (map[string][]*Traffic, error) {
-	queryBW := fmt.Sprintf("sum(ifSpeed{instance='%s'}) by (ifIndex)", instance)
-	queryIfName := fmt.Sprintf("ifName{instance='%s'}", instance) // ifName{ifIndex="2097152", ifName="GPON X/Y/Z", instance="10.125.120.231", job="olt_distrito-capital", region="Capital", state="Distrito Capital"}
-	queryBpsIn := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticReceivedBytes_count{instance='%s'}[10m]) * 8) by (ponPortIndex)", instance)
-	queryBpsOut := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticSendBytes_count{instance=~'%s'}[10m]) * 8) by (ponPortIndex)", instance)
-	queryBytesIn := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticReceivedBytes_count{instance=~'%s'}[10m])) by (ponPortIndex)", instance)
-	queryBytesOut := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticSendBytes_count{instance=~'%s'}[10m])) by (ponPortIndex)", instance)
+func (p *prometheus) TrafficInstanceByIndex(ctx context.Context, instance, index string, initDate, finalDate time.Time) ([]*Traffic, error) {
+	queryBW := fmt.Sprintf("sum(ifSpeed{instance='%s', ifIndex='%s'})", instance, index)
+	queryBpsIn := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticReceivedBytes_count{instance='%s', ponPortIndex='%s'}[10m]) * 8)", instance, index)
+	queryBpsOut := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticSendBytes_count{instance='%s', ponPortIndex='%s'}[10m]) * 8)", instance, index)
+	queryBytesIn := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticReceivedBytes_count{instance='%s', ponPortIndex='%s'}[10m]))", instance, index)
+	queryBytesOut := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticSendBytes_count{instance='%s', ponPortIndex='%s'}[10m]))", instance, index)
 
-	result := make(map[string][]*Traffic)
+	r := v1.Range{
+		Start: initDate,
+		End:   finalDate,
+		Step:  5 * time.Minute,
+	}
 
-	for t := initDate; t.Before(finalDate); t = t.Add(5 * time.Minute) {
-		mbpsBwVec, _ := p.queryVector(ctx, queryBW, t)
-		ifNameVec, _ := p.queryVector(ctx, queryIfName, t)
-		bpsInVec, _ := p.queryVector(ctx, queryBpsIn, t)
-		bpsOutVec, _ := p.queryVector(ctx, queryBpsOut, t)
-		bytesInVec, _ := p.queryVector(ctx, queryBytesIn, t)
-		bytesOutVec, _ := p.queryVector(ctx, queryBytesOut, t)
+	mbpsBwResult, _, _ := p.client.QueryRange(ctx, queryBW, r)
+	bpsInResult, _, _ := p.client.QueryRange(ctx, queryBpsIn, r)
+	bpsOutResult, _, _ := p.client.QueryRange(ctx, queryBpsOut, r)
+	bytesInResult, _, _ := p.client.QueryRange(ctx, queryBytesIn, r)
+	bytesOutResult, _, _ := p.client.QueryRange(ctx, queryBytesOut, r)
 
-		tempData := make(map[string]*Traffic)
+	mbpsBwMatrix, _ := mbpsBwResult.(model.Matrix)
+	bpsInMatrix, _ := bpsInResult.(model.Matrix)
+	bpsOutMatrix, _ := bpsOutResult.(model.Matrix)
+	bytesInMatrix, _ := bytesInResult.(model.Matrix)
+	bytesOutMatrix, _ := bytesOutResult.(model.Matrix)
 
-		for _, s := range ifNameVec {
-			key := s.Labels["ifIndex"]
-			if _, ok := tempData[key]; !ok {
-				tempData[key] = &Traffic{Time: t}
+	trafficMap := make(map[int64]*Traffic)
+
+	processMatrix := func(matrix model.Matrix, updateFunc func(*Traffic, float64)) {
+		for _, serie := range matrix {
+			for _, point := range serie.Values {
+				key := int64(point.Timestamp) / 1000
+				if _, ok := trafficMap[key]; !ok {
+					trafficMap[key] = &Traffic{Time: time.Unix(key, 0)}
+				}
+				updateFunc(trafficMap[key], float64(point.Value))
 			}
-			tempData[key].Description = s.Labels["ifName"]
-		}
-
-		for _, s := range mbpsBwVec {
-			key := s.Labels["ifIndex"]
-			if _, ok := tempData[key]; !ok {
-				tempData[key] = &Traffic{Time: t}
-			}
-			tempData[key].Bandwidth = s.Value
-		}
-
-		for _, s := range bpsInVec {
-			key := s.Labels["ponPortIndex"]
-			if _, ok := tempData[key]; !ok {
-				tempData[key] = &Traffic{Time: t}
-			}
-			tempData[key].BpsIn = s.Value
-		}
-		for _, s := range bpsOutVec {
-			key := s.Labels["ponPortIndex"]
-			if _, ok := tempData[key]; !ok {
-				tempData[key] = &Traffic{Time: t}
-			}
-			tempData[key].BpsOut = s.Value
-		}
-
-		for _, s := range bytesInVec {
-			key := s.Labels["ponPortIndex"]
-			if _, ok := tempData[key]; !ok {
-				tempData[key] = &Traffic{Time: t}
-			}
-			tempData[key].BytesIn = s.Value
-		}
-		for _, s := range bytesOutVec {
-			key := s.Labels["ponPortIndex"]
-			if _, ok := tempData[key]; !ok {
-				tempData[key] = &Traffic{Time: t}
-			}
-			tempData[key].BytesOut = s.Value
-		}
-
-		for region, traffic := range tempData {
-			result[region] = append(result[region], traffic)
 		}
 	}
+
+	processMatrix(mbpsBwMatrix, func(t *Traffic, val float64) { t.Bandwidth = val })
+	processMatrix(bpsInMatrix, func(t *Traffic, val float64) { t.BpsIn = val })
+	processMatrix(bpsOutMatrix, func(t *Traffic, val float64) { t.BpsOut = val })
+	processMatrix(bytesInMatrix, func(t *Traffic, val float64) { t.BytesIn = val })
+	processMatrix(bytesOutMatrix, func(t *Traffic, val float64) { t.BytesOut = val })
+
+	result := make([]*Traffic, 0, len(trafficMap))
+	for _, traffic := range trafficMap {
+		result = append(result, traffic)
+	}
+
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Time.Before(result[j].Time)
+	})
 
 	return result, nil
 }
 
-func (p *Prometheus) queryVector(ctx context.Context, query string, ts time.Time) ([]dataProm, error) {
+func (p *prometheus) queryVector(ctx context.Context, query string, ts time.Time) ([]dataProm, error) {
 	val, warn, err := p.client.Query(ctx, query, ts)
 	if err != nil {
 		return nil, err
@@ -348,3 +373,112 @@ func (p *Prometheus) queryVector(ctx context.Context, query string, ts time.Time
 	}
 	return vectors, nil
 }
+
+// func (p *Prometheus) TrafficInstanceByIndex(ctx context.Context, instance, index string, initDate, finalDate time.Time) (map[string][]*Traffic, error) {
+// 	queryBW := fmt.Sprintf("sum(ifSpeed{instance='%s', ifIndex='%s'})", instance, index)
+// 	queryIfName := fmt.Sprintf("ifName{instance='%s', ifIndex='%s'}", instance, index)
+// 	queryBpsIn := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticReceivedBytes_count{instance='%s', ponPortIndex='%s'}[10m]) * 8)", instance, index)
+// 	queryBpsOut := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticSendBytes_count{instance='%s', ponPortIndex='%s'}[10m]) * 8)", instance, index)
+// 	queryBytesIn := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticReceivedBytes_count{instance='%s', ponPortIndex='%s'}[10m]))", instance, index)
+// 	queryBytesOut := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticSendBytes_count{instance='%s', ponPortIndex='%s'}[10m]))", instance, index)
+
+// 	r := v1.Range{
+// 		Start: initDate,
+// 		End:   finalDate,
+// 		Step:  5 * time.Minute,
+// 	}
+
+// 	bwResult, _, err := p.client.QueryRange(ctx, queryBW, r)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	ifNameResult, _, err := p.client.QueryRange(ctx, queryIfName, r)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	bpsInResult, _, err := p.client.QueryRange(ctx, queryBpsIn, r)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	bpsOutResult, _, err := p.client.QueryRange(ctx, queryBpsOut, r)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	bytesInResult, _, err := p.client.QueryRange(ctx, queryBytesIn, r)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	bytesOutResult, _, err := p.client.QueryRange(ctx, queryBytesOut, r)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	bwMatrix, _ := bwResult.(model.Matrix)
+// 	ifNameMatrix, _ := ifNameResult.(model.Matrix)
+// 	bpsInMatrix, _ := bpsInResult.(model.Matrix)
+// 	bpsOutMatrix, _ := bpsOutResult.(model.Matrix)
+// 	bytesInMatrix, _ := bytesInResult.(model.Matrix)
+// 	bytesOutMatrix, _ := bytesOutResult.(model.Matrix)
+
+// 	tempDataMap := make(map[int64]map[string]*Traffic) // timestamp -> region (ifIndex / ponPortIndex) -> Traffic
+
+// 	// Helper para inicializar mapas por timestamp
+// 	getOrCreate := func(timestamp int64, key string) *Traffic {
+// 		if _, ok := tempDataMap[timestamp]; !ok {
+// 			tempDataMap[timestamp] = make(map[string]*Traffic)
+// 		}
+// 		if _, ok := tempDataMap[timestamp][key]; !ok {
+// 			tempDataMap[timestamp][key] = &Traffic{Time: time.Unix(timestamp, 0)}
+// 		}
+// 		return tempDataMap[timestamp][key]
+// 	}
+
+// 	for _, serie := range ifNameMatrix {
+// 		key := string(serie.Metric["ifIndex"]) // ifName usa ifIndex como label de clave
+// 		for _, point := range serie.Values {
+// 			timestamp := int64(point.Timestamp) / 1000
+// 			traffic := getOrCreate(timestamp, key)
+// 			traffic.Description = string(serie.Metric["ifName"])
+// 		}
+// 	}
+
+// 	for _, serie := range bwMatrix {
+// 		key := string(serie.Metric["ifIndex"])
+// 		for _, point := range serie.Values {
+// 			timestamp := int64(point.Timestamp) / 1000
+// 			traffic := getOrCreate(timestamp, key)
+// 			traffic.Bandwidth = float64(point.Value)
+// 		}
+// 	}
+
+// 	updateTrafficField := func(matrix model.Matrix, field func(*Traffic, float64)) {
+// 		for _, serie := range matrix {
+// 			key := string(serie.Metric["ponPortIndex"])
+// 			for _, point := range serie.Values {
+// 				timestamp := int64(point.Timestamp) / 1000
+// 				traffic := getOrCreate(timestamp, key)
+// 				field(traffic, float64(point.Value))
+// 			}
+// 		}
+// 	}
+
+// 	updateTrafficField(bpsInMatrix, func(t *Traffic, val float64) { t.BpsIn = val })
+// 	updateTrafficField(bpsOutMatrix, func(t *Traffic, val float64) { t.BpsOut = val })
+// 	updateTrafficField(bytesInMatrix, func(t *Traffic, val float64) { t.BytesIn = val })
+// 	updateTrafficField(bytesOutMatrix, func(t *Traffic, val float64) { t.BytesOut = val })
+
+// 	result := make(map[string][]*Traffic)
+// 	for _, timeMap := range tempDataMap {
+// 		for region, traffic := range timeMap {
+// 			result[region] = append(result[region], traffic)
+// 		}
+// 	}
+
+// 	for _, traffics := range result {
+// 		sort.Slice(traffics, func(i, j int) bool {
+// 			return traffics[i].Time.Before(traffics[j].Time)
+// 		})
+// 	}
+
+// 	return result, nil
+// }

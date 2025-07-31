@@ -34,3 +34,10 @@ type InfoDevice struct {
 	IfName  string
 	IfIndex int64
 }
+
+type DeviceLocation struct {
+	Region  string
+	State   string
+	IP      string
+	SysName string
+}

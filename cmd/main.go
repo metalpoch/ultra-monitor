@@ -25,7 +25,7 @@ import (
 
 var db *sqlx.DB
 var redis *cache.Redis
-var prometheusClient *prometheus.Prometheus
+var prometheusClient prometheus.Prometheus
 var jwtSecret string
 var reportsDir string
 var port string
@@ -99,14 +99,14 @@ func main() {
 		app.Use(logger.New())
 		app.Use(cors.New())
 
-		routes.Init(app, db, redis, []byte(jwtSecret), reportsDir, prometheusClient)
+		routes.Init(app, db, redis, []byte(jwtSecret), reportsDir, &prometheusClient)
 
 		app.Listen(":"+port, fiber.ListenConfig{
 			EnablePrefork: true,
 		})
 
 	case "scan":
-		prometheusDevices, err := prometheusClient.PrometheusDeviceScan(context.Background())
+		prometheusDevices, err := prometheusClient.DeviceScan(context.Background())
 		if err != nil {
 			log.Fatalf("error scanning Prometheus devices: %v", err)
 		}

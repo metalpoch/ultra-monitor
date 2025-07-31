@@ -27,7 +27,7 @@ type InfoDevice struct {
 	IfIndex int64  `json:"if_index"`
 }
 
-type traffic struct {
+type Traffic struct {
 	Time        time.Time `json:"time"`
 	Description string    `json:"description"`
 	BpsIn       float64   `json:"bps_in"`
@@ -36,8 +36,6 @@ type traffic struct {
 	BytesIn     float64   `json:"bytes_in"`
 	BytesOut    float64   `json:"bytes_out"`
 }
-
-type Traffic map[string][]*traffic
 
 type GroupedIP struct {
 	IP []string `query:"ip" validate:"required"`

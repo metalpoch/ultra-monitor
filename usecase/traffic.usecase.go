@@ -69,22 +69,72 @@ func (use *TrafficUsecase) InfoInstance(ip string) ([]dto.InfoDevice, error) {
 	return res, nil
 }
 
-func (use *TrafficUsecase) Total(initDate, finalDate time.Time) ([]*prometheus.Traffic, error) {
-	return use.prometheus.TrafficTotal(context.Background(), initDate, finalDate)
+func (use *TrafficUsecase) Total(initDate, finalDate time.Time) ([]dto.Traffic, error) {
+	traffic, err := use.prometheus.TrafficTotal(context.Background(), initDate, finalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []dto.Traffic
+	for _, t := range traffic {
+		result = append(result, (dto.Traffic)(*t))
+	}
+
+	return result, nil
 }
 
-func (use *TrafficUsecase) Region(region string, initDate, finalDate time.Time) ([]*prometheus.Traffic, error) {
-	return use.prometheus.TrafficByRegion(context.Background(), region, initDate, finalDate)
+func (use *TrafficUsecase) Region(region string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
+	traffic, err := use.prometheus.TrafficByRegion(context.Background(), region, initDate, finalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []dto.Traffic
+	for _, t := range traffic {
+		result = append(result, (dto.Traffic)(*t))
+	}
+
+	return result, nil
 }
 
-func (use *TrafficUsecase) States(state string, initDate, finalDate time.Time) ([]*prometheus.Traffic, error) {
-	return use.prometheus.TrafficByState(context.Background(), state, initDate, finalDate)
+func (use *TrafficUsecase) States(state string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
+	traffic, err := use.prometheus.TrafficByState(context.Background(), state, initDate, finalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []dto.Traffic
+	for _, t := range traffic {
+		result = append(result, (dto.Traffic)(*t))
+	}
+
+	return result, nil
 }
 
-func (use *TrafficUsecase) GroupIP(ips []string, initDate, finalDate time.Time) ([]*prometheus.Traffic, error) {
-	return use.prometheus.TrafficGroupInstance(context.Background(), ips, initDate, finalDate)
+func (use *TrafficUsecase) GroupIP(ips []string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
+	traffic, err := use.prometheus.TrafficGroupInstance(context.Background(), ips, initDate, finalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []dto.Traffic
+	for _, t := range traffic {
+		result = append(result, (dto.Traffic)(*t))
+	}
+
+	return result, nil
 }
 
-func (use *TrafficUsecase) IndexAndIP(ip, index string, initDate, finalDate time.Time) ([]*prometheus.Traffic, error) {
-	return use.prometheus.TrafficInstanceByIndex(context.Background(), ip, index, initDate, finalDate)
+func (use *TrafficUsecase) IndexAndIP(ip, index string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
+	traffic, err := use.prometheus.TrafficInstanceByIndex(context.Background(), ip, index, initDate, finalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []dto.Traffic
+	for _, t := range traffic {
+		result = append(result, (dto.Traffic)(*t))
+	}
+
+	return result, nil
 }

@@ -38,7 +38,7 @@ func NewPrometheusClient(host string) *prometheus {
 }
 
 func (p *prometheus) DeviceScan(ctx context.Context) ([]InfoDevice, error) {
-	ifNameVec, err := p.queryVector(ctx, "ifName", time.Now())
+	ifNameVec, err := p.queryVector(ctx, "ifOperStatus * on(ifIndex, instance) group_left(ifName) ifName", time.Now())
 	if err != nil {
 		return nil, err
 	}
@@ -53,11 +53,12 @@ func (p *prometheus) DeviceScan(ctx context.Context) ([]InfoDevice, error) {
 			continue
 		}
 		devices = append(devices, InfoDevice{
-			Region:  oltRegion,
-			State:   oltState,
-			IP:      oltIP,
-			IfName:  s.Labels["ifName"],
-			IfIndex: utils.ParseInt64(ifIndex),
+			Region:       oltRegion,
+			State:        oltState,
+			IP:           oltIP,
+			IfName:       s.Labels["ifName"],
+			IfIndex:      utils.ParseInt64(ifIndex),
+			IfOperStatus: int8(s.Value),
 		})
 	}
 
@@ -69,19 +70,23 @@ func (p *prometheus) DeviceScan(ctx context.Context) ([]InfoDevice, error) {
 }
 
 func (p *prometheus) InstanceScan(ctx context.Context, ip string) ([]InfoDevice, error) {
-	ifNameVec, err := p.queryVector(ctx, fmt.Sprintf("ifName{instance='%s'}", ip), time.Now())
+	queryVec, err := p.queryVector(ctx,
+		fmt.Sprintf("ifOperStatus * on(ifIndex, instance) group_left(ifName) ifName{instance='%s'}", ip),
+		time.Now(),
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	var devices []InfoDevice
-	for _, s := range ifNameVec {
+	for _, s := range queryVec {
 		devices = append(devices, InfoDevice{
-			Region:  s.Labels["region"],
-			State:   s.Labels["state"],
-			IP:      s.Labels["instance"],
-			IfName:  s.Labels["ifName"],
-			IfIndex: utils.ParseInt64(s.Labels["ifIndex"]),
+			Region:       s.Labels["region"],
+			State:        s.Labels["state"],
+			IP:           s.Labels["instance"],
+			IfName:       s.Labels["ifName"],
+			IfIndex:      utils.ParseInt64(s.Labels["ifIndex"]),
+			IfOperStatus: int8(s.Value),
 		})
 	}
 
@@ -174,15 +179,15 @@ func (p *prometheus) TrafficByRegion(ctx context.Context, region string, initDat
 
 func (p *prometheus) TrafficTotal(ctx context.Context, initDate, finalDate time.Time) ([]*Traffic, error) {
 	queryBW := "sum(ifSpeed)"
-	queryBpsIn := "sum(rate(hwGponOltEthernetStatisticReceivedBytes_count[10m]) * 8)"
-	queryBpsOut := "sum(rate(hwGponOltEthernetStatisticSendBytes_count[10m]) * 8)"
-	queryBytesIn := "sum(increase(hwGponOltEthernetStatisticReceivedBytes_count[10m]))"
-	queryBytesOut := "sum(increase(hwGponOltEthernetStatisticSendBytes_count[10m]))"
+	queryBpsIn := "sum(rate(hwGponOltEthernetStatisticReceivedBytes_count[1h]) * 8)"
+	queryBpsOut := "sum(rate(hwGponOltEthernetStatisticSendBytes_count[1h]) * 8)"
+	queryBytesIn := "sum(increase(hwGponOltEthernetStatisticReceivedBytes_count[1h]))"
+	queryBytesOut := "sum(increase(hwGponOltEthernetStatisticSendBytes_count[1h]))"
 
 	r := v1.Range{
 		Start: initDate,
 		End:   finalDate,
-		Step:  5 * time.Minute,
+		Step:  time.Hour,
 	}
 
 	mbpsBwResult, _, _ := p.client.QueryRange(ctx, queryBW, r)

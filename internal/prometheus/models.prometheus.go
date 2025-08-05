@@ -28,11 +28,12 @@ type Traffic struct {
 }
 
 type InfoDevice struct {
-	Region  string
-	State   string
-	IP      string
-	IfName  string
-	IfIndex int64
+	Region       string
+	State        string
+	IP           string
+	IfName       string
+	IfIndex      int64
+	IfOperStatus int8
 }
 
 type DeviceLocation struct {

@@ -78,7 +78,7 @@ func init() {
 func main() {
 
 	if len(os.Args) < 2 {
-		fmt.Println("Uso: <app> [server | scan ]")
+		fmt.Println("Uso: <app> [ server | scan ]")
 		return
 	}
 
@@ -92,7 +92,6 @@ func main() {
 			BodyLimit:       100 * 1024 * 1024, // 100 mb
 			ServerHeader:    "KURBIL01",
 			AppName:         "Gestor Ultra",
-			CaseSensitive:   true,
 			StrictRouting:   true,
 		})
 
@@ -101,7 +100,7 @@ func main() {
 
 		routes.Init(app, db, redis, []byte(jwtSecret), reportsDir, &prometheusClient)
 
-		app.Listen(":"+port, fiber.ListenConfig{
+		app.Listen("localhost"+":"+port, fiber.ListenConfig{
 			EnablePrefork: true,
 		})
 
@@ -143,6 +142,7 @@ func main() {
 				Shell:  uint8(shell),
 				Card:   uint8(card),
 				Port:   uint8(port),
+				Status: device.IfOperStatus,
 			}); err != nil {
 				log.Fatalf("error upserting batch: %v", err)
 			}

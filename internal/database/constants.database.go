@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS prometheus_devices (
     shell SMALLINT NOT NULL,
     card SMALLINT NOT NULL,
     port SMALLINT NOT NULL,
+    status SMALLINT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
     UNIQUE (ip, idx, shell, card, port)
 );`

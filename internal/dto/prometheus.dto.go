@@ -10,6 +10,7 @@ type Prometheus struct {
 	Shell  uint8  `json:"shell"`
 	Card   uint8  `json:"card"`
 	Port   uint8  `json:"port"`
+	Status int8   `json:"status"`
 }
 
 type DeviceLocation struct {
@@ -20,11 +21,12 @@ type DeviceLocation struct {
 }
 
 type InfoDevice struct {
-	Region  string `json:"region"`
-	State   string `json:"state"`
-	IP      string `json:"ip"`
-	IfName  string `json:"if_name"`
-	IfIndex int64  `json:"if_index"`
+	Region       string `json:"region"`
+	State        string `json:"state"`
+	IP           string `json:"ip"`
+	IfName       string `json:"if_name"`
+	IfIndex      int64  `json:"if_index"`
+	IfOperStatus int8   `json:"if_oper_status"`
 }
 
 type Traffic struct {

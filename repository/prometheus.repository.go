@@ -21,8 +21,8 @@ func NewPrometheusRepository(db *sqlx.DB) *prometheusRepository {
 }
 
 func (r *prometheusRepository) Upsert(ctx context.Context, data entity.PrometheusUpsert) error {
-	query := `INSERT INTO prometheus_devices (region, state, ip, idx, shell, card, port)
-	VALUES (:region, :state, :ip, :idx, :shell, :card, :port)
+	query := `INSERT INTO prometheus_devices (region, state, ip, idx, shell, card, port, status)
+	VALUES (:region, :state, :ip, :idx, :shell, :card, :port, :status)
 	ON CONFLICT (ip, idx, shell, card, port) DO UPDATE SET
 		region = EXCLUDED.region,
 		state = EXCLUDED.state,
@@ -30,6 +30,7 @@ func (r *prometheusRepository) Upsert(ctx context.Context, data entity.Prometheu
 		shell = EXCLUDED.shell,
 		card = EXCLUDED.card,
 		port = EXCLUDED.port,
+		status =  EXCLUDED.status,
 		created_at = NOW()`
 	_, err := r.db.NamedExecContext(ctx, query, data)
 	if err != nil {

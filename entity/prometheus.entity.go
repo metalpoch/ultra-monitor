@@ -21,4 +21,5 @@ type PrometheusUpsert struct {
 	Shell  uint8  `db:"shell"`
 	Card   uint8  `db:"card"`
 	Port   uint8  `db:"port"`
+	Status int8   `db:"status"`
 }

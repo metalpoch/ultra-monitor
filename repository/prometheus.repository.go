@@ -10,6 +10,7 @@ import (
 
 type PrometheusRepository interface {
 	Upsert(ctx context.Context, data entity.PrometheusUpsert) error
+	GponPortsStatus(ctx context.Context) (*entity.PrometheusPortStatus, error)
 }
 
 type prometheusRepository struct {
@@ -37,4 +38,17 @@ func (r *prometheusRepository) Upsert(ctx context.Context, data entity.Prometheu
 		return fmt.Errorf("failed to upsert prometheus device: %w", err)
 	}
 	return nil
+}
+
+func (r *prometheusRepository) GponPortsStatus(ctx context.Context) (*entity.PrometheusPortStatus, error) {
+	var res entity.PrometheusPortStatus
+	query := `SELECT
+		COUNT(DISTINCT(ip)) AS olts,
+		COUNT(DISTINCT(ip, card)) AS cards,
+		SUM(CASE WHEN status IN (1, 6) THEN 1 ELSE 0 END) AS gpon_actives,
+  		SUM(CASE WHEN status NOT IN (1, 6) THEN 1 ELSE 0 END) AS gpon_inactives,
+  		COUNT(*) AS total_gpon
+	FROM prometheus_devices;`
+	err := r.db.GetContext(ctx, &res, query)
+	return &res, err
 }

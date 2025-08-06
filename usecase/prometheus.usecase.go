@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/metalpoch/ultra-monitor/entity"
@@ -19,5 +20,15 @@ func NewPrometheusUsecase(db *sqlx.DB) *PrometheusUsecase {
 
 func (use *PrometheusUsecase) Upsert(ctx context.Context, data dto.Prometheus) error {
 	return use.repo.Upsert(ctx, (entity.PrometheusUpsert)(data))
+}
 
+func (use *PrometheusUsecase) GponPortsStatus() (*dto.PrometheusPortStatus, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	status, err := use.repo.GponPortsStatus(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return (*dto.PrometheusPortStatus)(status), nil
 }

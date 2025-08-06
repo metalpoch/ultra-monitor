@@ -13,6 +13,14 @@ type Prometheus struct {
 	Status int8   `json:"status"`
 }
 
+type PrometheusPortStatus struct {
+	Olts          uint32 `json:"olts"`
+	Cards         uint32 `json:"cards"`
+	GponActives   uint32 `json:"gpon_actives"`
+	GponInactives uint32 `json:"gpon_inactives"`
+	TotalGpon     uint32 `json:"total_gpon"`
+}
+
 type DeviceLocation struct {
 	Region  string `json:"region"`
 	State   string `json:"state"`

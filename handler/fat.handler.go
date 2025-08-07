@@ -52,18 +52,6 @@ func (hdlr *FatHandler) UpsertFats(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func (hdlr *FatHandler) DeleteOne(c fiber.Ctx) error {
-	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
-	}
-
-	if err := hdlr.Usecase.DeleteOne(id); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
-	}
-	return c.SendStatus(fiber.StatusNoContent)
-}
-
 func (hdlr *FatHandler) GetByID(c fiber.Ctx) error {
 	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
 	if err != nil {
@@ -179,5 +167,13 @@ func (hdlr *FatHandler) FindBytOdn(c fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
 	}
 
+	return c.JSON(res)
+}
+
+func (hdlr *FatHandler) GetAllFatStatus(c fiber.Ctx) error {
+	res, err := hdlr.Usecase.GetAllFatStatus()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
 	return c.JSON(res)
 }

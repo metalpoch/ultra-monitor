@@ -72,18 +72,6 @@ func (use *FatUsecase) UpsertFats(file multipart.File, date time.Time) (int64, e
 	return use.repo.UpsertFats(context.Background(), fats)
 }
 
-func (use *FatUsecase) DeleteOne(id int) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-	defer cancel()
-
-	err := use.repo.DeleteOne(ctx, int32(id))
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (use *FatUsecase) GetByID(id int) (dto.Fat, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -159,6 +147,23 @@ func (use *FatUsecase) FindBytOdn(state, municipality, county, odn string, pag d
 	var fats []dto.Fat
 	for _, e := range res {
 		fats = append(fats, (dto.Fat)(e))
+	}
+
+	return fats, nil
+}
+
+func (use *FatUsecase) GetAllFatStatus() ([]dto.FatStatusSummary, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetAllFatStatus(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var fats []dto.FatStatusSummary
+	for _, e := range res {
+		fats = append(fats, (dto.FatStatusSummary)(e))
 	}
 
 	return fats, nil

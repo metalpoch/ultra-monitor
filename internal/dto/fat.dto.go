@@ -25,25 +25,13 @@ type Fat struct {
 	Date               time.Time `json:"date"`
 }
 
-// type FatInfoStatus struct {
-// 	ID                 uint32    `json:"id"`
-// 	IP                 string    `json:"ip"`
-// 	Region             string    `json:"region"`
-// 	State              string    `json:"state"`
-// 	Municipality       string    `json:"municipality"`
-// 	County             string    `json:"county"`
-// 	ODN                string    `json:"odn"`
-// 	FAT                string    `json:"fat"`
-// 	Shell              uint16    `json:"shell"`
-// 	Card               uint16    `json:"card"`
-// 	Port               uint16    `json:"port"`
-// 	CreatedAt          time.Time `json:"created_at"`
-// 	Actives            uint32    `json:"actives"`
-// 	ProvisionedOffline uint32    `json:"provisioned_offline"`
-// 	CutOff             uint32    `json:"cut_off"`
-// 	InProgress         uint32    `json:"in_progress"`
-// 	Date               time.Time `json:"date"`
-// }
+type FatStatusSummary struct {
+	Date               time.Time `json:"date"`
+	Actives            uint32    `json:"actives"`
+	ProvisionedOffline uint32    `json:"provisioned_offline"`
+	CutOff             uint32    `json:"cut_off"`
+	InProgress         uint32    `json:"in_progress"`
+}
 
 type UpsertFat struct {
 	IP                 string    `json:"IP_OLT"`

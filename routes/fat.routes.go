@@ -17,9 +17,9 @@ func NewFatRoutes(app *fiber.App, db *sqlx.DB) {
 	// Base
 	route.Get("/", hdlr.GetAll)
 	route.Post("/", hdlr.UpsertFats)
-	route.Delete("/:id", hdlr.DeleteOne)
 	route.Get("/:id", hdlr.GetByID)
 
+	route.Get("/trend/status", hdlr.GetAllFatStatus)
 	// Fat info by location
 	route.Get("/location/:state", hdlr.FindByStates)
 	route.Get("/location/:state/:municipality", hdlr.FindByMunicipality)

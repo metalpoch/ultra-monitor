@@ -11,12 +11,12 @@ import (
 type FatRepository interface {
 	AllInfo(ctx context.Context, page, limit uint16) ([]entity.FatInfoStatus, error)
 	UpsertFats(ctx context.Context, fats []entity.UpsertFat) (int64, error)
-	DeleteOne(ctx context.Context, id int32) error
 	FindByID(ctx context.Context, id int32) (entity.FatInfoStatus, error)
 	FindByStates(ctx context.Context, state string, page, limit uint16) ([]entity.FatInfoStatus, error)
 	FindByMunicipality(ctx context.Context, state, municipality string, page, limit uint16) ([]entity.FatInfoStatus, error)
 	FindByCounty(ctx context.Context, state, municipality, county string, page, limit uint16) ([]entity.FatInfoStatus, error)
 	FindByOdn(ctx context.Context, state, municipality, county, odn string, page, limit uint16) ([]entity.FatInfoStatus, error)
+	GetAllFatStatus(ctx context.Context) ([]entity.FatStatusSummary, error)
 }
 
 type fatRepository struct {
@@ -159,12 +159,6 @@ func (r *fatRepository) UpsertFats(ctx context.Context, fats []entity.UpsertFat)
 	return totalProcessed, nil
 }
 
-func (r *fatRepository) DeleteOne(ctx context.Context, id int32) error {
-	query := `DELETE FROM fats WHERE id = $1;`
-	_, err := r.db.ExecContext(ctx, query, id)
-	return err
-}
-
 func (r *fatRepository) FindByID(ctx context.Context, id int32) (entity.FatInfoStatus, error) {
 	var fat entity.FatInfoStatus
 	query := `
@@ -268,4 +262,25 @@ func (r *fatRepository) FindByOdn(ctx context.Context, state, municipality, coun
 	`
 	err := r.db.SelectContext(ctx, &res, query, state, municipality, county, odn, limit, offset)
 	return res, err
+}
+
+func (r *fatRepository) GetAllFatStatus(ctx context.Context) ([]entity.FatStatusSummary, error) {
+	var res []entity.FatStatusSummary
+
+	query := `
+	SELECT
+		date,
+		SUM(actives) AS actives,
+		SUM(provisioned_offline) AS provisioned_offline,
+		SUM(cut_off) AS cut_off,
+		SUM(in_progress) AS in_progress
+	FROM fat_status
+	GROUP BY date
+	ORDER BY date ASC;`
+	err := r.db.SelectContext(ctx, &res, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }

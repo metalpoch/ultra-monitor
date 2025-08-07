@@ -48,6 +48,14 @@ type FatStatus struct {
 	InProgress         uint32    `db:"in_progress"`
 }
 
+type FatStatusSummary struct {
+	Date               time.Time `db:"date"`
+	Actives            uint32    `db:"actives"`
+	ProvisionedOffline uint32    `db:"provisioned_offline"`
+	CutOff             uint32    `db:"cut_off"`
+	InProgress         uint32    `db:"in_progress"`
+}
+
 type UpsertFat struct {
 	IP                 string    `db:"ip"`
 	Region             string    `db:"region"`

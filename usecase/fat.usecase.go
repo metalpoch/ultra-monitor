@@ -40,27 +40,27 @@ func (use *FatUsecase) GetAll(pag dto.Pagination) ([]dto.Fat, error) {
 	return taos, nil
 }
 
-func (use *FatUsecase) UpsertFats(file multipart.File, date time.Time) (interface{}, error) {
+func (use *FatUsecase) UpsertFats(file multipart.File, date time.Time) (int64, error) {
 	tmpFile, err := os.CreateTemp("", "*.csv")
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 	defer os.Remove(tmpFile.Name())
 	defer tmpFile.Close()
 
 	if _, err := io.Copy(tmpFile, file); err != nil {
-		return nil, err
+		return 0, err
 	}
 
 	cmd := exec.Command("./fats-csv-to-json", tmpFile.Name())
 	output, err := cmd.Output()
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
 	var data []dto.UpsertFat
 	if err := json.Unmarshal(output, &data); err != nil {
-		return nil, err
+		return 0, err
 	}
 
 	var fats []entity.UpsertFat
@@ -151,7 +151,7 @@ func (use *FatUsecase) FindBytOdn(state, municipality, county, odn string, pag d
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	res, err := use.repo.FindBytOdn(ctx, state, municipality, county, odn, pag.Page, pag.Limit)
+	res, err := use.repo.FindByOdn(ctx, state, municipality, county, odn, pag.Page, pag.Limit)
 	if err != nil {
 		return nil, err
 	}

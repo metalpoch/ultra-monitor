@@ -39,7 +39,19 @@ CREATE TABLE IF NOT EXISTS fats (
     card SMALLINT NOT NULL,
     port SMALLINT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
-    UNIQUE (fat, municipality, county, ip, odn, shell, card, port)
+    UNIQUE (ip, region, state, municipality, county, odn, fat, shell, card, port)
+);`
+
+const SQL_TABLE_FAT_STATUS string = `
+CREATE TABLE IF NOT EXISTS fat_status (
+    fats_id SERIAL NOT NULL,
+    date DATE NOT NULL,
+    actives INTEGER NOT NULL,
+    provisioned_offline INTEGER NOT NULL,
+    cut_off INTEGER NOT NULL,
+    in_progress INTEGER NOT NULL,
+    FOREIGN KEY (fats_id) REFERENCES fats(id),
+    UNIQUE (fats_id, date)
 );`
 
 const SQL_TABLE_PROMETHEUS_DEVICES string = `

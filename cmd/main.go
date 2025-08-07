@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
@@ -86,7 +85,7 @@ func main() {
 	case "server":
 
 		app := fiber.New(fiber.Config{
-			StructValidator: &validations.StructValidator{Validator: validator.New()},
+			StructValidator: validations.NewValidator(),
 			JSONEncoder:     json.Marshal,
 			JSONDecoder:     json.Unmarshal,
 			BodyLimit:       100 * 1024 * 1024, // 100 mb

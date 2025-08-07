@@ -25,6 +25,7 @@ func createTablesAndIndexes(db *sqlx.DB) error {
 		SQL_TABLE_USERS,
 		SQL_TABLE_REPORT,
 		SQL_TABLE_FAT,
+		SQL_TABLE_FAT_STATUS,
 		SQL_TABLE_PROMETHEUS_DEVICES,
 	}
 	indexQueries := []string{

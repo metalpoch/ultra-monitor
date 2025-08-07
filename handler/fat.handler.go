@@ -3,6 +3,7 @@ package handler
 import (
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/metalpoch/ultra-monitor/internal/dto"
@@ -26,16 +27,29 @@ func (hdlr *FatHandler) GetAll(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func (hdlr *FatHandler) AddInfo(c fiber.Ctx) error {
-	var info dto.Fat
-	if err := c.Bind().Body(&info); err != nil {
+func (hdlr *FatHandler) UpsertFats(c fiber.Ctx) error {
+	var form dto.UploadFat
+	if err := c.Bind().Form(&form); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	if err := hdlr.Usecase.AddInfo(info); err != nil {
+	if form.File.Header.Get("Content-Type") != "text/csv" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "content type must csv"})
+	}
+
+	f, err := form.File.Open()
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	defer f.Close()
+
+	date, _ := time.Parse("2006-01-02", form.Date)
+	res, err := hdlr.Usecase.UpsertFats(f, date)
+	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.SendStatus(fiber.StatusCreated)
+
+	return c.JSON(res)
 }
 
 func (hdlr *FatHandler) DeleteOne(c fiber.Ctx) error {

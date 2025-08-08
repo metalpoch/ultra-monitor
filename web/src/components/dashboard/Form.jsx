@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import SelectField from "../../ui/SelectField";
-import { REGIONS, STATES_BY_REGION } from "../../../constants/regions";
+import SelectField from "../ui/SelectField";
+import { REGIONS, STATES_BY_REGION } from "../../constants/regions";
 import {
   selectedLevel,
   selectedRegion,
   selectedState,
-} from "../../../stores/dashboard";
+} from "../../stores/dashboard";
 
 export default function Form() {
   const [selectedLevelValue, setSelectedLevelValue] = useState("");
@@ -48,8 +48,8 @@ export default function Form() {
           hidden: true,
         },
         ...Object.values(STATES_BY_REGION[selectedRegionValue])
-          .flat()
-          .sort((a, b) => a.label.localeCompare(b.label)),
+          .sort((a, b) => a.localeCompare(b))
+          .map((s) => ({ value: s, label: s })),
       ]);
       setSelectedStateValue("");
     } else {

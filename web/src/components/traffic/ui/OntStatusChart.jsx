@@ -10,7 +10,7 @@ import {
 } from "recharts";
 import { COLOR } from "../../../constants/colors";
 import { ontData, trafficData } from "../../../stores/traffic";
-import { dayField } from "../../../utils/convert";
+import { dayField } from "../../../utils/delete.convert";
 
 export default function OntStatusChart() {
   const { data } = useStore(ontData);

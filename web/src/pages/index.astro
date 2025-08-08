@@ -1,45 +1,14 @@
 ---
+import dayjs from "dayjs";
 import Layout from "../layouts/Layout.astro";
-import { dayField } from "../utils/convert";
-import Form from "../components/dashboard/ui/Form";
-import ChartBps from "../components/dashboard/ChartBps.astro";
-import ChartVolumen from "../components/dashboard/ChartVolumen.astro";
-import ChartUser from "../components/dashboard/ChartUser.astro";
-import ChartUserRadar from "../components/dashboard/ChartUserRadar.astro";
-import TableUserGrowth from "../components/dashboard/SummaryUserGrowth.astro";
-import SummaryTraffic from "../components/dashboard/SummaryTraffic.astro";
-import SummaryVolume from "../components/dashboard/SummaryVolume.astro";
-import SummaryUsers from "../components/dashboard/SummaryUsers.astro";
-import SummaryFaults from "../components/dashboard/SummaryFaults.astro";
+import Form from "../components/dashboard/Form";
+import Traffic from "../components/dashboard/Traffic";
+import ClientStatus from "../components/dashboard/ClientStatus";
 
-const BASE_URL = import.meta.env.PUBLIC_API_URL;
-
-const now = new Date();
-const endDate = new Date(
-  now.getFullYear(),
-  now.getMonth(),
-  now.getDate(),
-  0,
-  0,
-  0,
-  0
-);
-const initDate = new Date(endDate);
-initDate.setFullYear(initDate.getFullYear() - 1);
-
-const { traffic, trafficErr } = await fetch(
-  `${BASE_URL}/pon/traffic/summary/states?initDate=${initDate.toISOString()}&endDate=${endDate.toISOString()}`
-)
-  .then((res) => res.json())
-  .then((traffic) => ({ traffic: dayField(traffic), trafficErr: null }))
-  .catch((trafficErr) => ({ traffic: null, trafficErr }));
-
-const { ontStatus, onStatusErr } = await fetch(
-  `${BASE_URL}/ont/status/state?initDate=${initDate.toISOString()}&endDate=${endDate.toISOString()}`
-)
-  .then((res) => res.json())
-  .then((ontStatus) => ({ ontStatus: dayField(ontStatus), onStatusErr: null }))
-  .catch((onStatusErr) => ({ ontStatus: null, onStatusErr }));
+const minDate = dayjs("2025-07-01T00:00:00-04:00");
+const today = dayjs();
+const lastYear =
+  today.subtract(1, "year") < minDate ? minDate : today.subtract(1, "year");
 ---
 
 <Layout title="Dashboard">
@@ -48,19 +17,14 @@ const { ontStatus, onStatusErr } = await fetch(
       <Form client:load />
     </div>
     <section class="w-full flex flex-wrap gap-5">
-      <SummaryTraffic data={traffic} err={trafficErr} />
-      <SummaryVolume data={traffic} err={trafficErr} />
+      <Traffic
+        today={today.format()}
+        lastYear={lastYear.format()}
+        client:load
+      />
     </section>
-    <div class="w-full flex flex-wrap gap-5">
-      <ChartBps data={traffic} err={trafficErr} />
-      <ChartVolumen data={traffic} err={trafficErr} />
-    </div>
-    <div class="w-full flex flex-wrap gap-5">
-      <SummaryUsers data={ontStatus} err={onStatusErr} />
-      <SummaryFaults data={ontStatus} err={onStatusErr} />
-      <ChartUserRadar data={ontStatus} err={onStatusErr} />
-      <ChartUser data={ontStatus} err={onStatusErr} />
-    </div>
-    <!-- <TableUserGrowth data={ontStatus} err={onStatusErr} /> -->
+    <section class="w-full flex flex-wrap gap-5">
+      <ClientStatus client:load />
+    </section>
   </main>
 </Layout>

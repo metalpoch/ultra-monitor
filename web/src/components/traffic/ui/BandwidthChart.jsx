@@ -9,7 +9,7 @@ import {
 } from "recharts";
 import { COLOR } from "../../../constants/colors";
 import { trafficData } from "../../../stores/traffic";
-import { dayField } from "../../../utils/convert";
+import { dayField } from "../../../utils/delete.convert";
 
 export default function BandwidthChart() {
   const { data, status } = useStore(trafficData);

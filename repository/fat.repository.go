@@ -5,7 +5,9 @@ import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	"github.com/metalpoch/ultra-monitor/entity"
+	"github.com/metalpoch/ultra-monitor/internal/constants"
 )
 
 type FatRepository interface {
@@ -26,11 +28,11 @@ type FatRepository interface {
 
 	GetAllFatStatus(ctx context.Context) ([]entity.FatStatusSummary, error)
 	GetAllFatStatusByRegion(ctx context.Context, region string) ([]entity.FatStatusSummary, error)
-	GetAllFatStatusByState(ctx context.Context, region, state string) ([]entity.FatStatusSummary, error)
-	GetAllFatStatusByMunicipality(ctx context.Context, region, state, municipality string) ([]entity.FatStatusSummary, error)
-	GetAllFatStatusByCounty(ctx context.Context, region, state, municipality, county string) ([]entity.FatStatusSummary, error)
-	GetAllFatStatusByODN(ctx context.Context, region, state, municipality, county, odn string) ([]entity.FatStatusSummary, error)
-	GetAllFatStatusByFat(ctx context.Context, region, state, municipality, county, odn, fat string) ([]entity.FatStatusSummary, error)
+	GetAllFatStatusByState(ctx context.Context, state string) ([]entity.FatStatusSummary, error)
+	GetAllFatStatusByMunicipality(ctx context.Context, state, municipality string) ([]entity.FatStatusSummary, error)
+	GetAllFatStatusByCounty(ctx context.Context, state, municipality, county string) ([]entity.FatStatusSummary, error)
+	GetAllFatStatusByODN(ctx context.Context, state, municipality, county, odn string) ([]entity.FatStatusSummary, error)
+	GetAllFatStatusByFat(ctx context.Context, state, municipality, county, odn, fat string) ([]entity.FatStatusSummary, error)
 }
 
 type fatRepository struct {
@@ -342,24 +344,25 @@ func (r *fatRepository) GetAllFatStatus(ctx context.Context) ([]entity.FatStatus
 
 func (r *fatRepository) GetAllFatStatusByRegion(ctx context.Context, region string) ([]entity.FatStatusSummary, error) {
 	var res []entity.FatStatusSummary
+
+	states := constants.STATES_BY_REGION[region]
 	query := `
-	SELECT
-		fs.date,
-		SUM(fs.actives) AS actives,
-		SUM(fs.provisioned_offline) AS provisioned_offline,
-		SUM(fs.cut_off) AS cut_off,
-		SUM(fs.in_progress) AS in_progress
-	FROM fat_status AS fs
-	INNER JOIN fats AS f ON f.id = fs.fats_id
-	WHERE f.region = $1
-	GROUP BY fs.date
-	ORDER BY fs.date DESC;
-	`
-	err := r.db.SelectContext(ctx, &res, query, region)
+        SELECT
+            fs.date,
+            SUM(fs.actives) AS actives,
+            SUM(fs.provisioned_offline) AS provisioned_offline,
+            SUM(fs.cut_off) AS cut_off,
+            SUM(fs.in_progress) AS in_progress
+        FROM fat_status AS fs
+        INNER JOIN fats AS f ON f.id = fs.fats_id
+        WHERE f.state = ANY($1)
+        GROUP BY fs.date
+        ORDER BY fs.date DESC;`
+	err := r.db.SelectContext(ctx, &res, query, pq.Array(states))
 	return res, err
 }
 
-func (r *fatRepository) GetAllFatStatusByState(ctx context.Context, region, state string) ([]entity.FatStatusSummary, error) {
+func (r *fatRepository) GetAllFatStatusByState(ctx context.Context, state string) ([]entity.FatStatusSummary, error) {
 	var res []entity.FatStatusSummary
 	query := `
 	SELECT
@@ -370,15 +373,14 @@ func (r *fatRepository) GetAllFatStatusByState(ctx context.Context, region, stat
 		SUM(fs.in_progress) AS in_progress
 	FROM fat_status AS fs
 	INNER JOIN fats AS f ON f.id = fs.fats_id
-	WHERE f.region = $1 AND f.state = $2
+	WHERE f.state = $1
 	GROUP BY fs.date
-	ORDER BY fs.date DESC;
-	`
-	err := r.db.SelectContext(ctx, &res, query, region, state)
+	ORDER BY fs.date DESC;`
+	err := r.db.SelectContext(ctx, &res, query, state)
 	return res, err
 }
 
-func (r *fatRepository) GetAllFatStatusByMunicipality(ctx context.Context, region, state, municipality string) ([]entity.FatStatusSummary, error) {
+func (r *fatRepository) GetAllFatStatusByMunicipality(ctx context.Context, state, municipality string) ([]entity.FatStatusSummary, error) {
 	var res []entity.FatStatusSummary
 	query := `
 	SELECT
@@ -389,15 +391,14 @@ func (r *fatRepository) GetAllFatStatusByMunicipality(ctx context.Context, regio
 		SUM(fs.in_progress) AS in_progress
 	FROM fat_status AS fs
 	INNER JOIN fats AS f ON f.id = fs.fats_id
-	WHERE f.region = $1 AND f.state = $2 AND f.municipality = $3
+	WHERE f.state = $1 AND f.municipality = $2
 	GROUP BY fs.date
-	ORDER BY fs.date DESC;
-	`
-	err := r.db.SelectContext(ctx, &res, query, region, state, municipality)
+	ORDER BY fs.date DESC;`
+	err := r.db.SelectContext(ctx, &res, query, state, municipality)
 	return res, err
 }
 
-func (r *fatRepository) GetAllFatStatusByCounty(ctx context.Context, region, state, municipality, county string) ([]entity.FatStatusSummary, error) {
+func (r *fatRepository) GetAllFatStatusByCounty(ctx context.Context, state, municipality, county string) ([]entity.FatStatusSummary, error) {
 	var res []entity.FatStatusSummary
 	query := `
 	SELECT
@@ -408,15 +409,14 @@ func (r *fatRepository) GetAllFatStatusByCounty(ctx context.Context, region, sta
 		SUM(fs.in_progress) AS in_progress
 	FROM fat_status AS fs
 	INNER JOIN fats AS f ON f.id = fs.fats_id
-	WHERE f.region = $1 AND f.state = $2 AND f.municipality = $3 AND f.county = $4
+	WHERE f.state = $1 AND f.municipality = $2 AND f.county = $3
 	GROUP BY fs.date
-	ORDER BY fs.date DESC;
-	`
-	err := r.db.SelectContext(ctx, &res, query, region, state, municipality, county)
+	ORDER BY fs.date DESC;`
+	err := r.db.SelectContext(ctx, &res, query, state, municipality, county)
 	return res, err
 }
 
-func (r *fatRepository) GetAllFatStatusByODN(ctx context.Context, region, state, municipality, county, odn string) ([]entity.FatStatusSummary, error) {
+func (r *fatRepository) GetAllFatStatusByODN(ctx context.Context, state, municipality, county, odn string) ([]entity.FatStatusSummary, error) {
 	var res []entity.FatStatusSummary
 	query := `
 	SELECT
@@ -427,15 +427,15 @@ func (r *fatRepository) GetAllFatStatusByODN(ctx context.Context, region, state,
 		SUM(fs.in_progress) AS in_progress
 	FROM fat_status AS fs
 	INNER JOIN fats AS f ON f.id = fs.fats_id
-	WHERE f.region = $1 AND f.state = $2 AND f.municipality = $3 AND f.county = $4 AND f.odn = $5
+	WHERE f.state = $1 AND f.municipality = $2 AND f.county = $3 AND f.odn = $4
 	GROUP BY fs.date
 	ORDER BY fs.date DESC;
 	`
-	err := r.db.SelectContext(ctx, &res, query, region, state, municipality, county, odn)
+	err := r.db.SelectContext(ctx, &res, query, state, municipality, county, odn)
 	return res, err
 }
 
-func (r *fatRepository) GetAllFatStatusByFat(ctx context.Context, region, state, municipality, county, odn, fat string) ([]entity.FatStatusSummary, error) {
+func (r *fatRepository) GetAllFatStatusByFat(ctx context.Context, state, municipality, county, odn, fat string) ([]entity.FatStatusSummary, error) {
 	var res []entity.FatStatusSummary
 	query := `
 	SELECT
@@ -446,10 +446,10 @@ func (r *fatRepository) GetAllFatStatusByFat(ctx context.Context, region, state,
 		SUM(fs.in_progress) AS in_progress
 	FROM fat_status AS fs
 	INNER JOIN fats AS f ON f.id = fs.fats_id
-	WHERE f.region = $1 AND f.state = $2 AND f.municipality = $3 AND f.county = $4 AND f.odn = $5 AND f.fat = $6
+	WHERE f.state = $1 AND f.municipality = $2 AND f.county = $3 AND f.odn = $4 AND f.fat = $5
 	GROUP BY fs.date
 	ORDER BY fs.date DESC;
 	`
-	err := r.db.SelectContext(ctx, &res, query, region, state, municipality, county, odn, fat)
+	err := r.db.SelectContext(ctx, &res, query, state, municipality, county, odn, fat)
 	return res, err
 }

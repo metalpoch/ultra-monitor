@@ -2,10 +2,12 @@ package handler
 
 import (
 	"net/url"
+	"slices"
 	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/metalpoch/ultra-monitor/internal/constants"
 	"github.com/metalpoch/ultra-monitor/internal/dto"
 	"github.com/metalpoch/ultra-monitor/usecase"
 )
@@ -313,6 +315,15 @@ func (hdlr *FatHandler) GetAllFatStatusByRegion(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
+	regions := make([]string, 0, len(constants.STATES_BY_REGION))
+	for key := range constants.STATES_BY_REGION {
+		regions = append(regions, key)
+	}
+
+	if !slices.Contains(regions, region) {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "region invalid"})
+	}
+
 	res, err := hdlr.Usecase.GetAllFatStatusByRegion(region)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
@@ -321,17 +332,12 @@ func (hdlr *FatHandler) GetAllFatStatusByRegion(c fiber.Ctx) error {
 }
 
 func (hdlr *FatHandler) GetAllFatStatusByState(c fiber.Ctx) error {
-	region, err := url.QueryUnescape(c.Params("region"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-
 	state, err := url.QueryUnescape(c.Params("state"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.GetAllFatStatusByState(region, state)
+	res, err := hdlr.Usecase.GetAllFatStatusByState(state)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -339,11 +345,6 @@ func (hdlr *FatHandler) GetAllFatStatusByState(c fiber.Ctx) error {
 }
 
 func (hdlr *FatHandler) GetAllFatStatusByMunicipality(c fiber.Ctx) error {
-	region, err := url.QueryUnescape(c.Params("region"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-
 	state, err := url.QueryUnescape(c.Params("state"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -354,7 +355,7 @@ func (hdlr *FatHandler) GetAllFatStatusByMunicipality(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.GetAllFatStatusByMunicipality(region, state, municipality)
+	res, err := hdlr.Usecase.GetAllFatStatusByMunicipality(state, municipality)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -362,11 +363,6 @@ func (hdlr *FatHandler) GetAllFatStatusByMunicipality(c fiber.Ctx) error {
 }
 
 func (hdlr *FatHandler) GetAllFatStatusByCounty(c fiber.Ctx) error {
-	region, err := url.QueryUnescape(c.Params("region"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-
 	state, err := url.QueryUnescape(c.Params("state"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -382,7 +378,7 @@ func (hdlr *FatHandler) GetAllFatStatusByCounty(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.GetAllFatStatusByCounty(region, state, municipality, county)
+	res, err := hdlr.Usecase.GetAllFatStatusByCounty(state, municipality, county)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -390,11 +386,6 @@ func (hdlr *FatHandler) GetAllFatStatusByCounty(c fiber.Ctx) error {
 }
 
 func (hdlr *FatHandler) GetAllFatStatusByODN(c fiber.Ctx) error {
-	region, err := url.QueryUnescape(c.Params("region"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-
 	state, err := url.QueryUnescape(c.Params("state"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -415,7 +406,7 @@ func (hdlr *FatHandler) GetAllFatStatusByODN(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.GetAllFatStatusByODN(region, state, municipality, county, odn)
+	res, err := hdlr.Usecase.GetAllFatStatusByODN(state, municipality, county, odn)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -423,11 +414,6 @@ func (hdlr *FatHandler) GetAllFatStatusByODN(c fiber.Ctx) error {
 }
 
 func (hdlr *FatHandler) GetAllFatStatusByFat(c fiber.Ctx) error {
-	region, err := url.QueryUnescape(c.Params("region"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-
 	state, err := url.QueryUnescape(c.Params("state"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -453,7 +439,7 @@ func (hdlr *FatHandler) GetAllFatStatusByFat(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.GetAllFatStatusByFat(region, state, municipality, county, odn, fat)
+	res, err := hdlr.Usecase.GetAllFatStatusByFat(state, municipality, county, odn, fat)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}

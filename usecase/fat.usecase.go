@@ -84,6 +84,78 @@ func (use *FatUsecase) GetByID(id int) (dto.Fat, error) {
 	return (dto.Fat)(res), nil
 }
 
+func (use *FatUsecase) GetRegions() ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetRegions(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func (use *FatUsecase) GetStates(region string) ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetStates(ctx, region)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func (use *FatUsecase) GetMunicipalities(region, state string) ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetMunicipalities(ctx, region, state)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func (use *FatUsecase) GetCounties(region, state, municipality string) ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetCounties(ctx, region, state, municipality)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func (use *FatUsecase) GetODN(region, state, municipality, county string) ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetODN(ctx, region, state, municipality, county)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func (use *FatUsecase) GetFat(region, state, municipality, county, odn string) ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetFat(ctx, region, state, municipality, county, odn)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
 func (use *FatUsecase) FindByStates(state string, pag dto.Pagination) ([]dto.Fat, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -157,6 +229,108 @@ func (use *FatUsecase) GetAllFatStatus() ([]dto.FatStatusSummary, error) {
 	defer cancel()
 
 	res, err := use.repo.GetAllFatStatus(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var fats []dto.FatStatusSummary
+	for _, e := range res {
+		fats = append(fats, (dto.FatStatusSummary)(e))
+	}
+
+	return fats, nil
+}
+
+func (use *FatUsecase) GetAllFatStatusByRegion(region string) ([]dto.FatStatusSummary, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetAllFatStatusByRegion(ctx, region)
+	if err != nil {
+		return nil, err
+	}
+
+	var fats []dto.FatStatusSummary
+	for _, e := range res {
+		fats = append(fats, (dto.FatStatusSummary)(e))
+	}
+
+	return fats, nil
+}
+
+func (use *FatUsecase) GetAllFatStatusByState(region, state string) ([]dto.FatStatusSummary, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetAllFatStatusByState(ctx, region, state)
+	if err != nil {
+		return nil, err
+	}
+
+	var fats []dto.FatStatusSummary
+	for _, e := range res {
+		fats = append(fats, (dto.FatStatusSummary)(e))
+	}
+
+	return fats, nil
+}
+
+func (use *FatUsecase) GetAllFatStatusByMunicipality(region, state, municipality string) ([]dto.FatStatusSummary, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetAllFatStatusByMunicipality(ctx, region, state, municipality)
+	if err != nil {
+		return nil, err
+	}
+
+	var fats []dto.FatStatusSummary
+	for _, e := range res {
+		fats = append(fats, (dto.FatStatusSummary)(e))
+	}
+
+	return fats, nil
+}
+
+func (use *FatUsecase) GetAllFatStatusByCounty(region, state, municipality, county string) ([]dto.FatStatusSummary, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetAllFatStatusByCounty(ctx, region, state, municipality, county)
+	if err != nil {
+		return nil, err
+	}
+
+	var fats []dto.FatStatusSummary
+	for _, e := range res {
+		fats = append(fats, (dto.FatStatusSummary)(e))
+	}
+
+	return fats, nil
+}
+
+func (use *FatUsecase) GetAllFatStatusByODN(region, state, municipality, county, odn string) ([]dto.FatStatusSummary, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetAllFatStatusByODN(ctx, region, state, municipality, county, odn)
+	if err != nil {
+		return nil, err
+	}
+
+	var fats []dto.FatStatusSummary
+	for _, e := range res {
+		fats = append(fats, (dto.FatStatusSummary)(e))
+	}
+
+	return fats, nil
+}
+
+func (use *FatUsecase) GetAllFatStatusByFat(region, state, municipality, county, odn, fat string) ([]dto.FatStatusSummary, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetAllFatStatusByFat(ctx, region, state, municipality, county, odn, fat)
 	if err != nil {
 		return nil, err
 	}

@@ -19,10 +19,26 @@ func NewFatRoutes(app *fiber.App, db *sqlx.DB) {
 	route.Post("/", hdlr.UpsertFats)
 	route.Get("/:id", hdlr.GetByID)
 
-	route.Get("/trend/status", hdlr.GetAllFatStatus)
+	// Locations
+	route.Get("/regions/all", hdlr.GetRegions)
+	route.Get("/regions/:region", hdlr.GetStates)
+	route.Get("/regions/:region/:state", hdlr.GetMunicipalities)
+	route.Get("/regions/:region/:state/:municipality", hdlr.GetCounties)
+	route.Get("/regions/:region/:state/:municipality/:county", hdlr.GetODN)
+	route.Get("/regions/:region/:state/:municipality/:county/:odn", hdlr.GetFat)
+
 	// Fat info by location
 	route.Get("/location/:state", hdlr.FindByStates)
 	route.Get("/location/:state/:municipality", hdlr.FindByMunicipality)
 	route.Get("/location/:state/:municipality/:county", hdlr.FindByCounty)
 	route.Get("/location/:state/:municipality/:county/:odn", hdlr.FindBytOdn)
+
+	// Trend status
+	route.Get("/trend/status", hdlr.GetAllFatStatus)
+	route.Get("/trend/status/:region", hdlr.GetAllFatStatusByRegion)
+	route.Get("/trend/status/:region/:state", hdlr.GetAllFatStatusByState)
+	route.Get("/trend/status/:region/:state/:municipality", hdlr.GetAllFatStatusByMunicipality)
+	route.Get("/trend/status/:region/:state/:municipality/:county", hdlr.GetAllFatStatusByCounty)
+	route.Get("/trend/status/:region/:state/:municipality/:county/:odn", hdlr.GetAllFatStatusByODN)
+	route.Get("/trend/status/:region/:state/:municipality/:county/:odn/:fat", hdlr.GetAllFatStatusByFat)
 }

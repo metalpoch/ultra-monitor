@@ -2,22 +2,26 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/metalpoch/ultra-monitor/internal/cache"
 	"github.com/metalpoch/ultra-monitor/internal/dto"
 	"github.com/metalpoch/ultra-monitor/internal/prometheus"
 	"github.com/metalpoch/ultra-monitor/repository"
+	"github.com/redis/go-redis/v9"
 )
 
 type TrafficUsecase struct {
 	repo       repository.TrafficRepository
+	cache      *cache.Redis
 	prometheus prometheus.Prometheus
 }
 
-func NewTrafficUsecase(db *sqlx.DB, prometheus *prometheus.Prometheus) *TrafficUsecase {
-	return &TrafficUsecase{repository.NewTrafficRepository(db), *prometheus}
+func NewTrafficUsecase(db *sqlx.DB, cache *cache.Redis, prometheus *prometheus.Prometheus) *TrafficUsecase {
+	return &TrafficUsecase{repository.NewTrafficRepository(db), cache, *prometheus}
 }
 
 func (use *TrafficUsecase) DeviceLocation() ([]dto.DeviceLocation, error) {
@@ -70,27 +74,44 @@ func (use *TrafficUsecase) InfoInstance(ip string) ([]dto.InfoDevice, error) {
 }
 
 func (use *TrafficUsecase) Total(initDate, finalDate time.Time) ([]dto.Traffic, error) {
+	var result []dto.Traffic
+
+	keyCache := fmt.Sprintf("total-%d-%d", initDate.Unix(), finalDate.Unix())
+	if err := use.cache.FindOne(context.Background(), keyCache, &result); err == nil {
+		return result, nil
+	} else if err != redis.Nil {
+		return nil, err
+	}
+
 	traffic, err := use.prometheus.TrafficTotal(context.Background(), initDate, finalDate)
 	if err != nil {
 		return nil, err
 	}
 
-	var result []dto.Traffic
 	for _, t := range traffic {
 		result = append(result, (dto.Traffic)(*t))
 	}
+
+	use.cache.InsertOne(context.Background(), keyCache, 8*time.Hour, result)
 
 	return result, nil
 }
 
 func (use *TrafficUsecase) Regions(initDate, finalDate time.Time) (dto.TrafficByLabel, error) {
+	results := make(dto.TrafficByLabel)
+
+	keyCache := fmt.Sprintf("regions-%d-%d", initDate.Unix(), finalDate.Unix())
+	if err := use.cache.FindOne(context.Background(), keyCache, &results); err == nil {
+		return results, nil
+	} else if err != redis.Nil {
+		return nil, err
+	}
+
 	traffics, err := use.prometheus.TrafficGroupedByField(context.Background(), "", "", "region", initDate, finalDate)
 	if err != nil {
 		return nil, err
 	}
 
-	results := make(dto.TrafficByLabel)
-
 	for state, traffic := range traffics {
 		var trafficState []dto.Traffic
 		for _, t := range traffic {
@@ -99,16 +120,29 @@ func (use *TrafficUsecase) Regions(initDate, finalDate time.Time) (dto.TrafficBy
 
 		results[state] = trafficState
 	}
+
+	use.cache.InsertOne(context.Background(), keyCache, 8*time.Hour, results)
+
 	return results, nil
 }
 
 func (use *TrafficUsecase) StatesByRegion(region string, initDate, finalDate time.Time) (dto.TrafficByLabel, error) {
+	results := make(dto.TrafficByLabel)
+
+	keyCache := fmt.Sprintf("statesByRegion-%s-%d-%d", region, initDate.Unix(), finalDate.Unix())
+	if err := use.cache.FindOne(context.Background(), keyCache, &results); err == nil {
+		return results, nil
+	} else if err != redis.Nil {
+		return nil, err
+	}
 	traffics, err := use.prometheus.TrafficGroupedByField(context.Background(), "region", region, "state", initDate, finalDate)
 	if err != nil {
 		return nil, err
 	}
 
-	results := make(dto.TrafficByLabel)
+	if len(traffics) < 1 {
+		return results, nil
+	}
 
 	for state, traffic := range traffics {
 		var trafficState []dto.Traffic
@@ -118,33 +152,56 @@ func (use *TrafficUsecase) StatesByRegion(region string, initDate, finalDate tim
 
 		results[state] = trafficState
 	}
+
+	use.cache.InsertOne(context.Background(), keyCache, 8*time.Hour, results)
+
 	return results, nil
 }
 
 func (use *TrafficUsecase) Region(region string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
+	var result []dto.Traffic
+
+	keyCache := fmt.Sprintf("region-%s-%d-%d", region, initDate.Unix(), finalDate.Unix())
+	if err := use.cache.FindOne(context.Background(), keyCache, &result); err == nil {
+		return result, nil
+	} else if err != redis.Nil {
+		return nil, err
+	}
+
 	traffic, err := use.prometheus.TrafficByRegion(context.Background(), region, initDate, finalDate)
 	if err != nil {
 		return nil, err
 	}
 
-	var result []dto.Traffic
 	for _, t := range traffic {
 		result = append(result, (dto.Traffic)(*t))
 	}
+
+	use.cache.InsertOne(context.Background(), keyCache, 8*time.Hour, result)
 
 	return result, nil
 }
 
 func (use *TrafficUsecase) States(state string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
+	var result []dto.Traffic
+
+	keyCache := fmt.Sprintf("states-%s-%d-%d", state, initDate.Unix(), finalDate.Unix())
+	if err := use.cache.FindOne(context.Background(), keyCache, &result); err == nil {
+		return result, nil
+	} else if err != redis.Nil {
+		return nil, err
+	}
+
 	traffic, err := use.prometheus.TrafficByState(context.Background(), state, initDate, finalDate)
 	if err != nil {
 		return nil, err
 	}
 
-	var result []dto.Traffic
 	for _, t := range traffic {
 		result = append(result, (dto.Traffic)(*t))
 	}
+
+	use.cache.InsertOne(context.Background(), keyCache, 8*time.Hour, result)
 
 	return result, nil
 }

@@ -26,7 +26,7 @@ export default function ClientStatus() {
 
     setUrl(u.href);
   }, [$selectedLevel, $selectedRegion, $selectedState]);
-  console.log({ data, loading, error, url });
+
   return (
     <>
       <section className="flex flex-col flex-1 sm:flex-2 px-6 py-3 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]">

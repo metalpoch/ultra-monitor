@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
-import TrafficChart from "./ui/TrafficChart";
+import TrafficChartDetailed from "./ui/TrafficChartDetailed";
 import {
   selectedLevel,
   selectedRegion,
@@ -8,7 +8,7 @@ import {
 } from "../../stores/dashboard";
 import useFetch from "../../hooks/useFetch";
 
-export default function Traffic({ today, lastYear }) {
+export default function TrafficRegions({ today, lastYear }) {
   const [url, setUrl] = useState("");
   const [activeTab, setActiveTab] = useState("traffic");
   const $selectedLevel = useStore(selectedLevel);
@@ -21,8 +21,8 @@ export default function Traffic({ today, lastYear }) {
     const u = $selectedState
       ? new URL(`${baseURL}/state/${$selectedState}`)
       : $selectedRegion
-      ? new URL(`${baseURL}/region/${$selectedRegion}`)
-      : new URL(`${baseURL}/total`);
+      ? new URL(`${baseURL}/states/${$selectedRegion}`)
+      : new URL(`${baseURL}/regions`);
 
     u.searchParams.append("initDate", lastYear);
     u.searchParams.append("finalDate", today);
@@ -67,9 +67,13 @@ export default function Traffic({ today, lastYear }) {
           {activeTab === "traffic" && (
             <>
               <p className="text-slate-400 text-sm">
-                Monitoreo del tráfico de entrada y salida total.
+                Monitoreo del tráfico de entrada y salida.
               </p>
-              <TrafficChart data={data} dataType="traffic" client:load />
+              <TrafficChartDetailed
+                data={data}
+                dataType="traffic"
+                client:load
+              />
             </>
           )}
 
@@ -78,7 +82,7 @@ export default function Traffic({ today, lastYear }) {
               <p className="text-slate-400 text-sm">
                 Monitoreo del volumen de datos de entrada y salida.
               </p>
-              <TrafficChart data={data} dataType="volume" client:load />
+              <TrafficChartDetailed data={data} dataType="volume" client:load />
             </>
           )}
         </>

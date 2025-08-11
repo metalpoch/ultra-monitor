@@ -130,10 +130,25 @@ func (p *prometheus) TrafficGroupedByField(ctx context.Context, fieldQuery, valu
 	}
 
 	queryBW := fmt.Sprintf("sum(ifSpeed{%s}) by (%s)", query, groupBy)
-	queryBpsIn := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticReceivedBytes_count{%s}[1h]) * 8) by (%s)", query, groupBy)
-	queryBpsOut := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticSendBytes_count{%s}[1h]) * 8) by (%s)", query, groupBy)
-	queryBytesIn := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticReceivedBytes_count{%s}[1h])) by (%s)", query, groupBy)
-	queryBytesOut := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticSendBytes_count{%s}[1h])) by (%s)", query, groupBy)
+	queryBpsIn := fmt.Sprintf(
+		"sum(avg_over_time(rate(hwGponOltEthernetStatisticReceivedBytes_count{%s}[5m])[1h:5m]) * 8) by (%s)",
+		query, groupBy,
+	)
+
+	queryBpsOut := fmt.Sprintf(
+		"sum(avg_over_time(rate(hwGponOltEthernetStatisticSendBytes_count{%s}[5m])[1h:5m]) * 8) by (%s)",
+		query, groupBy,
+	)
+
+	queryBytesIn := fmt.Sprintf(
+		"sum(avg_over_time(increase(hwGponOltEthernetStatisticReceivedBytes_count{%s}[5m])[1h:5m])) by (%s)",
+		query, groupBy,
+	)
+
+	queryBytesOut := fmt.Sprintf(
+		"sum(avg_over_time(increase(hwGponOltEthernetStatisticSendBytes_count{%s}[5m])[1h:5m])) by (%s)",
+		query, groupBy,
+	)
 
 	r := v1.Range{
 		Start: initDate,
@@ -206,12 +221,12 @@ func (p *prometheus) TrafficGroupedByField(ctx context.Context, fieldQuery, valu
 	return result, nil
 }
 
-func (p *prometheus) TrafficByRegion(ctx context.Context, region string, initDate, finalDate time.Time) ([]*Traffic, error) {
-	queryBW := fmt.Sprintf("sum(ifSpeed{region='%s'})", region)
-	queryBpsIn := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticReceivedBytes_count{region='%s'}[1h]) * 8)", region)
-	queryBpsOut := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticSendBytes_count{region='%s'}[1h]) * 8)", region)
-	queryBytesIn := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticReceivedBytes_count{region='%s'}[1h]))", region)
-	queryBytesOut := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticSendBytes_count{region='%s'}[1h]))", region)
+func (p *prometheus) TrafficTotal(ctx context.Context, initDate, finalDate time.Time) ([]*Traffic, error) {
+	queryBW := "sum(ifSpeed)"
+	queryBpsIn := "sum(avg_over_time(rate(hwGponOltEthernetStatisticReceivedBytes_count[5m])[1h:5m]) * 8)"
+	queryBpsOut := "sum(avg_over_time(rate(hwGponOltEthernetStatisticSendBytes_count[5m])[1h:5m]) * 8)"
+	queryBytesIn := "sum(avg_over_time(increase(hwGponOltEthernetStatisticReceivedBytes_count[5m])[1h:5m]))"
+	queryBytesOut := "sum(avg_over_time(increase(hwGponOltEthernetStatisticSendBytes_count[5m])[1h:5m]))"
 
 	r := v1.Range{
 		Start: initDate,
@@ -263,12 +278,12 @@ func (p *prometheus) TrafficByRegion(ctx context.Context, region string, initDat
 	return result, nil
 }
 
-func (p *prometheus) TrafficTotal(ctx context.Context, initDate, finalDate time.Time) ([]*Traffic, error) {
-	queryBW := "sum(ifSpeed)"
-	queryBpsIn := "sum(rate(hwGponOltEthernetStatisticReceivedBytes_count[1h]) * 8)"
-	queryBpsOut := "sum(rate(hwGponOltEthernetStatisticSendBytes_count[1h]) * 8)"
-	queryBytesIn := "sum(increase(hwGponOltEthernetStatisticReceivedBytes_count[1h]))"
-	queryBytesOut := "sum(increase(hwGponOltEthernetStatisticSendBytes_count[1h]))"
+func (p *prometheus) TrafficByRegion(ctx context.Context, region string, initDate, finalDate time.Time) ([]*Traffic, error) {
+	queryBW := fmt.Sprintf("sum(ifSpeed{region='%s'})", region)
+	queryBpsIn := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticReceivedBytes_count{region='%s'}[5m])[1h:5m]) * 8)", region)
+	queryBpsOut := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticSendBytes_count{region='%s'}[5m])[1h:5m]) * 8)", region)
+	queryBytesIn := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticReceivedBytes_count{region='%s'}[5m])[1h:5m]))", region)
+	queryBytesOut := fmt.Sprintf("sum(avg_over_time(increase(hwGponOltEthernetStatisticSendBytes_count{region='%s'}[5m])[1h:5m]))", region)
 
 	r := v1.Range{
 		Start: initDate,
@@ -322,10 +337,10 @@ func (p *prometheus) TrafficTotal(ctx context.Context, initDate, finalDate time.
 
 func (p *prometheus) TrafficByState(ctx context.Context, state string, initDate, finalDate time.Time) ([]*Traffic, error) {
 	queryBW := fmt.Sprintf("sum(ifSpeed{state='%s'})", state)
-	queryBpsIn := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticReceivedBytes_count{state='%s'}[1h]) * 8)", state)
-	queryBpsOut := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticSendBytes_count{state='%s'}[1h]) * 8)", state)
-	queryBytesIn := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticReceivedBytes_count{state='%s'}[1h]))", state)
-	queryBytesOut := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticSendBytes_count{state='%s'}[1h]))", state)
+	queryBpsIn := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticReceivedBytes_count{region='%s'}[5m])[1h:5m]) * 8)", state)
+	queryBpsOut := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticSendBytes_count{region='%s'}[5m])[1h:5m]) * 8)", state)
+	queryBytesIn := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticReceivedBytes_count{region='%s'}[5m])[1h:5m]))", state)
+	queryBytesOut := fmt.Sprintf("sum(avg_over_time(increase(hwGponOltEthernetStatisticSendBytes_count{region='%s'}[5m])[1h:5m]))", state)
 
 	r := v1.Range{
 		Start: initDate,
@@ -384,10 +399,10 @@ func (p *prometheus) TrafficGroupInstance(ctx context.Context, instances []strin
 
 	instancesStr := strings.Join(instances, "|")
 	queryBW := fmt.Sprintf("sum(ifSpeed{instance=~'%s'})", instancesStr)
-	queryBpsIn := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticReceivedBytes_count{instance=~'%s'}[10m]) * 8)", instancesStr)
-	queryBpsOut := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticSendBytes_count{instance=~'%s'}[10m]) * 8)", instancesStr)
-	queryBytesIn := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticReceivedBytes_count{instance=~'%s'}[10m]))", instancesStr)
-	queryBytesOut := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticSendBytes_count{instance=~'%s'}[10m]))", instancesStr)
+	queryBpsIn := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticReceivedBytes_count{instance=~'%s'}[5m])[1h:5m]) * 8)", instancesStr)
+	queryBpsOut := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticSendBytes_count{instance=~'%s'}[5m])[1h:5m]) * 8)", instancesStr)
+	queryBytesIn := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticReceivedBytes_count{instance=~'%s'}[5m])[1h:5m]))", instancesStr)
+	queryBytesOut := fmt.Sprintf("sum(avg_over_time(increase(hwGponOltEthernetStatisticSendBytes_count{instance=~'%s'}[5m])[1h:5m]))", instancesStr)
 
 	r := v1.Range{
 		Start: initDate,

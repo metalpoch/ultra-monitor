@@ -16,6 +16,8 @@ func NewTrafficRoutes(app *fiber.App, db *sqlx.DB, prometheus *prometheus.Promet
 	route.Get("/info/instance/:ip", hdlr.InfoInstance)
 
 	route.Get("/total", hdlr.Total)
+	route.Get("/regions", hdlr.Regions)
+	route.Get("/states/:region", hdlr.StatesByRegion)
 	route.Get("/region/:region", hdlr.Region)
 	route.Get("/state/:state", hdlr.State)
 	route.Get("/instances", hdlr.GroupIP)

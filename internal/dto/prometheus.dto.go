@@ -47,6 +47,8 @@ type Traffic struct {
 	BytesOut    float64   `json:"bytes_out"`
 }
 
+type TrafficByLabel map[string][]Traffic
+
 type GroupedIP struct {
 	IP []string `query:"ip" validate:"required"`
 	RangeDate

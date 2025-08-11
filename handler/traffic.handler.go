@@ -19,7 +19,6 @@ func (hdlr *TrafficHandler) DeviceLocation(c fiber.Ctx) error {
 	}
 
 	return c.JSON(res)
-
 }
 
 func (hdlr *TrafficHandler) Total(c fiber.Ctx) error {
@@ -29,6 +28,39 @@ func (hdlr *TrafficHandler) Total(c fiber.Ctx) error {
 	}
 
 	res, err := hdlr.Usecase.Total(dates.InitDate, dates.FinalDate)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+func (hdlr *TrafficHandler) Regions(c fiber.Ctx) error {
+	var dates dto.RangeDate
+	if err := c.Bind().Query(&dates); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.Regions(dates.InitDate, dates.FinalDate)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+func (hdlr *TrafficHandler) StatesByRegion(c fiber.Ctx) error {
+	var dates dto.RangeDate
+	if err := c.Bind().Query(&dates); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	region, err := url.QueryUnescape(c.Params("region"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.StatesByRegion(region, dates.InitDate, dates.FinalDate)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

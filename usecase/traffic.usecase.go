@@ -83,6 +83,44 @@ func (use *TrafficUsecase) Total(initDate, finalDate time.Time) ([]dto.Traffic, 
 	return result, nil
 }
 
+func (use *TrafficUsecase) Regions(initDate, finalDate time.Time) (dto.TrafficByLabel, error) {
+	traffics, err := use.prometheus.TrafficGroupedByField(context.Background(), "", "", "region", initDate, finalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	results := make(dto.TrafficByLabel)
+
+	for state, traffic := range traffics {
+		var trafficState []dto.Traffic
+		for _, t := range traffic {
+			trafficState = append(trafficState, (dto.Traffic)(*t))
+		}
+
+		results[state] = trafficState
+	}
+	return results, nil
+}
+
+func (use *TrafficUsecase) StatesByRegion(region string, initDate, finalDate time.Time) (dto.TrafficByLabel, error) {
+	traffics, err := use.prometheus.TrafficGroupedByField(context.Background(), "region", region, "state", initDate, finalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	results := make(dto.TrafficByLabel)
+
+	for state, traffic := range traffics {
+		var trafficState []dto.Traffic
+		for _, t := range traffic {
+			trafficState = append(trafficState, (dto.Traffic)(*t))
+		}
+
+		results[state] = trafficState
+	}
+	return results, nil
+}
+
 func (use *TrafficUsecase) Region(region string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
 	traffic, err := use.prometheus.TrafficByRegion(context.Background(), region, initDate, finalDate)
 	if err != nil {

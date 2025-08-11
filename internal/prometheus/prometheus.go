@@ -18,7 +18,10 @@ type Prometheus interface {
 	DeviceScan(ctx context.Context) ([]InfoDevice, error)
 	InstanceScan(ctx context.Context, ip string) ([]InfoDevice, error)
 	DeviceLocations(ctx context.Context) ([]DeviceLocation, error)
+
 	TrafficTotal(ctx context.Context, initDate, finalDate time.Time) ([]*Traffic, error)
+	TrafficGroupedByField(ctx context.Context, field, value, groupBy string, initDate, finalDate time.Time) (map[string][]*Traffic, error)
+
 	TrafficByRegion(ctx context.Context, region string, initDate, finalDate time.Time) ([]*Traffic, error)
 	TrafficByState(ctx context.Context, state string, initDate, finalDate time.Time) ([]*Traffic, error)
 	TrafficGroupInstance(ctx context.Context, instances []string, initDate, finalDate time.Time) ([]*Traffic, error)
@@ -118,6 +121,89 @@ func (p *prometheus) DeviceLocations(ctx context.Context) ([]DeviceLocation, err
 	}
 
 	return devices, nil
+}
+
+func (p *prometheus) TrafficGroupedByField(ctx context.Context, field, value, groupBy string, initDate, finalDate time.Time) (map[string][]*Traffic, error) {
+	var query string
+	if field != "" {
+		query = fmt.Sprintf("%s='%s'", field, value)
+	}
+
+	queryBW := fmt.Sprintf("sum(ifSpeed{%s}) by (%s)", query, groupBy)
+	queryBpsIn := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticReceivedBytes_count{%s}[10m]) * 8) by (%s)", query, groupBy)
+	queryBpsOut := fmt.Sprintf("sum(rate(hwGponOltEthernetStatisticSendBytes_count{%s}[10m]) * 8) by (%s)", query, groupBy)
+	queryBytesIn := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticReceivedBytes_count{%s}[10m])) by (%s)", query, groupBy)
+	queryBytesOut := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticSendBytes_count{%s}[10m])) by (%s)", query, groupBy)
+
+	r := v1.Range{
+		Start: initDate,
+		End:   finalDate,
+		Step:  5 * time.Minute,
+	}
+
+	mbpsBwResult, _, _ := p.client.QueryRange(ctx, queryBW, r)
+	bpsInResult, _, _ := p.client.QueryRange(ctx, queryBpsIn, r)
+	bpsOutResult, _, _ := p.client.QueryRange(ctx, queryBpsOut, r)
+	bytesInResult, _, _ := p.client.QueryRange(ctx, queryBytesIn, r)
+	bytesOutResult, _, _ := p.client.QueryRange(ctx, queryBytesOut, r)
+
+	mbpsBwMatrix, _ := mbpsBwResult.(model.Matrix)
+	bpsInMatrix, _ := bpsInResult.(model.Matrix)
+	bpsOutMatrix, _ := bpsOutResult.(model.Matrix)
+	bytesInMatrix, _ := bytesInResult.(model.Matrix)
+	bytesOutMatrix, _ := bytesOutResult.(model.Matrix)
+
+	trafficByStateAndTime := make(map[string]map[int64]*Traffic)
+
+	processMatrix := func(matrix model.Matrix, field string) {
+		for _, serie := range matrix {
+			fieldName := string(serie.Metric[model.LabelName(groupBy)])
+			if _, ok := trafficByStateAndTime[fieldName]; !ok {
+				trafficByStateAndTime[fieldName] = make(map[int64]*Traffic)
+			}
+			for _, point := range serie.Values {
+				key := int64(point.Timestamp) / 1000
+				if _, ok := trafficByStateAndTime[fieldName][key]; !ok {
+					trafficByStateAndTime[fieldName][key] = &Traffic{
+						Time: time.Unix(key, 0),
+					}
+				}
+				traffic := trafficByStateAndTime[fieldName][key]
+				switch field {
+				case "Bandwidth":
+					traffic.Bandwidth = float64(point.Value)
+				case "BpsIn":
+					traffic.BpsIn = float64(point.Value)
+				case "BpsOut":
+					traffic.BpsOut = float64(point.Value)
+				case "BytesIn":
+					traffic.BytesIn = float64(point.Value)
+				case "BytesOut":
+					traffic.BytesOut = float64(point.Value)
+				}
+			}
+		}
+	}
+
+	processMatrix(mbpsBwMatrix, "Bandwidth")
+	processMatrix(bpsInMatrix, "BpsIn")
+	processMatrix(bpsOutMatrix, "BpsOut")
+	processMatrix(bytesInMatrix, "BytesIn")
+	processMatrix(bytesOutMatrix, "BytesOut")
+
+	result := make(map[string][]*Traffic)
+	for fieldName, trafficMap := range trafficByStateAndTime {
+		slice := make([]*Traffic, 0, len(trafficMap))
+		for _, traffic := range trafficMap {
+			slice = append(slice, traffic)
+		}
+		sort.Slice(slice, func(i, j int) bool {
+			return slice[i].Time.Before(slice[j].Time)
+		})
+		result[fieldName] = slice
+	}
+
+	return result, nil
 }
 
 func (p *prometheus) TrafficByRegion(ctx context.Context, region string, initDate, finalDate time.Time) ([]*Traffic, error) {

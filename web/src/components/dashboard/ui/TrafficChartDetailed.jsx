@@ -19,7 +19,6 @@ export default function TrafficChartDetailed({ data, dataType }) {
     ),
   ].sort();
 
-  console.log(data);
   const chartData = allTimes.map((time) => {
     const entry = { time };
     for (const name of Object.keys(data)) {

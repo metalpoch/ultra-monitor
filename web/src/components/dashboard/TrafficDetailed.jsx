@@ -19,7 +19,7 @@ export default function TrafficRegions({ today, lastYear }) {
   const { data, loading, error } = useFetch(url);
   useEffect(() => {
     const u = $selectedState
-      ? new URL(`${baseURL}/state/${$selectedState}`)
+      ? new URL(`${baseURL}/sysname/${$selectedState}`)
       : $selectedRegion
       ? new URL(`${baseURL}/states/${$selectedRegion}`)
       : new URL(`${baseURL}/regions`);

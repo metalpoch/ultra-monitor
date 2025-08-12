@@ -2,11 +2,16 @@
 import dayjs from "dayjs";
 import Layout from "../layouts/Layout.astro";
 import Form from "../components/dashboard/Form";
-import Traffic from "../components/dashboard/Traffic";
+import TotalTraffic from "../components/dashboard/Traffic";
+import TrafficDetailed from "../components/dashboard/TrafficDetailed";
 import ClientStatus from "../components/dashboard/ClientStatus";
 
 const minDate = dayjs("2025-07-01T00:00:00-04:00");
-const today = dayjs();
+const today = dayjs()
+  .set("hour", 0)
+  .set("minute", 0)
+  .set("second", 0)
+  .set("millisecond", 0);
 const lastYear =
   today.subtract(1, "year") < minDate ? minDate : today.subtract(1, "year");
 ---
@@ -17,7 +22,12 @@ const lastYear =
       <Form client:load />
     </div>
     <section class="w-full flex flex-wrap gap-5">
-      <Traffic
+      <TotalTraffic
+        today={today.format()}
+        lastYear={lastYear.format()}
+        client:load
+      />
+      <TrafficDetailed
         today={today.format()}
         lastYear={lastYear.format()}
         client:load

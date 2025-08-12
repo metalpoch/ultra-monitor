@@ -83,7 +83,7 @@ func (use *TrafficUsecase) Total(initDate, finalDate time.Time) ([]dto.Traffic, 
 		return nil, err
 	}
 
-	traffic, err := use.prometheus.TrafficTotal(context.Background(), initDate, finalDate)
+	traffic, err := use.prometheus.TrafficTotalByField(context.Background(), "", "", initDate, finalDate)
 	if err != nil {
 		return nil, err
 	}
@@ -93,6 +93,82 @@ func (use *TrafficUsecase) Total(initDate, finalDate time.Time) ([]dto.Traffic, 
 	}
 
 	use.cache.InsertOne(context.Background(), keyCache, 8*time.Hour, result)
+
+	return result, nil
+}
+
+func (use *TrafficUsecase) Region(region string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
+	var result []dto.Traffic
+
+	keyCache := fmt.Sprintf("region-%s-%d-%d", region, initDate.Unix(), finalDate.Unix())
+	if err := use.cache.FindOne(context.Background(), keyCache, &result); err == nil {
+		return result, nil
+	} else if err != redis.Nil {
+		return nil, err
+	}
+
+	traffic, err := use.prometheus.TrafficTotalByField(context.Background(), "region", region, initDate, finalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, t := range traffic {
+		result = append(result, (dto.Traffic)(*t))
+	}
+
+	use.cache.InsertOne(context.Background(), keyCache, 8*time.Hour, result)
+
+	return result, nil
+}
+
+func (use *TrafficUsecase) State(state string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
+	var result []dto.Traffic
+
+	keyCache := fmt.Sprintf("states-%s-%d-%d", state, initDate.Unix(), finalDate.Unix())
+	if err := use.cache.FindOne(context.Background(), keyCache, &result); err == nil {
+		return result, nil
+	} else if err != redis.Nil {
+		return nil, err
+	}
+
+	traffic, err := use.prometheus.TrafficTotalByField(context.Background(), "state", state, initDate, finalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, t := range traffic {
+		result = append(result, (dto.Traffic)(*t))
+	}
+
+	use.cache.InsertOne(context.Background(), keyCache, 8*time.Hour, result)
+
+	return result, nil
+}
+
+func (use *TrafficUsecase) GroupIP(ips []string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
+	traffic, err := use.prometheus.TrafficGroupInstance(context.Background(), ips, initDate, finalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []dto.Traffic
+	for _, t := range traffic {
+		result = append(result, (dto.Traffic)(*t))
+	}
+
+	return result, nil
+}
+
+func (use *TrafficUsecase) IndexAndIP(ip, index string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
+	traffic, err := use.prometheus.TrafficInstanceByIndex(context.Background(), ip, index, initDate, finalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []dto.Traffic
+	for _, t := range traffic {
+		result = append(result, (dto.Traffic)(*t))
+	}
 
 	return result, nil
 }
@@ -135,6 +211,7 @@ func (use *TrafficUsecase) StatesByRegion(region string, initDate, finalDate tim
 	} else if err != redis.Nil {
 		return nil, err
 	}
+
 	traffics, err := use.prometheus.TrafficGroupedByField(context.Background(), "region", region, "state", initDate, finalDate)
 	if err != nil {
 		return nil, err
@@ -158,78 +235,35 @@ func (use *TrafficUsecase) StatesByRegion(region string, initDate, finalDate tim
 	return results, nil
 }
 
-func (use *TrafficUsecase) Region(region string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
-	var result []dto.Traffic
+func (use *TrafficUsecase) SysnameByState(state string, initDate, finalDate time.Time) (dto.TrafficByLabel, error) {
+	results := make(dto.TrafficByLabel)
 
-	keyCache := fmt.Sprintf("region-%s-%d-%d", region, initDate.Unix(), finalDate.Unix())
-	if err := use.cache.FindOne(context.Background(), keyCache, &result); err == nil {
-		return result, nil
+	keyCache := fmt.Sprintf("oltsByState-%s-%d-%d", state, initDate.Unix(), finalDate.Unix())
+	if err := use.cache.FindOne(context.Background(), keyCache, &results); err == nil {
+		return results, nil
 	} else if err != redis.Nil {
 		return nil, err
 	}
 
-	traffic, err := use.prometheus.TrafficByRegion(context.Background(), region, initDate, finalDate)
+	traffics, err := use.prometheus.SysnameByState(context.Background(), state, initDate, finalDate)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, t := range traffic {
-		result = append(result, (dto.Traffic)(*t))
+	if len(traffics) < 1 {
+		return results, nil
 	}
 
-	use.cache.InsertOne(context.Background(), keyCache, 8*time.Hour, result)
+	for state, traffic := range traffics {
+		var trafficState []dto.Traffic
+		for _, t := range traffic {
+			trafficState = append(trafficState, (dto.Traffic)(*t))
+		}
 
-	return result, nil
-}
-
-func (use *TrafficUsecase) States(state string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
-	var result []dto.Traffic
-
-	keyCache := fmt.Sprintf("states-%s-%d-%d", state, initDate.Unix(), finalDate.Unix())
-	if err := use.cache.FindOne(context.Background(), keyCache, &result); err == nil {
-		return result, nil
-	} else if err != redis.Nil {
-		return nil, err
+		results[state] = trafficState
 	}
 
-	traffic, err := use.prometheus.TrafficByState(context.Background(), state, initDate, finalDate)
-	if err != nil {
-		return nil, err
-	}
+	use.cache.InsertOne(context.Background(), keyCache, 8*time.Hour, results)
 
-	for _, t := range traffic {
-		result = append(result, (dto.Traffic)(*t))
-	}
-
-	use.cache.InsertOne(context.Background(), keyCache, 8*time.Hour, result)
-
-	return result, nil
-}
-
-func (use *TrafficUsecase) GroupIP(ips []string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
-	traffic, err := use.prometheus.TrafficGroupInstance(context.Background(), ips, initDate, finalDate)
-	if err != nil {
-		return nil, err
-	}
-
-	var result []dto.Traffic
-	for _, t := range traffic {
-		result = append(result, (dto.Traffic)(*t))
-	}
-
-	return result, nil
-}
-
-func (use *TrafficUsecase) IndexAndIP(ip, index string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
-	traffic, err := use.prometheus.TrafficInstanceByIndex(context.Background(), ip, index, initDate, finalDate)
-	if err != nil {
-		return nil, err
-	}
-
-	var result []dto.Traffic
-	for _, t := range traffic {
-		result = append(result, (dto.Traffic)(*t))
-	}
-
-	return result, nil
+	return results, nil
 }

@@ -18,13 +18,12 @@ type TrafficQuery struct {
 }
 
 type Traffic struct {
-	Time        time.Time
-	Description string
-	BpsIn       float64
-	BpsOut      float64
-	Bandwidth   float64
-	BytesIn     float64
-	BytesOut    float64
+	Time      time.Time
+	BpsIn     float64
+	BpsOut    float64
+	Bandwidth float64
+	BytesIn   float64
+	BytesOut  float64
 }
 
 type InfoDevice struct {

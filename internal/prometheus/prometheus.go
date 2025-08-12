@@ -19,11 +19,10 @@ type Prometheus interface {
 	InstanceScan(ctx context.Context, ip string) ([]InfoDevice, error)
 	DeviceLocations(ctx context.Context) ([]DeviceLocation, error)
 
-	TrafficTotal(ctx context.Context, initDate, finalDate time.Time) ([]*Traffic, error)
-	TrafficGroupedByField(ctx context.Context, field, value, groupBy string, initDate, finalDate time.Time) (map[string][]*Traffic, error)
+	TrafficTotalByField(ctx context.Context, fieldQuery, value string, initDate, finalDate time.Time) ([]*Traffic, error)
+	TrafficGroupedByField(ctx context.Context, fieldQuery, value, groupBy string, initDate, finalDate time.Time) (map[string][]*Traffic, error)
+	SysnameByState(ctx context.Context, state string, initDate, finalDate time.Time) (map[string][]*Traffic, error)
 
-	TrafficByRegion(ctx context.Context, region string, initDate, finalDate time.Time) ([]*Traffic, error)
-	TrafficByState(ctx context.Context, state string, initDate, finalDate time.Time) ([]*Traffic, error)
 	TrafficGroupInstance(ctx context.Context, instances []string, initDate, finalDate time.Time) ([]*Traffic, error)
 	TrafficInstanceByIndex(ctx context.Context, instance, index string, initDate, finalDate time.Time) ([]*Traffic, error)
 }
@@ -221,12 +220,12 @@ func (p *prometheus) TrafficGroupedByField(ctx context.Context, fieldQuery, valu
 	return result, nil
 }
 
-func (p *prometheus) TrafficTotal(ctx context.Context, initDate, finalDate time.Time) ([]*Traffic, error) {
-	queryBW := "sum(ifSpeed)"
-	queryBpsIn := "sum(avg_over_time(rate(hwGponOltEthernetStatisticReceivedBytes_count[5m])[1h:5m]) * 8)"
-	queryBpsOut := "sum(avg_over_time(rate(hwGponOltEthernetStatisticSendBytes_count[5m])[1h:5m]) * 8)"
-	queryBytesIn := "sum(avg_over_time(increase(hwGponOltEthernetStatisticReceivedBytes_count[5m])[1h:5m]))"
-	queryBytesOut := "sum(avg_over_time(increase(hwGponOltEthernetStatisticSendBytes_count[5m])[1h:5m]))"
+func (p *prometheus) SysnameByState(ctx context.Context, state string, initDate, finalDate time.Time) (map[string][]*Traffic, error) {
+	queryBW := fmt.Sprintf("sum(ifSpeed{state='%s'}) by (instance) * on(instance) group_left(sysName) sysName", state)
+	queryBpsIn := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticReceivedBytes_count{state='%s'}[5m])[1h:5m]) * 8) by (instance) * on(instance) group_left(sysName) sysName", state)
+	queryBpsOut := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticSendBytes_count{state='%s'}[5m])[1h:5m]) * 8) by (instance) * on(instance) group_left(sysName) sysName", state)
+	queryBytesIn := fmt.Sprintf("sum(avg_over_time(increase(hwGponOltEthernetStatisticReceivedBytes_count{state='%s'}[5m])[1h:5m])) by (instance) * on(instance) group_left(sysName) sysName", state)
+	queryBytesOut := fmt.Sprintf("sum(avg_over_time(increase(hwGponOltEthernetStatisticSendBytes_count{state='%s'}[5m])[1h:5m])) by (instance) * on(instance) group_left(sysName) sysName", state)
 
 	r := v1.Range{
 		Start: initDate,
@@ -246,101 +245,70 @@ func (p *prometheus) TrafficTotal(ctx context.Context, initDate, finalDate time.
 	bytesInMatrix, _ := bytesInResult.(model.Matrix)
 	bytesOutMatrix, _ := bytesOutResult.(model.Matrix)
 
-	trafficMap := make(map[int64]*Traffic)
+	trafficByStateAndTime := make(map[string]map[int64]*Traffic)
 
-	processMatrix := func(matrix model.Matrix, updateFunc func(*Traffic, float64)) {
+	processMatrix := func(matrix model.Matrix, field string) {
 		for _, serie := range matrix {
+			fieldName := string(serie.Metric["sysName"])
+			if _, ok := trafficByStateAndTime[fieldName]; !ok {
+				trafficByStateAndTime[fieldName] = make(map[int64]*Traffic)
+			}
 			for _, point := range serie.Values {
 				key := int64(point.Timestamp) / 1000
-				if _, ok := trafficMap[key]; !ok {
-					trafficMap[key] = &Traffic{Time: time.Unix(key, 0)}
+				if _, ok := trafficByStateAndTime[fieldName][key]; !ok {
+					trafficByStateAndTime[fieldName][key] = &Traffic{
+						Time: time.Unix(key, 0),
+					}
 				}
-				updateFunc(trafficMap[key], float64(point.Value))
+				traffic := trafficByStateAndTime[fieldName][key]
+				switch field {
+				case "Bandwidth":
+					traffic.Bandwidth = float64(point.Value)
+				case "BpsIn":
+					traffic.BpsIn = float64(point.Value)
+				case "BpsOut":
+					traffic.BpsOut = float64(point.Value)
+				case "BytesIn":
+					traffic.BytesIn = float64(point.Value)
+				case "BytesOut":
+					traffic.BytesOut = float64(point.Value)
+				}
 			}
 		}
 	}
 
-	processMatrix(mbpsBwMatrix, func(t *Traffic, val float64) { t.Bandwidth = val })
-	processMatrix(bpsInMatrix, func(t *Traffic, val float64) { t.BpsIn = val })
-	processMatrix(bpsOutMatrix, func(t *Traffic, val float64) { t.BpsOut = val })
-	processMatrix(bytesInMatrix, func(t *Traffic, val float64) { t.BytesIn = val })
-	processMatrix(bytesOutMatrix, func(t *Traffic, val float64) { t.BytesOut = val })
+	processMatrix(mbpsBwMatrix, "Bandwidth")
+	processMatrix(bpsInMatrix, "BpsIn")
+	processMatrix(bpsOutMatrix, "BpsOut")
+	processMatrix(bytesInMatrix, "BytesIn")
+	processMatrix(bytesOutMatrix, "BytesOut")
 
-	result := make([]*Traffic, 0, len(trafficMap))
-	for _, traffic := range trafficMap {
-		result = append(result, traffic)
-	}
-
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].Time.Before(result[j].Time)
-	})
-
-	return result, nil
-}
-
-func (p *prometheus) TrafficByRegion(ctx context.Context, region string, initDate, finalDate time.Time) ([]*Traffic, error) {
-	queryBW := fmt.Sprintf("sum(ifSpeed{region='%s'})", region)
-	queryBpsIn := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticReceivedBytes_count{region='%s'}[5m])[1h:5m]) * 8)", region)
-	queryBpsOut := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticSendBytes_count{region='%s'}[5m])[1h:5m]) * 8)", region)
-	queryBytesIn := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticReceivedBytes_count{region='%s'}[5m])[1h:5m]))", region)
-	queryBytesOut := fmt.Sprintf("sum(avg_over_time(increase(hwGponOltEthernetStatisticSendBytes_count{region='%s'}[5m])[1h:5m]))", region)
-
-	r := v1.Range{
-		Start: initDate,
-		End:   finalDate,
-		Step:  time.Hour,
-	}
-
-	mbpsBwResult, _, _ := p.client.QueryRange(ctx, queryBW, r)
-	bpsInResult, _, _ := p.client.QueryRange(ctx, queryBpsIn, r)
-	bpsOutResult, _, _ := p.client.QueryRange(ctx, queryBpsOut, r)
-	bytesInResult, _, _ := p.client.QueryRange(ctx, queryBytesIn, r)
-	bytesOutResult, _, _ := p.client.QueryRange(ctx, queryBytesOut, r)
-
-	mbpsBwMatrix, _ := mbpsBwResult.(model.Matrix)
-	bpsInMatrix, _ := bpsInResult.(model.Matrix)
-	bpsOutMatrix, _ := bpsOutResult.(model.Matrix)
-	bytesInMatrix, _ := bytesInResult.(model.Matrix)
-	bytesOutMatrix, _ := bytesOutResult.(model.Matrix)
-
-	trafficMap := make(map[int64]*Traffic)
-
-	processMatrix := func(matrix model.Matrix, updateFunc func(*Traffic, float64)) {
-		for _, serie := range matrix {
-			for _, point := range serie.Values {
-				key := int64(point.Timestamp) / 1000
-				if _, ok := trafficMap[key]; !ok {
-					trafficMap[key] = &Traffic{Time: time.Unix(key, 0)}
-				}
-				updateFunc(trafficMap[key], float64(point.Value))
-			}
+	result := make(map[string][]*Traffic)
+	for fieldName, trafficMap := range trafficByStateAndTime {
+		slice := make([]*Traffic, 0, len(trafficMap))
+		for _, traffic := range trafficMap {
+			slice = append(slice, traffic)
 		}
+		sort.Slice(slice, func(i, j int) bool {
+			return slice[i].Time.Before(slice[j].Time)
+		})
+		result[fieldName] = slice
 	}
-
-	processMatrix(mbpsBwMatrix, func(t *Traffic, val float64) { t.Bandwidth = val })
-	processMatrix(bpsInMatrix, func(t *Traffic, val float64) { t.BpsIn = val })
-	processMatrix(bpsOutMatrix, func(t *Traffic, val float64) { t.BpsOut = val })
-	processMatrix(bytesInMatrix, func(t *Traffic, val float64) { t.BytesIn = val })
-	processMatrix(bytesOutMatrix, func(t *Traffic, val float64) { t.BytesOut = val })
-
-	result := make([]*Traffic, 0, len(trafficMap))
-	for _, traffic := range trafficMap {
-		result = append(result, traffic)
-	}
-
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].Time.Before(result[j].Time)
-	})
 
 	return result, nil
 }
 
-func (p *prometheus) TrafficByState(ctx context.Context, state string, initDate, finalDate time.Time) ([]*Traffic, error) {
-	queryBW := fmt.Sprintf("sum(ifSpeed{state='%s'})", state)
-	queryBpsIn := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticReceivedBytes_count{region='%s'}[5m])[1h:5m]) * 8)", state)
-	queryBpsOut := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticSendBytes_count{region='%s'}[5m])[1h:5m]) * 8)", state)
-	queryBytesIn := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticReceivedBytes_count{region='%s'}[5m])[1h:5m]))", state)
-	queryBytesOut := fmt.Sprintf("sum(avg_over_time(increase(hwGponOltEthernetStatisticSendBytes_count{region='%s'}[5m])[1h:5m]))", state)
+func (p *prometheus) TrafficTotalByField(ctx context.Context, fieldQuery, value string, initDate, finalDate time.Time) ([]*Traffic, error) {
+	var query string
+	if fieldQuery != "" {
+		query = fmt.Sprintf("%s='%s'", fieldQuery, value)
+	}
+
+	queryBW := fmt.Sprintf("sum(ifSpeed{%s})", query)
+	queryBpsIn := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticReceivedBytes_count{%s}[5m])[1h:5m]) * 8)", query)
+	queryBpsOut := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticSendBytes_count{%s}[5m])[1h:5m]) * 8)", query)
+	queryBytesIn := fmt.Sprintf("sum(increase(hwGponOltEthernetStatisticReceivedBytes_count{%s}[5m])[1h:5m]))", query)
+	queryBytesOut := fmt.Sprintf("sum(avg_over_time(increase(hwGponOltEthernetStatisticSendBytes_count{%s}[5m])[1h:5m]))", query)
 
 	r := v1.Range{
 		Start: initDate,

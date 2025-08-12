@@ -4,13 +4,13 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/jmoiron/sqlx"
 	"github.com/metalpoch/ultra-monitor/internal/cache"
+	"github.com/metalpoch/ultra-monitor/internal/prometheus"
 )
 
-func Init(app *fiber.App, db *sqlx.DB, cache *cache.Redis, secret []byte, reportsDir string) {
+func Init(app *fiber.App, db *sqlx.DB, cache *cache.Redis, secret []byte, reportsDir string, prometheus *prometheus.Prometheus) {
 	NewAuthRoutes(app, db, secret)
 	NewFatRoutes(app, db)
-	NewOltRoutes(app, db)
-	NewOntRoutes(app, db, cache)
-	NewPonRoutes(app, db, cache)
 	NewReportRoutes(app, db, cache, reportsDir)
+	NewTrafficRoutes(app, db, cache, prometheus)
+	NewPrometheusRoutes(app, db, cache)
 }

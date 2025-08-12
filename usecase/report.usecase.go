@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -42,8 +43,14 @@ func (use *ReportUsecase) Get(id string) (*model.Report, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	res, err := use.repo.Get(ctx, uuid.Must(uuid.Parse(id)))
+	fileID, err := uuid.Parse(id)
 	if err != nil {
+		return nil, err
+	}
+
+	res, err := use.repo.Get(ctx, fileID)
+	if err != nil {
+		fmt.Println("ERROR", err.Error())
 		return nil, err
 	}
 	return (*model.Report)(res), nil
@@ -97,5 +104,10 @@ func (use *ReportUsecase) Delete(id string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	return use.repo.Delete(ctx, uuid.Must(uuid.Parse(id)))
+	fileID, err := uuid.Parse(id)
+	if err != nil {
+		return err
+	}
+
+	return use.repo.Delete(ctx, fileID)
 }

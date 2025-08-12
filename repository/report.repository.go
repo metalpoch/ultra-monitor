@@ -56,7 +56,7 @@ func (repo *reportRepository) GetCategories(ctx context.Context) ([]string, erro
 func (repo *reportRepository) GetReportsByUser(ctx context.Context, userID int32, page, limit uint16) ([]entity.Report, error) {
 	offset := (page - 1) * limit
 	var reports []entity.Report
-	query := `SELECT * FROM reports WHERE user_id = $1 LIMIT $2 OFFSET $3 ORDER BY created_at`
+	query := `SELECT * FROM reports WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`
 	err := repo.db.SelectContext(ctx, &reports, query, userID, limit, offset)
 	return reports, err
 }
@@ -64,7 +64,7 @@ func (repo *reportRepository) GetReportsByUser(ctx context.Context, userID int32
 func (repo *reportRepository) GetReportsByCategory(ctx context.Context, category string, page, limit uint16) ([]entity.Report, error) {
 	offset := (page - 1) * limit
 	var reports []entity.Report
-	query := `SELECT * FROM reports WHERE category = $1 LIMIT $2 OFFSET $3 ORDER BY created_at`
+	query := `SELECT * FROM reports WHERE category = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`
 	err := repo.db.SelectContext(ctx, &reports, query, category, limit, offset)
 	return reports, err
 }

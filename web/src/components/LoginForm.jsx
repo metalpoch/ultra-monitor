@@ -18,11 +18,13 @@ const userLogin = async (username, password) => {
 export default function LoginForm() {
   const [username, setUsername] = useState(null);
   const [password, setPassword] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
-    setError(null);
     e.preventDefault();
+    setLoading(true);
+    setError(null);
     const response = await userLogin(username, password);
     if (response.token) {
       const token = response.token;
@@ -30,8 +32,13 @@ export default function LoginForm() {
       window.location.href = "/";
     } else {
       setError(response.error);
+      setLoading(false);
     }
   };
+
+  if (loading) {
+    return <span className="mx-auto py-20 loader"></span>;
+  }
 
   return (
     <>
@@ -49,6 +56,7 @@ export default function LoginForm() {
             className="w-full bg-[#f1729] focus:outline-none"
             id="username"
             type="text"
+            value={username}
             onChange={({ target }) => setUsername(target.value)}
             placeholder="Ingresa tu usuario"
             required
@@ -64,6 +72,7 @@ export default function LoginForm() {
             className="w-full bg-[#f1729] focus:outline-none"
             id="password"
             type="password"
+            value={password}
             onChange={({ target }) => setPassword(target.value)}
             placeholder="Ingresa tu contraseña"
             required

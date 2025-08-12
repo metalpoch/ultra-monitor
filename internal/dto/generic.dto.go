@@ -3,8 +3,8 @@ package dto
 import "time"
 
 type RangeDate struct {
-	InitDate time.Time `query:"initDate" validate:"required"`
-	EndDate  time.Time `query:"endDate" validate:"required"`
+	InitDate  time.Time `query:"initDate" validate:"required"`
+	FinalDate time.Time `query:"finalDate" validate:"required"`
 }
 
 type Pagination struct {

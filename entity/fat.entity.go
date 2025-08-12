@@ -6,17 +6,70 @@ import (
 
 type Fat struct {
 	ID           int32     `db:"id"`
-	Fat          string    `db:"fat"`
+	IP           string    `db:"ip"`
 	Region       string    `db:"region"`
 	State        string    `db:"state"`
 	Municipality string    `db:"municipality"`
 	County       string    `db:"county"`
 	Odn          string    `db:"odn"`
-	OltIP        string    `db:"olt_ip"`
-	Shell        uint8     `db:"pon_shell"`
-	Port         uint8     `db:"pon_port"`
-	Card         uint8     `db:"pon_card"`
-	Latitude     float64   `db:"latitude"`
-	Longitude    float64   `db:"longitude"`
+	Fat          string    `db:"fat"`
+	Shell        uint8     `db:"shell"`
+	Card         uint8     `db:"card"`
+	Port         uint8     `db:"port"`
 	CreatedAt    time.Time `db:"created_at"`
+}
+
+type FatInfoStatus struct {
+	ID                 int32     `db:"id"`
+	IP                 string    `db:"ip"`
+	Region             string    `db:"region"`
+	State              string    `db:"state"`
+	Municipality       string    `db:"municipality"`
+	County             string    `db:"county"`
+	Odn                string    `db:"odn"`
+	Fat                string    `db:"fat"`
+	Shell              uint8     `db:"shell"`
+	Card               uint8     `db:"card"`
+	Port               uint8     `db:"port"`
+	CreatedAt          time.Time `db:"created_at"`
+	Actives            uint32    `db:"actives"`
+	ProvisionedOffline uint32    `db:"provisioned_offline"`
+	CutOff             uint32    `db:"cut_off"`
+	InProgress         uint32    `db:"in_progress"`
+	Date               time.Time `db:"date"`
+}
+
+type FatStatus struct {
+	FatsID             int32     `db:"fats_id"`
+	Date               time.Time `db:"date"`
+	Actives            uint32    `db:"actives"`
+	ProvisionedOffline uint32    `db:"provisioned_offline"`
+	CutOff             uint32    `db:"cut_off"`
+	InProgress         uint32    `db:"in_progress"`
+}
+
+type FatStatusSummary struct {
+	Date               time.Time `db:"date"`
+	Actives            uint32    `db:"actives"`
+	ProvisionedOffline uint32    `db:"provisioned_offline"`
+	CutOff             uint32    `db:"cut_off"`
+	InProgress         uint32    `db:"in_progress"`
+}
+
+type UpsertFat struct {
+	IP                 string    `db:"ip"`
+	Region             string    `db:"region"`
+	State              string    `db:"state"`
+	Municipality       string    `db:"municipality"`
+	County             string    `db:"county"`
+	Odn                string    `db:"odn"`
+	Fat                string    `db:"fat"`
+	Shell              uint8     `db:"shell"`
+	Card               uint8     `db:"card"`
+	Port               uint8     `db:"port"`
+	Actives            uint32    `db:"actives"`
+	ProvisionedOffline uint32    `db:"provisioned_offline"`
+	CutOff             uint32    `db:"cut_off"`
+	InProgress         uint32    `db:"in_progress"`
+	Date               time.Time `db:"date"`
 }

@@ -16,22 +16,29 @@ func NewFatRoutes(app *fiber.App, db *sqlx.DB) {
 
 	// Base
 	route.Get("/", hdlr.GetAll)
-	route.Post("/", hdlr.AddFat)
-	route.Delete("/:id", hdlr.DeleteOne)
+	route.Post("/", hdlr.UpsertFats)
 	route.Get("/:id", hdlr.GetByID)
 
-	// Traffic
-	route.Get("/traffic/:id", hdlr.GetTraffic)
-
 	// Locations
-	route.Get("/info/location/", hdlr.GetStates)
-	route.Get("/info/location/:state/", hdlr.GetMunicipality)
-	route.Get("/info/location/:state/:municipality/", hdlr.GetCounty)
-	route.Get("/info/location/:state/:municipality/:county", hdlr.GetOdn)
+	route.Get("/regions/all", hdlr.GetRegions)
+	route.Get("/regions/:region", hdlr.GetStates)
+	route.Get("/regions/:region/:state", hdlr.GetMunicipalities)
+	route.Get("/regions/:region/:state/:municipality", hdlr.GetCounties)
+	route.Get("/regions/:region/:state/:municipality/:county", hdlr.GetODN)
+	route.Get("/regions/:region/:state/:municipality/:county/:odn", hdlr.GetFat)
 
 	// Fat info by location
-	route.Get("/location/:state", hdlr.GetFatsByStates)
-	route.Get("/location/:state/:municipality", hdlr.GetFatsByMunicipality)
-	route.Get("/location/:state/:municipality/:county", hdlr.GetFatsByCounty)
-	route.Get("/location/:state/:municipality/:county/:odn", hdlr.GetFatsBytOdn)
+	route.Get("/location/:state", hdlr.FindByStates)
+	route.Get("/location/:state/:municipality", hdlr.FindByMunicipality)
+	route.Get("/location/:state/:municipality/:county", hdlr.FindByCounty)
+	route.Get("/location/:state/:municipality/:county/:odn", hdlr.FindBytOdn)
+
+	// Trend status
+	route.Get("/trend/status", hdlr.GetAllFatStatus)
+	route.Get("/trend/status/:region", hdlr.GetAllFatStatusByRegion)
+	route.Get("/trend/status/state/:state", hdlr.GetAllFatStatusByState)
+	route.Get("/trend/status/state/:state/:municipality", hdlr.GetAllFatStatusByMunicipality)
+	route.Get("/trend/status/state/:state/:municipality/:county", hdlr.GetAllFatStatusByCounty)
+	route.Get("/trend/status/state/:state/:municipality/:county/:odn", hdlr.GetAllFatStatusByODN)
+	route.Get("/trend/status/state/:state/:municipality/:county/:odn/:fat", hdlr.GetAllFatStatusByFat)
 }

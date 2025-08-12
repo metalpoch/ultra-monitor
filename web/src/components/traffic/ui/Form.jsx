@@ -4,7 +4,7 @@ import DatalistField from "../../ui/DatalistField";
 import { trafficData, ontData } from "../../../stores/traffic";
 import { REGIONS, STATES_BY_REGION } from "../../../constants/regions";
 import useFetch from "../../../hooks/useFetch";
-import { getDateRange } from "../../../utils/convert";
+import { getDateRange } from "../../../utils/delete.convert";
 
 const BASE_URL = import.meta.env.PUBLIC_API_URL;
 

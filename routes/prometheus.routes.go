@@ -15,4 +15,6 @@ func NewPrometheusRoutes(app *fiber.App, db *sqlx.DB, cache *cache.Redis) {
 
 	route := app.Group("/api/prometheus")
 	route.Get("/status", hdlr.GetGponPortsStatus)
+	route.Get("/status/region/:region", hdlr.GetGponPortsStatusByRegion)
+	route.Get("/status/state/:state", hdlr.GetGponPortsStatusByState)
 }

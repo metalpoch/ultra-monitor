@@ -11,6 +11,8 @@ import (
 type PrometheusRepository interface {
 	Upsert(ctx context.Context, data entity.PrometheusUpsert) error
 	GponPortsStatus(ctx context.Context) (*entity.PrometheusPortStatus, error)
+	GponPortsStatusByRegion(ctx context.Context, region string) (*entity.PrometheusPortStatus, error)
+	GponPortsStatusByState(ctx context.Context, state string) (*entity.PrometheusPortStatus, error)
 }
 
 type prometheusRepository struct {
@@ -50,5 +52,33 @@ func (r *prometheusRepository) GponPortsStatus(ctx context.Context) (*entity.Pro
   		COUNT(*) AS total_gpon
 	FROM prometheus_devices;`
 	err := r.db.GetContext(ctx, &res, query)
+	return &res, err
+}
+
+func (r *prometheusRepository) GponPortsStatusByRegion(ctx context.Context, region string) (*entity.PrometheusPortStatus, error) {
+	var res entity.PrometheusPortStatus
+	query := `SELECT
+		COUNT(DISTINCT(ip)) AS olts,
+		COUNT(DISTINCT(ip, card)) AS cards,
+		SUM(CASE WHEN status IN (1, 6) THEN 1 ELSE 0 END) AS gpon_actives,
+  		SUM(CASE WHEN status NOT IN (1, 6) THEN 1 ELSE 0 END) AS gpon_inactives,
+  		COUNT(*) AS total_gpon
+	FROM prometheus_devices
+	WHERE region = $1;`
+	err := r.db.GetContext(ctx, &res, query, region)
+	return &res, err
+}
+
+func (r *prometheusRepository) GponPortsStatusByState(ctx context.Context, state string) (*entity.PrometheusPortStatus, error) {
+	var res entity.PrometheusPortStatus
+	query := `SELECT
+		COUNT(DISTINCT(ip)) AS olts,
+		COUNT(DISTINCT(ip, card)) AS cards,
+		SUM(CASE WHEN status IN (1, 6) THEN 1 ELSE 0 END) AS gpon_actives,
+  		SUM(CASE WHEN status NOT IN (1, 6) THEN 1 ELSE 0 END) AS gpon_inactives,
+  		COUNT(*) AS total_gpon
+	FROM prometheus_devices
+	WHERE state = $1;`
+	err := r.db.GetContext(ctx, &res, query, state)
 	return &res, err
 }

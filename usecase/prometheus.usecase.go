@@ -32,3 +32,25 @@ func (use *PrometheusUsecase) GponPortsStatus() (*dto.PrometheusPortStatus, erro
 	}
 	return (*dto.PrometheusPortStatus)(status), nil
 }
+
+func (use *PrometheusUsecase) GponPortsStatusByRegion(region string) (*dto.PrometheusPortStatus, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	status, err := use.repo.GponPortsStatusByRegion(ctx, region)
+	if err != nil {
+		return nil, err
+	}
+	return (*dto.PrometheusPortStatus)(status), nil
+}
+
+func (use *PrometheusUsecase) GponPortsStatusByState(state string) (*dto.PrometheusPortStatus, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	status, err := use.repo.GponPortsStatusByState(ctx, state)
+	if err != nil {
+		return nil, err
+	}
+	return (*dto.PrometheusPortStatus)(status), nil
+}

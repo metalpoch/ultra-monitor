@@ -1,7 +1,14 @@
 include .env
 
 build:
+	make build-server
+	make build-web
+
+build-server:
 	CGO_ENABLED=0 go build -ldflags="-s -w" -o ./dist/gestor-ultra ./cmd/main.go
+
+build-web:
+	cd web/ && npm run build
 
 run-web:
 	cd web/ && npm run dev

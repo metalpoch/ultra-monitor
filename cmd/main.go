@@ -96,10 +96,8 @@ func main() {
 
 		app.Use(logger.New())
 		app.Use(cors.New())
-
 		routes.Init(app, db, redis, []byte(jwtSecret), reportsDir, &prometheusClient)
-
-		app.Listen("localhost"+":"+port, fiber.ListenConfig{
+		app.Listen(port, fiber.ListenConfig{
 			EnablePrefork: true,
 		})
 

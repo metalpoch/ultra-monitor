@@ -7,7 +7,9 @@ import (
 	"github.com/metalpoch/ultra-monitor/internal/prometheus"
 )
 
-func Init(app *fiber.App, db *sqlx.DB, cache *cache.Redis, secret []byte, reportsDir string, prometheus *prometheus.Prometheus) {
+func Init(app *fiber.App, db *sqlx.DB, cache *cache.Redis, secret []byte, webAppDir, reportsDir string, prometheus *prometheus.Prometheus) {
+	NewWebRoutes(app, webAppDir)
+	NewAuthRoutes(app, db, secret)
 	NewAuthRoutes(app, db, secret)
 	NewFatRoutes(app, db)
 	NewReportRoutes(app, db, cache, reportsDir)

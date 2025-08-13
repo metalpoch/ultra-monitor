@@ -10,7 +10,7 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/middleware/cors"
+	"github.com/gofiber/fiber/v3/middleware/favicon"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/jmoiron/sqlx"
 	"github.com/metalpoch/ultra-monitor/internal/cache"
@@ -28,8 +28,14 @@ var prometheusClient prometheus.Prometheus
 var jwtSecret string
 var reportsDir string
 var port string
+var webAppDir string
 
 func init() {
+	webAppDir = os.Getenv("WEB_APP_DIRECTORY")
+	if webAppDir == "" {
+		log.Fatal("error 'WEB_APP_DIRECTORY' enviroment varables requried.")
+	}
+
 	reportsDir = os.Getenv("REPORTS_DIRECTORY")
 	if reportsDir == "" {
 		log.Fatal("error 'REPORTS_DIRECTORY' enviroment varables requried.")
@@ -95,9 +101,13 @@ func main() {
 		})
 
 		app.Use(logger.New())
-		app.Use(cors.New())
-		routes.Init(app, db, redis, []byte(jwtSecret), reportsDir, &prometheusClient)
-		app.Listen(port, fiber.ListenConfig{
+		app.Use(favicon.New(favicon.Config{
+			File: webAppDir + "/favicon.svg",
+			URL:  "/favicon.svg",
+		}))
+
+		routes.Init(app, db, redis, []byte(jwtSecret), webAppDir, reportsDir, &prometheusClient)
+		app.Listen("localhost"+":"+port, fiber.ListenConfig{
 			EnablePrefork: true,
 		})
 

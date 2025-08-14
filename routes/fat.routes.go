@@ -4,15 +4,20 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/jmoiron/sqlx"
 	"github.com/metalpoch/ultra-monitor/handler"
+	"github.com/metalpoch/ultra-monitor/middleware"
 	"github.com/metalpoch/ultra-monitor/usecase"
 )
 
-func NewFatRoutes(app *fiber.App, db *sqlx.DB) {
+func NewFatRoutes(app *fiber.App, db *sqlx.DB, secret []byte) {
+	authUsecase := *usecase.NewUserUsecase(db, secret)
+
 	hdlr := &handler.FatHandler{
 		Usecase: usecase.NewFatUsecase(db),
 	}
 
 	route := app.Group("/api/fat")
+
+	route.Use(middleware.ValidateJWT(authUsecase, secret))
 
 	// Base
 	route.Get("/", hdlr.GetAll)

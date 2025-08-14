@@ -8,10 +8,10 @@ build-server:
 	CGO_ENABLED=0 go build -ldflags="-s -w" -o ./dist/gestor-ultra ./cmd/main.go
 
 build-web:
-	cd web/ && npm run build
+	cd web/ && PUBLIC_API_URL=$(PUBLIC_API_URL) npm run build
 
 run-web:
-	cd web/ && npm run dev
+	cd web/ && PUBLIC_API_URL=$(PUBLIC_API_URL) npm run dev
 
 run-server:
 	PORT=$(PORT) \
@@ -21,6 +21,7 @@ run-server:
 	REPORTS_DIRECTORY=$(REPORTS_DIRECTORY) \
 	PROMETHEUS_URL=$(PROMETHEUS_URL) \
 	WEB_APP_DIRECTORY=$(WEB_APP_DIRECTORY) \
+	CORS_ALLOW_ORIGIN=$(CORS_ALLOW_ORIGIN) \
 	go run ./cmd/main.go server
 
 run-scan:
@@ -31,6 +32,7 @@ run-scan:
 	REPORTS_DIRECTORY=$(REPORTS_DIRECTORY) \
 	PROMETHEUS_URL=$(PROMETHEUS_URL) \
 	WEB_APP_DIRECTORY=$(WEB_APP_DIRECTORY) \
+	CORS_ALLOW_ORIGIN=$(CORS_ALLOW_ORIGIN) \
 	go run ./cmd/main.go scan
 
 start-server: build
@@ -40,4 +42,7 @@ start-server: build
 	AUTH_SECRET_KEY=$(AUTH_SECRET_KEY) \
 	REPORTS_DIRECTORY=$(REPORTS_DIRECTORY) \
 	PROMETHEUS_URL=$(PROMETHEUS_URL) \
+	CORS_ALLOW_ORIGIN=$(CORS_ALLOW_ORIGIN) \
+	WEB_APP_DIRECTORY=$(WEB_APP_DIRECTORY) \
+	ENVIROMENT="production"
 	./dist/gestor-ultra server

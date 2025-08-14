@@ -17,6 +17,8 @@ export default function ClientStatus() {
   const $selectedRegion = useStore(selectedRegion);
   const $selectedState = useStore(selectedState);
 
+  const token = sessionStorage.getItem("access_token").replace("Bearer ", "");
+
   const fatURL = `${import.meta.env.PUBLIC_API_URL}/fat/trend/status`;
   const statusURL = `${import.meta.env.PUBLIC_API_URL}/prometheus/status`;
 
@@ -36,8 +38,12 @@ export default function ClientStatus() {
     setUrlGponStatus(sURL);
   }, [$selectedLevel, $selectedRegion, $selectedState]);
 
-  const { data, loading, error } = useFetch(urlFats);
-  const { data: dataGpon } = useFetch(urlGponStatus);
+  const { data, loading, error } = useFetch(urlFats, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const { data: dataGpon } = useFetch(urlGponStatus, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 
   useEffect(() => {
     if (data && dataGpon) {

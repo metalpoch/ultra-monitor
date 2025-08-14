@@ -15,8 +15,11 @@ export default function TrafficRegions({ today, lastYear }) {
   const $selectedRegion = useStore(selectedRegion);
   const $selectedState = useStore(selectedState);
 
+  const token = sessionStorage.getItem("access_token").replace("Bearer ", "");
   const baseURL = `${import.meta.env.PUBLIC_API_URL}/traffic`;
-  const { data, loading, error } = useFetch(url);
+  const { data, loading, error } = useFetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   useEffect(() => {
     const u = $selectedState
       ? new URL(`${baseURL}/sysname/${$selectedState}`)

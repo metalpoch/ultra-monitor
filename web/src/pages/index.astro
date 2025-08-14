@@ -19,22 +19,22 @@ const lastYear =
 <Layout title="Dashboard">
   <main class="w-full flex flex-wrap gap-5 justify-evenly px-10">
     <div class="w-full sticky-form">
-      <Form client:load />
+      <Form client:only />
     </div>
     <section class="w-full flex flex-wrap gap-5">
       <TotalTraffic
         today={today.format()}
         lastYear={lastYear.format()}
-        client:load
+        client:only
       />
       <TrafficDetailed
         today={today.format()}
         lastYear={lastYear.format()}
-        client:load
+        client:only
       />
     </section>
     <section class="w-full flex flex-wrap gap-5">
-      <ClientStatus client:load />
+      <ClientStatus client:only />
     </section>
   </main>
 </Layout>

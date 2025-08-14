@@ -9,15 +9,17 @@ import (
 )
 
 func NewAuthRoutes(app *fiber.App, db *sqlx.DB, secret []byte) {
-	hdlr := &handler.UserHandler{
-		Usecase: *usecase.NewUserUsecase(db, secret),
-	}
+	authUsecase := *usecase.NewUserUsecase(db, secret)
+	hdlr := &handler.UserHandler{Usecase: authUsecase}
 
 	route := app.Group("/api/auth")
 	route.Post("/signin", hdlr.Login)
-	route.Get("/", middleware.ValidateJWT(secret), hdlr.GetOwn)
-	route.Patch("/reset_password", middleware.ValidateJWT(secret), hdlr.ChangePassword)
-	route.Post("/signup", middleware.ValidateJWT(secret), middleware.AdminAccess, hdlr.Create)
-	route.Post("/:id", middleware.ValidateJWT(secret), middleware.AdminAccess, hdlr.Enable)
-	route.Delete("/:id", middleware.ValidateJWT(secret), middleware.AdminAccess, hdlr.Disable)
+	route.Patch("/reset_password", middleware.ChangePassword(authUsecase, secret), hdlr.ChangePassword)
+
+	route.Use(middleware.ValidateJWT(authUsecase, secret))
+
+	route.Get("/", hdlr.GetOwn)
+	route.Post("/signup", middleware.AdminAccess, hdlr.Create)
+	route.Post("/:id", middleware.AdminAccess, hdlr.Enable)
+	route.Delete("/:id", middleware.AdminAccess, hdlr.Disable)
 }

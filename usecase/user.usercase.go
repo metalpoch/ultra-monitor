@@ -9,7 +9,6 @@ import (
 	"github.com/metalpoch/ultra-monitor/entity"
 	"github.com/metalpoch/ultra-monitor/internal/dto"
 	"github.com/metalpoch/ultra-monitor/internal/jwt"
-	"github.com/metalpoch/ultra-monitor/model"
 	"github.com/metalpoch/ultra-monitor/repository"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -47,7 +46,7 @@ func (uc *UserUsecase) Create(newUser *dto.NewUser) error {
 	return nil
 }
 
-func (uc *UserUsecase) Login(email string, password string) (*model.Login, error) {
+func (uc *UserUsecase) Login(email string, password string) (*dto.UserLogin, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
@@ -59,20 +58,16 @@ func (uc *UserUsecase) Login(email string, password string) (*model.Login, error
 	if err := bcrypt.CompareHashAndPassword([]byte(res.Password), []byte(password)); err != nil {
 		return nil, errors.New("invalid user or password")
 	}
+
 	token, err := jwt.CreateJWT(uc.secret, res.ID, res.IsAdmin)
 	if err != nil {
 		return nil, err
 	}
 
-	return &model.Login{
-		ID:       res.ID,
-		Fullname: res.Fullname,
-		Username: res.Username,
-		Token:    token,
-	}, nil
+	return &dto.UserLogin{User: (dto.User)(res), Token: token}, nil
 }
 
-func (uc *UserUsecase) GetUser(id int) (*model.User, error) {
+func (uc *UserUsecase) GetUser(id int) (*dto.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
@@ -81,14 +76,8 @@ func (uc *UserUsecase) GetUser(id int) (*model.User, error) {
 		return nil, err
 	}
 
-	return &model.User{
-		ID:             res.ID,
-		Fullname:       res.Fullname,
-		Username:       res.Username,
-		ChangePassword: res.ChangePassword,
-		IsDisabled:     res.IsDisabled,
-		IsAdmin:        res.IsAdmin,
-	}, nil
+	user := (dto.User)(res)
+	return &user, nil
 }
 
 func (uc *UserUsecase) Disable(id int) error {

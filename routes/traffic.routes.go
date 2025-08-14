@@ -6,13 +6,19 @@ import (
 	"github.com/metalpoch/ultra-monitor/handler"
 	"github.com/metalpoch/ultra-monitor/internal/cache"
 	"github.com/metalpoch/ultra-monitor/internal/prometheus"
+	"github.com/metalpoch/ultra-monitor/middleware"
 	"github.com/metalpoch/ultra-monitor/usecase"
 )
 
-func NewTrafficRoutes(app *fiber.App, db *sqlx.DB, cache *cache.Redis, prometheus *prometheus.Prometheus) {
+func NewTrafficRoutes(app *fiber.App, db *sqlx.DB, cache *cache.Redis, prometheus *prometheus.Prometheus, secret []byte) {
+	authUsecase := *usecase.NewUserUsecase(db, secret)
+
 	hdlr := &handler.TrafficHandler{Usecase: usecase.NewTrafficUsecase(db, cache, prometheus)}
 
 	route := app.Group("/api/traffic")
+
+	route.Use(middleware.ValidateJWT(authUsecase, secret))
+
 	route.Get("/info", hdlr.DeviceLocation)
 	route.Get("/info/instance/:ip", hdlr.InfoInstance)
 

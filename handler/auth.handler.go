@@ -27,17 +27,31 @@ func (hdlr *UserHandler) Create(c fiber.Ctx) error {
 }
 
 func (hdlr *UserHandler) Login(c fiber.Ctx) error {
-	credentials := new(dto.Login)
+	credentials := new(dto.SignIn)
 
 	if err := c.Bind().JSON(credentials); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
-	res, err := hdlr.Usecase.Login(credentials.Username, credentials.Password)
+
+	user, err := hdlr.Usecase.Login(credentials.Username, credentials.Password)
 	if err != nil {
 		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.JSON(res)
+	if user.ChangePassword {
+		return c.Status(http.StatusForbidden).JSON(fiber.Map{"error": "you must change your password", "token": user.Token})
+	}
+
+	if user.IsDisabled {
+		return c.Status(http.StatusForbidden).JSON(fiber.Map{"error": "your account is disabled"})
+	}
+
+	return c.JSON(dto.SignInResponse{
+		ID:       user.ID,
+		Fullname: user.Fullname,
+		Username: user.Username,
+		Token:    user.Token,
+	})
 }
 
 func (hdlr *UserHandler) GetOwn(c fiber.Ctx) error {
@@ -81,7 +95,7 @@ func (hdlr *UserHandler) Enable(c fiber.Ctx) error {
 }
 
 func (hdlr *UserHandler) ChangePassword(c fiber.Ctx) error {
-	id, ok := c.Locals("id").(float64)
+	id, ok := c.Locals("id").(int32)
 	if !ok {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user ID"})
 	}

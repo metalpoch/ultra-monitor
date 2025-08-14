@@ -10,7 +10,7 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/middleware/favicon"
+	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/jmoiron/sqlx"
 	"github.com/metalpoch/ultra-monitor/internal/cache"
@@ -29,8 +29,20 @@ var jwtSecret string
 var reportsDir string
 var port string
 var webAppDir string
+var allowOrigin string
+var enviroment string
 
 func init() {
+	enviroment = os.Getenv("ENVIROMENT")
+	allowOrigin = "*"
+
+	if enviroment == "production" {
+		allowOrigin = os.Getenv("CORS_ALLOW_ORIGIN")
+		if allowOrigin == "" {
+			log.Fatal("error 'CORS_ALLOW_ORIGIN' enviroment varables requried.")
+		}
+	}
+
 	webAppDir = os.Getenv("WEB_APP_DIRECTORY")
 	if webAppDir == "" {
 		log.Fatal("error 'WEB_APP_DIRECTORY' enviroment varables requried.")
@@ -101,12 +113,23 @@ func main() {
 		})
 
 		app.Use(logger.New())
-		app.Use(favicon.New(favicon.Config{
-			File: webAppDir + "/favicon.svg",
-			URL:  "/favicon.svg",
+		app.Use(cors.New(cors.Config{
+			AllowOrigins: []string{allowOrigin},
+			AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization"},
+			AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		}))
 
-		routes.Init(app, db, redis, []byte(jwtSecret), webAppDir, reportsDir, &prometheusClient)
+		routes.Init(&routes.Config{
+			App:        app,
+			DB:         db,
+			Cache:      redis,
+			Secret:     []byte(jwtSecret),
+			Prometheus: &prometheusClient,
+			WebAppDir:  webAppDir,
+			ReportsDir: reportsDir,
+			Enviroment: enviroment,
+		})
+
 		app.Listen("localhost"+":"+port, fiber.ListenConfig{
 			EnablePrefork: true,
 		})

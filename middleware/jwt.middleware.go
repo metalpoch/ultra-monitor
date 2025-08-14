@@ -7,17 +7,18 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/metalpoch/ultra-monitor/usecase"
 )
 
-func ValidateJWT(secret []byte) fiber.Handler {
+func ValidateJWT(usecase usecase.UserUsecase, secret []byte) fiber.Handler {
 
 	return func(ctx fiber.Ctx) error {
 		authHeader := ctx.Get("Authorization")
 		if !strings.HasPrefix(authHeader, "Bearer ") {
 			return ctx.Status(http.StatusForbidden).JSON(fiber.Map{"error": "authorization token invalid"})
 		}
-		receivedToken := strings.Split(authHeader, " ")[1]
 
+		receivedToken := strings.Split(authHeader, " ")[1]
 		token, err := jwt.Parse(receivedToken, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -35,8 +36,21 @@ func ValidateJWT(secret []byte) fiber.Handler {
 			return ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "invalid token"})
 		}
 
-		ctx.Locals("id", claims["id"])
-		ctx.Locals("is_admin", claims["is_admin"])
+		user, err := usecase.GetUser(int(claims["id"].(float64)))
+		if err != nil {
+			return ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "user not found"})
+		}
+
+		if user.IsDisabled {
+			return ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "your account is disabled"})
+		}
+
+		if user.ChangePassword {
+			return ctx.Status(http.StatusForbidden).JSON(fiber.Map{"error": "you must change your password"})
+		}
+
+		ctx.Locals("id", user.ID)
+		ctx.Locals("is_admin", user.IsAdmin)
 
 		return ctx.Next()
 	}

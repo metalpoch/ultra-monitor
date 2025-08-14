@@ -8,10 +8,10 @@ build-server:
 	CGO_ENABLED=0 go build -ldflags="-s -w" -o ./dist/gestor-ultra ./cmd/main.go
 
 build-web:
-	cd web/ && PUBLIC_API_URL=$(PUBLIC_API_URL) npm run build
+	cd web/ && PUBLIC_URL=$(CORS_ALLOW_ORIGIN) npm run build
 
 run-web:
-	cd web/ && PUBLIC_API_URL=$(PUBLIC_API_URL) npm run dev
+	cd web/ && PUBLIC_URL=$(CORS_ALLOW_ORIGIN) npm run dev
 
 run-server:
 	PORT=$(PORT) \

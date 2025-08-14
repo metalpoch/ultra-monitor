@@ -3,7 +3,7 @@ import PasswordIcon from "../icons/PasswordIcon";
 import UserIcon from "../icons/UserIcon";
 import ChangePasswordForm from "./ui/ChangePasswordForm";
 
-const BASE_URL = `${import.meta.env.PUBLIC_API_URL}/auth`;
+const BASE_URL = `${import.meta.env.PUBLIC_URL}/api/auth`;
 
 const userLogin = async (username, password) => {
   return fetch(`${BASE_URL}/signin`, {

@@ -19,8 +19,8 @@ export default function ClientStatus() {
 
   const token = sessionStorage.getItem("access_token").replace("Bearer ", "");
 
-  const fatURL = `${import.meta.env.PUBLIC_API_URL}/fat/trend/status`;
-  const statusURL = `${import.meta.env.PUBLIC_API_URL}/prometheus/status`;
+  const fatURL = `${import.meta.env.PUBLIC_URL}/api/fat/trend/status`;
+  const statusURL = `${import.meta.env.PUBLIC_URL}/api/prometheus/status`;
 
   useEffect(() => {
     let fURL = new URL(fatURL);

@@ -41,11 +41,11 @@ func init() {
 		if allowOrigin == "" {
 			log.Fatal("error 'CORS_ALLOW_ORIGIN' enviroment varables requried.")
 		}
-	}
 
-	webAppDir = os.Getenv("WEB_APP_DIRECTORY")
-	if webAppDir == "" {
-		log.Fatal("error 'WEB_APP_DIRECTORY' enviroment varables requried.")
+		webAppDir = os.Getenv("WEB_APP_DIRECTORY")
+		if webAppDir == "" {
+			log.Fatal("error 'WEB_APP_DIRECTORY' enviroment varables requried.")
+		}
 	}
 
 	reportsDir = os.Getenv("REPORTS_DIRECTORY")

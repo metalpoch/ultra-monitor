@@ -1,37 +1,20 @@
 ---
-import dayjs from "dayjs";
 import Layout from "../layouts/Layout.astro";
 import Form from "../components/dashboard/Form";
 import TotalTraffic from "../components/dashboard/Traffic";
 import TrafficDetailed from "../components/dashboard/TrafficDetailed";
 import ClientStatus from "../components/dashboard/ClientStatus";
 
-const minDate = dayjs("2025-07-01T00:00:00-04:00");
-const today = dayjs()
-  .set("hour", 0)
-  .set("minute", 0)
-  .set("second", 0)
-  .set("millisecond", 0);
-const lastYear =
-  today.subtract(1, "year") < minDate ? minDate : today.subtract(1, "year");
 ---
 
 <Layout title="Dashboard">
-  <main class="w-full flex flex-wrap gap-5 justify-evenly px-10">
+    <main class="w-full flex flex-wrap gap-5 justify-evenly px-10">
     <div class="w-full sticky-form">
       <Form client:only />
     </div>
     <section class="w-full flex flex-wrap gap-5">
-      <TotalTraffic
-        today={today.format()}
-        lastYear={lastYear.format()}
-        client:only
-      />
-      <TrafficDetailed
-        today={today.format()}
-        lastYear={lastYear.format()}
-        client:only
-      />
+      <TotalTraffic client:only />
+      <TrafficDetailed client:only />
     </section>
     <section class="w-full flex flex-wrap gap-5">
       <ClientStatus client:only />

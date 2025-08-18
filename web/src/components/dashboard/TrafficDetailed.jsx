@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
+import dayjs from "dayjs";
 import TrafficChartDetailed from "./ui/TrafficChartDetailed";
 import {
   selectedLevel,
@@ -8,7 +9,17 @@ import {
 } from "../../stores/dashboard";
 import useFetch from "../../hooks/useFetch";
 
-export default function TrafficRegions({ today, lastYear }) {
+
+const minDate = dayjs("2025-07-01T00:00:00-04:00");
+const today = dayjs()
+  .set("hour", 0)
+  .set("minute", 0)
+  .set("second", 0)
+  .set("millisecond", 0);
+const lastYear =
+  today.subtract(1, "year") < minDate ? minDate : today.subtract(1, "year");
+
+export default function TrafficRegions() {
   const [url, setUrl] = useState("");
   const [activeTab, setActiveTab] = useState("traffic");
   const $selectedLevel = useStore(selectedLevel);
@@ -24,11 +35,11 @@ export default function TrafficRegions({ today, lastYear }) {
     const u = $selectedState
       ? new URL(`${baseURL}/sysname/${$selectedState}`)
       : $selectedRegion
-      ? new URL(`${baseURL}/states/${$selectedRegion}`)
-      : new URL(`${baseURL}/regions`);
+        ? new URL(`${baseURL}/states/${$selectedRegion}`)
+        : new URL(`${baseURL}/regions`);
 
-    u.searchParams.append("initDate", lastYear);
-    u.searchParams.append("finalDate", today);
+    u.searchParams.append("initDate", lastYear.toISOString());
+    u.searchParams.append("finalDate", today.toISOString());
     setUrl(u.href);
   }, [$selectedLevel, $selectedRegion, $selectedState]);
 
@@ -44,21 +55,19 @@ export default function TrafficRegions({ today, lastYear }) {
     <section className="flex flex-col flex-1 sm:flex-2 px-6 py-3 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]">
       <div className="flex space-x-4 mb-4">
         <button
-          className={`px-4 py-2 rounded-t-lg focus:outline-none ${
-            activeTab === "traffic"
-              ? "bg-[#1f2a48] font-semibold text-white"
-              : "bg-[#121b31] text-slate-400 hover:text-white"
-          }`}
+          className={`px-4 py-2 rounded-t-lg focus:outline-none ${activeTab === "traffic"
+            ? "bg-[#1f2a48] font-semibold text-white"
+            : "bg-[#121b31] text-slate-400 hover:text-white"
+            }`}
           onClick={() => setActiveTab("traffic")}
         >
           Tráfico de Red
         </button>
         <button
-          className={`px-4 py-2 rounded-t-lg focus:outline-none ${
-            activeTab === "volume"
-              ? "bg-[#1f2a48] font-semibold text-white"
-              : "bg-[#121b31] text-slate-400 hover:text-white"
-          }`}
+          className={`px-4 py-2 rounded-t-lg focus:outline-none ${activeTab === "volume"
+            ? "bg-[#1f2a48] font-semibold text-white"
+            : "bg-[#121b31] text-slate-400 hover:text-white"
+            }`}
           onClick={() => setActiveTab("volume")}
         >
           Volumen de la Red

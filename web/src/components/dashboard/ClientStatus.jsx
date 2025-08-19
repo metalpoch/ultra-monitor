@@ -9,6 +9,8 @@ import {
 import { removeAccentsAndToUpper } from "../../utils/formater";
 import useFetch from "../../hooks/useFetch";
 
+const BASE_URL = `${import.meta.env.PUBLIC_URL}/api`;
+
 export default function ClientStatus() {
   const [urlFats, setUrlFats] = useState("");
   const [urlGponStatus, setUrlGponStatus] = useState("");
@@ -19,8 +21,8 @@ export default function ClientStatus() {
 
   const token = sessionStorage.getItem("access_token").replace("Bearer ", "");
 
-  const fatURL = `${import.meta.env.PUBLIC_URL}/api/fat/trend/status`;
-  const statusURL = `${import.meta.env.PUBLIC_URL}/api/prometheus/status`;
+  const fatURL = `${BASE_URL}/fat/trend/status`;
+  const statusURL = `${BASE_URL}/prometheus/status`;
 
   useEffect(() => {
     let fURL = new URL(fatURL);
@@ -38,7 +40,7 @@ export default function ClientStatus() {
     setUrlGponStatus(sURL);
   }, [$selectedLevel, $selectedRegion, $selectedState]);
 
-  const { data, loading, error } = useFetch(urlFats, {
+  const { data } = useFetch(urlFats, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const { data: dataGpon } = useFetch(urlGponStatus, {

@@ -1,4 +1,7 @@
 import { atom } from "nanostores";
 
-export const ontData = atom({});
-export const trafficData = atom({});
+export const region = atom("");
+export const state = atom("");
+export const olt = atom("");
+export const odn = atom("");
+export const fat = atom("");

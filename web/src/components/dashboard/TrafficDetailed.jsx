@@ -9,6 +9,7 @@ import {
 } from "../../stores/dashboard";
 import useFetch from "../../hooks/useFetch";
 
+const BASE_URL = `${import.meta.env.PUBLIC_URL}/api/traffic`;
 
 const minDate = dayjs("2025-07-01T00:00:00-04:00");
 const today = dayjs()
@@ -27,16 +28,15 @@ export default function TrafficRegions() {
   const $selectedState = useStore(selectedState);
 
   const token = sessionStorage.getItem("access_token").replace("Bearer ", "");
-  const baseURL = `${import.meta.env.PUBLIC_URL}/api/traffic`;
-  const { data, loading, error } = useFetch(url, {
+  const { data, loading } = useFetch(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
   useEffect(() => {
     const u = $selectedState
-      ? new URL(`${baseURL}/sysname/${$selectedState}`)
+      ? new URL(`${BASE_URL}/sysname/${$selectedState}`)
       : $selectedRegion
-        ? new URL(`${baseURL}/states/${$selectedRegion}`)
-        : new URL(`${baseURL}/regions`);
+        ? new URL(`${BASE_URL}/states/${$selectedRegion}`)
+        : new URL(`${BASE_URL}/regions`);
 
     u.searchParams.append("initDate", lastYear.toISOString());
     u.searchParams.append("finalDate", today.toISOString());

@@ -1,326 +1,204 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
+import { useStore } from "@nanostores/react";
+import useFetch from "../../../hooks/useFetch";
 import SelectField from "../../ui/SelectField";
 import DatalistField from "../../ui/DatalistField";
-import { trafficData, ontData } from "../../../stores/traffic";
-import { REGIONS, STATES_BY_REGION } from "../../../constants/regions";
-import useFetch from "../../../hooks/useFetch";
-import { getDateRange } from "../../../utils/delete.convert";
+import {
+  region,
+  state,
+  olt,
+  odn,
+  fat,
+} from "../../../stores/traffic";
 
-const BASE_URL = import.meta.env.PUBLIC_API_URL;
+const BASE_URL = `${import.meta.env.PUBLIC_URL}/api`
 
 export default function Form() {
-  const [trafficURL, setTrafficURL] = useState("");
-  const [ontStatusURL, setOntStatusURL] = useState("");
-  const [selectedDate, setSelectedDate] = useState("1d");
-  const [selectedRegion, setSelectedRegion] = useState("");
-  const [selectedState, setSelectedState] = useState("");
-  const [selectedMunicipality, setSelectedMunicipality] = useState("");
-  const [selectedCounty, setSelectedCounty] = useState("");
-  const [selectedOdn, setSelectedOdn] = useState("");
-  const [selectedOlt, setSelectedOlt] = useState("");
-  const [selectedFat, setSelectedFat] = useState("");
+  const [fatURL, setFatURL] = useState("")
+  const [fats, setFats] = useState([]);
+  const [odns, setOdns] = useState([]);
+  const [olts, setOlts] = useState([]);
+  const [states, setStates] = useState([]);
+  const [regions, setRegions] = useState([]);
+  const $region = useStore(region);
+  const $state = useStore(state);
+  const $olt = useStore(olt);
+  const $odn = useStore(odn);
+  const $fat = useStore(fat);
 
-  const dataTraffic = useFetch(trafficURL);
-  const dataOnt = useFetch(ontStatusURL);
+  const { data: deviceInfo, status } = useFetch(`${BASE_URL}/traffic/info`, {
+    headers: { Authorization: `Bearer ${sessionStorage.getItem("access_token").replace("Bearer ", "")}` },
+  });
 
-  useEffect(() => trafficData.set(dataTraffic), [dataTraffic]);
-  useEffect(() => ontData.set(dataOnt), [dataOnt]);
-
-  const url = selectedState
-    ? `${BASE_URL}/olt/location/${encodeURIComponent(selectedState)}`
-    : null;
-
-  const { data: rawData, loading, error } = useFetch(url);
-  const data = Array.isArray(rawData) ? rawData : [];
-
-  const municipalities = useMemo(
-    () =>
-      Array.from(
-        new Set(data.map((item) => item.municipality).filter(Boolean))
-      ),
-    [data]
-  );
-  const counties = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          data
-            .filter((item) =>
-              selectedMunicipality
-                ? item.municipality === selectedMunicipality
-                : true
-            )
-            .map((item) => item.county)
-            .filter(Boolean)
-        )
-      ),
-    [data, selectedMunicipality]
-  );
-
-  const filteredOlts = useMemo(
-    () =>
-      data.filter(
-        (item) =>
-          (!selectedMunicipality ||
-            item.municipality === selectedMunicipality) &&
-          (!selectedCounty || item.county === selectedCounty) &&
-          (!selectedOdn || item.odn === selectedOdn)
-      ),
-    [data, selectedMunicipality, selectedCounty, selectedOdn]
-  );
-
-  const oltOptions = useMemo(() => {
-    const seen = new Set();
-    return filteredOlts
-      .filter(({ ip }) => {
-        if (seen.has(ip)) return false;
-        seen.add(ip);
-        return true;
-      })
-      .map(({ ip, sys_name, sys_location }) => ({
-        value: sys_name,
-        label: `${ip} / ${sys_location}`,
-      }))
-      .filter((item) => item.value);
-  }, [filteredOlts]);
-
-  const fatOptions = useMemo(() => {
-    const seen = new Set();
-    return filteredOlts
-      .filter(({ fat }) => {
-        if (seen.has(fat)) return false;
-        seen.add(fat);
-        return true;
-      })
-      .map(({ ip, fat, sys_location }) => ({
-        value: fat,
-        label: `${ip} / ${sys_location}`,
-      }));
-  }, [filteredOlts]);
-
-  const odnOptions = useMemo(() => {
-    const seen = new Set();
-    return filteredOlts
-      .filter((item) => {
-        if (seen.has(item.odn)) return false;
-        seen.add(item.odn);
-        return true;
-      })
-      .map(({ ip, odn, sys_location }) => ({
-        value: odn,
-        label: `${ip} / ${sys_location}`,
-      }))
-      .filter((item) => item.value);
-  }, [filteredOlts]);
+  const { data: dataFats } = useFetch(fatURL, {
+    headers: { Authorization: `Bearer ${sessionStorage.getItem("access_token").replace("Bearer ", "")}` },
+  });
 
   useEffect(() => {
-    setSelectedState("");
-    setSelectedMunicipality("");
-    setSelectedCounty("");
-    setSelectedOdn("");
-    setSelectedOlt("");
-    setSelectedFat("");
-  }, [selectedRegion]);
+    if (deviceInfo)
+      setRegions(
+        [...new Set(deviceInfo.map(({ region }) => region))]
+          .sort((a, b) => a.localeCompare(b))
+          .map(reg => ({ label: reg, value: reg }))
+      )
+  }, [deviceInfo])
 
   useEffect(() => {
-    setSelectedMunicipality("");
-    setSelectedCounty("");
-    setSelectedOdn("");
-    setSelectedOlt("");
-    setSelectedFat("");
-  }, [selectedState]);
+    if ($region)
+      setStates(
+        [...new Set(deviceInfo.filter(item => item.region === $region).map(({ state }) => state))]
+          .sort((a, b) => a.localeCompare(b))
+          .map(reg => ({ label: reg, value: reg }))
+      )
+  }, [$region])
 
   useEffect(() => {
-    setSelectedCounty("");
-    setSelectedOdn("");
-    setSelectedOlt("");
-    setSelectedFat("");
-  }, [selectedMunicipality]);
-
-  useEffect(() => {
-    setSelectedOdn("");
-    setSelectedOlt("");
-    setSelectedFat("");
-  }, [selectedCounty]);
-
-  useEffect(() => {
-    if (selectedOlt) {
-      setSelectedFat("");
-      setSelectedOdn("");
-
-      const sysname = encodeURIComponent(selectedOlt);
-      const { initDate, endDate } = getDateRange(selectedDate);
-      const rangeDate = `initDate=${initDate}&endDate=${endDate}`;
-      setTrafficURL(`${BASE_URL}/pon/traffic/${sysname}?${rangeDate}`);
-      setOntStatusURL(`${BASE_URL}/ont/status/sysname/${sysname}?${rangeDate}`);
+    if ($state) {
+      setOlts(
+        deviceInfo.filter(item => item.state === $state).map(({ ip, sysName }) => ({ ip, sysName }))
+          .sort((a, b) => a.sysName.localeCompare(b.sysName))
+          .map(({ ip, sysName }) => ({ label: sysName, value: ip }))
+      )
     }
-  }, [selectedOlt, selectedDate]);
+  }, [$state]);
 
   useEffect(() => {
-    if (selectedFat) {
-      setSelectedOlt("");
-      setSelectedOdn("");
-
-      const param = encodeURIComponent(selectedFat);
-      const { initDate, endDate } = getDateRange(selectedDate);
-      const rangeDate = `initDate=${initDate}&endDate=${endDate}`;
-      setTrafficURL(`${BASE_URL}/fat/traffic/${param}?${rangeDate}`);
+    if (dataFats && $olt) {
+      setOdns(
+        [...new Set(dataFats.map(({ odn, municipality, county }) => JSON.stringify({ odn, municipality, county })))]
+          .map(strJson => JSON.parse(strJson))
+          .map(({ odn, municipality, county }) => ({ label: `${municipality} - ${county}`, value: odn }))
+      )
     }
-  }, [selectedFat, selectedDate]);
-
-  useEffect(() => {
-    if (selectedOdn) {
-      setSelectedOlt("");
-      setSelectedFat("");
-
-      const param = encodeURIComponent(selectedOdn);
-      const { initDate, endDate } = getDateRange(selectedDate);
-      const rangeDate = `initDate=${initDate}&endDate=${endDate}`;
-      setTrafficURL(`${BASE_URL}/odn/traffic/${param}?${rangeDate}`);
+    if (dataFats && $odn) {
+      setFats(
+        [...new Set(dataFats.map(({ id, fat, shell, card, port }) => JSON.stringify({ id, fat, shell, card, port })))]
+          .map(strJson => JSON.parse(strJson))
+          .map(({ id, fat, shell, card, port }) => ({ label: `${id} - GPON ${shell}/${card}/${port}`, value: fat }))
+      )
     }
-  }, [selectedOdn, selectedDate]);
+  }, [dataFats, $olt, $odn]);
 
+  const handleChangeRegion = ({ target }) => {
+    region.set(target.value)
+    state.set("")
+    olt.set("")
+    odn.set("")
+    fat.set("")
+    setFatURL("")
+  };
+
+  const handleChangeState = ({ target }) => {
+    state.set(target.value);
+    olt.set("")
+    odn.set("")
+    fat.set("")
+    setFatURL("")
+  };
+
+  const handleChangeOlt = ({ target }) => {
+    olt.set(target.value)
+    odn.set("")
+    fat.set("")
+    setFatURL(`${BASE_URL}/fat/ip/${target.value}`)
+  };
+
+  const handleChangeOdn = ({ target }) => {
+    odn.set(target.value)
+    fat.set("")
+  };
+  const handleChangeFat = ({ target }) => {
+    fat.set(target.value)
+  };
+
+
+  if (status === 401) {
+    sessionStorage.removeItem("access_token")
+    window.location.href = "/";
+  }
   return (
     <form className="w-full p-5 flex flex-wrap gap-5 content-center rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]">
-      <section className="w-full flex flex-wrap gap-2">
-        <SelectField
-          id="date"
-          label="Visualizar"
-          options={[
-            { value: "1d", label: "24 horas" },
-            { value: "7d", label: "1 semana" },
-            { value: "1m", label: "1 mes" },
-          ]}
-          value={selectedDate}
-          onChange={({ target }) => setSelectedDate(target.value)}
-        />
-        <SelectField
-          id="region"
-          label="Región"
-          options={[
-            {
-              value: "",
-              label: "Seleccionar región",
-              disabled: true,
-              hidden: true,
-            },
-            ...REGIONS.sort((a, b) => a.label.localeCompare(b.label)),
-          ]}
-          value={selectedRegion}
-          onChange={({ target }) => setSelectedRegion(target.value)}
-        />
-        <SelectField
-          id="state"
-          label="Estado*"
-          options={[
-            {
-              value: "",
-              label: "Seleccionar estado",
-              disabled: true,
-              hidden: true,
-            },
-            ...(STATES_BY_REGION[selectedRegion] ||
-              Object.values(STATES_BY_REGION)
-                .flat()
-                .toSorted((a, b) => a.label.localeCompare(b.label))),
-          ]}
-          value={selectedState}
-          onChange={({ target }) => setSelectedState(target.value)}
-        />
-        {selectedState && (
-          <SelectField
-            id="municipality"
-            label="Municipio"
-            options={[
-              {
-                value: "",
-                label: "Seleccionar municipio",
-                disabled: true,
-                hidden: true,
-              },
-              ...municipalities.map((m) => ({ value: m, label: m })),
-            ]}
-            value={selectedMunicipality}
-            onChange={({ target }) => setSelectedMunicipality(target.value)}
-            disabled={!selectedState || municipalities.length === 0}
-          />
-        )}
-        {selectedMunicipality && (
-          <SelectField
-            id="county"
-            label="Parroquia"
-            options={[
-              {
-                value: "",
-                label: "Seleccionar parroquia",
-                disabled: true,
-                hidden: true,
-              },
-              ...counties.map((c) => ({ value: c, label: c })),
-            ]}
-            value={selectedCounty}
-            onChange={({ target }) => setSelectedCounty(target.value)}
-            disabled={!selectedMunicipality || counties.length === 0}
-          />
-        )}
-      </section>
+      <SelectField
+        id="region"
+        label="Región"
+        options={[
+          {
+            value: "",
+            label: "Seleccionar región",
+            disabled: true,
+            hidden: true,
+          },
+          ...regions,
+        ]}
+        value={$region}
+        onChange={handleChangeRegion}
+      />
 
-      <section className="flex flex-wrap gap-2">
-        {oltOptions.length > 0 && (
-          <DatalistField
-            id="olt"
-            label="OLT"
-            options={oltOptions.map((o) => ({
-              value: o.value,
-              label: o.label,
-            }))}
-            value={selectedOlt || ""}
-            onChange={({ target }) => setSelectedOlt(target.value)}
-            placeholder="Ingrese el OLT"
-            disabled={oltOptions.length === 0}
-          />
-        )}
+      <SelectField
+        id="states"
+        label="Estado"
+        options={[
+          {
+            value: "",
+            label: "Seleccionar estado",
+            disabled: true,
+            hidden: true,
+          },
+          ...states,
+        ]}
+        value={$state}
+        onChange={handleChangeState}
+        disabled={states.length === 0}
+      />
 
-        {fatOptions.length > 0 && (
-          <DatalistField
-            id="fat"
-            label="FAT"
-            options={fatOptions.map((f) => ({
-              value: f.value,
-              label: f.label,
-            }))}
-            value={selectedFat || ""}
-            onChange={({ target }) => setSelectedFat(target.value)}
-            placeholder="Ingrese el FAT"
-            disabled={fatOptions.length === 0}
-          />
-        )}
+      <DatalistField
+        id="olts"
+        label="OLTs"
+        options={olts.map((o) => ({
+          value: o.value,
+          label: o.label,
+        }))}
+        value={$olt}
+        onChange={handleChangeOlt}
+        placeholder="Ingrese el OLT"
+        disabled={olts.length === 0}
+      />
 
-        {odnOptions.length > 0 && (
-          <DatalistField
-            id="odn"
-            label="ODN"
-            options={odnOptions.map((f) => ({
-              value: f.value,
-              label: f.label,
-            }))}
-            value={selectedOdn || ""}
-            onChange={({ target }) => setSelectedOdn(target.value)}
-            placeholder="Ingrese el ODN"
-            disabled={odnOptions.length === 0}
-          />
-        )}
-      </section>
-      {loading && (
-        <div className="w-full text-center text-cyan-400">
-          Cargando datos...
-        </div>
-      )}
-      {error && (
-        <div className="w-full text-center text-red-400">
-          Error al cargar datos
-        </div>
-      )}
+      <DatalistField
+        id="odn"
+        label="ODN"
+        options={[
+          {
+            value: "",
+            label: "Seleccionar ODN",
+            disabled: true,
+            hidden: true,
+          },
+          ...odns,
+        ]}
+        value={$odn}
+        onChange={handleChangeOdn}
+        placeholder="Ingrese el ODN"
+        disabled={odns.length === 0}
+      />
+
+      <DatalistField
+        id="fat"
+        label="FAT"
+        options={[
+          {
+            value: "",
+            label: "Seleccionar Fat",
+            disabled: true,
+            hidden: true,
+          },
+          ...fats,
+        ]}
+        value={$fat}
+        onChange={handleChangeFat}
+        placeholder="Ingrese el FAT"
+        disabled={fats.length === 0}
+      />
     </form>
   );
 }

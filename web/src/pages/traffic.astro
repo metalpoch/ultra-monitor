@@ -1,0 +1,19 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Form from "../components/traffic/ui/Form";
+
+---
+
+<Layout title="Tráfico">
+    <main class="w-full flex flex-wrap gap-5 justify-evenly px-10">
+    <div class="w-full sticky-form">
+      <Form client:only />
+    </div>
+    <section class="w-full flex flex-wrap gap-5">
+      <h1>keloke</h1>
+    </section>
+    <section class="w-full flex flex-wrap gap-5">
+      <h1>Mundo</h1>
+    </section>
+  </main>
+</Layout>

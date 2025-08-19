@@ -7,7 +7,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { COLOR } from "../../../constants/colors";
+import { COLOR } from "../../constants/colors";
 import dayjs from "dayjs";
 
 export default function TrafficChart({ data, dataType }) {
@@ -28,8 +28,7 @@ export default function TrafficChart({ data, dataType }) {
           />
           <Tooltip
             formatter={(value) =>
-              `${(value / 1e9).toFixed(2)} ${
-                dataType === "traffic" ? "Gbps" : "Gbytes"
+              `${(value / 1e9).toFixed(2)} ${dataType === "traffic" ? "Gbps" : "Gbytes"
               }`
             }
             contentStyle={{

@@ -29,7 +29,7 @@ export default function Traffic() {
   const token = sessionStorage.getItem("access_token").replace("Bearer ", "");
   const baseURL = `${import.meta.env.PUBLIC_URL}/api/traffic`;
 
-  const { data, loading, error } = useFetch(url, {
+  const { data, status, loading, error, } = useFetch(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
@@ -44,6 +44,11 @@ export default function Traffic() {
     u.searchParams.append("finalDate", today.toISOString());
     setUrl(u.href);
   }, [$selectedLevel, $selectedRegion, $selectedState]);
+
+  if (status === 401) {
+    sessionStorage.removeItem("access_token")
+    window.location.href = "/";
+  }
 
   if (loading) {
     return (

@@ -31,7 +31,7 @@ export default function DatalistField({
             typeof option === "string" ? (
               <option key={option} value={option} />
             ) : (
-              <option key={option.value} value={option.value}>
+              <option key={`${option.label}-${option.value}`} value={option.value}>
                 {option.label}
               </option>
             )

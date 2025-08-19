@@ -66,6 +66,20 @@ func (hdlr *FatHandler) GetByID(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
+func (hdlr *FatHandler) GetAllByIP(c fiber.Ctx) error {
+	ip, err := url.QueryUnescape(c.Params("ip"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetAllByIP(ip)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
 func (hdlr *FatHandler) GetRegions(c fiber.Ctx) error {
 	res, err := hdlr.Usecase.GetRegions()
 	if err != nil {

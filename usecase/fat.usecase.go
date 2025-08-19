@@ -84,6 +84,24 @@ func (use *FatUsecase) GetByID(id int) (dto.Fat, error) {
 	return (dto.Fat)(res), nil
 }
 
+func (use *FatUsecase) GetAllByIP(ip string) ([]dto.Fat, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetAllByIP(ctx, ip)
+	if err != nil {
+		return nil, err
+	}
+
+	var fats []dto.Fat
+	for _, f := range res {
+		fats = append(fats, (dto.Fat)(f))
+	}
+
+	return fats, nil
+
+}
+
 func (use *FatUsecase) GetRegions() ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()

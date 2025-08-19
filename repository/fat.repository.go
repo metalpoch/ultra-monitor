@@ -14,6 +14,8 @@ type FatRepository interface {
 	AllInfo(ctx context.Context, page, limit uint16) ([]entity.FatInfoStatus, error)
 	UpsertFats(ctx context.Context, fats []entity.UpsertFat) (int64, error)
 	FindByID(ctx context.Context, id int32) (entity.FatInfoStatus, error)
+	GetAllByIP(ctx context.Context, ip string) ([]entity.FatInfoStatus, error)
+
 	FindByStates(ctx context.Context, state string, page, limit uint16) ([]entity.FatInfoStatus, error)
 	FindByMunicipality(ctx context.Context, state, municipality string, page, limit uint16) ([]entity.FatInfoStatus, error)
 	FindByCounty(ctx context.Context, state, municipality, county string, page, limit uint16) ([]entity.FatInfoStatus, error)
@@ -194,6 +196,25 @@ func (r *fatRepository) FindByID(ctx context.Context, id int32) (entity.FatInfoS
 		return entity.FatInfoStatus{}, err
 	}
 	return fat, nil
+}
+
+func (r *fatRepository) GetAllByIP(ctx context.Context, ip string) ([]entity.FatInfoStatus, error) {
+	var fats []entity.FatInfoStatus
+	query := `
+	SELECT
+		f.*,
+		fs.date,
+		fs.actives,
+		fs.provisioned_offline,
+		fs.cut_off,
+		fs.in_progress
+	FROM fats AS f
+	INNER JOIN fat_status AS fs ON fs.fats_id = f.id
+	WHERE f.ip = $1 AND fs.date = (SELECT MAX(date) FROM fat_status)
+	ORDER BY f.odn, f.fat, f.shell, f.card, f.port;`
+
+	err := r.db.SelectContext(ctx, &fats, query, ip)
+	return fats, err
 }
 
 func (r *fatRepository) GetRegions(ctx context.Context) ([]string, error) {

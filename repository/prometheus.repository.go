@@ -10,7 +10,6 @@ import (
 
 type PrometheusRepository interface {
 	Upsert(ctx context.Context, data entity.PrometheusUpsert) error
-	GetSnmpIndexes(ctx context.Context, devices []entity.PrometheusDeviceQuery) ([]int64, error)
 	GponPortsStatus(ctx context.Context) (*entity.PrometheusPortStatus, error)
 	GponPortsStatusByRegion(ctx context.Context, region string) (*entity.PrometheusPortStatus, error)
 	GponPortsStatusByState(ctx context.Context, state string) (*entity.PrometheusPortStatus, error)
@@ -42,21 +41,6 @@ func (r *prometheusRepository) Upsert(ctx context.Context, data entity.Prometheu
 	}
 	return nil
 }
-func (r *prometheusRepository) GetSnmpIndexes(ctx context.Context, devices []entity.PrometheusDeviceQuery) ([]int64, error) {
-	var indexes []int64
-	query := "SELECT DISTINCT idx FROM prometheus_devices WHERE ip = $1 AND shell = $2 AND card = $3 AND port = $4;"
-
-	for _, d := range devices {
-		var idx int64
-		err := r.db.GetContext(ctx, &idx, query, d.IP, d.Shell, d.Card, d.Port)
-		if err != nil {
-			return nil, err
-		}
-		indexes = append(indexes, idx)
-	}
-	return indexes, nil
-}
-
 func (r *prometheusRepository) GponPortsStatus(ctx context.Context) (*entity.PrometheusPortStatus, error) {
 	var res entity.PrometheusPortStatus
 	query := `SELECT

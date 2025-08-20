@@ -14,13 +14,6 @@ type Prometheus struct {
 	CreatedAt time.Time `db:"created_at"`
 }
 
-type PrometheusDeviceQuery struct {
-	IP    string `db:"ip"`
-	Shell uint32 `db:"shell"`
-	Card  uint32 `db:"card"`
-	Port  uint32 `db:"port"`
-}
-
 type PrometheusPortStatus struct {
 	Olts          uint32 `db:"olts"`
 	Cards         uint32 `db:"cards"`

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -145,34 +146,6 @@ func (use *TrafficUsecase) State(state string, initDate, finalDate time.Time) ([
 	return result, nil
 }
 
-func (use *TrafficUsecase) GroupIP(ips []string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
-	traffic, err := use.prometheus.TrafficGroupInstance(context.Background(), ips, initDate, finalDate)
-	if err != nil {
-		return nil, err
-	}
-
-	var result []dto.Traffic
-	for _, t := range traffic {
-		result = append(result, (dto.Traffic)(*t))
-	}
-
-	return result, nil
-}
-
-func (use *TrafficUsecase) IndexAndIP(ip, index string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
-	traffic, err := use.prometheus.TrafficInstanceByIndex(context.Background(), ip, index, initDate, finalDate)
-	if err != nil {
-		return nil, err
-	}
-
-	var result []dto.Traffic
-	for _, t := range traffic {
-		result = append(result, (dto.Traffic)(*t))
-	}
-
-	return result, nil
-}
-
 func (use *TrafficUsecase) Regions(initDate, finalDate time.Time) (dto.TrafficByLabel, error) {
 	results := make(dto.TrafficByLabel)
 
@@ -266,4 +239,40 @@ func (use *TrafficUsecase) SysnameByState(state string, initDate, finalDate time
 	use.cache.InsertOne(context.Background(), keyCache, 8*time.Hour, results)
 
 	return results, nil
+}
+
+func (use *TrafficUsecase) GroupIP(ips []string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
+	traffic, err := use.prometheus.TrafficGroupInstance(context.Background(), ips, initDate, finalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []dto.Traffic
+	for _, t := range traffic {
+		result = append(result, (dto.Traffic)(*t))
+	}
+
+	return result, nil
+}
+
+func (use *TrafficUsecase) ODN(ip, odn string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	indexes, err := use.repo.GetSnmpIndexByODN(ctx, ip, odn)
+	if err != nil {
+		return nil, err
+	}
+
+	traffic, err := use.prometheus.TrafficInstanceByIndex(context.Background(), ip, strings.Join(indexes, "|"), initDate, finalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []dto.Traffic
+	for _, t := range traffic {
+		result = append(result, (dto.Traffic)(*t))
+	}
+
+	return result, nil
 }

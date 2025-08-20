@@ -13,13 +13,6 @@ type Prometheus struct {
 	Status int8   `json:"status"`
 }
 
-type PrometheusDeviceQuery struct {
-	IP    string   `json:"ip"`
-	Shell []uint32 `json:"shell" validate:"required,min=1,sameLength"`
-	Card  []uint32 `json:"card"`
-	Port  []uint32 `json:"port"`
-}
-
 type PrometheusPortStatus struct {
 	Olts          uint32 `json:"olts"`
 	Cards         uint32 `json:"cards"`

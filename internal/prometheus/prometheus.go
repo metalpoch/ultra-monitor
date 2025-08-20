@@ -409,17 +409,17 @@ func (p *prometheus) TrafficGroupInstance(ctx context.Context, instances []strin
 	return result, nil
 }
 
-func (p *prometheus) TrafficInstanceByIndex(ctx context.Context, instance, index string, initDate, finalDate time.Time) ([]*Traffic, error) {
-	queryBW := fmt.Sprintf("sum(ifSpeed{instance='%s', ifIndex='%s'})", instance, index)
-	queryBpsIn := fmt.Sprintf("sum(avg_over_time(irate(hwGponOltEthernetStatisticReceivedBytes_count{instance='%s', ponPortIndex='%s'}[15m])[30m:15m]) * 8)", instance, index)
-	queryBpsOut := fmt.Sprintf("sum(avg_over_time(irate(hwGponOltEthernetStatisticSendBytes_count{instance='%s', ponPortIndex='%s'}[15m])[30m:15m]) * 8)", instance, index)
-	queryBytesIn := fmt.Sprintf("sum(avg_over_time(increase(hwGponOltEthernetStatisticReceivedBytes_count{instance='%s', ponPortIndex='%s'}[15m])[30m:15m]))", instance, index)
-	queryBytesOut := fmt.Sprintf("sum(avg_over_time(increase(hwGponOltEthernetStatisticSendBytes_count{instance='%s', ponPortIndex='%s'}[15m])[30m:15m]))", instance, index)
+func (p *prometheus) TrafficInstanceByIndex(ctx context.Context, instance, indexes string, initDate, finalDate time.Time) ([]*Traffic, error) {
+	queryBW := fmt.Sprintf("sum(ifSpeed{instance='%s', ifIndex=~'%s'})", instance, indexes)
+	queryBpsIn := fmt.Sprintf("sum(avg_over_time(irate(hwGponOltEthernetStatisticReceivedBytes_count{instance='%s', ponPortIndex=~'%s'}[15m])[30m:15m]) * 8)", instance, indexes)
+	queryBpsOut := fmt.Sprintf("sum(avg_over_time(irate(hwGponOltEthernetStatisticSendBytes_count{instance='%s', ponPortIndex=~'%s'}[15m])[30m:15m]) * 8)", instance, indexes)
+	queryBytesIn := fmt.Sprintf("sum(avg_over_time(increase(hwGponOltEthernetStatisticReceivedBytes_count{instance='%s', ponPortIndex=~'%s'}[15m])[30m:15m]))", instance, indexes)
+	queryBytesOut := fmt.Sprintf("sum(avg_over_time(increase(hwGponOltEthernetStatisticSendBytes_count{instance='%s', ponPortIndex=~'%s'}[15m])[30m:15m]))", instance, indexes)
 
 	r := v1.Range{
 		Start: initDate,
 		End:   finalDate,
-		Step:  15 * time.Minute,
+		Step:  5 * time.Minute,
 	}
 
 	mbpsBwResult, _, _ := p.client.QueryRange(ctx, queryBW, r)

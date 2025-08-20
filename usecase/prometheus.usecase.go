@@ -22,6 +22,23 @@ func (use *PrometheusUsecase) Upsert(ctx context.Context, data dto.Prometheus) e
 	return use.repo.Upsert(ctx, (entity.PrometheusUpsert)(data))
 }
 
+func (use *PrometheusUsecase) GetSnmpIndexes(ports dto.PrometheusDeviceQuery) ([]int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var query []entity.PrometheusDeviceQuery
+	for i, shell := range ports.Shell {
+		query = append(query, entity.PrometheusDeviceQuery{
+			IP:    ports.IP,
+			Shell: shell,
+			Card:  ports.Card[i],
+			Port:  ports.Port[i],
+		})
+	}
+
+	return use.repo.GetSnmpIndexes(ctx, query)
+}
+
 func (use *PrometheusUsecase) GponPortsStatus() (*dto.PrometheusPortStatus, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

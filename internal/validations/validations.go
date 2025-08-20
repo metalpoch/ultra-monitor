@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/metalpoch/ultra-monitor/internal/dto"
 )
 
 type StructValidator struct {
@@ -20,8 +21,19 @@ func dateFormatValidation(fl validator.FieldLevel) bool {
 	return err == nil
 }
 
+func validateSameLength(fl validator.FieldLevel) bool {
+	obj, ok := fl.Parent().Interface().(dto.PrometheusDeviceQuery)
+	if !ok {
+		return false
+	}
+
+	length := len(obj.Shell)
+	return length == len(obj.Card) && length == len(obj.Port)
+}
+
 func NewValidator() *StructValidator {
 	v := validator.New()
 	v.RegisterValidation("dateformat", dateFormatValidation)
+	v.RegisterValidation("sameLength", validateSameLength)
 	return &StructValidator{Validator: v}
 }

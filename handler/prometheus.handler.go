@@ -4,11 +4,25 @@ import (
 	"net/url"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/metalpoch/ultra-monitor/internal/dto"
 	"github.com/metalpoch/ultra-monitor/usecase"
 )
 
 type PrometheusHandler struct {
 	Usecase *usecase.PrometheusUsecase
+}
+
+func (hdlr *PrometheusHandler) GetSnmpIndexes(c fiber.Ctx) error {
+	var query dto.PrometheusDeviceQuery
+	if err := c.Bind().Query(&query); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	res, err := hdlr.Usecase.GetSnmpIndexes(query)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
 }
 
 func (hdlr *PrometheusHandler) GetGponPortsStatus(c fiber.Ctx) error {

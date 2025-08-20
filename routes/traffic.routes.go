@@ -35,4 +35,5 @@ func NewTrafficRoutes(app *fiber.App, db *sqlx.DB, cache *cache.Redis, prometheu
 	// Simple
 	route.Get("/instances", hdlr.GroupIP)
 	route.Get("/odn/:ip/:odn", hdlr.ByOdn)
+	route.Get("/fat/:ip/:odn/:fat", hdlr.ByFat)
 }

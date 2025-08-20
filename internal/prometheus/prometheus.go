@@ -362,7 +362,7 @@ func (p *prometheus) TrafficGroupInstance(ctx context.Context, instances []strin
 	r := v1.Range{
 		Start: initDate,
 		End:   finalDate,
-		Step:  5 * time.Minute,
+		Step:  15 * time.Minute,
 	}
 
 	mbpsBwResult, _, _ := p.client.QueryRange(ctx, queryBW, r)
@@ -419,7 +419,7 @@ func (p *prometheus) TrafficInstanceByIndex(ctx context.Context, instance, index
 	r := v1.Range{
 		Start: initDate,
 		End:   finalDate,
-		Step:  5 * time.Minute,
+		Step:  15 * time.Minute,
 	}
 
 	mbpsBwResult, _, _ := p.client.QueryRange(ctx, queryBW, r)

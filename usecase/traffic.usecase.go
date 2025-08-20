@@ -276,3 +276,25 @@ func (use *TrafficUsecase) ODN(ip, odn string, initDate, finalDate time.Time) ([
 
 	return result, nil
 }
+
+func (use *TrafficUsecase) FAT(ip, odn, fat string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	indexes, err := use.repo.GetSnmpIndexByFAT(ctx, ip, odn, fat)
+	if err != nil {
+		return nil, err
+	}
+
+	traffic, err := use.prometheus.TrafficInstanceByIndex(context.Background(), ip, strings.Join(indexes, "|"), initDate, finalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []dto.Traffic
+	for _, t := range traffic {
+		result = append(result, (dto.Traffic)(*t))
+	}
+
+	return result, nil
+}

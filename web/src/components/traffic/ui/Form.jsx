@@ -116,6 +116,7 @@ export default function Form() {
     sessionStorage.removeItem("access_token")
     window.location.href = "/";
   }
+
   return (
     <form className="w-full p-5 flex flex-wrap gap-5 content-center rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]">
       <SelectField

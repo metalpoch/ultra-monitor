@@ -1,19 +1,29 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import Form from "../components/traffic/ui/Form";
+import FormOLT from "../components/traffic/ui/FormOLT";
+import FormODN from "../components/traffic/ui/FormODN";
+import FormFAT from "../components/traffic/ui/FormFAT";
+import TrafficOLT from "../components/traffic/TrafficOLT";
+import TrafficODN from "../components/traffic/TrafficODN";
+import TrafficFAT from "../components/traffic/TrafficFAT";
 
 ---
 
 <Layout title="Tráfico">
-    <main class="w-full flex flex-wrap gap-5 justify-evenly px-10">
-    <div class="w-full sticky-form">
-      <Form client:only />
-    </div>
-    <section class="w-full flex flex-wrap gap-5">
-      <h1>keloke</h1>
+  <main class="w-full flex flex-wrap gap-5 justify-evenly px-10">
+    <section class="w-full">
+      <FormOLT client:only />
+      <TrafficOLT client:only />
     </section>
-    <section class="w-full flex flex-wrap gap-5">
-      <h1>Mundo</h1>
+    <section class="w-full">
+      <FormODN client:only />
+      <TrafficODN client:only />
     </section>
+    <section class="w-full">
+      <FormFAT client:only />
+      <TrafficFAT client:only />
+    </section>
+
   </main>
 </Layout>
+

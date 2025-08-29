@@ -11,3 +11,9 @@ type Pagination struct {
 	Page  uint16 `query:"page" validate:"required"`
 	Limit uint16 `query:"limit" validate:"required"`
 }
+
+type Find struct {
+	Field string `query:"field" validate:"required_with=Value"`
+	Value string `query:"value" validate:"required_with=Field"`
+	Pagination
+}

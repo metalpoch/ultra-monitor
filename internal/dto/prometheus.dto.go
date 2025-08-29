@@ -52,3 +52,15 @@ type GroupedIP struct {
 	IP []string `query:"ip" validate:"required"`
 	RangeDate
 }
+
+type GponStats struct {
+	Port      string  `json:"port"`
+	IfName    string  `json:"if_name"`
+	IfSpeed   float64 `json:"if_speed"`
+	MaxInBps  float64 `json:"max_in_bps"`
+	AvgInBps  float64 `json:"avg_in_bps"`
+	MaxOutBps float64 `json:"max_out_bps"`
+	AvgOutBps float64 `json:"avg_out_bps"`
+	UsageIn   float64 `json:"usage_in"`
+	UsageOut  float64 `json:"usage_out"`
+}

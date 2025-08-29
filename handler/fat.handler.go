@@ -17,12 +17,12 @@ type FatHandler struct {
 }
 
 func (hdlr *FatHandler) GetAll(c fiber.Ctx) error {
-	pag := new(dto.Pagination)
-	if err := c.Bind().Query(pag); err != nil {
+	var query dto.Find
+	if err := c.Bind().Query(&query); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.GetAll(*pag)
+	res, err := hdlr.Usecase.GetAll(query)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -90,12 +90,7 @@ func (hdlr *FatHandler) GetRegions(c fiber.Ctx) error {
 }
 
 func (hdlr *FatHandler) GetStates(c fiber.Ctx) error {
-	region, err := url.QueryUnescape(c.Params("region"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-
-	res, err := hdlr.Usecase.GetStates(region)
+	res, err := hdlr.Usecase.GetStates()
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -104,17 +99,12 @@ func (hdlr *FatHandler) GetStates(c fiber.Ctx) error {
 }
 
 func (hdlr *FatHandler) GetMunicipalities(c fiber.Ctx) error {
-	region, err := url.QueryUnescape(c.Params("region"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-
 	state, err := url.QueryUnescape(c.Params("state"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.GetMunicipalities(region, state)
+	res, err := hdlr.Usecase.GetMunicipalities(state)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -123,11 +113,6 @@ func (hdlr *FatHandler) GetMunicipalities(c fiber.Ctx) error {
 }
 
 func (hdlr *FatHandler) GetCounties(c fiber.Ctx) error {
-	region, err := url.QueryUnescape(c.Params("region"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-
 	state, err := url.QueryUnescape(c.Params("state"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -138,7 +123,7 @@ func (hdlr *FatHandler) GetCounties(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.GetCounties(region, state, municipality)
+	res, err := hdlr.Usecase.GetCounties(state, municipality)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -147,11 +132,6 @@ func (hdlr *FatHandler) GetCounties(c fiber.Ctx) error {
 }
 
 func (hdlr *FatHandler) GetODN(c fiber.Ctx) error {
-	region, err := url.QueryUnescape(c.Params("region"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-
 	state, err := url.QueryUnescape(c.Params("state"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -167,41 +147,7 @@ func (hdlr *FatHandler) GetODN(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.GetODN(region, state, municipality, county)
-	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
-	}
-
-	return c.JSON(res)
-}
-
-func (hdlr *FatHandler) GetFat(c fiber.Ctx) error {
-	region, err := url.QueryUnescape(c.Params("region"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-
-	state, err := url.QueryUnescape(c.Params("state"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-
-	municipality, err := url.QueryUnescape(c.Params("municipality"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-
-	county, err := url.QueryUnescape(c.Params("county"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-
-	odn, err := url.QueryUnescape(c.Params("odn"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-
-	res, err := hdlr.Usecase.GetFat(region, state, municipality, county, odn)
+	res, err := hdlr.Usecase.GetODN(state, municipality, county)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
 	}

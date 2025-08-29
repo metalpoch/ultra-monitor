@@ -11,7 +11,7 @@ import (
 )
 
 type FatRepository interface {
-	AllInfo(ctx context.Context, page, limit uint16) ([]entity.FatInfoStatus, error)
+	AllInfo(ctx context.Context, find, value string, page, limit uint16) ([]entity.FatInfoStatus, error)
 	UpsertFats(ctx context.Context, fats []entity.UpsertFat) (int64, error)
 	FindByID(ctx context.Context, id int32) (entity.FatInfoStatus, error)
 	GetAllByIP(ctx context.Context, ip string) ([]entity.FatInfoStatus, error)
@@ -22,11 +22,10 @@ type FatRepository interface {
 	FindByOdn(ctx context.Context, state, municipality, county, odn string, page, limit uint16) ([]entity.FatInfoStatus, error)
 
 	GetRegions(ctx context.Context) ([]string, error)
-	GetStates(ctx context.Context, region string) ([]string, error)
-	GetMunicipalities(ctx context.Context, region, state string) ([]string, error)
-	GetCounties(ctx context.Context, region, state, municipality string) ([]string, error)
-	GetODN(ctx context.Context, region, state, municipality, county string) ([]string, error)
-	GetFat(ctx context.Context, region, state, municipality, county, odn string) ([]string, error)
+	GetStates(ctx context.Context) ([]string, error)
+	GetMunicipalities(ctx context.Context, state string) ([]string, error)
+	GetCounties(ctx context.Context, state, municipality string) ([]string, error)
+	GetODN(ctx context.Context, state, municipality, county string) ([]string, error)
 
 	GetAllFatStatus(ctx context.Context) ([]entity.FatStatusSummary, error)
 	GetAllFatStatusByRegion(ctx context.Context, region string) ([]entity.FatStatusSummary, error)
@@ -45,10 +44,16 @@ func NewFatRepository(db *sqlx.DB) *fatRepository {
 	return &fatRepository{db}
 }
 
-func (r *fatRepository) AllInfo(ctx context.Context, page, limit uint16) ([]entity.FatInfoStatus, error) {
+func (r *fatRepository) AllInfo(ctx context.Context, field, value string, page, limit uint16) ([]entity.FatInfoStatus, error) {
+	var findField string
 	var res []entity.FatInfoStatus
+
+	if field != "" || value != "" {
+		findField = fmt.Sprintf("f.%s = '%s' AND ", field, value)
+	}
+
 	offset := (page - 1) * limit
-	query := `SELECT
+	query := fmt.Sprintf(`SELECT
 		f.*,
 		fs.date,
 		fs.actives,
@@ -57,9 +62,10 @@ func (r *fatRepository) AllInfo(ctx context.Context, page, limit uint16) ([]enti
 		fs.in_progress
 	FROM fats AS f
 	INNER JOIN fat_status AS fs ON fs.fats_id = f.id
-	WHERE fs.date = (SELECT MAX(date) FROM fat_status)
+	WHERE %s fs.date = (SELECT MAX(date) FROM fat_status)
 	ORDER BY f.region, f.state, f.municipality, f.county
-	LIMIT $1 OFFSET $2;`
+	LIMIT $1 OFFSET $2;`, findField)
+
 	err := r.db.SelectContext(ctx, &res, query, limit, offset)
 	return res, err
 }
@@ -223,38 +229,30 @@ func (r *fatRepository) GetRegions(ctx context.Context) ([]string, error) {
 	return res, err
 }
 
-func (r *fatRepository) GetStates(ctx context.Context, region string) ([]string, error) {
+func (r *fatRepository) GetStates(ctx context.Context) ([]string, error) {
 	var res []string
-	query := `SELECT DISTINCT state FROM fats WHERE region = $1;`
-	err := r.db.SelectContext(ctx, &res, query, region)
+	err := r.db.SelectContext(ctx, &res, "SELECT DISTINCT state FROM fats ORDER BY state ASC;")
 	return res, err
 }
 
-func (r *fatRepository) GetMunicipalities(ctx context.Context, region, state string) ([]string, error) {
+func (r *fatRepository) GetMunicipalities(ctx context.Context, state string) ([]string, error) {
 	var res []string
-	query := `SELECT DISTINCT municipality FROM fats WHERE region = $1 AND state = $2;`
-	err := r.db.SelectContext(ctx, &res, query, region, state)
+	query := `SELECT DISTINCT municipality FROM fats WHERE state = $1 ORDER BY municipality ASC;`
+	err := r.db.SelectContext(ctx, &res, query, state)
 	return res, err
 }
 
-func (r *fatRepository) GetCounties(ctx context.Context, region, state, municipality string) ([]string, error) {
+func (r *fatRepository) GetCounties(ctx context.Context, state, municipality string) ([]string, error) {
 	var res []string
-	query := `SELECT DISTINCT county FROM fats WHERE region = $1 AND state = $2 AND municipality = $3;`
-	err := r.db.SelectContext(ctx, &res, query, region, state, municipality)
+	query := `SELECT DISTINCT county FROM fats WHERE state = $1 AND municipality = $2 ORDER BY county ASC;`
+	err := r.db.SelectContext(ctx, &res, query, state, municipality)
 	return res, err
 }
 
-func (r *fatRepository) GetODN(ctx context.Context, region, state, municipality, county string) ([]string, error) {
+func (r *fatRepository) GetODN(ctx context.Context, state, municipality, county string) ([]string, error) {
 	var res []string
-	query := `SELECT DISTINCT odn FROM fats WHERE region = $1 AND state = $2 AND municipality = $3 AND county = $4;`
-	err := r.db.SelectContext(ctx, &res, query, region, state, municipality, county)
-	return res, err
-}
-
-func (r *fatRepository) GetFat(ctx context.Context, region, state, municipality, county, odn string) ([]string, error) {
-	var res []string
-	query := `SELECT DISTINCT fat FROM fats WHERE region = $1 AND state = $2 AND municipality = $3 AND county = $4 AND odn = $5;`
-	err := r.db.SelectContext(ctx, &res, query, region, state, municipality, county, odn)
+	query := `SELECT DISTINCT odn FROM fats WHERE state = $1 AND municipality = $2 AND county = $3 ORDER BY odn ASC;`
+	err := r.db.SelectContext(ctx, &res, query, state, municipality, county)
 	return res, err
 }
 

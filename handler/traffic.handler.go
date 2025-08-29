@@ -140,6 +140,26 @@ func (hdlr *TrafficHandler) SysnameByState(c fiber.Ctx) error {
 
 }
 
+func (hdlr *TrafficHandler) GponStats(c fiber.Ctx) error {
+	var dates dto.RangeDate
+	if err := c.Bind().Query(&dates); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	ip, err := url.QueryUnescape(c.Params("ip"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GponStats(ip, dates.InitDate, dates.FinalDate)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+
+}
+
 func (hdlr *TrafficHandler) GroupIP(c fiber.Ctx) error {
 	var query dto.GroupedIP
 	if err := c.Bind().Query(&query); err != nil {
@@ -153,23 +173,23 @@ func (hdlr *TrafficHandler) GroupIP(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func (hdlr *TrafficHandler) ByOdn(c fiber.Ctx) error {
+func (hdlr *TrafficHandler) ByMunicipality(c fiber.Ctx) error {
 	var dates dto.RangeDate
 	if err := c.Bind().Query(&dates); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	ip, err := url.QueryUnescape(c.Params("ip"))
+	state, err := url.QueryUnescape(c.Params("state"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	odn, err := url.QueryUnescape(c.Params("odn"))
+	municipality, err := url.QueryUnescape(c.Params("municipality"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.ODN(ip, odn, dates.InitDate, dates.FinalDate)
+	res, err := hdlr.Usecase.ByMunicipality(state, municipality, dates.InitDate, dates.FinalDate)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -177,7 +197,65 @@ func (hdlr *TrafficHandler) ByOdn(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func (hdlr *TrafficHandler) ByFat(c fiber.Ctx) error {
+func (hdlr *TrafficHandler) ByCounty(c fiber.Ctx) error {
+	var dates dto.RangeDate
+	if err := c.Bind().Query(&dates); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	state, err := url.QueryUnescape(c.Params("state"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	municipality, err := url.QueryUnescape(c.Params("municipality"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	county, err := url.QueryUnescape(c.Params("county"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.ByCounty(state, municipality, county, dates.InitDate, dates.FinalDate)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+func (hdlr *TrafficHandler) ByOdn(c fiber.Ctx) error {
+	var dates dto.RangeDate
+	if err := c.Bind().Query(&dates); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	state, err := url.QueryUnescape(c.Params("state"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	municipality, err := url.QueryUnescape(c.Params("municipality"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	odn, err := url.QueryUnescape(c.Params("odn"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.ByODN(state, municipality, odn, dates.InitDate, dates.FinalDate)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+func (hdlr *TrafficHandler) ByIdx(c fiber.Ctx) error {
 	var dates dto.RangeDate
 	if err := c.Bind().Query(&dates); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -188,17 +266,12 @@ func (hdlr *TrafficHandler) ByFat(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	odn, err := url.QueryUnescape(c.Params("odn"))
+	idx, err := url.QueryUnescape(c.Params("idx"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	fat, err := url.QueryUnescape(c.Params("fat"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-
-	res, err := hdlr.Usecase.FAT(ip, odn, fat, dates.InitDate, dates.FinalDate)
+	res, err := hdlr.Usecase.ByIdx(ip, idx, dates.InitDate, dates.FinalDate)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

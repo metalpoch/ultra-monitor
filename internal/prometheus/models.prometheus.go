@@ -41,3 +41,29 @@ type DeviceLocation struct {
 	IP      string
 	SysName string
 }
+
+type trafficStats struct {
+	Port      string
+	IfName    string
+	IfSpeed   float64
+	MaxInBps  float64
+	AvgInBps  float64
+	MaxOutBps float64
+	AvgOutBps float64
+	UsageIn   float64
+	UsageOut  float64
+	Samples   int
+	Instance  string
+}
+
+type GponStats struct {
+	Port      string
+	IfName    string
+	IfSpeed   float64
+	MaxInBps  float64
+	AvgInBps  float64
+	MaxOutBps float64
+	AvgOutBps float64
+	UsageIn   float64
+	UsageOut  float64
+}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -241,6 +240,20 @@ func (use *TrafficUsecase) SysnameByState(state string, initDate, finalDate time
 	return results, nil
 }
 
+func (use *TrafficUsecase) GponStats(ip string, initDate, finalDate time.Time) ([]dto.GponStats, error) {
+	stats, err := use.prometheus.GponStatsByInstance(context.Background(), ip, initDate, finalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []dto.GponStats
+	for _, s := range stats {
+		result = append(result, (dto.GponStats)(s))
+	}
+
+	return result, nil
+}
+
 func (use *TrafficUsecase) GroupIP(ips []string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
 	traffic, err := use.prometheus.TrafficGroupInstance(context.Background(), ips, initDate, finalDate)
 	if err != nil {
@@ -255,38 +268,168 @@ func (use *TrafficUsecase) GroupIP(ips []string, initDate, finalDate time.Time) 
 	return result, nil
 }
 
-func (use *TrafficUsecase) ODN(ip, odn string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
+func (use *TrafficUsecase) ByMunicipality(state, municipality string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	indexes, err := use.repo.GetSnmpIndexByODN(ctx, ip, odn)
+	res, err := use.repo.GetSnmpIndexByMunicipality(ctx, state, municipality)
 	if err != nil {
 		return nil, err
 	}
 
-	traffic, err := use.prometheus.TrafficInstanceByIndex(context.Background(), ip, strings.Join(indexes, "|"), initDate, finalDate)
-	if err != nil {
-		return nil, err
+	instancesMap := make(map[string]string)
+	for _, r := range res {
+		_, ok := instancesMap[r.IP]
+		if ok {
+			instancesMap[r.IP] += "|"
+		}
+		instancesMap[r.IP] += r.Idx
 	}
+	accum := make(map[time.Time]prometheus.Traffic)
+	for ip, indexes := range instancesMap {
+		traffic, err := use.prometheus.TrafficInstanceByIndex(context.Background(), ip, indexes, initDate, finalDate)
+		if err != nil {
+			return nil, err
+		}
 
+		for _, t := range traffic {
+			key := t.Time.Truncate(15 * time.Minute)
+
+			if data, ok := accum[key]; ok {
+				data.BpsIn += t.BpsIn
+				data.BpsOut += t.BpsOut
+				data.BytesIn += t.BytesIn
+				data.BytesOut += t.BytesOut
+				data.Bandwidth += t.Bandwidth
+				accum[key] = data
+			} else {
+				cloned := *t
+				cloned.Time = key
+				accum[key] = cloned
+			}
+		}
+	}
 	var result []dto.Traffic
-	for _, t := range traffic {
-		result = append(result, (dto.Traffic)(*t))
+	for _, val := range accum {
+		result = append(result, (dto.Traffic)(val))
 	}
+
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Time.Before(result[j].Time)
+	})
 
 	return result, nil
 }
 
-func (use *TrafficUsecase) FAT(ip, odn, fat string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
+func (use *TrafficUsecase) ByCounty(state, municipality, county string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	indexes, err := use.repo.GetSnmpIndexByFAT(ctx, ip, odn, fat)
+	res, err := use.repo.GetSnmpIndexByCounty(ctx, state, municipality, county)
 	if err != nil {
 		return nil, err
 	}
 
-	traffic, err := use.prometheus.TrafficInstanceByIndex(context.Background(), ip, strings.Join(indexes, "|"), initDate, finalDate)
+	instancesMap := make(map[string]string)
+	for _, r := range res {
+		_, ok := instancesMap[r.IP]
+		if ok {
+			instancesMap[r.IP] += "|"
+		}
+		instancesMap[r.IP] += r.Idx
+	}
+	accum := make(map[time.Time]prometheus.Traffic)
+	for ip, indexes := range instancesMap {
+		traffic, err := use.prometheus.TrafficInstanceByIndex(context.Background(), ip, indexes, initDate, finalDate)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, t := range traffic {
+			key := t.Time.Truncate(15 * time.Minute)
+
+			if data, ok := accum[key]; ok {
+				data.BpsIn += t.BpsIn
+				data.BpsOut += t.BpsOut
+				data.BytesIn += t.BytesIn
+				data.BytesOut += t.BytesOut
+				data.Bandwidth += t.Bandwidth
+				accum[key] = data
+			} else {
+				cloned := *t
+				cloned.Time = key
+				accum[key] = cloned
+			}
+		}
+	}
+	var result []dto.Traffic
+	for _, val := range accum {
+		result = append(result, (dto.Traffic)(val))
+	}
+
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Time.Before(result[j].Time)
+	})
+
+	return result, nil
+
+}
+
+func (use *TrafficUsecase) ByODN(state, municipality, odn string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetSnmpIndexByODN(ctx, state, municipality, odn)
+	if err != nil {
+		return nil, err
+	}
+
+	instancesMap := make(map[string]string)
+	for _, r := range res {
+		_, ok := instancesMap[r.IP]
+		if ok {
+			instancesMap[r.IP] += "|"
+		}
+		instancesMap[r.IP] += r.Idx
+	}
+	accum := make(map[time.Time]prometheus.Traffic)
+	for ip, indexes := range instancesMap {
+		traffic, err := use.prometheus.TrafficInstanceByIndex(context.Background(), ip, indexes, initDate, finalDate)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, t := range traffic {
+			key := t.Time.Truncate(15 * time.Minute)
+
+			if data, ok := accum[key]; ok {
+				data.BpsIn += t.BpsIn
+				data.BpsOut += t.BpsOut
+				data.BytesIn += t.BytesIn
+				data.BytesOut += t.BytesOut
+				data.Bandwidth += t.Bandwidth
+				accum[key] = data
+			} else {
+				cloned := *t
+				cloned.Time = key
+				accum[key] = cloned
+			}
+		}
+	}
+	var result []dto.Traffic
+	for _, val := range accum {
+		result = append(result, (dto.Traffic)(val))
+	}
+
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Time.Before(result[j].Time)
+	})
+
+	return result, nil
+}
+
+func (use *TrafficUsecase) ByIdx(ip, idx string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
+	traffic, err := use.prometheus.TrafficInstanceByIndex(context.Background(), ip, idx, initDate, finalDate)
 	if err != nil {
 		return nil, err
 	}

@@ -23,11 +23,11 @@ func NewFatUsecase(db *sqlx.DB) *FatUsecase {
 	return &FatUsecase{repository.NewFatRepository(db)}
 }
 
-func (use *FatUsecase) GetAll(pag dto.Pagination) ([]dto.Fat, error) {
+func (use *FatUsecase) GetAll(query dto.Find) ([]dto.Fat, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	res, err := use.repo.AllInfo(ctx, pag.Page, pag.Limit)
+	res, err := use.repo.AllInfo(ctx, query.Field, query.Value, query.Page, query.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -114,11 +114,11 @@ func (use *FatUsecase) GetRegions() ([]string, error) {
 	return res, nil
 }
 
-func (use *FatUsecase) GetStates(region string) ([]string, error) {
+func (use *FatUsecase) GetStates() ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	res, err := use.repo.GetStates(ctx, region)
+	res, err := use.repo.GetStates(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -126,11 +126,11 @@ func (use *FatUsecase) GetStates(region string) ([]string, error) {
 	return res, nil
 }
 
-func (use *FatUsecase) GetMunicipalities(region, state string) ([]string, error) {
+func (use *FatUsecase) GetMunicipalities(state string) ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	res, err := use.repo.GetMunicipalities(ctx, region, state)
+	res, err := use.repo.GetMunicipalities(ctx, state)
 	if err != nil {
 		return nil, err
 	}
@@ -138,11 +138,11 @@ func (use *FatUsecase) GetMunicipalities(region, state string) ([]string, error)
 	return res, nil
 }
 
-func (use *FatUsecase) GetCounties(region, state, municipality string) ([]string, error) {
+func (use *FatUsecase) GetCounties(state, municipality string) ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	res, err := use.repo.GetCounties(ctx, region, state, municipality)
+	res, err := use.repo.GetCounties(ctx, state, municipality)
 	if err != nil {
 		return nil, err
 	}
@@ -150,23 +150,11 @@ func (use *FatUsecase) GetCounties(region, state, municipality string) ([]string
 	return res, nil
 }
 
-func (use *FatUsecase) GetODN(region, state, municipality, county string) ([]string, error) {
+func (use *FatUsecase) GetODN(state, municipality, county string) ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	res, err := use.repo.GetODN(ctx, region, state, municipality, county)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
-}
-
-func (use *FatUsecase) GetFat(region, state, municipality, county, odn string) ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-	defer cancel()
-
-	res, err := use.repo.GetFat(ctx, region, state, municipality, county, odn)
+	res, err := use.repo.GetODN(ctx, state, municipality, county)
 	if err != nil {
 		return nil, err
 	}

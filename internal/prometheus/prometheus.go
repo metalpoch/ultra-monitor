@@ -27,6 +27,9 @@ type Prometheus interface {
 	// Details
 	TrafficGroupInstance(ctx context.Context, instances []string, initDate, finalDate time.Time) ([]*Traffic, error)
 	TrafficInstanceByIndex(ctx context.Context, instance, index string, initDate, finalDate time.Time) ([]*Traffic, error)
+
+	// stats
+	GponStatsByInstance(ctx context.Context, instance string, initDate, finalDate time.Time) ([]GponStats, error)
 }
 
 type prometheus struct {
@@ -271,8 +274,8 @@ func (p *prometheus) TrafficGroupedByField(ctx context.Context, fieldQuery, valu
 
 func (p *prometheus) SysnameByState(ctx context.Context, state string, initDate, finalDate time.Time) (map[string][]*Traffic, error) {
 	queryBW := fmt.Sprintf("sum(ifSpeed{state='%s'}) by (instance) * on(instance) group_left(sysName) sysName", state)
-	queryBpsIn := fmt.Sprintf("sum(avg_over_time(irate(hwGponOltEthernetStatisticReceivedBytes_count{state='%s'}[15m])[30m:15m]) * 8) by (instance) * on(instance) group_left(sysName) sysName", state)
-	queryBpsOut := fmt.Sprintf("sum(avg_over_time(irate(hwGponOltEthernetStatisticSendBytes_count{state='%s'}[15m])[30m:15m]) * 8) by (instance) * on(instance) group_left(sysName) sysName", state)
+	queryBpsIn := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticReceivedBytes_count{state='%s'}[15m])[30m:15m]) * 8) by (instance) * on(instance) group_left(sysName) sysName", state)
+	queryBpsOut := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticSendBytes_count{state='%s'}[15m])[30m:15m]) * 8) by (instance) * on(instance) group_left(sysName) sysName", state)
 	queryBytesIn := fmt.Sprintf("sum(avg_over_time(increase(hwGponOltEthernetStatisticReceivedBytes_count{state='%s'}[15m])[30m:15m])) by (instance) * on(instance) group_left(sysName) sysName", state)
 	queryBytesOut := fmt.Sprintf("sum(avg_over_time(increase(hwGponOltEthernetStatisticSendBytes_count{state='%s'}[15m])[30m:15m])) by (instance) * on(instance) group_left(sysName) sysName", state)
 
@@ -354,8 +357,8 @@ func (p *prometheus) TrafficGroupInstance(ctx context.Context, instances []strin
 
 	instancesStr := strings.Join(instances, "|")
 	queryBW := fmt.Sprintf("sum(ifSpeed{instance=~'%s'})", instancesStr)
-	queryBpsIn := fmt.Sprintf("sum(avg_over_time(irate(hwGponOltEthernetStatisticReceivedBytes_count{instance=~'%s'}[15m])[30m:15m]) * 8)", instancesStr)
-	queryBpsOut := fmt.Sprintf("sum(avg_over_time(irate(hwGponOltEthernetStatisticSendBytes_count{instance=~'%s'}[15m])[30m:15m]) * 8)", instancesStr)
+	queryBpsIn := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticReceivedBytes_count{instance=~'%s'}[15m])[30m:15m]) * 8)", instancesStr)
+	queryBpsOut := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticSendBytes_count{instance=~'%s'}[15m])[30m:15m]) * 8)", instancesStr)
 	queryBytesIn := fmt.Sprintf("sum(avg_over_time(increase(hwGponOltEthernetStatisticReceivedBytes_count{instance=~'%s'}[15m])[30m:15m]))", instancesStr)
 	queryBytesOut := fmt.Sprintf("sum(avg_over_time(increase(hwGponOltEthernetStatisticSendBytes_count{instance=~'%s'}[15m])[30m:15m]))", instancesStr)
 
@@ -411,8 +414,8 @@ func (p *prometheus) TrafficGroupInstance(ctx context.Context, instances []strin
 
 func (p *prometheus) TrafficInstanceByIndex(ctx context.Context, instance, indexes string, initDate, finalDate time.Time) ([]*Traffic, error) {
 	queryBW := fmt.Sprintf("sum(ifSpeed{instance='%s', ifIndex=~'%s'})", instance, indexes)
-	queryBpsIn := fmt.Sprintf("sum(avg_over_time(irate(hwGponOltEthernetStatisticReceivedBytes_count{instance='%s', ponPortIndex=~'%s'}[15m])[30m:15m]) * 8)", instance, indexes)
-	queryBpsOut := fmt.Sprintf("sum(avg_over_time(irate(hwGponOltEthernetStatisticSendBytes_count{instance='%s', ponPortIndex=~'%s'}[15m])[30m:15m]) * 8)", instance, indexes)
+	queryBpsIn := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticReceivedBytes_count{instance='%s', ponPortIndex=~'%s'}[15m])[30m:15m]) * 8)", instance, indexes)
+	queryBpsOut := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticSendBytes_count{instance='%s', ponPortIndex=~'%s'}[15m])[30m:15m]) * 8)", instance, indexes)
 	queryBytesIn := fmt.Sprintf("sum(avg_over_time(increase(hwGponOltEthernetStatisticReceivedBytes_count{instance='%s', ponPortIndex=~'%s'}[15m])[30m:15m]))", instance, indexes)
 	queryBytesOut := fmt.Sprintf("sum(avg_over_time(increase(hwGponOltEthernetStatisticSendBytes_count{instance='%s', ponPortIndex=~'%s'}[15m])[30m:15m]))", instance, indexes)
 
@@ -466,6 +469,87 @@ func (p *prometheus) TrafficInstanceByIndex(ctx context.Context, instance, index
 	return result, nil
 }
 
+func (p *prometheus) GponStatsByInstance(ctx context.Context, instance string, initDate, finalDate time.Time) ([]GponStats, error) {
+	queryIn := fmt.Sprintf(QUERY_STATS_IN, instance, instance)
+	queryOut := fmt.Sprintf(QUERY_STATS_OUT, instance, instance)
+	querySpeed := fmt.Sprintf(QUERY_STATS_IFSPEED, instance)
+
+	r := v1.Range{
+		Start: initDate,
+		End:   finalDate,
+		Step:  15 * time.Minute,
+	}
+	inResult, inWarn, inErr := p.client.QueryRange(ctx, queryIn, r)
+	outResult, outWarn, outErr := p.client.QueryRange(ctx, queryOut, r)
+	speedResult, speedWarn, speedErr := p.client.QueryRange(ctx, querySpeed, r)
+
+	if inErr != nil || outErr != nil || speedErr != nil {
+		return nil, fmt.Errorf("error in queries: in=%v, out=%v, speed=%v", inErr, outErr, speedErr)
+	}
+
+	if len(inWarn) > 0 {
+		log.Printf("Prometheus IN warnings for %s: %v", instance, inWarn)
+	}
+	if len(outWarn) > 0 {
+		log.Printf("Prometheus OUT warnings for %s: %v", instance, outWarn)
+	}
+	if len(speedWarn) > 0 {
+		log.Printf("Prometheus SPEED warnings for %s: %v", instance, speedWarn)
+	}
+
+	inMatrix, okIn := inResult.(model.Matrix)
+	outMatrix, okOut := outResult.(model.Matrix)
+	speedMatrix, okSpeed := speedResult.(model.Matrix)
+
+	if !okOut || !okIn || !okSpeed {
+		return nil, fmt.Errorf("unexpected result for %s type: in=%T, out=%T, speed=%T", instance, inResult, outResult, speedResult)
+	}
+
+	statsMap := make(map[string]*trafficStats)
+	p.processStats(inMatrix, true, instance, statsMap) // isIn = True
+	p.processStats(outMatrix, false, instance, statsMap)
+
+	for _, serie := range speedMatrix {
+		port := string(serie.Metric["ifIndex"])
+		stat, exist := statsMap[port]
+		if !exist {
+			continue
+		}
+		if len(serie.Values) > 0 {
+			stat.IfSpeed = float64(serie.Values[0].Value)
+		}
+	}
+
+	// Calcular porcentaje de uso
+	for _, stat := range statsMap {
+		if stat.IfSpeed > 0 {
+			stat.UsageIn = (stat.MaxInBps / stat.IfSpeed) * 100
+			stat.UsageOut = (stat.MaxOutBps / stat.IfSpeed) * 100
+		}
+	}
+
+	stats := make([]GponStats, 0, len(statsMap))
+	for _, s := range statsMap {
+		stats = append(stats, GponStats{
+			Port:      s.Port,
+			IfName:    s.IfName,
+			IfSpeed:   s.IfSpeed,
+			AvgInBps:  s.AvgInBps,
+			MaxInBps:  s.MaxInBps,
+			UsageIn:   s.UsageIn,
+			UsageOut:  s.UsageOut,
+			AvgOutBps: s.AvgOutBps,
+			MaxOutBps: s.MaxOutBps,
+		})
+	}
+
+	sort.Slice(stats, func(i, j int) bool {
+		return stats[i].Port < stats[j].Port
+	})
+
+	return stats, nil
+}
+
 func (p *prometheus) queryVector(ctx context.Context, query string, ts time.Time) ([]dataProm, error) {
 	val, warn, err := p.client.Query(ctx, query, ts)
 	if err != nil {
@@ -491,4 +575,36 @@ func (p *prometheus) queryVector(ctx context.Context, query string, ts time.Time
 		})
 	}
 	return vectors, nil
+}
+
+func (p *prometheus) processStats(matrix model.Matrix, isIn bool, instance string, statsMap map[string]*trafficStats) {
+	for _, serie := range matrix {
+		port := string(serie.Metric["ponPortIndex"])
+		ifName := string(serie.Metric["ifName"])
+		stat, exists := statsMap[port]
+		if !exists {
+			stat = &trafficStats{
+				Port:     port,
+				IfName:   ifName,
+				Instance: instance,
+			}
+			statsMap[port] = stat
+		}
+		var max, sum float64
+		for _, point := range serie.Values {
+			val := float64(point.Value)
+			sum += val
+			if val > max {
+				max = val
+			}
+		}
+		if isIn {
+			stat.MaxInBps = max
+			stat.AvgInBps = sum / float64(len(serie.Values))
+		} else {
+			stat.MaxOutBps = max
+			stat.AvgOutBps = sum / float64(len(serie.Values))
+		}
+		stat.Samples = len(serie.Values)
+	}
 }

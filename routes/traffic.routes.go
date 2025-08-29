@@ -32,8 +32,15 @@ func NewTrafficRoutes(app *fiber.App, db *sqlx.DB, cache *cache.Redis, prometheu
 	route.Get("/states/:region", hdlr.StatesByRegion)
 	route.Get("/sysname/:state", hdlr.SysnameByState)
 
+	// stats
+	route.Get("/stats/:ip", hdlr.GponStats)
+
 	// Simple
 	route.Get("/instances", hdlr.GroupIP)
-	route.Get("/odn/:ip/:odn", hdlr.ByOdn)
-	route.Get("/fat/:ip/:odn/:fat", hdlr.ByFat)
+	route.Get("/index/:ip/:idx", hdlr.ByIdx)
+
+	// using fats table
+	route.Get("/municipality/:state/:municipality", hdlr.ByMunicipality)
+	route.Get("/county/:state/:municipality/:county", hdlr.ByCounty)
+	route.Get("/odn/:state/:municipality/:odn", hdlr.ByOdn)
 }

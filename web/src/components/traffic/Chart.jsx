@@ -1,0 +1,160 @@
+import { useEffect, useState } from "react";
+import { useStore } from "@nanostores/react";
+import TrafficChart from "../ui/TrafficChart";
+import useFetch from "../../hooks/useFetch";
+import { MAP_STATE_TRANSLATER } from "../../constants/regions";
+import { initDate, endDate, region, state, municipality, county, odn, ip, gpon, oltsPrometheus } from "../../stores/traffic";
+
+const URL_TRAFFIC = `${import.meta.env.PUBLIC_URL}/api/traffic`;
+const TOKEN = sessionStorage.getItem("access_token").replace("Bearer ", "");
+
+export default function Chart() {
+  const [url, setUrl] = useState(undefined);
+  const [activeTab, setActiveTab] = useState("traffic");
+  const $initDate = useStore(initDate);
+  const $endDate = useStore(endDate);
+  const $region = useStore(region);
+  const $state = useStore(state);
+  const $municipality = useStore(municipality);
+  const $county = useStore(county);
+  const $odn = useStore(odn);
+  const $ip = useStore(ip);
+  const $gpon = useStore(gpon);
+  const $oltsPrometheus = useStore(oltsPrometheus)
+
+  const { data, status, loading, error } = useFetch(url, {
+    headers: { Authorization: `Bearer ${TOKEN}` },
+  });
+
+  useEffect(() => {
+    if ($region) {
+      const u = new URL(`${URL_TRAFFIC}/instances`)
+
+      $oltsPrometheus
+        .filter(({ region }) => region === $region)
+        .forEach(({ ip }) => u.searchParams.append("ip", ip))
+
+      u.searchParams.append("initDate", $initDate);
+      u.searchParams.append("finalDate", $endDate);
+      setUrl(u.href)
+    }
+  }, [$region, $initDate, $endDate])
+
+  useEffect(() => {
+    if ($state) {
+      const u = new URL(`${URL_TRAFFIC}/instances`)
+
+      $oltsPrometheus
+        .filter(({ state }) => state === $state)
+        .forEach(({ ip }) => u.searchParams.append("ip", ip))
+
+      u.searchParams.append("initDate", $initDate);
+      u.searchParams.append("finalDate", $endDate);
+      setUrl(u.href)
+    }
+  }, [$state, $initDate, $endDate])
+
+  useEffect(() => {
+    if ($ip) {
+      const u = new URL(`${URL_TRAFFIC}/instances`)
+      u.searchParams.append("ip", $ip);
+      u.searchParams.append("initDate", $initDate);
+      u.searchParams.append("finalDate", $endDate);
+      setUrl(u.href)
+    }
+  }, [$ip, $initDate, $endDate]);
+
+  useEffect(() => {
+    if ($gpon) {
+      const u = new URL(`${URL_TRAFFIC}/index/${$ip}/${$gpon}`)
+      u.searchParams.append("initDate", $initDate);
+      u.searchParams.append("finalDate", $endDate);
+      setUrl(u.href)
+    }
+  }, [$gpon, $initDate, $endDate]);
+
+  useEffect(() => {
+    if ($municipality) {
+      const u = new URL(`${URL_TRAFFIC}/municipality/${MAP_STATE_TRANSLATER[$state]}/${$municipality}`)
+      u.searchParams.append("initDate", $initDate);
+      u.searchParams.append("finalDate", $endDate);
+      setUrl(u.href)
+    }
+  }, [$municipality, $initDate, $endDate]);
+
+  useEffect(() => {
+    if ($county) {
+      const u = new URL(`${URL_TRAFFIC}/county/${MAP_STATE_TRANSLATER[$state]}/${$municipality}/${$county}`)
+      u.searchParams.append("initDate", $initDate);
+      u.searchParams.append("finalDate", $endDate);
+      setUrl(u.href)
+    }
+  }, [$county, $initDate, $endDate]);
+
+  useEffect(() => {
+    if ($odn) {
+      const u = new URL(`${URL_TRAFFIC}/odn/${MAP_STATE_TRANSLATER[$state]}/${$municipality}/${$odn}`)
+      u.searchParams.append("initDate", $initDate);
+      u.searchParams.append("finalDate", $endDate);
+      setUrl(u.href)
+    }
+  }, [$odn, $initDate, $endDate]);
+
+  if (status === 401) {
+    sessionStorage.removeItem("access_token")
+    window.location.href = "/";
+  }
+
+  if (loading) {
+    return (
+      <section className="flex flex-col flex-1 sm:flex-2 px-6 py-3 h-[400px] rounded-lg bg-[#121b31]">
+        <span className="mx-auto py-20 loader"></span>
+      </section>
+    );
+  }
+
+  if (data && url) return (
+    <section className="flex flex-col flex-1 sm:flex-2 px-6 py-3 rounded-lg bg-[#121b31]">
+      <div>
+        <div className="flex space-x-4 mb-4">
+          <button
+            className={`px-4 py-2 rounded-t-lg focus:outline-none ${activeTab === "traffic"
+              ? "bg-[#1f2a48] font-semibold text-white"
+              : "bg-[#121b31] text-slate-400 hover:text-white"
+              }`}
+            onClick={() => setActiveTab("traffic")}
+          >
+            Tráfico de Red
+          </button>
+          <button
+            className={`px-4 py-2 rounded-t-lg focus:outline-none ${activeTab === "volume"
+              ? "bg-[#1f2a48] font-semibold text-white"
+              : "bg-[#121b31] text-slate-400 hover:text-white"
+              }`}
+            onClick={() => setActiveTab("volume")}
+          >
+            Volumen de la Red
+          </button>
+        </div>
+
+        {activeTab === "traffic" && (
+          <>
+            <p className="text-slate-400 text-sm">
+              Monitoreo del tráfico de entrada y salida total.
+            </p>
+            <TrafficChart data={data} dataType="traffic" client:load />
+          </>
+        )}
+
+        {activeTab === "volume" && (
+          <>
+            <p className="text-slate-400 text-sm">
+              Monitoreo del volumen de datos de entrada y salida.
+            </p>
+            <TrafficChart data={data} dataType="volume" client:load />
+          </>
+        )}
+      </div>
+    </section>
+  );
+}

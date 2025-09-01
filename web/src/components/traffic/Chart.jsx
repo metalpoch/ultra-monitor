@@ -3,7 +3,7 @@ import { useStore } from "@nanostores/react";
 import TrafficChart from "../ui/TrafficChart";
 import useFetch from "../../hooks/useFetch";
 import { MAP_STATE_TRANSLATER } from "../../constants/regions";
-import { initDate, endDate, region, state, municipality, county, odn, ip, gpon, oltsPrometheus } from "../../stores/traffic";
+import { initDate, endDate, region, state, municipality, county, odn, ip, gpon, oltsPrometheus, loadingChart } from "../../stores/traffic";
 
 const URL_TRAFFIC = `${import.meta.env.PUBLIC_URL}/api/traffic`;
 const TOKEN = sessionStorage.getItem("access_token").replace("Bearer ", "");
@@ -25,6 +25,8 @@ export default function Chart() {
   const { data, status, loading, error } = useFetch(url, {
     headers: { Authorization: `Bearer ${TOKEN}` },
   });
+
+  useEffect(() => loadingChart.set(loading), [loading])
 
   useEffect(() => {
     if ($region) {
@@ -107,8 +109,9 @@ export default function Chart() {
 
   if (loading) {
     return (
-      <section className="flex flex-col flex-1 sm:flex-2 px-6 py-3 h-[400px] rounded-lg bg-[#121b31]">
-        <span className="mx-auto py-20 loader"></span>
+      <section className="flex justify-center items-center flex-col flex-1 sm:flex-2 px-6 py-3 h-[400px] rounded-lg bg-[#121b31]">
+        <span className="loader-table"></span>
+        <h1 className="text-3xl">Buscando...</h1>
       </section>
     );
   }

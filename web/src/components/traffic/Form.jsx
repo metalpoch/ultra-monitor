@@ -6,7 +6,7 @@ import DatalistField from "../ui/DatalistField";
 import RadioGroup from "../ui/RadioGroup";
 import useFetch from "../../hooks/useFetch";
 import { removeAccentsAndToUpper } from "../../utils/formater";
-import { initDate, endDate, region, state, ip, municipality, county, odn, gpon, oltsPrometheus } from "../../stores/traffic";
+import { initDate, endDate, region, state, ip, municipality, county, odn, gpon, oltsPrometheus, urlTableData } from "../../stores/traffic";
 import { useStore } from "@nanostores/react";
 
 const URL_TRAFFIC = `${import.meta.env.PUBLIC_URL}/api/traffic`
@@ -99,6 +99,7 @@ export default function Form() {
     ip.set("")
     gpon.set("")
     odn.set("")
+    urlTableData.set(undefined)
   }
 
   const handleChangeCounty = ({ target }) => {
@@ -106,6 +107,7 @@ export default function Form() {
     ip.set("")
     gpon.set("")
     odn.set("")
+    urlTableData.set(undefined)
   }
 
   const handleChangeOlt = ({ target }) => {
@@ -113,13 +115,17 @@ export default function Form() {
     ip.set(target.value)
     gpon.set("")
     odn.set("")
+    urlTableData.set(undefined)
   }
 
   const handleChangeOdn = ({ target }) => {
     odn.set(target.value)
+    urlTableData.set(undefined)
   }
+
   const handleChangeGpon = ({ target }) => {
     gpon.set(target.value)
+    urlTableData.set(undefined)
   }
 
   if (status === 401) {

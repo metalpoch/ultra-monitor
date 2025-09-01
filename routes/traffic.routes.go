@@ -33,7 +33,9 @@ func NewTrafficRoutes(app *fiber.App, db *sqlx.DB, cache *cache.Redis, prometheu
 	route.Get("/sysname/:state", hdlr.SysnameByState)
 
 	// stats
-	route.Get("/stats/:ip", hdlr.GponStats)
+	route.Get("/stats/region/:region", hdlr.RegionStats)
+	route.Get("/stats/state/:state", hdlr.StateStats)
+	route.Get("/stats/ip/:ip", hdlr.GponStats)
 
 	// Simple
 	route.Get("/instances", hdlr.GroupIP)

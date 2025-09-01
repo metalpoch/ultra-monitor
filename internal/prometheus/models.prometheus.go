@@ -67,3 +67,26 @@ type GponStats struct {
 	UsageIn   float64
 	UsageOut  float64
 }
+
+type RegionStats struct {
+	State     string
+	IfSpeed   float64
+	MaxInBps  float64
+	AvgInBps  float64
+	MaxOutBps float64
+	AvgOutBps float64
+	UsageIn   float64
+	UsageOut  float64
+}
+
+type OltStats struct {
+	Instance  string
+	SysName   string
+	IfSpeed   float64
+	MaxInBps  float64
+	AvgInBps  float64
+	MaxOutBps float64
+	AvgOutBps float64
+	UsageIn   float64
+	UsageOut  float64
+}

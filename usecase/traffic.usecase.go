@@ -240,6 +240,34 @@ func (use *TrafficUsecase) SysnameByState(state string, initDate, finalDate time
 	return results, nil
 }
 
+func (use *TrafficUsecase) RegionStats(ip string, initDate, finalDate time.Time) ([]dto.StateStats, error) {
+	stats, err := use.prometheus.StatesStatsByRegion(context.Background(), ip, initDate, finalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []dto.StateStats
+	for _, s := range stats {
+		result = append(result, (dto.StateStats)(s))
+	}
+
+	return result, nil
+}
+
+func (use *TrafficUsecase) StateStats(ip string, initDate, finalDate time.Time) ([]dto.OltStats, error) {
+	stats, err := use.prometheus.OltStatsByState(context.Background(), ip, initDate, finalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []dto.OltStats
+	for _, s := range stats {
+		result = append(result, (dto.OltStats)(s))
+	}
+
+	return result, nil
+}
+
 func (use *TrafficUsecase) GponStats(ip string, initDate, finalDate time.Time) ([]dto.GponStats, error) {
 	stats, err := use.prometheus.GponStatsByInstance(context.Background(), ip, initDate, finalDate)
 	if err != nil {

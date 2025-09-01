@@ -29,6 +29,8 @@ type Prometheus interface {
 	TrafficInstanceByIndex(ctx context.Context, instance, index string, initDate, finalDate time.Time) ([]*Traffic, error)
 
 	// stats
+	StatesStatsByRegion(ctx context.Context, region string, initDate, finalDate time.Time) ([]RegionStats, error)
+	OltStatsByState(ctx context.Context, state string, initDate, finalDate time.Time) ([]OltStats, error)
 	GponStatsByInstance(ctx context.Context, instance string, initDate, finalDate time.Time) ([]GponStats, error)
 }
 
@@ -469,10 +471,256 @@ func (p *prometheus) TrafficInstanceByIndex(ctx context.Context, instance, index
 	return result, nil
 }
 
+func (p *prometheus) StatesStatsByRegion(ctx context.Context, region string, initDate, finalDate time.Time) ([]RegionStats, error) {
+	queryIn := fmt.Sprintf(QUERY_STATES_BY_REGION_IN, region)
+	queryOut := fmt.Sprintf(QUERY_STATES_BY_REGION_OUT, region)
+	querySpeed := fmt.Sprintf(QUERY_STATES_BY_REGION_IFSPEED, region)
+
+	r := v1.Range{
+		Start: initDate,
+		End:   finalDate,
+		Step:  15 * time.Minute,
+	}
+
+	inResult, inWarn, inErr := p.client.QueryRange(ctx, queryIn, r)
+	outResult, outWarn, outErr := p.client.QueryRange(ctx, queryOut, r)
+	speedResult, speedWarn, speedErr := p.client.QueryRange(ctx, querySpeed, r)
+
+	if inErr != nil || outErr != nil || speedErr != nil {
+		return nil, fmt.Errorf("error in queries: in=%v, out=%v, speed=%v", inErr, outErr, speedErr)
+	}
+
+	if len(inWarn) > 0 {
+		log.Printf("Prometheus IN warnings for region %s: %v", region, inWarn)
+	}
+	if len(outWarn) > 0 {
+		log.Printf("Prometheus OUT warnings for region %s: %v", region, outWarn)
+	}
+	if len(speedWarn) > 0 {
+		log.Printf("Prometheus SPEED warnings for region %s: %v", region, speedWarn)
+	}
+
+	inMatrix, okIn := inResult.(model.Matrix)
+	outMatrix, okOut := outResult.(model.Matrix)
+	speedMatrix, okSpeed := speedResult.(model.Matrix)
+
+	if !okIn || !okOut || !okSpeed {
+		return nil, fmt.Errorf("unexpected result types: in=%T, out=%T, speed=%T", inResult, outResult, speedResult)
+	}
+
+	type trafficStats struct {
+		IfSpeed   float64
+		MaxInBps  float64
+		AvgInBps  float64
+		MaxOutBps float64
+		AvgOutBps float64
+		UsageIn   float64
+		UsageOut  float64
+	}
+
+	statsMap := make(map[string]*trafficStats)
+
+	processStats := func(matrix model.Matrix, isIn bool) {
+		for _, serie := range matrix {
+			state := string(serie.Metric["state"])
+			if state == "" {
+				continue
+			}
+			stat, exists := statsMap[state]
+			if !exists {
+				stat = &trafficStats{}
+				statsMap[state] = stat
+			}
+			var sum float64
+			for _, v := range serie.Values {
+				val := float64(v.Value)
+				sum += val
+				if isIn && val > stat.MaxInBps {
+					stat.MaxInBps = val
+				}
+				if !isIn && val > stat.MaxOutBps {
+					stat.MaxOutBps = val
+				}
+			}
+			avg := sum / float64(len(serie.Values))
+			if isIn {
+				stat.AvgInBps = avg
+			} else {
+				stat.AvgOutBps = avg
+			}
+		}
+	}
+
+	processStats(inMatrix, true)
+	processStats(outMatrix, false)
+
+	for _, serie := range speedMatrix {
+		state := string(serie.Metric["state"])
+		stat, exists := statsMap[state]
+		if !exists {
+			continue
+		}
+		if len(serie.Values) > 0 {
+			stat.IfSpeed = float64(serie.Values[0].Value)
+		}
+	}
+
+	for _, stat := range statsMap {
+		if stat.IfSpeed > 0 {
+			stat.UsageIn = (stat.MaxInBps / stat.IfSpeed) * 100
+			stat.UsageOut = (stat.MaxOutBps / stat.IfSpeed) * 100
+		}
+	}
+
+	stats := make([]RegionStats, 0, len(statsMap))
+	for state, s := range statsMap {
+		stats = append(stats, RegionStats{
+			State:     state,
+			IfSpeed:   s.IfSpeed,
+			MaxInBps:  s.MaxInBps,
+			AvgInBps:  s.AvgInBps,
+			MaxOutBps: s.MaxOutBps,
+			AvgOutBps: s.AvgOutBps,
+			UsageIn:   s.UsageIn,
+			UsageOut:  s.UsageOut,
+		})
+	}
+
+	sort.Slice(stats, func(i, j int) bool {
+		return stats[i].State < stats[j].State
+	})
+
+	return stats, nil
+}
+
+func (p *prometheus) OltStatsByState(ctx context.Context, state string, initDate, finalDate time.Time) ([]OltStats, error) {
+	queryIn := fmt.Sprintf(QUERY_OLT_BY_STATES_IN, state)
+	queryOut := fmt.Sprintf(QUERY_OLT_BY_STATES_OUT, state)
+	querySpeed := fmt.Sprintf(QUERY_OLT_BY_STATES_IFSPEED, state)
+
+	r := v1.Range{
+		Start: initDate,
+		End:   finalDate,
+		Step:  15 * time.Minute,
+	}
+
+	inResult, inWarn, inErr := p.client.QueryRange(ctx, queryIn, r)
+	outResult, outWarn, outErr := p.client.QueryRange(ctx, queryOut, r)
+	speedResult, speedWarn, speedErr := p.client.QueryRange(ctx, querySpeed, r)
+
+	if inErr != nil || outErr != nil || speedErr != nil {
+		return nil, fmt.Errorf("error in queries: in=%v, out=%v, speed=%v", inErr, outErr, speedErr)
+	}
+
+	logWarnings := func(label string, warns v1.Warnings) {
+		if len(warns) > 0 {
+			log.Printf("Prometheus %s warnings for state %s: %v", label, state, warns)
+		}
+	}
+	logWarnings("IN", inWarn)
+	logWarnings("OUT", outWarn)
+	logWarnings("SPEED", speedWarn)
+
+	inMatrix, okIn := inResult.(model.Matrix)
+	outMatrix, okOut := outResult.(model.Matrix)
+	speedMatrix, okSpeed := speedResult.(model.Matrix)
+
+	if !okIn || !okOut || !okSpeed {
+		return nil, fmt.Errorf("unexpected result types: in=%T, out=%T, speed=%T", inResult, outResult, speedResult)
+	}
+
+	type trafficStats struct {
+		SysName   string
+		IfSpeed   float64
+		MaxInBps  float64
+		AvgInBps  float64
+		MaxOutBps float64
+		AvgOutBps float64
+		UsageIn   float64
+		UsageOut  float64
+	}
+
+	statsMap := make(map[string]*trafficStats)
+
+	processStats := func(matrix model.Matrix, isIn bool) {
+		for _, serie := range matrix {
+			instance := string(serie.Metric["instance"])
+			sysName := string(serie.Metric["sysName"])
+			if instance == "" {
+				continue
+			}
+			stat, exists := statsMap[instance]
+			if !exists {
+				stat = &trafficStats{SysName: sysName}
+				statsMap[instance] = stat
+			}
+			var sum float64
+			for _, v := range serie.Values {
+				val := float64(v.Value)
+				sum += val
+				if isIn && val > stat.MaxInBps {
+					stat.MaxInBps = val
+				}
+				if !isIn && val > stat.MaxOutBps {
+					stat.MaxOutBps = val
+				}
+			}
+			avg := sum / float64(len(serie.Values))
+			if isIn {
+				stat.AvgInBps = avg
+			} else {
+				stat.AvgOutBps = avg
+			}
+		}
+	}
+
+	processStats(inMatrix, true)
+	processStats(outMatrix, false)
+
+	for _, serie := range speedMatrix {
+		instance := string(serie.Metric["instance"])
+		stat, exists := statsMap[instance]
+		if !exists {
+			continue
+		}
+		if len(serie.Values) > 0 {
+			stat.IfSpeed = float64(serie.Values[0].Value)
+		}
+	}
+
+	for _, stat := range statsMap {
+		if stat.IfSpeed > 0 {
+			stat.UsageIn = (stat.MaxInBps / stat.IfSpeed) * 100
+			stat.UsageOut = (stat.MaxOutBps / stat.IfSpeed) * 100
+		}
+	}
+
+	stats := make([]OltStats, 0, len(statsMap))
+	for instance, s := range statsMap {
+		stats = append(stats, OltStats{
+			Instance:  instance,
+			SysName:   s.SysName,
+			IfSpeed:   s.IfSpeed,
+			MaxInBps:  s.MaxInBps,
+			AvgInBps:  s.AvgInBps,
+			MaxOutBps: s.MaxOutBps,
+			AvgOutBps: s.AvgOutBps,
+			UsageIn:   s.UsageIn,
+			UsageOut:  s.UsageOut,
+		})
+	}
+
+	sort.Slice(stats, func(i, j int) bool {
+		return stats[i].Instance < stats[j].Instance
+	})
+
+	return stats, nil
+}
+
 func (p *prometheus) GponStatsByInstance(ctx context.Context, instance string, initDate, finalDate time.Time) ([]GponStats, error) {
-	queryIn := fmt.Sprintf(QUERY_STATS_IN, instance, instance)
-	queryOut := fmt.Sprintf(QUERY_STATS_OUT, instance, instance)
-	querySpeed := fmt.Sprintf(QUERY_STATS_IFSPEED, instance)
+	queryIn := fmt.Sprintf(QUERY_GPON_STATS_IN, instance, instance)
+	queryOut := fmt.Sprintf(QUERY_GPON_STATS_OUT, instance, instance)
+	querySpeed := fmt.Sprintf(QUERY_GPON_STATS_IFSPEED, instance)
 
 	r := v1.Range{
 		Start: initDate,

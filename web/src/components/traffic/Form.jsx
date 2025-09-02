@@ -125,7 +125,6 @@ export default function Form() {
 
   const handleChangeGpon = ({ target }) => {
     gpon.set(target.value)
-    urlTableData.set(undefined)
   }
 
   if (status === 401) {

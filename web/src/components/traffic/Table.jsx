@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
 import useFetch from "../../hooks/useFetch";
-import { initDate, endDate, loadingChart, region, state, ip, urlTableData } from "../../stores/traffic";
+import { initDate, endDate, loadingChart, region, state, ip, gpon, urlTableData } from "../../stores/traffic";
 
 const BASE_URL = `${import.meta.env.PUBLIC_URL}/api/traffic`;
 const TOKEN = sessionStorage.getItem("access_token").replace("Bearer ", "");
 
 export default function Table() {
   const [header, setHeader] = useState(undefined);
+  const [body, setBody] = useState([]);
   const $initDate = useStore(initDate);
   const $endDate = useStore(endDate);
   const $url = useStore(urlTableData);
   const $ip = useStore(ip);
+  const $gpon = useStore(gpon);
   const $state = useStore(state);
   const $region = useStore(region);
   const $loadingChart = useStore(loadingChart);
@@ -43,8 +45,7 @@ export default function Table() {
       url.searchParams.append("finalDate", $endDate);
       urlTableData.set(url.href)
     }
-  }, [$ip, $initDate, $endDate])
-
+  }, [$ip, $gpon, $initDate, $endDate])
 
   useEffect(() => {
     if (data) {
@@ -101,8 +102,8 @@ export default function Table() {
           <th>Saliente</th>
         </tr>
       </>)
-
     }
+
   }, [data])
 
   if (status === 401) {
@@ -117,16 +118,27 @@ export default function Table() {
           {header}
         </thead>
         <tbody>
-          {data.map((row, idx) => <tr key={row.port ? row.port : idx} className="text-center">
-            <td>{$region && row.state || $state && row.sys_name || $ip && row.if_name}</td>
-            <td>{(row.avg_in_bps / 1_000_000).toFixed(2)}</td>
-            <td>{(row.max_in_bps / 1_000_000).toFixed(2)}</td>
-            <td>{(row.avg_out_bps / 1_000_000).toFixed(2)}</td>
-            <td>{(row.max_out_bps / 1_000_000).toFixed(2)}</td>
-            <td>{(row.if_speed / 1_000_000).toFixed(2)}</td>
-            <td>{row.usage_in.toFixed(2)}%</td>
-            <td>{row.usage_out.toFixed(2)}%</td>
-          </tr>)}
+          {$gpon
+            ? data.filter(({ port }) => port === $gpon).map(row => <tr key={row.port} className="text-center">
+              <td>{row.if_name}</td>
+              <td>{(row.avg_in_bps / 1_000_000).toFixed(2)}</td>
+              <td>{(row.max_in_bps / 1_000_000).toFixed(2)}</td>
+              <td>{(row.avg_out_bps / 1_000_000).toFixed(2)}</td>
+              <td>{(row.max_out_bps / 1_000_000).toFixed(2)}</td>
+              <td>{(row.if_speed / 1_000_000).toFixed(2)}</td>
+              <td>{row.usage_in.toFixed(2)}%</td>
+              <td>{row.usage_out.toFixed(2)}%</td>
+            </tr>)
+            : data.map((row, idx) => <tr key={row.port ? row.port : idx} className="text-center">
+              <td>{$region && row.state || $state && row.sys_name || $ip && row.if_name}</td>
+              <td>{(row.avg_in_bps / 1_000_000).toFixed(2)}</td>
+              <td>{(row.max_in_bps / 1_000_000).toFixed(2)}</td>
+              <td>{(row.avg_out_bps / 1_000_000).toFixed(2)}</td>
+              <td>{(row.max_out_bps / 1_000_000).toFixed(2)}</td>
+              <td>{(row.if_speed / 1_000_000).toFixed(2)}</td>
+              <td>{row.usage_in.toFixed(2)}%</td>
+              <td>{row.usage_out.toFixed(2)}%</td>
+            </tr>)}
         </tbody>
       </table>
     </section>

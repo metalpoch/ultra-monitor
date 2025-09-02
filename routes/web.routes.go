@@ -9,10 +9,10 @@ func NewWebRoutes(app *fiber.App, webAppDir string) {
 
 	app.Get("/", static.New(webAppDir+"/index.html"))
 	app.Get("/auth/login", static.New(webAppDir+"/auth/login"))
+	app.Get("/traffic", static.New(webAppDir+"/traffic"))
+
 	app.Get("/_astro/*", static.New(webAppDir+"/_astro/"))
-	app.Get("/health", func(c fiber.Ctx) error {
-		return c.SendString("OK")
-	})
+	app.Get("/health", func(c fiber.Ctx) error { return c.SendString("OK") })
 
 	app.Use(func(c fiber.Ctx) error {
 		if len(c.Path()) >= 4 && c.Path()[:4] == "/api" {

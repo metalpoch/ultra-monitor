@@ -29,7 +29,7 @@ export default function Chart() {
   useEffect(() => loadingChart.set(loading), [loading])
 
   useEffect(() => {
-    if ($region) {
+    if ($region && $oltsPrometheus) {
       const u = new URL(`${URL_TRAFFIC}/instances`)
 
       $oltsPrometheus

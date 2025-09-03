@@ -9,7 +9,7 @@ import {
 } from "../../stores/dashboard";
 import useFetch from "../../hooks/useFetch";
 
-const BASE_URL = `${import.meta.env.PUBLIC_URL}/api/traffic`;
+const BASE_URL = `${import.meta.env.PUBLIC_URL || ""}/api/traffic`
 
 const minDate = dayjs("2025-07-01T00:00:00-04:00");
 const today = dayjs()
@@ -32,15 +32,17 @@ export default function TrafficRegions() {
     headers: { Authorization: `Bearer ${token}` },
   });
   useEffect(() => {
-    const u = $selectedState
-      ? new URL(`${BASE_URL}/sysname/${$selectedState}`)
-      : $selectedRegion
-        ? new URL(`${BASE_URL}/states/${$selectedRegion}`)
-        : new URL(`${BASE_URL}/regions`);
+    const params = new URLSearchParams()
+    params.append("initDate", lastYear.toISOString());
+    params.append("finalDate", today.toISOString());
 
-    u.searchParams.append("initDate", lastYear.toISOString());
-    u.searchParams.append("finalDate", today.toISOString());
-    setUrl(u.href);
+    const u = $selectedState
+      ? `${BASE_URL}/sysname/${$selectedState}?${params.toString()}`
+      : $selectedRegion
+        ? `${BASE_URL}/states/${$selectedRegion}?${params.toString()}`
+        : `${BASE_URL}/regions?${params.toString()}`;
+
+    setUrl(u);
   }, [$selectedLevel, $selectedRegion, $selectedState]);
 
   if (loading) {

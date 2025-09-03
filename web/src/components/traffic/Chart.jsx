@@ -5,7 +5,7 @@ import useFetch from "../../hooks/useFetch";
 import { MAP_STATE_TRANSLATER } from "../../constants/regions";
 import { initDate, endDate, region, state, municipality, county, odn, ip, gpon, oltsPrometheus, loadingChart } from "../../stores/traffic";
 
-const URL_TRAFFIC = `${import.meta.env.PUBLIC_URL}/api/traffic`;
+const BASE_URL = `${import.meta.env.PUBLIC_URL || ""}/api/traffic`
 const TOKEN = sessionStorage.getItem("access_token").replace("Bearer ", "");
 
 export default function Chart() {
@@ -30,75 +30,77 @@ export default function Chart() {
 
   useEffect(() => {
     if ($region && $oltsPrometheus) {
-      const u = new URL(`${URL_TRAFFIC}/instances`)
+      const params = new URLSearchParams()
 
       $oltsPrometheus
         .filter(({ region }) => region === $region)
-        .forEach(({ ip }) => u.searchParams.append("ip", ip))
+        .forEach(({ ip }) => params.append("ip", ip))
 
-      u.searchParams.append("initDate", $initDate);
-      u.searchParams.append("finalDate", $endDate);
-      setUrl(u.href)
+      params.append("initDate", $initDate);
+      params.append("finalDate", $endDate);
+
+      setUrl(`${BASE_URL}/instances?${params.toString()}`)
     }
   }, [$region, $initDate, $endDate])
 
   useEffect(() => {
     if ($state) {
-      const u = new URL(`${URL_TRAFFIC}/instances`)
+      const params = new URLSearchParams()
 
       $oltsPrometheus
         .filter(({ state }) => state === $state)
-        .forEach(({ ip }) => u.searchParams.append("ip", ip))
+        .forEach(({ ip }) => params.append("ip", ip))
 
-      u.searchParams.append("initDate", $initDate);
-      u.searchParams.append("finalDate", $endDate);
-      setUrl(u.href)
+      params.append("initDate", $initDate);
+      params.append("finalDate", $endDate);
+
+      setUrl(`${BASE_URL}/instances?${params.toString()}`)
     }
   }, [$state, $initDate, $endDate])
 
   useEffect(() => {
     if ($ip) {
-      const u = new URL(`${URL_TRAFFIC}/instances`)
-      u.searchParams.append("ip", $ip);
-      u.searchParams.append("initDate", $initDate);
-      u.searchParams.append("finalDate", $endDate);
-      setUrl(u.href)
+      const params = new URLSearchParams()
+      params.append("ip", $ip);
+      params.append("initDate", $initDate);
+      params.append("finalDate", $endDate);
+      setUrl(`${BASE_URL}/instances?${params.toString()}`)
     }
   }, [$ip, $initDate, $endDate]);
 
   useEffect(() => {
     if ($gpon) {
-      const u = new URL(`${URL_TRAFFIC}/index/${$ip}/${$gpon}`)
-      u.searchParams.append("initDate", $initDate);
-      u.searchParams.append("finalDate", $endDate);
-      setUrl(u.href)
+      const params = new URLSearchParams()
+      params.append("initDate", $initDate);
+      params.append("finalDate", $endDate);
+      setUrl(`${BASE_URL}/index/${$ip}/${$gpon}?${params.toString()}`)
     }
   }, [$gpon, $initDate, $endDate]);
 
   useEffect(() => {
     if ($municipality) {
-      const u = new URL(`${URL_TRAFFIC}/municipality/${MAP_STATE_TRANSLATER[$state]}/${$municipality}`)
-      u.searchParams.append("initDate", $initDate);
-      u.searchParams.append("finalDate", $endDate);
-      setUrl(u.href)
+      const params = new URLSearchParams()
+      params.append("initDate", $initDate);
+      params.append("finalDate", $endDate);
+      setUrl(`${BASE_URL}/municipality/${MAP_STATE_TRANSLATER[$state]}/${$municipality}?${params.toString()}`)
     }
   }, [$municipality, $initDate, $endDate]);
 
   useEffect(() => {
     if ($county) {
-      const u = new URL(`${URL_TRAFFIC}/county/${MAP_STATE_TRANSLATER[$state]}/${$municipality}/${$county}`)
-      u.searchParams.append("initDate", $initDate);
-      u.searchParams.append("finalDate", $endDate);
-      setUrl(u.href)
+      const params = new URLSearchParams()
+      params.append("initDate", $initDate);
+      params.append("finalDate", $endDate);
+      setUrl(`${BASE_URL}/county/${MAP_STATE_TRANSLATER[$state]}/${$municipality}/${$county}?${params.toString()}`)
     }
   }, [$county, $initDate, $endDate]);
 
   useEffect(() => {
     if ($odn) {
-      const u = new URL(`${URL_TRAFFIC}/odn/${MAP_STATE_TRANSLATER[$state]}/${$municipality}/${$odn}`)
-      u.searchParams.append("initDate", $initDate);
-      u.searchParams.append("finalDate", $endDate);
-      setUrl(u.href)
+      const params = new URLSearchParams()
+      params.append("initDate", $initDate);
+      params.append("finalDate", $endDate);
+      setUrl(`${BASE_URL}/odn/${MAP_STATE_TRANSLATER[$state]}/${$municipality}/${$odn}?${params.toString()}`)
     }
   }, [$odn, $initDate, $endDate]);
 

@@ -3,12 +3,11 @@ import { useStore } from "@nanostores/react";
 import useFetch from "../../hooks/useFetch";
 import { initDate, endDate, loadingChart, region, state, ip, gpon, urlTableData } from "../../stores/traffic";
 
-const BASE_URL = `${import.meta.env.PUBLIC_URL}/api/traffic`;
+const BASE_URL = `${import.meta.env.PUBLIC_URL || ""}/api/traffic`
 const TOKEN = sessionStorage.getItem("access_token").replace("Bearer ", "");
 
 export default function Table() {
   const [header, setHeader] = useState(undefined);
-  const [body, setBody] = useState([]);
   const $initDate = useStore(initDate);
   const $endDate = useStore(endDate);
   const $url = useStore(urlTableData);
@@ -22,28 +21,28 @@ export default function Table() {
 
   useEffect(() => {
     if ($region) {
-      const url = new URL(`${BASE_URL}/stats/region/${$region}`)
-      url.searchParams.append("initDate", $initDate);
-      url.searchParams.append("finalDate", $endDate);
-      urlTableData.set(url.href)
+      const params = new URLSearchParams()
+      params.append("initDate", $initDate);
+      params.append("finalDate", $endDate);
+      urlTableData.set(`${BASE_URL}/stats/region/${$region}?${params.toString()}`)
     }
   }, [$region, $initDate, $endDate])
 
   useEffect(() => {
     if ($state) {
-      const url = new URL(`${BASE_URL}/stats/state/${$state}`)
-      url.searchParams.append("initDate", $initDate);
-      url.searchParams.append("finalDate", $endDate);
-      urlTableData.set(url.href)
+      const params = new URLSearchParams()
+      params.append("initDate", $initDate);
+      params.append("finalDate", $endDate);
+      urlTableData.set(`${BASE_URL}/stats/state/${$state}?${params.toString()}`)
     }
   }, [$state, $initDate, $endDate])
 
   useEffect(() => {
     if ($ip) {
-      const url = new URL(`${BASE_URL}/stats/ip/${$ip}`)
-      url.searchParams.append("initDate", $initDate);
-      url.searchParams.append("finalDate", $endDate);
-      urlTableData.set(url.href)
+      const params = new URLSearchParams()
+      params.append("initDate", $initDate);
+      params.append("finalDate", $endDate);
+      urlTableData.set(`${BASE_URL}/stats/ip/${$ip}?${params.toString()}`)
     }
   }, [$ip, $gpon, $initDate, $endDate])
 

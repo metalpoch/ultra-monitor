@@ -9,8 +9,8 @@ import { removeAccentsAndToUpper } from "../../utils/formater";
 import { initDate, endDate, region, state, ip, municipality, county, odn, gpon, oltsPrometheus, urlTableData } from "../../stores/traffic";
 import { useStore } from "@nanostores/react";
 
-const URL_TRAFFIC = `${import.meta.env.PUBLIC_URL}/api/traffic`
-const URL_FATS = `${import.meta.env.PUBLIC_URL}/api/fat`
+const BASE_URL_TRAFFIC = `${import.meta.env.PUBLIC_URL || ""}/api/traffic`
+const BASE_URL_FATS = `${import.meta.env.PUBLIC_URL || ""}/api/fat`
 
 endDate.set(dayjs().toISOString());
 initDate.set(dayjs().subtract(1, "week").toISOString());
@@ -40,7 +40,7 @@ export default function Form() {
     }
   }
 
-  const { data: infoAllOlt, status } = useFetch(`${URL_TRAFFIC}/info`, headers);
+  const { data: infoAllOlt, status } = useFetch(`${BASE_URL_TRAFFIC}/info`, headers);
   const { data: fatsByState } = useFetch(urlFatState, headers);
   const { data: infoOlt } = useFetch(urlOlt, headers);
 
@@ -75,7 +75,7 @@ export default function Form() {
 
   const handleChangeState = ({ target }) => {
     const formatedState = removeAccentsAndToUpper(target.value)
-    serUrlFatState(`${URL_FATS}/location/${formatedState}?page=1&limit=65535`)
+    serUrlFatState(`${BASE_URL_FATS}/location/${formatedState}?page=1&limit=65535`)
     state.set(target.value)
     municipality.set("")
     county.set("")
@@ -111,7 +111,7 @@ export default function Form() {
   }
 
   const handleChangeOlt = ({ target }) => {
-    serUrlOlt(`${URL_TRAFFIC}/info/instance/${target.value}`)
+    serUrlOlt(`${BASE_URL_TRAFFIC}/info/instance/${target.value}`)
     ip.set(target.value)
     gpon.set("")
     odn.set("")

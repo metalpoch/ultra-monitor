@@ -9,7 +9,7 @@ import {
 } from "../../stores/dashboard";
 import useFetch from "../../hooks/useFetch";
 
-const BASE_URL = `${import.meta.env.PUBLIC_URL}/api/traffic`;
+const BASE_URL = `${import.meta.env.PUBLIC_URL || ""}/api/traffic`
 
 const minDate = dayjs("2025-07-01T00:00:00-04:00");
 const today = dayjs()
@@ -21,7 +21,7 @@ const lastYear =
   today.subtract(1, "year") < minDate ? minDate : today.subtract(1, "year");
 
 export default function Traffic() {
-  const [url, setUrl] = useState("");
+  const [url, setUrl] = useState(undefined);
   const [activeTab, setActiveTab] = useState("traffic");
   const $selectedLevel = useStore(selectedLevel);
   const $selectedRegion = useStore(selectedRegion);
@@ -33,15 +33,17 @@ export default function Traffic() {
   });
 
   useEffect(() => {
-    const u = $selectedState
-      ? new URL(`${BASE_URL}/state/${$selectedState}`)
-      : $selectedRegion
-        ? new URL(`${BASE_URL}/region/${$selectedRegion}`)
-        : new URL(`${BASE_URL}/total`);
+    const params = new URLSearchParams()
+    params.append("initDate", lastYear.toISOString());
+    params.append("finalDate", today.toISOString());
 
-    u.searchParams.append("initDate", lastYear.toISOString());
-    u.searchParams.append("finalDate", today.toISOString());
-    setUrl(u.href);
+    const u = $selectedState
+      ? `${BASE_URL}/state/${$selectedState}?${params.toString()}`
+      : $selectedRegion
+        ? `${BASE_URL}/region/${$selectedRegion}?${params.toString()}`
+        : `${BASE_URL}/total?${params.toString()}`;
+
+    setUrl(u);
   }, [$selectedLevel, $selectedRegion, $selectedState]);
 
   if (status === 401) {

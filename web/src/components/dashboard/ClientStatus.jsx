@@ -9,7 +9,8 @@ import {
 import { removeAccentsAndToUpper } from "../../utils/formater";
 import useFetch from "../../hooks/useFetch";
 
-const BASE_URL = `${import.meta.env.PUBLIC_URL}/api`;
+const BASE_URL_FAT = `${import.meta.env.PUBLIC_URL || ""}/api/fat/trend/status`;
+const BASE_URL_STATUS = `${import.meta.env.PUBLIC_URL || ""}/api/prometheus/status`;
 
 export default function ClientStatus() {
   const [urlFats, setUrlFats] = useState("");
@@ -21,20 +22,18 @@ export default function ClientStatus() {
 
   const token = sessionStorage.getItem("access_token").replace("Bearer ", "");
 
-  const fatURL = `${BASE_URL}/fat/trend/status`;
-  const statusURL = `${BASE_URL}/prometheus/status`;
-
   useEffect(() => {
-    let fURL = new URL(fatURL);
-    let sURL = new URL(statusURL);
+    let fURL, sURL
+
     if ($selectedState) {
-      fURL = new URL(
-        `${fatURL}/state/${removeAccentsAndToUpper($selectedState)}`
-      );
-      sURL = new URL(`${statusURL}/state/${$selectedState}`);
+      fURL = `${BASE_URL_FAT}/state/${removeAccentsAndToUpper($selectedState)}`
+      sURL = `${BASE_URL_STATUS}/state/${$selectedState}`;
     } else if ($selectedRegion) {
-      fURL = new URL(`${fatURL}/${$selectedRegion}`);
-      sURL = new URL(`${statusURL}/region/${$selectedRegion}`);
+      fURL = `${BASE_URL_FAT}/${$selectedRegion}`;
+      sURL = `${BASE_URL_STATUS}/region/${$selectedRegion}`;
+    } else {
+      fURL = BASE_URL_FAT;
+      sURL = BASE_URL_STATUS;
     }
     setUrlFats(fURL);
     setUrlGponStatus(sURL);

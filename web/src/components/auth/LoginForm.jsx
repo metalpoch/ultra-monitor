@@ -3,7 +3,7 @@ import PasswordIcon from "../icons/PasswordIcon";
 import UserIcon from "../icons/UserIcon";
 import ChangePasswordForm from "./ui/ChangePasswordForm";
 
-const BASE_URL = `${import.meta.env.PUBLIC_URL}/api/auth`;
+const BASE_URL = `${import.meta.env.PUBLIC_URL || ""}/api/auth`
 
 const userLogin = async (username, password) => {
   return fetch(`${BASE_URL}/signin`, {
@@ -42,7 +42,7 @@ export default function LoginForm() {
   if (error === "you must change your password") {
     return <ChangePasswordForm token={token} />;
   }
-  
+
   if (loading) {
     return <span className="mx-auto py-20 loader"></span>;
   }

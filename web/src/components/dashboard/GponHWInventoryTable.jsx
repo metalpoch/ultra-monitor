@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
-import ClientsChart from "./ui/ClientsChart";
 import {
   selectedLevel,
   selectedRegion,
@@ -14,7 +13,7 @@ const BASE_URL_STATUS = `${
   import.meta.env.PUBLIC_URL || ""
 }/api/prometheus/status`;
 
-export default function ClientStatus() {
+export default function GponHWInventoryTable() {
   const [urlFats, setUrlFats] = useState("");
   const [urlGponStatus, setUrlGponStatus] = useState("");
   const [dataTable, setDataTable] = useState(undefined);
@@ -26,7 +25,6 @@ export default function ClientStatus() {
 
   useEffect(() => {
     let fURL, sURL;
-
     if ($selectedState) {
       fURL = `${BASE_URL_FAT}/state/${removeAccentsAndToUpper($selectedState)}`;
       sURL = `${BASE_URL_STATUS}/state/${$selectedState}`;
@@ -82,42 +80,31 @@ export default function ClientStatus() {
     }
   }, [data, dataGpon]);
 
+  if (!dataTable) return null;
+
   return (
-    <>
-      {data && (
-        <section className="flex flex-col flex-1 sm:flex-2 px-6 py-3 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]">
-          <h1 className="text-2xl font-semibold">Crecimiento de usuarios</h1>
-          <>
-            <p className="text-slate-400 text-sm">
-              Monitoreo del comportamiento de los usuarios.
-            </p>
-            <ClientsChart data={data} client:load />
-          </>
-        </section>
-      )}
-      {dataTable && (
-        <section className="overflow-x-auto rounded-md border-2 border-[hsl(217,33%,20%)] bg-[#121b31]">
-          <h1 className="text-2xl px-4 pt-2 font-semibold">Inventario GPON</h1>
-          <table className="min-w-full divide-y divide-[hsl(217,33%,20%)]">
-            <thead>
-              <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-slate-300"></th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-slate-300">
-                  Cantidad
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[hsl(217,33%,20%)] text-slate-200">
-              {dataTable.map(({ name, value }) => (
-                <tr key={name} className="hover:bg-[rgba(255,255,255,0.05)]">
-                  <td className="px-6 py-2">{name}</td>
-                  <td className="px-6 py-2">{value}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
-      )}
-    </>
+    <section className="overflow-x-auto rounded-md border-2 border-[hsl(217,33%,20%)] bg-[#121b31]">
+      <h1 className="text-2xl px-4 pt-2 font-semibold">
+        Inventario GPON Huawei
+      </h1>
+      <table className="min-w-full divide-y divide-[hsl(217,33%,20%)]">
+        <thead>
+          <tr>
+            <th className="px-6 py-3 text-left text-sm font-semibold text-slate-300"></th>
+            <th className="px-6 py-3 text-left text-sm font-semibold text-slate-300">
+              Cantidad
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-[hsl(217,33%,20%)] text-slate-200">
+          {dataTable.map(({ name, value }) => (
+            <tr key={name} className="hover:bg-[rgba(255,255,255,0.05)]">
+              <td className="px-6 py-2">{name}</td>
+              <td className="px-6 py-2">{value}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
   );
 }

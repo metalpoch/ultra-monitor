@@ -12,9 +12,9 @@ import dayjs from "dayjs";
 
 export default function ClientsChart({ data }) {
   return (
-    <div style={{ width: "100%", height: 300 }}>
+    <div style={{ width: "100%", height: 400 }}>
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart width={500} height={300} data={data}>
+        <LineChart width={500} height={400} data={data}>
           <XAxis
             dataKey="date"
             tickFormatter={(value) => dayjs(value).format("DD/MM/YY")}

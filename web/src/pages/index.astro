@@ -4,20 +4,22 @@ import Form from "../components/dashboard/Form";
 import TotalTraffic from "../components/dashboard/Traffic";
 import TrafficDetailed from "../components/dashboard/TrafficDetailed";
 import ClientStatus from "../components/dashboard/ClientStatus";
-
+import ClientGrowthChart from "../components/dashboard/ClientGrowthChart";
+import GponHWInventoryTable from "../components/dashboard/GponHWInventoryTable";
 ---
 
 <Layout title="Dashboard">
-    <main class="w-full flex flex-wrap gap-5 justify-evenly px-10">
+  <main class="w-full flex flex-wrap gap-5 justify-evenly px-10">
     <div class="w-full sticky-form">
       <Form client:only />
     </div>
     <section class="w-full flex flex-wrap gap-5">
       <TotalTraffic client:only />
-      <TrafficDetailed client:only />
+      <GponHWInventoryTable client:only />
     </section>
     <section class="w-full flex flex-wrap gap-5">
-      <ClientStatus client:only />
+      <TrafficDetailed client:only />
+      <ClientGrowthChart client:only />
     </section>
   </main>
 </Layout>

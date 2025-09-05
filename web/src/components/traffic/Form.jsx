@@ -6,51 +6,73 @@ import DatalistField from "../ui/DatalistField";
 import RadioGroup from "../ui/RadioGroup";
 import useFetch from "../../hooks/useFetch";
 import { removeAccentsAndToUpper } from "../../utils/formater";
-import { initDate, endDate, region, state, ip, municipality, county, odn, gpon, oltsPrometheus, urlTableData } from "../../stores/traffic";
+import {
+  initDate,
+  endDate,
+  region,
+  state,
+  ip,
+  municipality,
+  county,
+  odn,
+  gpon,
+  oltsPrometheus,
+  urlTableData,
+} from "../../stores/traffic";
 import { useStore } from "@nanostores/react";
 import { isIpv4 } from "../../utils/validator";
 
-const BASE_URL_TRAFFIC = `${import.meta.env.PUBLIC_URL || ""}/api/traffic`
-const BASE_URL_FATS = `${import.meta.env.PUBLIC_URL || ""}/api/fat`
+const BASE_URL_TRAFFIC = `${import.meta.env.PUBLIC_URL || ""}/api/traffic`;
+const BASE_URL_FATS = `${import.meta.env.PUBLIC_URL || ""}/api/fat`;
 
 endDate.set(dayjs().toISOString());
 initDate.set(dayjs().subtract(1, "week").toISOString());
 
 export default function Form() {
-  const [urlFatState, serUrlFatState] = useState(undefined)
-  const [urlOlt, setUrlOlt] = useState(undefined)
+  const [urlFatState, serUrlFatState] = useState(undefined);
+  const [urlOlt, setUrlOlt] = useState(undefined);
 
-  const [regions, setRegions] = useState([])
-  const [states, setStates] = useState([])
+  const [regions, setRegions] = useState([]);
+  const [states, setStates] = useState([]);
 
-  const [selectionMethod, setSelectionMethod] = useState("")
+  const [selectionMethod, setSelectionMethod] = useState("");
 
-  const $initDate = useStore(initDate)
-  const $endDate = useStore(endDate)
-  const $region = useStore(region)
-  const $state = useStore(state)
-  const $municipality = useStore(municipality)
-  const $county = useStore(county)
-  const $ip = useStore(ip)
-  const $odn = useStore(odn)
-  const $gpon = useStore(gpon)
+  const $initDate = useStore(initDate);
+  const $endDate = useStore(endDate);
+  const $region = useStore(region);
+  const $state = useStore(state);
+  const $municipality = useStore(municipality);
+  const $county = useStore(county);
+  const $ip = useStore(ip);
+  const $odn = useStore(odn);
+  const $gpon = useStore(gpon);
 
   const headers = {
     headers: {
-      Authorization: `Bearer ${sessionStorage.getItem("access_token").replace("Bearer ", "")}`
-    }
-  }
+      Authorization: `Bearer ${sessionStorage
+        .getItem("access_token")
+        .replace("Bearer ", "")}`,
+    },
+  };
 
-  const { data: infoAllOlt, status } = useFetch(`${BASE_URL_TRAFFIC}/info`, headers);
+  const { data: infoAllOlt, status } = useFetch(
+    `${BASE_URL_TRAFFIC}/info`,
+    headers
+  );
   const { data: fatsByState } = useFetch(urlFatState, headers);
   const { data: infoOlt } = useFetch(urlOlt, headers);
 
   // Get regions array
   useEffect(() => {
-    oltsPrometheus.set(infoAllOlt)
+    oltsPrometheus.set(infoAllOlt);
     if (infoAllOlt)
-      setRegions([...new Set(infoAllOlt.map(({ region }) => region))].map(r => ({ value: r, label: r })))
-  }, [infoAllOlt])
+      setRegions(
+        [...new Set(infoAllOlt.map(({ region }) => region))].map((r) => ({
+          value: r,
+          label: r,
+        }))
+      );
+  }, [infoAllOlt]);
 
   const handleDateChange = ({ init, end }) => {
     if (init) initDate.set(init);
@@ -59,80 +81,84 @@ export default function Form() {
 
   const handleChangeRegion = ({ target }) => {
     setStates(
-      [...new Set(
-        infoAllOlt
-          .filter(item => item.region === target.value)
-          .map(({ state }) => state)
-      )].map(item => ({ value: item, label: item })))
-
-    region.set(target.value)
-    state.set("")
-    municipality.set("")
-    county.set("")
-    ip.set("")
-    gpon.set("")
-    odn.set("")
-  }
+      [
+        ...new Set(
+          infoAllOlt
+            .filter((item) => item.region === target.value)
+            .map(({ state }) => state)
+        ),
+      ].map((item) => ({ value: item, label: item }))
+    );
+    // Limpiar todos los campos dependientes
+    region.set(target.value);
+    state.set("");
+    municipality.set("");
+    county.set("");
+    ip.set("");
+    gpon.set("");
+    odn.set("");
+    setSelectionMethod("");
+  };
 
   const handleChangeState = ({ target }) => {
-    const formatedState = removeAccentsAndToUpper(target.value)
-    serUrlFatState(`${BASE_URL_FATS}/location/${formatedState}?page=1&limit=65535`)
-    state.set(target.value)
-    municipality.set("")
-    county.set("")
-    ip.set("")
-    gpon.set("")
-    odn.set("")
-  }
+    const formatedState = removeAccentsAndToUpper(target.value);
+    serUrlFatState(
+      `${BASE_URL_FATS}/location/${formatedState}?page=1&limit=65535`
+    );
+    // Limpiar todos los campos dependientes
+    state.set(target.value);
+    municipality.set("");
+    county.set("");
+    ip.set("");
+    gpon.set("");
+    odn.set("");
+    setSelectionMethod("");
+  };
 
   const handleChangeMethod = (method) => {
-    setSelectionMethod(method)
-    municipality.set("")
-    county.set("")
-    ip.set("")
-    gpon.set("")
-    odn.set("")
-  }
+    setSelectionMethod(method);
+    // Limpiar todos los campos dependientes
+    municipality.set("");
+    county.set("");
+    ip.set("");
+    gpon.set("");
+    odn.set("");
+  };
 
   const handleChangeMunicipality = ({ target }) => {
-    municipality.set(target.value)
-    county.set("")
-    ip.set("")
-    gpon.set("")
-    odn.set("")
-    urlTableData.set(undefined)
-  }
+    municipality.set(target.value);
+    county.set("");
+    ip.set("");
+    gpon.set("");
+    odn.set("");
+  };
 
   const handleChangeCounty = ({ target }) => {
-    county.set(target.value)
-    ip.set("")
-    gpon.set("")
-    odn.set("")
-    urlTableData.set(undefined)
-  }
+    county.set(target.value);
+    ip.set("");
+    gpon.set("");
+    odn.set("");
+  };
 
   const handleChangeOlt = ({ target }) => {
     if (isIpv4(target.value)) {
-      setUrlOlt(`${BASE_URL_TRAFFIC}/info/instance/${target.value}`)
+      setUrlOlt(`${BASE_URL_TRAFFIC}/info/instance/${target.value}`);
     }
-    ip.set(target.value)
-    gpon.set("")
-    odn.set("")
-    urlTableData.set(undefined)
-
-  }
+    ip.set(target.value);
+    gpon.set("");
+    odn.set("");
+  };
 
   const handleChangeOdn = ({ target }) => {
-    odn.set(target.value)
-    urlTableData.set(undefined)
-  }
+    odn.set(target.value);
+  };
 
   const handleChangeGpon = ({ target }) => {
-    gpon.set(target.value)
-  }
+    gpon.set(target.value);
+  };
 
   if (status === 401) {
-    sessionStorage.removeItem("access_token")
+    sessionStorage.removeItem("access_token");
     window.location.href = "/";
   }
 
@@ -164,7 +190,7 @@ export default function Form() {
             value: "",
             label: "Seleccionar región",
             disabled: true,
-            hidden: true
+            hidden: true,
           },
           ...regions,
         ]}
@@ -178,7 +204,12 @@ export default function Form() {
           id="state"
           label="Estado *"
           options={[
-            { value: "", label: "Seleccionar estado", disabled: true, hidden: true },
+            {
+              value: "",
+              label: "Seleccionar estado",
+              disabled: true,
+              hidden: true,
+            },
             ...states,
           ]}
           value={$state}
@@ -206,10 +237,11 @@ export default function Form() {
           <DatalistField
             id="olt"
             label="OLT"
-            options={
-              infoAllOlt
-                .filter(item => item.region === $region && item.state === $state)
-                .map(({ ip, sysName }) => ({ value: ip, label: sysName }))}
+            options={infoAllOlt
+              .filter(
+                (item) => item.region === $region && item.state === $state
+              )
+              .map(({ ip, sysName }) => ({ value: ip, label: sysName }))}
             value={$ip}
             onChange={handleChangeOlt}
             placeholder="Ingrese el OLT"
@@ -219,8 +251,16 @@ export default function Form() {
               id="gpon"
               label="GPON *"
               options={[
-                { value: "", label: "Seleccionar Puerto GPON", disabled: true, hidden: true },
-                ...infoOlt.map(({ if_name, if_index }) => ({ value: if_index, label: if_name }))
+                {
+                  value: "",
+                  label: "Seleccionar Puerto GPON",
+                  disabled: true,
+                  hidden: true,
+                },
+                ...infoOlt.map(({ if_name, if_index }) => ({
+                  value: if_index,
+                  label: if_name,
+                })),
               ]}
               value={$gpon}
               onChange={handleChangeGpon}
@@ -230,14 +270,21 @@ export default function Form() {
       )}
 
       {/* Opción 2: Municipio → Parroquia → OLT */}
-      {$state && selectionMethod === "municipality" && fatsByState &&
+      {$state && selectionMethod === "municipality" && fatsByState && (
         <>
           <SelectField
             id="municipality"
             label="Municipio *"
             options={[
-              { value: "", label: "Seleccionar Municipio", disabled: true, hidden: true },
-              ...[...new Set(fatsByState.map(f => f.municipality))].map(m => ({ value: m, label: m }))
+              {
+                value: "",
+                label: "Seleccionar Municipio",
+                disabled: true,
+                hidden: true,
+              },
+              ...[...new Set(fatsByState.map((f) => f.municipality))].map(
+                (m) => ({ value: m, label: m })
+              ),
             ]}
             value={$municipality}
             onChange={handleChangeMunicipality}
@@ -248,8 +295,19 @@ export default function Form() {
               id="county"
               label="Parroquia *"
               options={[
-                { value: "", label: "Seleccionar Parroquia", disabled: true, hidden: true },
-                ...[...new Set(fatsByState.filter((f) => f.municipality === $municipality).map(({ county }) => county))].map(c => ({ value: c, label: c }))
+                {
+                  value: "",
+                  label: "Seleccionar Parroquia",
+                  disabled: true,
+                  hidden: true,
+                },
+                ...[
+                  ...new Set(
+                    fatsByState
+                      .filter((f) => f.municipality === $municipality)
+                      .map(({ county }) => county)
+                  ),
+                ].map((c) => ({ value: c, label: c })),
               ]}
               value={$county}
               onChange={handleChangeCounty}
@@ -261,16 +319,30 @@ export default function Form() {
               id="odn"
               label="ODN *"
               options={[
-                { value: "", label: "Seleccionar ODN", disabled: true, hidden: true },
-                ...[...new Set(fatsByState.filter((f) => f.municipality === $municipality && f.county === $county).map(({ odn }) => odn))]
-                  .map(o => ({ value: o, label: o }))
+                {
+                  value: "",
+                  label: "Seleccionar ODN",
+                  disabled: true,
+                  hidden: true,
+                },
+                ...[
+                  ...new Set(
+                    fatsByState
+                      .filter(
+                        (f) =>
+                          f.municipality === $municipality &&
+                          f.county === $county
+                      )
+                      .map(({ odn }) => odn)
+                  ),
+                ].map((o) => ({ value: o, label: o })),
               ]}
               value={$odn}
               onChange={handleChangeOdn}
             />
           )}
         </>
-      }
+      )}
     </form>
-  )
+  );
 }

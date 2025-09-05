@@ -37,9 +37,9 @@ export default function TrafficChartDetailed({ data, dataType }) {
   });
 
   return (
-    <div style={{ width: "100%", height: 300 }}>
+    <div style={{ width: "100%", height: 400 }}>
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart width={500} height={300} data={chartData}>
+        <LineChart width={500} height={400} data={chartData}>
           <XAxis
             tick={{ fill: "#bbb" }}
             dataKey="time"
@@ -50,37 +50,48 @@ export default function TrafficChartDetailed({ data, dataType }) {
           <YAxis
             tick={{ fill: "#bbb" }}
             tickFormatter={(value) =>
-              (value / 1e12) >= 1
-                ? `${value / 1e12} ${dataType === "traffic" ? "Tbps" : "Tbytes"}`
-                : (value / 1e9) >= 1
-                  ? `${value / 1e9} ${dataType === "traffic" ? "Gbps" : "Gbytes"}`
-                  : (value / 1e6) >= 1
-                    ? `${value / 1e6} ${dataType === "traffic" ? "Mbps" : "Mbytes"}`
-                    : (value / 1e3) >= 1
-                      ? `${value / 1e3} ${dataType === "traffic" ? "Kbps" : "Kbytes"}`
-                      : `${value} ${dataType === "traffic" ? "bps" : "bytes"}`
-
+              value / 1e12 >= 1
+                ? `${value / 1e12} ${
+                    dataType === "traffic" ? "Tbps" : "Tbytes"
+                  }`
+                : value / 1e9 >= 1
+                ? `${value / 1e9} ${dataType === "traffic" ? "Gbps" : "Gbytes"}`
+                : value / 1e6 >= 1
+                ? `${value / 1e6} ${dataType === "traffic" ? "Mbps" : "Mbytes"}`
+                : value / 1e3 >= 1
+                ? `${value / 1e3} ${dataType === "traffic" ? "Kbps" : "Kbytes"}`
+                : `${value} ${dataType === "traffic" ? "bps" : "bytes"}`
             }
           />
           <Tooltip
             formatter={(value) =>
-              (value / 1e12) >= 1
-                ? `${(value / 1e12).toFixed(2)} ${dataType === "traffic" ? "Tbps" : "Tbytes"}`
-                : (value / 1e9) >= 1
-                  ? `${(value / 1e9).toFixed(2)} ${dataType === "traffic" ? "Gbps" : "Gbytes"}`
-                  : (value / 1e6) >= 1
-                    ? `${(value / 1e6).toFixed(2)} ${dataType === "traffic" ? "Mbps" : "Mbytes"}`
-                    : (value / 1e3) >= 1
-                      ? `${(value / 1e3).toFixed(2)} ${dataType === "traffic" ? "Kbps" : "Kbytes"}`
-                      : `${(value).toFixed(2)} ${dataType === "traffic" ? "bps" : "bytes"}`
+              value / 1e12 >= 1
+                ? `${(value / 1e12).toFixed(2)} ${
+                    dataType === "traffic" ? "Tbps" : "Tbytes"
+                  }`
+                : value / 1e9 >= 1
+                ? `${(value / 1e9).toFixed(2)} ${
+                    dataType === "traffic" ? "Gbps" : "Gbytes"
+                  }`
+                : value / 1e6 >= 1
+                ? `${(value / 1e6).toFixed(2)} ${
+                    dataType === "traffic" ? "Mbps" : "Mbytes"
+                  }`
+                : value / 1e3 >= 1
+                ? `${(value / 1e3).toFixed(2)} ${
+                    dataType === "traffic" ? "Kbps" : "Kbytes"
+                  }`
+                : `${value.toFixed(2)} ${
+                    dataType === "traffic" ? "bps" : "bytes"
+                  }`
             }
             contentStyle={{
               color: "#e0e6ed",
               backgroundColor: "#1a233a",
               border: "1px solid #2d3652",
             }}
-          />          <Legend />
-
+          />{" "}
+          <Legend />
           {Object.keys(data).map((name, index) => (
             <Line
               key={name}

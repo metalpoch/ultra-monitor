@@ -8,6 +8,7 @@ import useFetch from "../../hooks/useFetch";
 import { removeAccentsAndToUpper } from "../../utils/formater";
 import { initDate, endDate, region, state, ip, municipality, county, odn, gpon, oltsPrometheus, urlTableData } from "../../stores/traffic";
 import { useStore } from "@nanostores/react";
+import { isIpv4 } from "../../utils/validator";
 
 const BASE_URL_TRAFFIC = `${import.meta.env.PUBLIC_URL || ""}/api/traffic`
 const BASE_URL_FATS = `${import.meta.env.PUBLIC_URL || ""}/api/fat`
@@ -17,7 +18,7 @@ initDate.set(dayjs().subtract(1, "week").toISOString());
 
 export default function Form() {
   const [urlFatState, serUrlFatState] = useState(undefined)
-  const [urlOlt, serUrlOlt] = useState(undefined)
+  const [urlOlt, setUrlOlt] = useState(undefined)
 
   const [regions, setRegions] = useState([])
   const [states, setStates] = useState([])
@@ -111,11 +112,14 @@ export default function Form() {
   }
 
   const handleChangeOlt = ({ target }) => {
-    serUrlOlt(`${BASE_URL_TRAFFIC}/info/instance/${target.value}`)
+    if (isIpv4(target.value)) {
+      setUrlOlt(`${BASE_URL_TRAFFIC}/info/instance/${target.value}`)
+    }
     ip.set(target.value)
     gpon.set("")
     odn.set("")
     urlTableData.set(undefined)
+
   }
 
   const handleChangeOdn = ({ target }) => {

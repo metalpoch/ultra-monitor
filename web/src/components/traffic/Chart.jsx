@@ -3,7 +3,8 @@ import { useStore } from "@nanostores/react";
 import TrafficChart from "../ui/TrafficChart";
 import useFetch from "../../hooks/useFetch";
 import { MAP_STATE_TRANSLATER } from "../../constants/regions";
-import { initDate, endDate, region, state, municipality, county, odn, ip, gpon, oltsPrometheus, loadingChart } from "../../stores/traffic";
+import { initDate, endDate, region, state, municipality, county, odn, ip, gpon, oltsPrometheus } from "../../stores/traffic";
+import { isIpv4 } from "../../utils/validator";
 
 const BASE_URL = `${import.meta.env.PUBLIC_URL || ""}/api/traffic`
 const TOKEN = sessionStorage.getItem("access_token").replace("Bearer ", "");
@@ -25,8 +26,6 @@ export default function Chart() {
   const { data, status, loading, error } = useFetch(url, {
     headers: { Authorization: `Bearer ${TOKEN}` },
   });
-
-  useEffect(() => loadingChart.set(loading), [loading])
 
   useEffect(() => {
     if ($region && $oltsPrometheus) {
@@ -59,7 +58,7 @@ export default function Chart() {
   }, [$state, $initDate, $endDate])
 
   useEffect(() => {
-    if ($ip) {
+    if (isIpv4($ip)) {
       const params = new URLSearchParams()
       params.append("ip", $ip);
       params.append("initDate", $initDate);

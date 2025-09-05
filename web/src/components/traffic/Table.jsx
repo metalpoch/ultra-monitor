@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
 import useFetch from "../../hooks/useFetch";
-import { initDate, endDate, loadingChart, region, state, ip, gpon, urlTableData } from "../../stores/traffic";
+import { initDate, endDate, oltsPrometheus, region, state, ip, gpon, urlTableData } from "../../stores/traffic";
+import { isIpv4 } from "../../utils/validator";
 
 const BASE_URL = `${import.meta.env.PUBLIC_URL || ""}/api/traffic`
 const TOKEN = sessionStorage.getItem("access_token").replace("Bearer ", "");
@@ -15,7 +16,7 @@ export default function Table() {
   const $gpon = useStore(gpon);
   const $state = useStore(state);
   const $region = useStore(region);
-  const $loadingChart = useStore(loadingChart);
+  const $dataChart = useStore(oltsPrometheus);
 
   const { data, status } = useFetch($url, { headers: { Authorization: `Bearer ${TOKEN}` } });
 
@@ -38,7 +39,7 @@ export default function Table() {
   }, [$state, $initDate, $endDate])
 
   useEffect(() => {
-    if ($ip) {
+    if (isIpv4($ip)) {
       const params = new URLSearchParams()
       params.append("initDate", $initDate);
       params.append("finalDate", $endDate);
@@ -110,7 +111,7 @@ export default function Table() {
     window.location.href = "/";
   }
 
-  if (data && $url && !$loadingChart) return (
+  if (data && $dataChart.length > 0) return (
     <section className="w-full h-[300px] overflow-auto px-6">
       <table className="min-w-full">
         <thead className="sticky top-0 bg-[#121b31] pb-1">

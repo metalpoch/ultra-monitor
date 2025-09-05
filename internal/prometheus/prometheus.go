@@ -276,10 +276,10 @@ func (p *prometheus) TrafficGroupedByField(ctx context.Context, fieldQuery, valu
 
 func (p *prometheus) SysnameByState(ctx context.Context, state string, initDate, finalDate time.Time) (map[string][]*Traffic, error) {
 	queryBW := fmt.Sprintf("sum(ifSpeed{state='%s'}) by (instance) * on(instance) group_left(sysName) sysName", state)
-	queryBpsIn := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticReceivedBytes_count{state='%s'}[15m])[30m:15m]) * 8) by (instance) * on(instance) group_left(sysName) sysName", state)
-	queryBpsOut := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticSendBytes_count{state='%s'}[15m])[30m:15m]) * 8) by (instance) * on(instance) group_left(sysName) sysName", state)
-	queryBytesIn := fmt.Sprintf("sum(avg_over_time(increase(hwGponOltEthernetStatisticReceivedBytes_count{state='%s'}[15m])[30m:15m])) by (instance) * on(instance) group_left(sysName) sysName", state)
-	queryBytesOut := fmt.Sprintf("sum(avg_over_time(increase(hwGponOltEthernetStatisticSendBytes_count{state='%s'}[15m])[30m:15m])) by (instance) * on(instance) group_left(sysName) sysName", state)
+	queryBpsIn := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticReceivedBytes_count{state='%s'}[1h])[3h:1h]) * 8) by (instance) * on(instance) group_left(sysName) sysName", state)
+	queryBpsOut := fmt.Sprintf("sum(avg_over_time(rate(hwGponOltEthernetStatisticSendBytes_count{state='%s'}[1h])[3h:1h]) * 8) by (instance) * on(instance) group_left(sysName) sysName", state)
+	queryBytesIn := fmt.Sprintf("sum(avg_over_time(increase(hwGponOltEthernetStatisticReceivedBytes_count{state='%s'}[1h])[3h:1h])) by (instance) * on(instance) group_left(sysName) sysName", state)
+	queryBytesOut := fmt.Sprintf("sum(avg_over_time(increase(hwGponOltEthernetStatisticSendBytes_count{state='%s'}[1h])[3h:1h])) by (instance) * on(instance) group_left(sysName) sysName", state)
 
 	r := v1.Range{
 		Start: initDate,

@@ -1,12 +1,15 @@
 ---
 import { Image } from "astro:assets";
 import Layout from "../layouts/Login.astro";
-import cat from "../assets/404.jpg";
+import Sofi from "../assets/404.png";
 ---
 
 <Layout>
-  <main class="flex flex-col items-center justify-center">
-    <Image src={cat} width={400} height={400} alt="Cat saying NO" />
-    <h1 class="text-5xl">¡Órale wey! Esta ruta no existe.</h1>
-  </main>
+<main class="flex flex-col items-center justify-center gap-3">
+  <Image src={Sofi} width={400} height={400} alt="Sofi la perrita planificando la web" />
+  <h1 class="text-3xl">Elemental mi querido Watson! No encontré lo que buscas.</h1>
+  <h1 class="text-2xl"> Debe estar escondido mejor que mi hueso favorito.</h1>
+</main>
 </Layout>
+
+

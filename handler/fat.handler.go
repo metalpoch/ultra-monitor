@@ -405,3 +405,43 @@ func (hdlr *FatHandler) GetAllFatStatusByFat(c fiber.Ctx) error {
 	}
 	return c.JSON(res)
 }
+
+func (hdlr *FatHandler) GetFatStatusStateByRegion(c fiber.Ctx) error {
+	region, err := url.QueryUnescape(c.Params("region"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetFatStatusStateByRegion(region)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+func (hdlr *FatHandler) GetFatStatusOltByState(c fiber.Ctx) error {
+	state, err := url.QueryUnescape(c.Params("state"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetFatStatusOltByState(state)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+func (hdlr *FatHandler) GetFatStatusGponByOlt(c fiber.Ctx) error {
+	ip, err := url.QueryUnescape(c.Params("ip"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetFatStatusGponByOlt(ip)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}

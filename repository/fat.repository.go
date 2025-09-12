@@ -34,6 +34,10 @@ type FatRepository interface {
 	GetAllFatStatusByCounty(ctx context.Context, state, municipality, county string) ([]entity.FatStatusSummary, error)
 	GetAllFatStatusByODN(ctx context.Context, state, municipality, county, odn string) ([]entity.FatStatusSummary, error)
 	GetAllFatStatusByFat(ctx context.Context, state, municipality, county, odn, fat string) ([]entity.FatStatusSummary, error)
+
+	GetFatStatusStateByRegion(ctx context.Context, region string) ([]entity.LastFatStatus, error)
+	GetFatStatusOltByState(ctx context.Context, state string) ([]entity.LastFatStatus, error)
+	GetFatStatusGponByOlt(ctx context.Context, olt string) ([]entity.LastFatStatus, error)
 }
 
 type fatRepository struct {
@@ -470,5 +474,80 @@ func (r *fatRepository) GetAllFatStatusByFat(ctx context.Context, state, municip
 	ORDER BY fs.date DESC;
 	`
 	err := r.db.SelectContext(ctx, &res, query, state, municipality, county, odn, fat)
+	return res, err
+}
+
+func (r *fatRepository) GetFatStatusStateByRegion(ctx context.Context, region string) ([]entity.LastFatStatus, error) {
+	var res []entity.LastFatStatus
+	states := constants.STATES_BY_REGION[region]
+	query := `
+        SELECT
+    f.state AS name,
+    SUM(fs.actives) AS actives,
+    SUM(fs.provisioned_offline) AS provisioned_offline,
+    SUM(fs.cut_off) AS cut_off,
+    SUM(fs.in_progress) AS in_progress
+FROM fat_status AS fs
+INNER JOIN fats AS f ON f.id = fs.fats_id
+INNER JOIN (
+    SELECT f.state, MAX(fs.date) AS max_date
+    FROM fat_status AS fs
+    INNER JOIN fats AS f ON f.id = fs.fats_id
+    WHERE f.state = ANY($1)
+    GROUP BY f.state
+) AS latest ON latest.state = f.state AND latest.max_date = fs.date
+WHERE f.state = ANY($1)
+GROUP BY name;`
+	err := r.db.SelectContext(ctx, &res, query, pq.Array(states))
+	return res, err
+}
+
+func (r *fatRepository) GetFatStatusOltByState(ctx context.Context, state string) ([]entity.LastFatStatus, error) {
+	var res []entity.LastFatStatus
+	query := `
+	SELECT
+		f.ip AS name,
+		SUM(fs.actives) AS actives,
+		SUM(fs.provisioned_offline) AS provisioned_offline,
+		SUM(fs.cut_off) AS cut_off,
+		SUM(fs.in_progress) AS in_progress
+	FROM fat_status AS fs
+	INNER JOIN fats AS f ON f.id = fs.fats_id
+	INNER JOIN (
+		SELECT f.ip, MAX(fs.date) AS max_date
+		FROM fat_status AS fs
+		INNER JOIN fats AS f ON f.id = fs.fats_id
+		WHERE f.state = $1
+		GROUP BY f.ip
+	) AS latest ON latest.ip = f.ip AND latest.max_date = fs.date
+	WHERE f.state = $1
+	GROUP BY name;
+	`
+	err := r.db.SelectContext(ctx, &res, query, state)
+	return res, err
+}
+
+func (r *fatRepository) GetFatStatusGponByOlt(ctx context.Context, ip string) ([]entity.LastFatStatus, error) {
+	var res []entity.LastFatStatus
+	query := `
+	SELECT
+		CONCAT(f.shell, '/', f.card, '/', f.port) AS name,
+		SUM(fs.actives) AS actives,
+		SUM(fs.provisioned_offline) AS provisioned_offline,
+		SUM(fs.cut_off) AS cut_off,
+		SUM(fs.in_progress) AS in_progress
+	FROM fat_status AS fs
+	INNER JOIN fats AS f ON f.id = fs.fats_id
+	INNER JOIN (
+		SELECT f.shell, f.card, f.port, MAX(fs.date) AS max_date
+		FROM fat_status AS fs
+		INNER JOIN fats AS f ON f.id = fs.fats_id
+		WHERE f.ip = $1
+		GROUP BY f.shell, f.card, f.port
+	) AS latest ON latest.shell = f.shell AND latest.card = f.card AND latest.port = f.port AND latest.max_date = fs.date
+	WHERE f.ip = $1
+	GROUP BY f.shell, f.card, f.port;
+	`
+	err := r.db.SelectContext(ctx, &res, query, ip)
 	return res, err
 }

@@ -33,6 +33,14 @@ type FatStatusSummary struct {
 	InProgress         uint32    `json:"in_progress"`
 }
 
+type FatStatus struct {
+	Name               string `json:"name"`
+	Actives            uint32 `json:"actives"`
+	ProvisionedOffline uint32 `json:"provisioned_offline"`
+	CutOff             uint32 `json:"cut_off"`
+	InProgress         uint32 `json:"in_progress"`
+}
+
 type UpsertFat struct {
 	IP                 string    `json:"IP_OLT"`
 	Region             string    `json:"REGION"`

@@ -348,3 +348,54 @@ func (use *FatUsecase) GetAllFatStatusByFat(state, municipality, county, odn, fa
 
 	return fats, nil
 }
+
+func (use *FatUsecase) GetFatStatusStateByRegion(region string) ([]dto.FatStatus, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetFatStatusStateByRegion(ctx, region)
+	if err != nil {
+		return nil, err
+	}
+
+	var fats []dto.FatStatus
+	for _, e := range res {
+		fats = append(fats, (dto.FatStatus)(e))
+	}
+
+	return fats, nil
+}
+
+func (use *FatUsecase) GetFatStatusOltByState(state string) ([]dto.FatStatus, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetFatStatusOltByState(ctx, state)
+	if err != nil {
+		return nil, err
+	}
+
+	var fats []dto.FatStatus
+	for _, e := range res {
+		fats = append(fats, (dto.FatStatus)(e))
+	}
+
+	return fats, nil
+}
+
+func (use *FatUsecase) GetFatStatusGponByOlt(ip string) ([]dto.FatStatus, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetFatStatusGponByOlt(ctx, ip)
+	if err != nil {
+		return nil, err
+	}
+
+	var fats []dto.FatStatus
+	for _, e := range res {
+		fats = append(fats, (dto.FatStatus)(e))
+	}
+
+	return fats, nil
+}

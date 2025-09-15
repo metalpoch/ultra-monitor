@@ -10,10 +10,13 @@ import {
   ip,
   gpon,
   urlTableData,
+  urlStatusTableData
 } from "../../stores/traffic";
 import { isIpv4 } from "../../utils/validator";
+import { formatSpeed, removeAccentsAndToUpper } from "../../utils/formater";
 
 const BASE_URL = `${import.meta.env.PUBLIC_URL || ""}/api/traffic`;
+const FAT_STATUS_URL = `${import.meta.env.PUBLIC_URL || ""}/api/fat/trend/detail`;
 const TOKEN = sessionStorage.getItem("access_token").replace("Bearer ", "");
 
 export default function Table() {
@@ -33,19 +36,23 @@ export default function Table() {
 
     if (isIpv4($ip)) {
       urlTableData.set(`${BASE_URL}/stats/ip/${$ip}?${params.toString()}`);
+      urlStatusTableData.set(`${FAT_STATUS_URL}/ip/${$ip}`);
     } else if ($state) {
-      urlTableData.set(
-        `${BASE_URL}/stats/state/${$state}?${params.toString()}`
-      );
+      urlTableData.set(`${BASE_URL}/stats/state/${$state}?${params.toString()}`);
+      urlStatusTableData.set(`${FAT_STATUS_URL}/state/${removeAccentsAndToUpper($state)}`);
     } else if ($region) {
-      urlTableData.set(
-        `${BASE_URL}/stats/region/${$region}?${params.toString()}`
-      );
+      urlTableData.set(`${BASE_URL}/stats/region/${$region}?${params.toString()}`);
+      urlStatusTableData.set(`${FAT_STATUS_URL}/region/${$region}`);
     }
   }, [$region, $state, $ip, $initDate, $endDate]);
 
   const $url = useStore(urlTableData);
+  const $urlStatus = useStore(urlStatusTableData);
   const { data, status } = useFetch($url, {
+    headers: { Authorization: `Bearer ${TOKEN}` },
+  });
+
+  const { data: dataStatus } = useFetch($urlStatus, {
     headers: { Authorization: `Bearer ${TOKEN}` },
   });
 
@@ -76,18 +83,20 @@ export default function Table() {
         <>
           <tr>
             <th rowSpan="2">OLT</th>
-            <th colSpan="2">Entrante (Mbps)</th>
-            <th colSpan="2">Saliente (Mbps)</th>
-            <th rowSpan="2">Capacidad (Mbps)</th>
-            <th colSpan="2">Uso %</th>
+            <th colSpan="2">Entrante</th>
+            <th colSpan="2">Saliente</th>
+            <th rowSpan="2">Capacidad</th>
+            <th rowSpan="2">Uso</th>
+            <th colSpan="3">Estatus ONT</th>
           </tr>
           <tr>
             <th>Prom.</th>
             <th>Max.</th>
             <th>Prom.</th>
             <th>Max.</th>
-            <th>Entrante</th>
-            <th>Saliente</th>
+            <th className="bg-green-900">Activo</th>
+            <th className="bg-red-900">Cortado</th>
+            <th className="bg-amber-900">En progreso</th>
           </tr>
         </>
       );
@@ -96,18 +105,20 @@ export default function Table() {
         <>
           <tr>
             <th rowSpan="2">Estado</th>
-            <th colSpan="2">Entrante (Mbps)</th>
-            <th colSpan="2">Saliente (Mbps)</th>
-            <th rowSpan="2">Capacidad (Mbps)</th>
-            <th colSpan="2">Uso %</th>
+            <th colSpan="2">Entrante</th>
+            <th colSpan="2">Saliente</th>
+            <th rowSpan="2">Capacidad</th>
+            <th rowSpan="2">Uso</th>
+            <th colSpan="3">Estatus ONT</th>
           </tr>
           <tr>
             <th>Prom.</th>
             <th>Max.</th>
             <th>Prom.</th>
             <th>Max.</th>
-            <th>Entrante</th>
-            <th>Saliente</th>
+            <th className="bg-green-900">Activo</th>
+            <th className="bg-red-900">Cortado</th>
+            <th className="bg-amber-900">En progreso</th>
           </tr>
         </>
       );
@@ -119,7 +130,7 @@ export default function Table() {
             <th colSpan="2">Entrante (Mbps)</th>
             <th colSpan="2">Saliente (Mbps)</th>
             <th rowSpan="2">Capacidad (Mbps)</th>
-            <th colSpan="2">Uso %</th>
+            <th>Uso %</th>
           </tr>
           <tr>
             <th>Prom.</th>
@@ -148,26 +159,42 @@ export default function Table() {
   if (filteredData && filteredData.length > 0 && $dataChart.length > 0) {
     return (
       <section className="w-full h-[300px] overflow-auto px-6">
-        <table className="min-w-full">
+        <table className="min-w-full text-sm">
           <thead className="sticky top-0 bg-[#121b31] pb-1">{header}</thead>
           <tbody>
-            {filteredData.map((row, idx) => (
-              <tr key={row.port ? row.port : idx} className="text-center">
-                <td>
-                  {($gpon && row.if_name) ||
-                    ($region && row.state) ||
-                    ($state && row.sys_name) ||
-                    ($ip && row.if_name)}
-                </td>
-                <td>{(row.avg_in_bps / 1_000_000).toFixed(2)}</td>
-                <td>{(row.max_in_bps / 1_000_000).toFixed(2)}</td>
-                <td>{(row.avg_out_bps / 1_000_000).toFixed(2)}</td>
-                <td>{(row.max_out_bps / 1_000_000).toFixed(2)}</td>
-                <td>{(row.if_speed / 1_000_000).toFixed(2)}</td>
-                <td>{row.usage_in.toFixed(2)}%</td>
-                <td>{row.usage_out.toFixed(2)}%</td>
+            {filteredData.map((row, idx) => {
+              let fatStatus = null
+              let title = ""
+              if ($gpon) {
+                title = row.if_name
+              } else if ($ip) {
+                title = row.if_name
+                fatStatus = dataStatus && dataStatus.find((r) => row.if_name === r.name)
+                console.log({ row, dataStatus })
+              } else if ($state) {
+                title = row.sys_name
+                fatStatus = dataStatus && dataStatus.find((r) => row.ip === r.name)
+              }
+              else {
+                title = row.state
+                fatStatus = dataStatus && dataStatus.find((r) => r.name === removeAccentsAndToUpper(title))
+              }
+              return <tr key={row.port ? row.port : idx} className="text-center">
+                <td>{title}</td>
+                <td>{formatSpeed(row.avg_in_bps)}</td>
+                <td>{formatSpeed(row.max_in_bps)}</td>
+                <td>{formatSpeed(row.avg_out_bps)}</td>
+                <td>{formatSpeed(row.max_out_bps)}</td>
+                <td>{formatSpeed(row.if_speed)}</td>
+                <td>{(row.usage_out + row.usage_in).toFixed(2)}%</td>
+                {fatStatus && <>
+                  <td className="bg-green-801 w-[80px]">{fatStatus.actives + fatStatus.provisioned_offline}</td>
+                  <td className="bg-red-801 w-[80px]">{fatStatus.cut_off}</td>
+                  <td className="bg-amber-801 w-[80px]">{fatStatus.in_progress}</td>
+
+                </>}
               </tr>
-            ))}
+            })}
           </tbody>
         </table>
       </section>

@@ -531,7 +531,7 @@ func (r *fatRepository) GetFatStatusGponByOlt(ctx context.Context, ip string) ([
 	var res []entity.LastFatStatus
 	query := `
 	SELECT
-		CONCAT(f.shell, '/', f.card, '/', f.port) AS name,
+		CONCAT('GPON ', f.shell, '/', f.card, '/', f.port) AS name,
 		SUM(fs.actives) AS actives,
 		SUM(fs.provisioned_offline) AS provisioned_offline,
 		SUM(fs.cut_off) AS cut_off,

@@ -66,15 +66,13 @@ export default function Table() {
             <th colSpan="2">Entrante (Mbps)</th>
             <th colSpan="2">Saliente (Mbps)</th>
             <th rowSpan="2">Capacidad (Mbps)</th>
-            <th colSpan="2">Uso %</th>
+            <th rowSpan="2">Uso %</th>
           </tr>
           <tr>
             <th>Prom.</th>
             <th>Max.</th>
             <th>Prom.</th>
             <th>Max.</th>
-            <th>Entrante</th>
-            <th>Saliente</th>
           </tr>
         </>
       );

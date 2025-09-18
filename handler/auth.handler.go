@@ -55,7 +55,7 @@ func (hdlr *UserHandler) Login(c fiber.Ctx) error {
 }
 
 func (hdlr *UserHandler) GetOwn(c fiber.Ctx) error {
-	id, ok := c.Locals("id").(float64)
+	id, ok := c.Locals("id").(int32)
 	if !ok {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user ID"})
 	}

@@ -1,0 +1,45 @@
+---
+import { Image } from "astro:assets";
+import Layout from "../../layouts/Layout.astro";
+import UserIcon from "../../assets/icons/user-management.svg";
+import OntIcon from "../../assets/icons/router-wifi.svg";
+import ReportIcon from "../../assets/icons/table-file.svg";
+---
+
+<Layout title="Administración">
+  <main class="w-full flex flex-wrap gap-10 justify-center px-10">
+    <a href="admin/user" class="flex flex-col p-5 rounded-sm bg-[#121b31] border-2 border-[hsl(217,33%,20%)] hover:bg-[hsl(217,33%,20%)] duration-150">
+      Administracion de usuario
+        <Image
+        src={UserIcon}
+        width={150}
+        height={150}
+        alt="Imagen de una tarjeta de usuario"
+        class="m-auto"
+      />
+      </a>
+
+      <a href="admin/fat" class="flex flex-col p-5 rounded-sm bg-[#121b31] border-2 border-[hsl(217,33%,20%)] hover:bg-[hsl(217,33%,20%)] duration-150">
+        Actualizar data de los Fats
+        <Image
+        src={ReportIcon}
+        width={100}
+        height={100}
+        alt="Imagen de un reporte excel"
+        class="m-auto"
+      />
+      </a>
+
+      <a href="admin/ont" class="flex flex-col p-5 rounded-sm bg-[#121b31] border-2 border-[hsl(217,33%,20%)] hover:bg-[hsl(217,33%,20%)] duration-150">
+        Gestionar medicion de los Ont
+        <Image
+        src={OntIcon}
+        width={100}
+        height={100}
+        alt="Imagen de un router wifi"
+        class="m-auto"
+      />
+      </a>
+    </section>
+  </main>
+</Layout>

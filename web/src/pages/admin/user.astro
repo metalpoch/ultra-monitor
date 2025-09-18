@@ -1,0 +1,26 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import CreateUserForm from "../../components/admin/CreateUserForm"
+
+---
+
+<Layout title="Administración">
+  <main  class="w-full flex flex-wrap gap-10 justify-center px-10">
+    <section class="flex flex-col flex-1 sm:flex-2 px-6 py-3 rounded-lg bg-[#121b31]">
+      <h1>Crear</h1>
+      <CreateUserForm client:only />
+    </section> 
+    <section class="flex flex-col flex-1 sm:flex-2 px-6 py-3 rounded-lg bg-[#121b31]">
+      <h1>Socilitar cambio de contrasena</h1>
+    </section>
+    <section class="flex flex-col flex-1 sm:flex-2 px-6 py-3 rounded-lg bg-[#121b31]">
+      <h1>Habilitar/Deshabilitar</h1>
+    </section>
+    <section class="flex flex-col flex-1 sm:flex-2 px-6 py-3 rounded-lg bg-[#121b31]">
+      <h1>Informacion</h1>
+    </section>
+ 
+  </main>
+</Layout>
+
+

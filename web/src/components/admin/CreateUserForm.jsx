@@ -15,7 +15,7 @@ export default function CreateUserForm(){
   const [password, setPassword] = useState("")
   const [password_confirm, setPasswordConfirm] = useState("")
  
- if (status === 401) {
+ if (status === 401 || status === 403) {
     sessionStorage.removeItem("access_token");
     window.location.href = "/";
   }

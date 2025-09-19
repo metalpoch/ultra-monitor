@@ -157,7 +157,7 @@ export default function Form() {
     gpon.set(target.value);
   };
 
-  if (status === 401) {
+  if (status === 401 || status === 403) {
     sessionStorage.removeItem("access_token");
     window.location.href = "/";
   }

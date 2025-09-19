@@ -143,7 +143,7 @@ export default function Table() {
     }
   }, [data, $region, $state, $ip, $gpon]);
 
-  if (status === 401) {
+  if (status === 401 || status === 403) {
     sessionStorage.removeItem("access_token");
     window.location.href = "/";
   }

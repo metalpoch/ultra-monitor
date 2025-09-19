@@ -20,6 +20,7 @@ func NewAuthRoutes(app *fiber.App, db *sqlx.DB, secret []byte) {
 
 	route.Get("/", middleware.AdminAccess, hdlr.AllUsers)
 	route.Get("/me", hdlr.GetOwn)
+	route.Patch("/temporal_passw/:id", middleware.AdminAccess, hdlr.TemporalPassword)
 	route.Post("/signup", middleware.AdminAccess, hdlr.Create)
 	route.Post("/:id", middleware.AdminAccess, hdlr.Enable)
 	route.Delete("/:id", middleware.AdminAccess, hdlr.Disable)

@@ -103,6 +103,24 @@ func (hdlr *UserHandler) Enable(c fiber.Ctx) error {
 	return c.SendStatus(http.StatusOK)
 }
 
+func (hdlr *UserHandler) TemporalPassword(c fiber.Ctx) error {
+	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+  var password dto.CreateTemporalPassword
+	if err := c.Bind().JSON(&password); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	if err := hdlr.Usecase.EnableChangePassword(id, password); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.SendStatus(http.StatusOK)
+}
+
 func (hdlr *UserHandler) ChangePassword(c fiber.Ctx) error {
 	id, ok := c.Locals("id").(int32)
 	if !ok {

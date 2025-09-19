@@ -14,7 +14,7 @@ type UserRepository interface {
 	UserByUsername(ctx context.Context, username string) (entity.User, error)
 	Disable(ctx context.Context, id int) error
 	Enable(ctx context.Context, id int) error
-	ChangePassword(ctx context.Context, id int, password string) error
+	ChangePassword(ctx context.Context, id int, password string, changePassword bool) error
 }
 
 type userRepository struct {
@@ -65,8 +65,8 @@ func (repo *userRepository) Enable(ctx context.Context, id int) error {
 	return err
 }
 
-func (repo *userRepository) ChangePassword(ctx context.Context, id int, password string) error {
-	query := `UPDATE users SET password = $1, change_password = false WHERE id = $2;`
-	_, err := repo.db.ExecContext(ctx, query, password, id)
+func (repo *userRepository) ChangePassword(ctx context.Context, id int, password string, changePassword bool) error {
+	query := `UPDATE users SET password = $1, change_password = $2 WHERE id = $3;`
+	_, err := repo.db.ExecContext(ctx, query, password, changePassword, id)
 	return err
 }

@@ -124,6 +124,21 @@ func (uc *UserUsecase) Enable(id int) error {
 	return nil
 }
 
+func (uc *UserUsecase) EnableChangePassword(id int, user dto.CreateTemporalPassword) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	bytesPsw, err := bcrypt.GenerateFromPassword([]byte(user.Password), 14)
+	if err != nil {
+		return err
+	}
+
+	if err := uc.repo.ChangePassword(ctx, id, string(bytesPsw), true); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (uc *UserUsecase) ChangePassword(id int, user *dto.ChangePassword) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -142,7 +157,7 @@ func (uc *UserUsecase) ChangePassword(id int, user *dto.ChangePassword) error {
 		return err
 	}
 
-	if err := uc.repo.ChangePassword(ctx, id, string(bytesPsw)); err != nil {
+	if err := uc.repo.ChangePassword(ctx, id, string(bytesPsw), false); err != nil {
 		return err
 	}
 	return nil

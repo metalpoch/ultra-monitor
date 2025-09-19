@@ -4,7 +4,7 @@ const SQL_TABLE_USERS string = `
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
     fullname VARCHAR(255),
-    username VARCHAR(10) NOT NULL,
+    username VARCHAR(10) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     change_password BOOLEAN,
     is_admin BOOLEAN,

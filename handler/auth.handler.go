@@ -54,6 +54,15 @@ func (hdlr *UserHandler) Login(c fiber.Ctx) error {
 	})
 }
 
+func (hdlr *UserHandler) AllUsers(c fiber.Ctx) error {
+	users, err := hdlr.Usecase.AllUsers()
+
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(users)
+}
+
 func (hdlr *UserHandler) GetOwn(c fiber.Ctx) error {
 	id, ok := c.Locals("id").(int32)
 	if !ok {

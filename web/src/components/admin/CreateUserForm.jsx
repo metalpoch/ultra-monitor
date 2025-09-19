@@ -1,6 +1,5 @@
 import { useState } from "react"
 import InputField from "../ui/InputField"
-import useFetch from "../../hooks/useFetch";
 
 const URL = `${import.meta.env.PUBLIC_URL || ""}/api/auth/signup`;
 const TOKEN = sessionStorage.getItem("access_token").replace("Bearer ", "");

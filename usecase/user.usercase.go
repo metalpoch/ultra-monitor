@@ -67,7 +67,24 @@ func (uc *UserUsecase) Login(email string, password string) (*dto.UserLogin, err
 	return &dto.UserLogin{User: (dto.User)(res), Token: token}, nil
 }
 
-func (uc *UserUsecase) GetUser(id int) (*dto.User, error) {
+func (uc *UserUsecase) AllUsers() ([]dto.UserResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	res, err := uc.repo.AllUsers(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	users := []dto.UserResponse{}
+	for _, e := range res{
+		users = append(users, (dto.UserResponse)(e))
+	}
+
+	return users, nil
+}
+
+func (uc *UserUsecase) GetUser(id int) (*dto.UserResponse, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
@@ -76,8 +93,15 @@ func (uc *UserUsecase) GetUser(id int) (*dto.User, error) {
 		return nil, err
 	}
 
-	user := (dto.User)(res)
-	return &user, nil
+	return &dto.UserResponse{
+		ID: res.ID,
+		ChangePassword: res.ChangePassword,
+		IsAdmin: res.IsAdmin,
+		IsDisabled: res.IsDisabled,
+		Fullname: res.Fullname,
+		Username: res.Username,
+		CreatedAt: res.CreatedAt,
+	}, nil
 }
 
 func (uc *UserUsecase) Disable(id int) error {

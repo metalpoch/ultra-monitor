@@ -14,3 +14,13 @@ type User struct {
 	Password       string    `db:"password"`
 	CreatedAt      time.Time `db:"created_at"`
 }
+
+type UserResponse struct {
+	ID             int32     `db:"id"`
+	ChangePassword bool      `db:"change_password"`
+	IsAdmin        bool      `db:"is_admin"`
+	IsDisabled     bool      `db:"is_disabled"`
+	Fullname       string    `db:"fullname"`
+	Username       string    `db:"username"`
+	CreatedAt      time.Time `db:"created_at"`
+}

@@ -9,6 +9,7 @@ import (
 
 type UserRepository interface {
 	Create(ctx context.Context, user entity.User) error
+	AllUsers(ctx context.Context) ([]entity.UserResponse, error)
 	UserByID(ctx context.Context, id int) (entity.User, error)
 	UserByUsername(ctx context.Context, username string) (entity.User, error)
 	Disable(ctx context.Context, id int) error
@@ -29,6 +30,13 @@ func (repo *userRepository) Create(ctx context.Context, user entity.User) error 
 	VALUES (:id, :fullname, :username, :password, :change_password, :is_admin, :is_disabled);`
 	_, err := repo.db.NamedExecContext(ctx, query, user)
 	return err
+}
+
+func (repo *userRepository) AllUsers(ctx context.Context) ([]entity.UserResponse, error) {
+	var res []entity.UserResponse
+	query := `SELECT id, fullname, username, is_admin, is_disabled, change_password, created_at FROM users ORDER BY id`
+	err := repo.db.SelectContext(ctx, &res, query)
+	return res, err
 }
 
 func (repo *userRepository) UserByID(ctx context.Context, id int) (entity.User, error) {

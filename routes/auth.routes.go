@@ -18,7 +18,8 @@ func NewAuthRoutes(app *fiber.App, db *sqlx.DB, secret []byte) {
 
 	route.Use(middleware.ValidateJWT(authUsecase, secret))
 
-	route.Get("/", hdlr.GetOwn)
+	route.Get("/", middleware.AdminAccess, hdlr.AllUsers)
+	route.Get("/me", hdlr.GetOwn)
 	route.Post("/signup", middleware.AdminAccess, hdlr.Create)
 	route.Post("/:id", middleware.AdminAccess, hdlr.Enable)
 	route.Delete("/:id", middleware.AdminAccess, hdlr.Disable)

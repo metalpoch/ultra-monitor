@@ -25,6 +25,17 @@ type SignInResponse struct {
 	Username string `json:"username"`
 	Token    string `json:"token"`
 }
+
+type UserResponse struct {
+	ID             int32     `json:"id"`
+	ChangePassword bool      `json:"change_password"`
+	IsAdmin        bool      `json:"is_admin"`
+	IsDisabled     bool      `json:"is_disabled"`
+	Fullname       string    `json:"fullname"`
+	Username       string    `json:"username"`
+	CreatedAt      time.Time `json:"created_at"`
+}
+
 type User struct {
 	ID             int32     `json:"id"`
 	ChangePassword bool      `json:"change_password"`

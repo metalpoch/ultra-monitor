@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import useFetch from "../../hooks/useFetch";
 import ChangeStatusDisableButton from "./ChangeStatusDisableUserButton";
+import ChangePasswordButton from "./ChangePasswordButton"
 
 const URL = `${import.meta.env.PUBLIC_URL || ""}/api/auth/`;
 const TOKEN = sessionStorage.getItem("access_token").replace("Bearer ", "");
@@ -42,6 +43,29 @@ export default function UsersTable() {
     }
   };
 
+  const handleSubmit = async (e, id, password, password_confirm) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(URL + `temporal_passw/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${TOKEN}` },
+        body: JSON.stringify({ password, password_confirm })
+      });
+
+      if (response.status === 200) {
+        setUsers((prevUsers) =>
+          prevUsers.map((user) =>
+            user.id === id ? { ...user, change_password: true } : user
+          )
+        );
+      } else {
+        response.json().then(res => alert(res.error))
+      }
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   return (
     <table className="min-w-full table-auto border-collapse">
       <thead className="sticky top-0 bg-[#121b31] pb-1 text-left">
@@ -65,7 +89,10 @@ export default function UsersTable() {
             <td>{user.fullname}</td>
             <td>{user.username}</td>
             <td>{user.is_admin ? "Sí" : "No"}</td>
-            <td>{user.change_password ? "Sí" : "No"}</td>
+            <td className="flex gap-5">
+              <ChangePasswordButton id={user.id} handleSubmit={handleSubmit} />
+              {user.change_password ? "Sí" : "No"}
+            </td>
             <td>{new Date(user.created_at).toLocaleDateString()}</td>
           </tr>
         ))}

@@ -15,6 +15,7 @@ type FatRepository interface {
 	UpsertFats(ctx context.Context, fats []entity.UpsertFat) (int64, error)
 	FindByID(ctx context.Context, id int32) (entity.FatInfoStatus, error)
 	GetAllByIP(ctx context.Context, ip string) ([]entity.FatInfoStatus, error)
+	GetFieldsOptions(ctx context.Context, field string) ([]string, error)
 
 	FindByStates(ctx context.Context, state string, page, limit uint16) ([]entity.FatInfoStatus, error)
 	FindByMunicipality(ctx context.Context, state, municipality string, page, limit uint16) ([]entity.FatInfoStatus, error)
@@ -549,5 +550,26 @@ func (r *fatRepository) GetFatStatusGponByOlt(ctx context.Context, ip string) ([
 	GROUP BY f.shell, f.card, f.port;
 	`
 	err := r.db.SelectContext(ctx, &res, query, ip)
+	return res, err
+}
+
+func (r *fatRepository) GetFieldsOptions(ctx context.Context, field string) ([]string, error) {
+	var res []string
+
+	validFields := map[string]bool{
+		"ip":           true,
+		"region":       true,
+		"state":        true,
+		"municipality": true,
+		"county":       true,
+		"odn":          true,
+	}
+	if !validFields[field] {
+		return nil, fmt.Errorf("invalid field: %s", field)
+	}
+
+	query := fmt.Sprintf(`SELECT DISTINCT %s FROM fats AS f ORDER BY %s;`, field, field)
+
+	err := r.db.SelectContext(ctx, &res, query)
 	return res, err
 }

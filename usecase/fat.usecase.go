@@ -399,3 +399,15 @@ func (use *FatUsecase) GetFatStatusGponByOlt(ip string) ([]dto.FatStatus, error)
 
 	return fats, nil
 }
+
+func (use *FatUsecase) GetFieldsOptions(field string) ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetFieldsOptions(ctx, field)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}

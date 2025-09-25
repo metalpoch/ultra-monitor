@@ -25,6 +25,9 @@ func NewFatRoutes(app *fiber.App, db *sqlx.DB, secret []byte) {
 	route.Get("/id/:id", hdlr.GetByID)
 	route.Get("/ip/:ip", hdlr.GetAllByIP)
 
+	// Field options for search
+	route.Get("/options/:field", hdlr.GetFieldsOptions)
+
 	// Locations
 	route.Get("/regions", hdlr.GetRegions)
 	route.Get("/states", hdlr.GetStates)

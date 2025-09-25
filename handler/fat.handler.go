@@ -432,6 +432,7 @@ func (hdlr *FatHandler) GetFatStatusOltByState(c fiber.Ctx) error {
 
 	return c.JSON(res)
 }
+
 func (hdlr *FatHandler) GetFatStatusGponByOlt(c fiber.Ctx) error {
 	ip, err := url.QueryUnescape(c.Params("ip"))
 	if err != nil {
@@ -445,3 +446,19 @@ func (hdlr *FatHandler) GetFatStatusGponByOlt(c fiber.Ctx) error {
 
 	return c.JSON(res)
 }
+
+func (hdlr *FatHandler) GetFieldsOptions(c fiber.Ctx) error {
+	field, err := url.QueryUnescape(c.Params("field"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetFieldsOptions(field)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+

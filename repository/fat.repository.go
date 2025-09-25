@@ -568,7 +568,7 @@ func (r *fatRepository) GetFieldsOptions(ctx context.Context, field string) ([]s
 		return nil, fmt.Errorf("invalid field: %s", field)
 	}
 
-	query := fmt.Sprintf(`SELECT DISTINCT %s FROM fats AS f ORDER BY %s;`, field, field)
+	query := fmt.Sprintf(`SELECT DISTINCT %s FROM fats AS f ORDER BY %s;`, field)
 
 	err := r.db.SelectContext(ctx, &res, query)
 	return res, err

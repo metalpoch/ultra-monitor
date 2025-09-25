@@ -1,8 +1,17 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import WebInDevelopment from "../../components/ui/WebInDevelopment.astro";
+import UpdateFatsForm from "../../components/admin/UpdateFatsForm"
+import FatsTable from "../../components/admin/FatsTable"
 ---
 
 <Layout title="Administración">
-  <WebInDevelopment/>
+  <main  class="w-full flex flex-wrap gap-10 justify-center px-10">
+    <section class="overflow-x-auto flex flex-col flex-1 sm:flex-8 px-6 py-3 rounded-lg bg-[#121b31]">
+      <FatsTable client:only />
+    </section>
+    <section class="flex flex-col flex-1 sm:flex-2 px-6 py-3 rounded-lg bg-[#121b31]">
+      <h1>Actualizar Fats con reporte</h1>
+      <UpdateFatsForm client:only />
+    </section> 
+  </main>
 </Layout>

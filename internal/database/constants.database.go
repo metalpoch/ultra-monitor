@@ -68,6 +68,18 @@ CREATE TABLE IF NOT EXISTS prometheus_devices (
     UNIQUE (ip, idx, shell, card, port)
 );`
 
+const SQL_TABLE_SUMMARY_TRAFFIC string = `
+CREATE TABLE IF NOT EXISTS summary_traffic (
+    time TIMESTAMP NOT NULL,
+    ip VARCHAR(15) NOT NULL,
+    state VARCHAR(128) NOT NULL,
+    region VARCHAR(128) NOT NULL,
+    bps_in DOUBLE PRECISION NOT NULL,
+    bps_out DOUBLE PRECISION NOT NULL,
+    bytes_in DOUBLE PRECISION NOT NULL,
+    bytes_out DOUBLE PRECISION NOT NULL,
+    PRIMARY KEY (ip, time)
+);`
 const SQL_INDEX_REPORT_CATEGORY string = `CREATE INDEX IF NOT EXISTS idx_reports_category ON reports(category);`
 const SQL_INDEX_REPORT_USER_ID string = `CREATE INDEX IF NOT EXISTS idx_reports_user_id ON reports(user_id);`
 

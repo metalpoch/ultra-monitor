@@ -3,10 +3,12 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"log"
 	"sort"
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/metalpoch/ultra-monitor/entity"
 	"github.com/metalpoch/ultra-monitor/internal/cache"
 	"github.com/metalpoch/ultra-monitor/internal/dto"
 	"github.com/metalpoch/ultra-monitor/internal/prometheus"
@@ -71,6 +73,53 @@ func (use *TrafficUsecase) InfoInstance(ip string) ([]dto.InfoDevice, error) {
 	})
 
 	return res, nil
+}
+
+func (use *TrafficUsecase) UpdateSummaryTraffic(initDate, finalDate time.Time) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	trafficData, err := use.prometheus.TrafficByInstanceStateRegion(ctx, initDate, finalDate)
+	if err != nil {
+		return err
+	}
+
+	maxTrafficByIP := make(map[string]prometheus.TrafficByInstance)
+
+	for _, record := range trafficData {
+		totalTraffic := record.BpsIn + record.BpsOut
+
+		// Check if we have a record for this IP already
+		if existing, exists := maxTrafficByIP[record.IP]; exists {
+			existingTotal := existing.BpsIn + existing.BpsOut
+			if totalTraffic > existingTotal {
+				maxTrafficByIP[record.IP] = record
+			}
+		} else {
+			maxTrafficByIP[record.IP] = record
+		}
+	}
+
+	var result []entity.SumaryTraffic
+	for _, record := range maxTrafficByIP {
+		result = append(result, entity.SumaryTraffic{
+			Time:     record.Time,
+			IP:       record.IP,
+			State:    record.State,
+			Region:   record.Region,
+			BpsIn:    record.BpsIn,
+			BpsOut:   record.BpsOut,
+			BytesIn:  record.BpsIn,
+			BytesOut: record.BpsOut,
+		})
+	}
+
+	if err := use.repo.SaveSummaryTraffic(ctx, result); err != nil {
+		log.Printf("UpdateSummaryTraffic: Error saving to repository: %v", err)
+		return err
+	}
+
+	return nil
 }
 
 func (use *TrafficUsecase) Total(initDate, finalDate time.Time) ([]dto.Traffic, error) {

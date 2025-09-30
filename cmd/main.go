@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"regexp"
-	"strconv"
 
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v3"
@@ -20,6 +19,8 @@ import (
 	"github.com/metalpoch/ultra-monitor/internal/validations"
 	"github.com/metalpoch/ultra-monitor/routes"
 	"github.com/metalpoch/ultra-monitor/usecase"
+	"strconv"
+	"time"
 )
 
 var db *sqlx.DB
@@ -95,7 +96,7 @@ func init() {
 func main() {
 
 	if len(os.Args) < 2 {
-		fmt.Println("Uso: <app> [ server | scan ]")
+		fmt.Println("Uso: <app> [ server | scan | traffic ]")
 		return
 	}
 
@@ -182,8 +183,46 @@ func main() {
 		log.Println("Total de dispositivos con shell en 0:", totalShellInZero)
 		log.Println("Total de shells procesados:", totalShells)
 
-	default:
-		fmt.Println("Comando no reconocido. Usa 'server' o 'scan'")
+	case "traffic":
+		// Check if date parameter is provided
+		if len(os.Args) < 3 {
+			log.Fatal("Uso: <app> traffic YYYYMMDD (ejemplo: 20250930)")
+		}
 
+		dateParam := os.Args[2]
+
+		// Parse date in YYYYMMDD format
+		if len(dateParam) != 8 {
+			log.Fatal("Formato de fecha inválido. Use YYYYMMDD (ejemplo: 20250930)")
+		}
+
+		year, err := strconv.Atoi(dateParam[0:4])
+		if err != nil {
+			log.Fatalf("Año inválido: %v", err)
+		}
+
+		month, err := strconv.Atoi(dateParam[4:6])
+		if err != nil {
+			log.Fatalf("Mes inválido: %v", err)
+		}
+
+		day, err := strconv.Atoi(dateParam[6:8])
+		if err != nil {
+			log.Fatalf("Día inválido: %v", err)
+		}
+
+		// Calculate date range from 00:00 to 23:59 of the specified date
+		location := time.Now().Location()
+		initDate := time.Date(year, time.Month(month), day, 0, 0, 0, 0, location)
+		finalDate := time.Date(year, time.Month(month), day, 23, 59, 59, 0, location)
+
+		// Use the traffic usecase to update summary traffic
+		trafficUsecase := usecase.NewTrafficUsecase(db, redis, &prometheusClient)
+		if err := trafficUsecase.UpdateSummaryTraffic(initDate, finalDate); err != nil {
+			log.Fatalf("Error updating summary traffic: %v", err)
+		}
+
+	default:
+		fmt.Println("Comando no reconocido. Usa 'server', 'scan' o 'traffic'")
 	}
 }

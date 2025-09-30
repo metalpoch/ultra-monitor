@@ -90,3 +90,15 @@ type OltStats struct {
 	UsageIn   float64
 	UsageOut  float64
 }
+
+type TrafficByInstance struct {
+	IP        string
+	State     string
+	Region    string
+	Time      time.Time
+	BpsIn     float64
+	BpsOut    float64
+	Bandwidth float64
+	BytesIn   float64
+	BytesOut  float64
+}

@@ -32,6 +32,9 @@ type Prometheus interface {
 	StatesStatsByRegion(ctx context.Context, region string, initDate, finalDate time.Time) ([]RegionStats, error)
 	OltStatsByState(ctx context.Context, state string, initDate, finalDate time.Time) ([]OltStats, error)
 	GponStatsByInstance(ctx context.Context, instance string, initDate, finalDate time.Time) ([]GponStats, error)
+
+	// Traffic by instance, state, region
+	TrafficByInstanceStateRegion(ctx context.Context, initDate, finalDate time.Time) ([]TrafficByInstance, error)
 }
 
 type prometheus struct {
@@ -855,4 +858,193 @@ func (p *prometheus) processStats(matrix model.Matrix, isIn bool, instance strin
 		}
 		stat.Samples = len(serie.Values)
 	}
+}
+
+func (p *prometheus) TrafficByInstanceStateRegion(ctx context.Context, initDate, finalDate time.Time) ([]TrafficByInstance, error) {
+	// Query for BpsOut (send bytes)
+	queryBpsOut := "sum(avg_over_time(rate(hwGponOltEthernetStatisticSendBytes_count{}[1h])[3h:1h]) * 8) by (instance, state, region)"
+	// Query for BpsIn (received bytes)
+	queryBpsIn := "sum(avg_over_time(rate(hwGponOltEthernetStatisticReceivedBytes_count{}[1h])[3h:1h]) * 8) by (instance, state, region)"
+	// Query for Bandwidth (ifSpeed)
+	queryBandwidth := "sum(ifSpeed{}) by (instance, state, region)"
+	// Query for BytesIn (received bytes total)
+	queryBytesIn := "sum(avg_over_time(increase(hwGponOltEthernetStatisticReceivedBytes_count{}[1h])[3h:1h])) by (instance, state, region)"
+	// Query for BytesOut (send bytes total)
+	queryBytesOut := "sum(avg_over_time(increase(hwGponOltEthernetStatisticSendBytes_count{}[1h])[3h:1h])) by (instance, state, region)"
+
+	r := v1.Range{
+		Start: initDate,
+		End:   finalDate,
+		Step:  time.Hour,
+	}
+
+	// Execute all queries
+	bpsOutResult, _, err := p.client.QueryRange(ctx, queryBpsOut, r)
+	if err != nil {
+		return nil, err
+	}
+
+	bpsInResult, _, err := p.client.QueryRange(ctx, queryBpsIn, r)
+	if err != nil {
+		return nil, err
+	}
+
+	bandwidthResult, _, err := p.client.QueryRange(ctx, queryBandwidth, r)
+	if err != nil {
+		return nil, err
+	}
+
+	bytesInResult, _, err := p.client.QueryRange(ctx, queryBytesIn, r)
+	if err != nil {
+		return nil, err
+	}
+
+	bytesOutResult, _, err := p.client.QueryRange(ctx, queryBytesOut, r)
+	if err != nil {
+		return nil, err
+	}
+
+	bpsOutMatrix, _ := bpsOutResult.(model.Matrix)
+	bpsInMatrix, _ := bpsInResult.(model.Matrix)
+	bandwidthMatrix, _ := bandwidthResult.(model.Matrix)
+	bytesInMatrix, _ := bytesInResult.(model.Matrix)
+	bytesOutMatrix, _ := bytesOutResult.(model.Matrix)
+
+	// Create a map to aggregate data by instance, state, region and time
+	trafficMap := make(map[string]map[int64]*TrafficByInstance)
+
+	// Process BpsOut data
+	for _, serie := range bpsOutMatrix {
+		ip := string(serie.Metric["instance"])
+		state := string(serie.Metric["state"])
+		region := string(serie.Metric["region"])
+		key := fmt.Sprintf("%s-%s-%s", ip, state, region)
+
+		if _, ok := trafficMap[key]; !ok {
+			trafficMap[key] = make(map[int64]*TrafficByInstance)
+		}
+
+		for _, point := range serie.Values {
+			timeKey := int64(point.Timestamp) / 1000
+			if _, ok := trafficMap[key][timeKey]; !ok {
+				trafficMap[key][timeKey] = &TrafficByInstance{
+					IP:     ip,
+					State:  state,
+					Region: region,
+					Time:   time.Unix(timeKey, 0),
+				}
+			}
+			trafficMap[key][timeKey].BpsOut = float64(point.Value)
+		}
+	}
+
+	// Process BpsIn data
+	for _, serie := range bpsInMatrix {
+		ip := string(serie.Metric["instance"])
+		state := string(serie.Metric["state"])
+		region := string(serie.Metric["region"])
+		key := fmt.Sprintf("%s-%s-%s", ip, state, region)
+
+		if _, ok := trafficMap[key]; !ok {
+			trafficMap[key] = make(map[int64]*TrafficByInstance)
+		}
+
+		for _, point := range serie.Values {
+			timeKey := int64(point.Timestamp) / 1000
+			if _, ok := trafficMap[key][timeKey]; !ok {
+				trafficMap[key][timeKey] = &TrafficByInstance{
+					IP:     ip,
+					State:  state,
+					Region: region,
+					Time:   time.Unix(timeKey, 0),
+				}
+			}
+			trafficMap[key][timeKey].BpsIn = float64(point.Value)
+		}
+	}
+
+	// Process Bandwidth data
+	for _, serie := range bandwidthMatrix {
+		ip := string(serie.Metric["instance"])
+		state := string(serie.Metric["state"])
+		region := string(serie.Metric["region"])
+		key := fmt.Sprintf("%s-%s-%s", ip, state, region)
+
+		if _, ok := trafficMap[key]; !ok {
+			trafficMap[key] = make(map[int64]*TrafficByInstance)
+		}
+
+		for _, point := range serie.Values {
+			timeKey := int64(point.Timestamp) / 1000
+			if _, ok := trafficMap[key][timeKey]; !ok {
+				trafficMap[key][timeKey] = &TrafficByInstance{
+					IP:     ip,
+					State:  state,
+					Region: region,
+					Time:   time.Unix(timeKey, 0),
+				}
+			}
+			trafficMap[key][timeKey].Bandwidth = float64(point.Value)
+		}
+	}
+
+	// Process BytesIn data
+	for _, serie := range bytesInMatrix {
+		ip := string(serie.Metric["instance"])
+		state := string(serie.Metric["state"])
+		region := string(serie.Metric["region"])
+		key := fmt.Sprintf("%s-%s-%s", ip, state, region)
+
+		if _, ok := trafficMap[key]; !ok {
+			trafficMap[key] = make(map[int64]*TrafficByInstance)
+		}
+
+		for _, point := range serie.Values {
+			timeKey := int64(point.Timestamp) / 1000
+			if _, ok := trafficMap[key][timeKey]; !ok {
+				trafficMap[key][timeKey] = &TrafficByInstance{
+					IP:     ip,
+					State:  state,
+					Region: region,
+					Time:   time.Unix(timeKey, 0),
+				}
+			}
+			trafficMap[key][timeKey].BytesIn = float64(point.Value)
+		}
+	}
+
+	// Process BytesOut data
+	for _, serie := range bytesOutMatrix {
+		ip := string(serie.Metric["instance"])
+		state := string(serie.Metric["state"])
+		region := string(serie.Metric["region"])
+		key := fmt.Sprintf("%s-%s-%s", ip, state, region)
+
+		if _, ok := trafficMap[key]; !ok {
+			trafficMap[key] = make(map[int64]*TrafficByInstance)
+		}
+
+		for _, point := range serie.Values {
+			timeKey := int64(point.Timestamp) / 1000
+			if _, ok := trafficMap[key][timeKey]; !ok {
+				trafficMap[key][timeKey] = &TrafficByInstance{
+					IP:     ip,
+					State:  state,
+					Region: region,
+					Time:   time.Unix(timeKey, 0),
+				}
+			}
+			trafficMap[key][timeKey].BytesOut = float64(point.Value)
+		}
+	}
+
+	// Convert the map to a slice
+	var trafficData []TrafficByInstance
+	for _, timeMap := range trafficMap {
+		for _, traffic := range timeMap {
+			trafficData = append(trafficData, *traffic)
+		}
+	}
+
+	return trafficData, nil
 }

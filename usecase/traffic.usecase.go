@@ -12,6 +12,7 @@ import (
 	"github.com/metalpoch/ultra-monitor/internal/cache"
 	"github.com/metalpoch/ultra-monitor/internal/dto"
 	"github.com/metalpoch/ultra-monitor/internal/prometheus"
+	"github.com/metalpoch/ultra-monitor/internal/trend"
 	"github.com/metalpoch/ultra-monitor/repository"
 	"github.com/redis/go-redis/v9"
 )
@@ -301,6 +302,140 @@ func (use *TrafficUsecase) RegionStats(ip string, initDate, finalDate time.Time)
 	}
 
 	return result, nil
+}
+
+func (use *TrafficUsecase) GetNationalTrend(prediction dto.TrendPrediction) (*dto.TrendResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	trafficData, err := use.repo.GetTotalTraffic(ctx, prediction.InitDate, prediction.FinalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	return use.generateTrendResponse(trafficData, prediction, "national")
+}
+
+func (use *TrafficUsecase) GetRegionalTrend(region string, prediction dto.TrendPrediction) (*dto.TrendResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	trafficData, err := use.repo.GetTotalTrafficByRegion(ctx, region, prediction.InitDate, prediction.FinalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	return use.generateTrendResponse(trafficData, prediction, "regional")
+}
+
+func (use *TrafficUsecase) GetStateTrend(state string, prediction dto.TrendPrediction) (*dto.TrendResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	trafficData, err := use.repo.GetTotalTrafficByState(ctx, state, prediction.InitDate, prediction.FinalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	return use.generateTrendResponse(trafficData, prediction, "state")
+}
+
+func (use *TrafficUsecase) GetOLTTrend(ip string, prediction dto.TrendPrediction) (*dto.TrendResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	trafficData, err := use.repo.GetTotalTrafficByIP(ctx, ip, prediction.InitDate, prediction.FinalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	// For single OLT data, we need to create a time series from the single data point
+	// This is a simplified approach - in production you might want more sophisticated handling
+	var trafficSeries []entity.TrafficSummary
+	if trafficData != nil {
+		// Create a simple time series with the single data point
+		trafficSeries = []entity.TrafficSummary{*trafficData}
+	}
+
+	return use.generateTrendResponse(trafficSeries, prediction, "olt")
+}
+
+func (use *TrafficUsecase) generateTrendResponse(trafficData []entity.TrafficSummary, prediction dto.TrendPrediction, trendType string) (*dto.TrendResponse, error) {
+	if len(trafficData) < 2 {
+		return nil, fmt.Errorf("insufficient data for trend analysis: need at least 2 data points, got %d", len(trafficData))
+	}
+
+	// Extract total traffic values (bps_in + bps_out) for trend analysis
+	trafficValues := make([]float64, len(trafficData))
+	for i, data := range trafficData {
+		trafficValues[i] = data.TotalBpsIn + data.TotalBpsOut
+	}
+
+	// Create trend analyzer
+	trendAnalyzer, err := trend.NewTrend(trafficValues)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get trend metrics
+	slope, intercept, rSquared, err := trendAnalyzer.GetTrendMetrics()
+	if err != nil {
+		return nil, err
+	}
+
+	// Generate predictions
+	var predictions []dto.TrendDataPoint
+	if prediction.Confidence > 0 {
+		predictedValues, lowerBounds, upperBounds, err := trendAnalyzer.PredictionWithConfidence(prediction.FutureDays, prediction.Confidence)
+		if err != nil {
+			return nil, err
+		}
+
+		// Generate future dates starting from the last data point
+		lastDate := trafficData[len(trafficData)-1].Time
+		for i := 0; i < prediction.FutureDays; i++ {
+			futureDate := lastDate.Add(time.Duration(i+1) * 24 * time.Hour)
+			predictions = append(predictions, dto.TrendDataPoint{
+				Date:         futureDate,
+				PredictedBps: predictedValues[i],
+				LowerBound:   lowerBounds[i],
+				UpperBound:   upperBounds[i],
+			})
+		}
+	} else {
+		predictedValues, err := trendAnalyzer.Prediction(prediction.FutureDays)
+		if err != nil {
+			return nil, err
+		}
+
+		// Generate future dates starting from the last data point
+		lastDate := trafficData[len(trafficData)-1].Time
+		for i := 0; i < prediction.FutureDays; i++ {
+			futureDate := lastDate.Add(time.Duration(i+1) * 24 * time.Hour)
+			predictions = append(predictions, dto.TrendDataPoint{
+				Date:         futureDate,
+				PredictedBps: predictedValues[i],
+			})
+		}
+	}
+
+	// Determine trend direction
+	isIncreasing, _ := trendAnalyzer.IsIncreasing()
+	isDecreasing, _ := trendAnalyzer.IsDecreasing()
+
+	response := &dto.TrendResponse{
+		Predictions: predictions,
+		Metrics: dto.TrendMetrics{
+			Slope:        slope,
+			Intercept:    intercept,
+			RSquared:     rSquared,
+			IsIncreasing: isIncreasing,
+			IsDecreasing: isDecreasing,
+		},
+		TrendType: trendType,
+	}
+
+	return response, nil
 }
 
 func (use *TrafficUsecase) StateStats(ip string, initDate, finalDate time.Time) ([]dto.OltStats, error) {

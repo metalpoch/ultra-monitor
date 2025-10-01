@@ -45,4 +45,10 @@ func NewTrafficRoutes(app *fiber.App, db *sqlx.DB, cache *cache.Redis, prometheu
 	route.Get("/municipality/:state/:municipality", hdlr.ByMunicipality)
 	route.Get("/county/:state/:municipality/:county", hdlr.ByCounty)
 	route.Get("/odn/:state/:municipality/:odn", hdlr.ByOdn)
+
+	// Trend prediction routes
+	route.Get("/trend/national", hdlr.GetNationalTrend)
+	route.Get("/trend/region/:region", hdlr.GetRegionalTrend)
+	route.Get("/trend/state/:state", hdlr.GetStateTrend)
+	route.Get("/trend/olt/:ip", hdlr.GetOLTTrend)
 }

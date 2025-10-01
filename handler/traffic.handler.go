@@ -21,6 +21,77 @@ func (hdlr *TrafficHandler) DeviceLocation(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
+func (hdlr *TrafficHandler) GetNationalTrend(c fiber.Ctx) error {
+	var prediction dto.TrendPrediction
+	if err := c.Bind().Query(&prediction); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetNationalTrend(prediction)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+func (hdlr *TrafficHandler) GetRegionalTrend(c fiber.Ctx) error {
+	var prediction dto.TrendPrediction
+	if err := c.Bind().Query(&prediction); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	region, err := url.QueryUnescape(c.Params("region"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetRegionalTrend(region, prediction)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+func (hdlr *TrafficHandler) GetStateTrend(c fiber.Ctx) error {
+	var prediction dto.TrendPrediction
+	if err := c.Bind().Query(&prediction); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	state, err := url.QueryUnescape(c.Params("state"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetStateTrend(state, prediction)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+func (hdlr *TrafficHandler) GetOLTTrend(c fiber.Ctx) error {
+	var prediction dto.TrendPrediction
+	if err := c.Bind().Query(&prediction); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	ip, err := url.QueryUnescape(c.Params("ip"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetOLTTrend(ip, prediction)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
 func (hdlr *TrafficHandler) InfoInstance(c fiber.Ctx) error {
 	ip, err := url.QueryUnescape(c.Params("ip"))
 	if err != nil {

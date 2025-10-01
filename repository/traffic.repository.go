@@ -13,7 +13,7 @@ type TrafficRepository interface {
 	GetSnmpIndexByCounty(ctx context.Context, state, municipality, county string) ([]entity.OltIndex, error)
 	GetSnmpIndexByODN(ctx context.Context, state, municipality, odn string) ([]entity.OltIndex, error)
 	SaveSummaryTraffic(ctx context.Context, trafficData []entity.SumaryTraffic) error
-	GetTotalTrafficByIP(ctx context.Context, ip string, startTime, endTime time.Time) (*entity.TrafficSummary, error)
+	GetTotalTrafficByIP(ctx context.Context, ip string, startTime, endTime time.Time) ([]entity.TrafficSummary, error)
 	GetTotalTrafficByState(ctx context.Context, state string, startTime, endTime time.Time) ([]entity.TrafficSummary, error)
 	GetTotalTrafficByRegion(ctx context.Context, region string, startTime, endTime time.Time) ([]entity.TrafficSummary, error)
 	GetTotalTraffic(ctx context.Context, startTime, endTime time.Time) ([]entity.TrafficSummary, error)
@@ -93,18 +93,21 @@ func (r *trafficRepository) SaveSummaryTraffic(ctx context.Context, trafficData 
 	return tx.Commit()
 }
 
-func (r *trafficRepository) GetTotalTrafficByIP(ctx context.Context, ip string, startTime, endTime time.Time) (*entity.TrafficSummary, error) {
-	var res entity.TrafficSummary
+func (r *trafficRepository) GetTotalTrafficByIP(ctx context.Context, ip string, startTime, endTime time.Time) ([]entity.TrafficSummary, error) {
+	var res []entity.TrafficSummary
 	query := `SELECT
+		date_trunc('day', time) as time,
 		SUM(bps_in) as total_bps_in,
 		SUM(bps_out) as total_bps_out,
 		SUM(bytes_in) as total_bytes_in,
 		SUM(bytes_out) as total_bytes_out
 		FROM summary_traffic
-		WHERE ip = $1 AND time BETWEEN $2 AND $3`
+		WHERE ip = $1 AND time BETWEEN $2 AND $3
+		GROUP BY date_trunc('day', time)
+		ORDER BY time`
 
-	err := r.db.GetContext(ctx, &res, query, ip, startTime, endTime)
-	return &res, err
+	err := r.db.SelectContext(ctx, &res, query, ip, startTime, endTime)
+	return res, err
 }
 
 func (r *trafficRepository) GetTotalTrafficByState(ctx context.Context, state string, startTime, endTime time.Time) ([]entity.TrafficSummary, error) {

@@ -349,15 +349,7 @@ func (use *TrafficUsecase) GetOLTTrend(ip string, prediction dto.TrendPrediction
 		return nil, err
 	}
 
-	// For single OLT data, we need to create a time series from the single data point
-	// This is a simplified approach - in production you might want more sophisticated handling
-	var trafficSeries []entity.TrafficSummary
-	if trafficData != nil {
-		// Create a simple time series with the single data point
-		trafficSeries = []entity.TrafficSummary{*trafficData}
-	}
-
-	return use.generateTrendResponse(trafficSeries, prediction, "olt")
+	return use.generateTrendResponse(trafficData, prediction, "olt")
 }
 
 func (use *TrafficUsecase) generateTrendResponse(trafficData []entity.TrafficSummary, prediction dto.TrendPrediction, trendType string) (*dto.TrendResponse, error) {
@@ -744,11 +736,20 @@ func (use *TrafficUsecase) GetOLTByIPTraffic(ip string, initDate, finalDate time
 		return nil, err
 	}
 
+	// Sum all traffic data points to get total for the period
+	var totalBpsIn, totalBpsOut, totalBytesIn, totalBytesOut float64
+	for _, data := range trafficData {
+		totalBpsIn += data.TotalBpsIn
+		totalBpsOut += data.TotalBpsOut
+		totalBytesIn += data.TotalBytesIn
+		totalBytesOut += data.TotalBytesOut
+	}
+
 	result := &dto.Traffic{
-		BpsIn:    trafficData.TotalBpsIn,
-		BpsOut:   trafficData.TotalBpsOut,
-		BytesIn:  trafficData.TotalBytesIn,
-		BytesOut: trafficData.TotalBytesOut,
+		BpsIn:    totalBpsIn,
+		BpsOut:   totalBpsOut,
+		BytesIn:  totalBytesIn,
+		BytesOut: totalBytesOut,
 	}
 
 	return result, nil

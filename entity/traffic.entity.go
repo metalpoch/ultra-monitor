@@ -17,3 +17,38 @@ type SumaryTraffic struct {
 	BytesIn  float64   `db:"bytes_in"`
 	BytesOut float64   `db:"bytes_out"`
 }
+
+type TrafficSummary struct {
+	Time          time.Time `db:"time"`
+	TotalBpsIn    float64   `db:"total_bps_in"`
+	TotalBpsOut   float64   `db:"total_bps_out"`
+	TotalBytesIn  float64   `db:"total_bytes_in"`
+	TotalBytesOut float64   `db:"total_bytes_out"`
+}
+
+type TrafficByRegion struct {
+	Region        string    `db:"region"`
+	Time          time.Time `db:"time"`
+	TotalBpsIn    float64   `db:"total_bps_in"`
+	TotalBpsOut   float64   `db:"total_bps_out"`
+	TotalBytesIn  float64   `db:"total_bytes_in"`
+	TotalBytesOut float64   `db:"total_bytes_out"`
+}
+
+type TrafficByState struct {
+	State         string    `db:"state"`
+	Time          time.Time `db:"time"`
+	TotalBpsIn    float64   `db:"total_bps_in"`
+	TotalBpsOut   float64   `db:"total_bps_out"`
+	TotalBytesIn  float64   `db:"total_bytes_in"`
+	TotalBytesOut float64   `db:"total_bytes_out"`
+}
+
+type TrafficByIP struct {
+	IP            string    `db:"ip"`
+	Time          time.Time `db:"time"`
+	TotalBpsIn    float64   `db:"total_bps_in"`
+	TotalBpsOut   float64   `db:"total_bps_out"`
+	TotalBytesIn  float64   `db:"total_bytes_in"`
+	TotalBytesOut float64   `db:"total_bytes_out"`
+}

@@ -35,13 +35,13 @@ func (hdlr *TrafficHandler) InfoInstance(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func (hdlr *TrafficHandler) Total(c fiber.Ctx) error {
+func (hdlr *TrafficHandler) GetNationalTraffic(c fiber.Ctx) error {
 	var dates dto.RangeDate
 	if err := c.Bind().Query(&dates); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.Total(dates.InitDate, dates.FinalDate)
+	res, err := hdlr.Usecase.GetNationalTraffic(dates.InitDate, dates.FinalDate)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -49,7 +49,7 @@ func (hdlr *TrafficHandler) Total(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func (hdlr *TrafficHandler) Region(c fiber.Ctx) error {
+func (hdlr *TrafficHandler) GetRegionalTraffic(c fiber.Ctx) error {
 	var dates dto.RangeDate
 	if err := c.Bind().Query(&dates); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -60,7 +60,7 @@ func (hdlr *TrafficHandler) Region(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.Region(region, dates.InitDate, dates.FinalDate)
+	res, err := hdlr.Usecase.GetRegionalTraffic(region, dates.InitDate, dates.FinalDate)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -68,7 +68,7 @@ func (hdlr *TrafficHandler) Region(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func (hdlr *TrafficHandler) State(c fiber.Ctx) error {
+func (hdlr *TrafficHandler) GetStateTraffic(c fiber.Ctx) error {
 	var dates dto.RangeDate
 	if err := c.Bind().Query(&dates); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -79,7 +79,7 @@ func (hdlr *TrafficHandler) State(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.State(state, dates.InitDate, dates.FinalDate)
+	res, err := hdlr.Usecase.GetStateTraffic(state, dates.InitDate, dates.FinalDate)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -87,13 +87,13 @@ func (hdlr *TrafficHandler) State(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func (hdlr *TrafficHandler) Regions(c fiber.Ctx) error {
+func (hdlr *TrafficHandler) GetTrafficByRegions(c fiber.Ctx) error {
 	var dates dto.RangeDate
 	if err := c.Bind().Query(&dates); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.Regions(dates.InitDate, dates.FinalDate)
+	res, err := hdlr.Usecase.GetTrafficByRegions(dates.InitDate, dates.FinalDate)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -101,7 +101,7 @@ func (hdlr *TrafficHandler) Regions(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func (hdlr *TrafficHandler) StatesByRegion(c fiber.Ctx) error {
+func (hdlr *TrafficHandler) GetTrafficByStates(c fiber.Ctx) error {
 	var dates dto.RangeDate
 	if err := c.Bind().Query(&dates); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -112,7 +112,7 @@ func (hdlr *TrafficHandler) StatesByRegion(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.StatesByRegion(region, dates.InitDate, dates.FinalDate)
+	res, err := hdlr.Usecase.GetTrafficByStates(region, dates.InitDate, dates.FinalDate)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -120,7 +120,7 @@ func (hdlr *TrafficHandler) StatesByRegion(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func (hdlr *TrafficHandler) SysnameByState(c fiber.Ctx) error {
+func (hdlr *TrafficHandler) GetTrafficByIPs(c fiber.Ctx) error {
 	var dates dto.RangeDate
 	if err := c.Bind().Query(&dates); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -131,7 +131,7 @@ func (hdlr *TrafficHandler) SysnameByState(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	res, err := hdlr.Usecase.SysnameByState(state, dates.InitDate, dates.FinalDate)
+	res, err := hdlr.Usecase.GetTrafficByIPs(state, dates.InitDate, dates.FinalDate)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

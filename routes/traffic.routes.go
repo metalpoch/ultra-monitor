@@ -23,14 +23,14 @@ func NewTrafficRoutes(app *fiber.App, db *sqlx.DB, cache *cache.Redis, prometheu
 	route.Get("/info/instance/:ip", hdlr.InfoInstance)
 
 	// Total
-	route.Get("/total", hdlr.Total)
-	route.Get("/region/:region", hdlr.Region)
-	route.Get("/state/:state", hdlr.State)
+	route.Get("/total", hdlr.GetNationalTraffic)
+	route.Get("/region/:region", hdlr.GetRegionalTraffic)
+	route.Get("/state/:state", hdlr.GetStateTraffic)
 
 	// Details
-	route.Get("/regions", hdlr.Regions)
-	route.Get("/states/:region", hdlr.StatesByRegion)
-	route.Get("/sysname/:state", hdlr.SysnameByState)
+	route.Get("/regions", hdlr.GetTrafficByRegions)
+	route.Get("/states/:region", hdlr.GetTrafficByStates)
+	route.Get("/sysname/:state", hdlr.GetTrafficByIPs)
 
 	// stats
 	route.Get("/stats/region/:region", hdlr.RegionStats)

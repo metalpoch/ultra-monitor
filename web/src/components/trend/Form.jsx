@@ -37,7 +37,20 @@ const Form = () => {
 
   const fetchOlts = async (state) => {
     try {
-      const response = await fetch(`${BASE_URL_TRAFFIC}/sysname/${encodeURIComponent(state)}`, {
+      // Get date range for the query (last year to today)
+      const minDate = dayjs("2025-07-01T00:00:00-04:00")
+      const today = dayjs()
+        .set("hour", 0)
+        .set("minute", 0)
+        .set("second", 0)
+        .set("millisecond", 0)
+      const lastYear = today.subtract(1, "year") < minDate ? minDate : today.subtract(1, "year")
+
+      const params = new URLSearchParams()
+      params.append("initDate", lastYear.toISOString())
+      params.append("finalDate", today.toISOString())
+
+      const response = await fetch(`${BASE_URL_TRAFFIC}/sysname/${encodeURIComponent(state)}?${params.toString()}`, {
         headers: { Authorization: `Bearer ${TOKEN}` }
       })
 
@@ -71,7 +84,6 @@ const Form = () => {
       selectedOlt
     }
 
-    console.log('Form submitted with data:', trendData) // Debug log
 
     // Dispatch custom event with trend data
     const event = new CustomEvent('trendFormSubmit', { detail: trendData })

@@ -61,6 +61,11 @@ func (t *Trend) LinearRegression() (slope, intercept, rSquared float64, err erro
 		rSquared = 1 - (ssResidual / ssTotal)
 	}
 
+	// Validate R-squared value
+	if math.IsNaN(rSquared) || math.IsInf(rSquared, 0) {
+		rSquared = 0.0 // Invalid calculation, default to no correlation
+	}
+
 	return slope, intercept, rSquared, nil
 }
 

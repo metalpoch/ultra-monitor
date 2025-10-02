@@ -6,17 +6,27 @@ import Metrics from "../components/trend/Metrics";
 ---
 
 <Layout title="Tendencia">
-  <main class="w-full flex flex-col gap-5 px-10">
-    <section class="w-full flex flex-col lg:flex-row gap-5 p-4 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)] text-white">
-      <aside class="w-full lg:w-[280px] shrink-0">
-        <Form client:only />
-      </aside>
-      <section class="flex flex-col flex-1 gap-4 min-w-0">
+  <main class="w-full flex flex-wrap gap-5 justify-evenly px-10">
+    <!-- Form Card -->
+    <section class="w-full lg:w-[300px] p-4 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)] text-white">
+      <h2 class="text-lg font-semibold mb-4">Parámetros de Tendencia</h2>
+      <Form client:only />
+    </section>
+
+    <!-- Chart and Metrics Cards -->
+    <div class="flex-1 min-w-0 flex flex-col gap-5">
+      <!-- Chart Card -->
+      <section class="p-4 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)] text-white">
+        <h2 class="text-lg font-semibold mb-4">Predicción de Tendencia</h2>
         <div class="w-full h-96">
           <Chart client:only />
         </div>
+      </section>
+
+      <!-- Metrics Card -->
+      <section class="p-4 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)] text-white">
         <Metrics client:only />
       </section>
-    </section>
+    </div>
   </main>
 </Layout>

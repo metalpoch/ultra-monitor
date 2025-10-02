@@ -23,14 +23,39 @@ const Metrics = () => {
   }, [])
 
   const formatNumber = (num) => {
-    if (num === null || num === undefined) return 'N/A'
+    if (num === null || num === undefined || isNaN(num)) return 'N/A'
     return num.toFixed(4)
+  }
+
+  const formatBps = (bps) => {
+    if (bps === null || bps === undefined || isNaN(bps) || !isFinite(bps)) {
+      return 'N/A'
+    }
+    if (bps === 0) return '0 bps'
+
+    const k = 1000
+    const sizes = ['bps', 'Kbps', 'Mbps', 'Gbps', 'Tbps']
+
+    try {
+      // Handle negative values by using absolute value for calculation
+      const absBps = Math.abs(bps)
+      const i = Math.floor(Math.log(absBps) / Math.log(k))
+
+      // Ensure index is within bounds
+      const index = Math.min(Math.max(i, 0), sizes.length - 1)
+      const value = absBps / Math.pow(k, index)
+
+      const sign = bps < 0 ? '-' : ''
+      return sign + parseFloat(value.toFixed(2)) + ' ' + sizes[index]
+    } catch (error) {
+      return 'N/A'
+    }
   }
 
   const getTrendDirection = (metrics) => {
     if (!metrics) return 'neutral'
-    if (metrics.isIncreasing) return 'increasing'
-    if (metrics.isDecreasing) return 'decreasing'
+    if (metrics.is_increasing) return 'increasing'
+    if (metrics.is_decreasing) return 'decreasing'
     return 'stable'
   }
 
@@ -80,11 +105,13 @@ const Metrics = () => {
   }
 
   const getRSquaredInterpretation = (rSquared) => {
+    if (rSquared === null || rSquared === undefined || isNaN(rSquared)) return 'Datos insuficientes'
     if (rSquared >= 0.9) return 'Excelente ajuste'
     if (rSquared >= 0.7) return 'Buen ajuste'
     if (rSquared >= 0.5) return 'Ajuste moderado'
     if (rSquared >= 0.3) return 'Ajuste débil'
-    return 'Ajuste muy débil'
+    if (rSquared >= 0.1) return 'Ajuste muy débil'
+    return 'Sin correlación significativa'
   }
 
   if (!trendData) {
@@ -121,7 +148,7 @@ const Metrics = () => {
         <div className="bg-[#121b31] p-4 rounded-lg border border-[#334155]">
           <div className="text-sm text-gray-400 mb-2">Pendiente</div>
           <div className="text-lg font-semibold text-white">
-            {formatNumber(metrics.slope)}
+            {formatBps(metrics.slope)}
           </div>
           <div className="text-xs text-gray-500 mt-1">
             Cambio por día
@@ -132,10 +159,10 @@ const Metrics = () => {
         <div className="bg-[#121b31] p-4 rounded-lg border border-[#334155]">
           <div className="text-sm text-gray-400 mb-2">R²</div>
           <div className="text-lg font-semibold text-white">
-            {formatNumber(metrics.rSquared)}
+            {formatNumber(metrics.r_squared)}
           </div>
           <div className="text-xs text-gray-500 mt-1">
-            {getRSquaredInterpretation(metrics.rSquared)}
+            {getRSquaredInterpretation(metrics.r_squared)}
           </div>
         </div>
 
@@ -143,7 +170,7 @@ const Metrics = () => {
         <div className="bg-[#121b31] p-4 rounded-lg border border-[#334155]">
           <div className="text-sm text-gray-400 mb-2">Intercepto</div>
           <div className="text-lg font-semibold text-white">
-            {formatNumber(metrics.intercept)}
+            {formatBps(metrics.intercept)}
           </div>
           <div className="text-xs text-gray-500 mt-1">
             Valor inicial
@@ -157,10 +184,10 @@ const Metrics = () => {
           <div className="text-sm text-gray-400 mb-2">Interpretación</div>
           <div className="text-white text-sm">
             {trendDirection === 'increasing' && (
-              <span>El tráfico muestra una tendencia creciente con una pendiente positiva de {formatNumber(metrics.slope)} bps por día.</span>
+              <span>El tráfico muestra una tendencia creciente con una pendiente positiva de {formatBps(metrics.slope)} por día.</span>
             )}
             {trendDirection === 'decreasing' && (
-              <span>El tráfico muestra una tendencia decreciente con una pendiente negativa de {formatNumber(metrics.slope)} bps por día.</span>
+              <span>El tráfico muestra una tendencia decreciente con una pendiente negativa de {formatBps(metrics.slope)} por día.</span>
             )}
             {trendDirection === 'stable' && (
               <span>El tráfico se mantiene relativamente estable sin cambios significativos en la tendencia.</span>
@@ -171,9 +198,9 @@ const Metrics = () => {
         <div className="bg-[#121b31] p-4 rounded-lg border border-[#334155]">
           <div className="text-sm text-gray-400 mb-2">Calidad del Modelo</div>
           <div className="text-white text-sm">
-            El valor R² de {formatNumber(metrics.rSquared)} indica que el modelo explica el
-            {(metrics.rSquared * 100).toFixed(1)}% de la variabilidad en los datos.
-            {getRSquaredInterpretation(metrics.rSquared)} para predicciones.
+            El valor R² de {formatNumber(metrics.r_squared)} indica que el modelo explica el
+            {(metrics.r_squared * 100).toFixed(1)}% de la variabilidad en los datos.
+            {getRSquaredInterpretation(metrics.r_squared)} para predicciones.
           </div>
         </div>
       </div>

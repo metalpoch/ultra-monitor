@@ -36,7 +36,6 @@ export default function ChangePasswordForm({token}) {
       })
       .catch((error) => error)
 
-    console.log(response)
     if (response.error) {
       setResetError(response.error || "Error al cambiar la contraseña");
       setResetLoading(false);

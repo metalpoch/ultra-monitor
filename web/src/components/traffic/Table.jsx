@@ -168,7 +168,6 @@ export default function Table() {
               } else if ($ip) {
                 title = row.if_name
                 fatStatus = dataStatus && dataStatus.find((r) => row.if_name === r.name)
-                console.log({ row, dataStatus })
               } else if ($state) {
                 title = row.sys_name
                 fatStatus = dataStatus && dataStatus.find((r) => row.ip === r.name)

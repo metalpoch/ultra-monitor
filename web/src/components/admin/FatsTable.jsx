@@ -68,13 +68,11 @@ export default function FatsTable() {
       if (searchField) {
         try {
           const fetchOptionsUrl = `${BASE_URL}options/${searchField}`;
-          console.log("Fetching options from:", fetchOptionsUrl);
           const response = await fetch(fetchOptionsUrl, {
             headers: { Authorization: `Bearer ${TOKEN}` }
           });
           if (response.ok) {
             const data = await response.json();
-            console.log("Options received:", data);
             setDatalistOptions(data);
           } else {
             console.error("Error response:", response.status, response.statusText);

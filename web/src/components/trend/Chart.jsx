@@ -178,9 +178,8 @@ const Chart = () => {
               const historicalResponse = await fetch(`${BASE_URL_TRAFFIC}${historicalEndpoint.replace('/api/traffic', '')}?${historicalParams}`, {
                 headers: { Authorization: `Bearer ${TOKEN}` }
               })
-        
+
               if (!historicalResponse.ok) {
-                console.warn('Could not fetch historical data:', historicalResponse.status)
                 setHistoricalData(null)
               } else {
                 const historicalData = await historicalResponse.json()
@@ -224,21 +223,24 @@ const Chart = () => {
   const getChartData = () => {
     if (!trendData) return null
 
-    console.log('Trend data received:', trendData) // Debug log
-    console.log('Historical data received:', historicalData) // Debug log
 
-    // Prepare historical data
-    const historicalLabels = historicalData ? historicalData.map(h => new Date(h.time)) : []
+    // Prepare historical data - handle timezone issues
+    const historicalLabels = historicalData ? historicalData.map(h => {
+      const date = new Date(h.time)
+      // Adjust for timezone offset to get correct local date
+      return new Date(date.getTime() + date.getTimezoneOffset() * 60000)
+    }) : []
     const historicalBpsIn = historicalData ? historicalData.map(h => h.bps_in) : []
     const historicalBpsOut = historicalData ? historicalData.map(h => h.bps_out) : []
 
     // Get the last historical date to adjust prediction dates
     const lastHistoricalDate = historicalData && historicalData.length > 0
-      ? new Date(Math.max(...historicalData.map(h => new Date(h.time))))
+      ? new Date(Math.max(...historicalData.map(h => {
+          const date = new Date(h.time)
+          return new Date(date.getTime() + date.getTimezoneOffset() * 60000)
+        })))
       : null
 
-    console.log('Last historical date:', lastHistoricalDate)
-    console.log('Original prediction dates:', trendData.predictions.map(p => p.date))
 
     // Adjust prediction dates to start from the day after the last historical data
     const adjustedPredictionLabels = trendData.predictions.map((p, index) => {
@@ -255,11 +257,6 @@ const Chart = () => {
     const lowerBounds = trendData.predictions.map(p => p.lower_bound || null)
     const upperBounds = trendData.predictions.map(p => p.upper_bound || null)
 
-    console.log('Chart data:', {
-      historicalLabels, historicalBpsIn, historicalBpsOut,
-      adjustedPredictionLabels, predictedData, lowerBounds, upperBounds
-    }) // Debug log
-
     return {
       labels: [...historicalLabels, ...adjustedPredictionLabels],
       datasets: [
@@ -274,7 +271,8 @@ const Chart = () => {
           backgroundColor: 'rgba(34, 197, 94, 0.1)',
           borderWidth: 2,
           fill: false,
-          tension: 0.1
+          tension: 0.1,
+          pointRadius: 0
         }] : []),
 
         // Historical BPS Out
@@ -288,7 +286,8 @@ const Chart = () => {
           backgroundColor: 'rgba(239, 68, 68, 0.1)',
           borderWidth: 2,
           fill: false,
-          tension: 0.1
+          tension: 0.1,
+          pointRadius: 0
         }] : []),
 
         // Historical Total BPS
@@ -302,7 +301,8 @@ const Chart = () => {
           backgroundColor: 'rgba(59, 130, 246, 0.1)',
           borderWidth: 2,
           fill: false,
-          tension: 0.1
+          tension: 0.1,
+          pointRadius: 0
         }] : []),
 
         // Prediction Total BPS
@@ -317,7 +317,8 @@ const Chart = () => {
           borderWidth: 2,
           borderDash: [5, 5],
           fill: false,
-          tension: 0.1
+          tension: 0.1,
+          pointRadius: 0
         },
 
         // Confidence bounds (only for prediction period)
@@ -328,8 +329,8 @@ const Chart = () => {
               x: label,
               y: lowerBounds[index]
             })),
-            borderColor: 'rgb(239, 68, 68)',
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            borderColor: 'rgb(156, 163, 175)', // gray-400
+            backgroundColor: 'rgba(156, 163, 175, 0.1)',
             borderWidth: 1,
             borderDash: [5, 5],
             fill: false,
@@ -341,8 +342,8 @@ const Chart = () => {
               x: label,
               y: upperBounds[index]
             })),
-            borderColor: 'rgb(34, 197, 94)',
-            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+            borderColor: 'rgb(156, 163, 175)', // gray-400
+            backgroundColor: 'rgba(156, 163, 175, 0.1)',
             borderWidth: 1,
             borderDash: [5, 5],
             fill: false,
@@ -402,7 +403,7 @@ const Chart = () => {
           }
         },
         grid: {
-          color: 'rgba(255, 255, 255, 0.1)'
+          display: false
         },
         ticks: {
           color: '#94a3b8'
@@ -410,7 +411,7 @@ const Chart = () => {
       },
       y: {
         grid: {
-          color: 'rgba(255, 255, 255, 0.1)'
+          display: false
         },
         ticks: {
           color: '#94a3b8',

@@ -7,28 +7,33 @@ const BASE_URL_TRAFFIC = `${import.meta.env.PUBLIC_URL || ""}/api/traffic`
 const TOKEN = sessionStorage.getItem("access_token")?.replace("Bearer ", "") || ""
 
 const Form = () => {
-  const [selectedLevel, setSelectedLevel] = useState('national')
   const [selectedRegion, setSelectedRegion] = useState('')
   const [selectedState, setSelectedState] = useState('')
   const [selectedOlt, setSelectedOlt] = useState('')
   const [futureDays, setFutureDays] = useState(7)
   const [confidence, setConfidence] = useState(0.95)
   const [dateRange, setDateRange] = useState({
-    initDate: dayjs().subtract(30, 'day').toISOString(),
-    finalDate: dayjs().toISOString()
+    initDate: dayjs().subtract(30, 'day').format('YYYY-MM-DDTHH:mm:ss-04:00'),
+    finalDate: dayjs().format('YYYY-MM-DDTHH:mm:ss-04:00')
   })
   const [olts, setOlts] = useState([])
+  const [regions, setRegions] = useState([])
+  const [states, setStates] = useState([])
+  const [infoAllOlt, setInfoAllOlt] = useState([])
 
   const debouncedFutureDays = useDebounce(futureDays, 300)
   const debouncedConfidence = useDebounce(confidence, 300)
   const debouncedDateRange = useDebounce(dateRange, 300)
 
+  // Fetch regions and states when component mounts
+  useEffect(() => {
+    fetchRegionsAndStates()
+  }, [])
+
   // Fetch OLTS when state is selected
   useEffect(() => {
     if (selectedState) {
       fetchOlts(selectedState)
-      setSelectedOlt('')
-      setOlts([])
     } else {
       setOlts([])
       setSelectedOlt('')
@@ -37,20 +42,7 @@ const Form = () => {
 
   const fetchOlts = async (state) => {
     try {
-      // Get date range for the query (last year to today)
-      const minDate = dayjs("2025-07-01T00:00:00-04:00")
-      const today = dayjs()
-        .set("hour", 0)
-        .set("minute", 0)
-        .set("second", 0)
-        .set("millisecond", 0)
-      const lastYear = today.subtract(1, "year") < minDate ? minDate : today.subtract(1, "year")
-
-      const params = new URLSearchParams()
-      params.append("initDate", lastYear.toISOString())
-      params.append("finalDate", today.toISOString())
-
-      const response = await fetch(`${BASE_URL_TRAFFIC}/sysname/${encodeURIComponent(state)}?${params.toString()}`, {
+      const response = await fetch(`${BASE_URL_TRAFFIC}/hierarchy`, {
         headers: { Authorization: `Bearer ${TOKEN}` }
       })
 
@@ -62,7 +54,15 @@ const Form = () => {
 
       if (response.ok) {
         const data = await response.json()
-        const oltList = Object.keys(data).sort()
+        // Get OLTS for the selected state from the hierarchy
+        const oltList = (data.olts[state] || [])
+          .map(olt => ({
+            ip: olt.ip,
+            sysName: olt.sys_name,
+            displayText: `${olt.sys_name} (${olt.ip})`
+          }))
+          .sort((a, b) => a.sysName.localeCompare(b.sysName))
+
         setOlts(oltList)
       }
     } catch (error) {
@@ -70,8 +70,57 @@ const Form = () => {
     }
   }
 
+  const fetchRegionsAndStates = async () => {
+    try {
+      const response = await fetch(`${BASE_URL_TRAFFIC}/hierarchy`, {
+        headers: { Authorization: `Bearer ${TOKEN}` }
+      })
+
+      if (response.status === 401 || response.status === 403) {
+        sessionStorage.removeItem("access_token")
+        window.location.href = "/"
+        return
+      }
+
+      if (response.ok) {
+        const data = await response.json()
+        // Get regions from the hierarchy
+        const uniqueRegions = data.regions
+          .filter(region => region)
+          .sort()
+          .map(region => ({ value: region, label: region }))
+
+        // Get all states from the hierarchy
+        const allStates = []
+        Object.values(data.states).forEach(stateList => {
+          allStates.push(...stateList)
+        })
+        const uniqueStates = [...new Set(allStates)]
+          .filter(state => state)
+          .sort()
+          .map(state => ({ value: state, label: state }))
+
+        setRegions(uniqueRegions)
+        setStates(uniqueStates)
+        setInfoAllOlt(data)
+      }
+    } catch (error) {
+      console.error('Error fetching regions and states:', error)
+    }
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
+
+    // Determine selected level based on form selections
+    let selectedLevel = 'national'
+    if (selectedOlt) {
+      selectedLevel = 'olt'
+    } else if (selectedState) {
+      selectedLevel = 'state'
+    } else if (selectedRegion) {
+      selectedLevel = 'regional'
+    }
 
     const trendData = {
       futureDays: debouncedFutureDays,
@@ -84,7 +133,6 @@ const Form = () => {
       selectedOlt
     }
 
-
     // Dispatch custom event with trend data
     const event = new CustomEvent('trendFormSubmit', { detail: trendData })
     window.dispatchEvent(event)
@@ -94,10 +142,10 @@ const Form = () => {
   useEffect(() => {
     const handleSubmit = () => {
       const trendData = {
-        futureDays: debouncedFutureDays,
-        confidence: debouncedConfidence,
-        initDate: debouncedDateRange.initDate,
-        finalDate: debouncedDateRange.finalDate,
+            futureDays: debouncedFutureDays,
+            confidence: debouncedConfidence,
+            initDate: debouncedDateRange.initDate,
+            finalDate: debouncedDateRange.finalDate,
         selectedLevel: 'national',
         selectedRegion: '',
         selectedState: '',
@@ -115,52 +163,30 @@ const Form = () => {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {/* Región */}
       <div>
         <label className="block text-sm font-medium text-gray-300 mb-2">
-          Nivel de Visualización
+          Región
         </label>
         <select
-          value={selectedLevel}
+          value={selectedRegion}
           onChange={(e) => {
-            setSelectedLevel(e.target.value)
-            setSelectedRegion('')
+            setSelectedRegion(e.target.value)
             setSelectedState('')
             setSelectedOlt('')
             setOlts([])
           }}
           className="w-full px-3 py-2 bg-[#1e293b] border border-[#334155] rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value="national">Nacional</option>
-          <option value="regional">Regional</option>
-          <option value="state">Estatal</option>
-          <option value="olt">OLT</option>
+          <option value="">Seleccionar Región</option>
+          {regions.map(region => (
+            <option key={region.value} value={region.value}>{region.label}</option>
+          ))}
         </select>
       </div>
 
-      {selectedLevel === 'regional' && (
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Región
-          </label>
-          <select
-            value={selectedRegion}
-            onChange={(e) => {
-              setSelectedRegion(e.target.value)
-              setSelectedState('')
-              setSelectedOlt('')
-              setOlts([])
-            }}
-            className="w-full px-3 py-2 bg-[#1e293b] border border-[#334155] rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Seleccionar Región</option>
-            {REGIONS.map(region => (
-              <option key={region.value} value={region.value}>{region.label}</option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {(selectedLevel === 'state' || (selectedLevel === 'regional' && selectedRegion)) && (
+      {/* Estado: se habilita solo si región está seleccionada */}
+      {selectedRegion && (
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
             Estado
@@ -175,20 +201,21 @@ const Form = () => {
             className="w-full px-3 py-2 bg-[#1e293b] border border-[#334155] rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Seleccionar Estado</option>
-            {selectedLevel === 'regional' && selectedRegion ? (
-              STATES_BY_REGION[selectedRegion]?.map(state => (
-                <option key={state} value={state}>{state}</option>
-              ))
-            ) : (
-              Object.values(STATES_BY_REGION).flat().sort().map(state => (
-                <option key={state} value={state}>{state}</option>
-              ))
-            )}
+            {states
+              .filter(state => {
+                // Filter states by selected region using the hierarchy data
+                const statesInRegion = infoAllOlt?.states[selectedRegion] || []
+                return statesInRegion.includes(state.value)
+              })
+              .map(state => (
+                <option key={state.value} value={state.value}>{state.label}</option>
+              ))}
           </select>
         </div>
       )}
 
-      {(selectedLevel === 'olt' || (selectedLevel === 'state' && selectedState)) && (
+      {/* OLT: se habilita solo si estado está seleccionado */}
+      {selectedState && (
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
             OLT
@@ -196,12 +223,11 @@ const Form = () => {
           <select
             value={selectedOlt}
             onChange={(e) => setSelectedOlt(e.target.value)}
-            disabled={!selectedState}
-            className="w-full px-3 py-2 bg-[#1e293b] border border-[#334155] rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-3 py-2 bg-[#1e293b] border border-[#334155] rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Seleccionar OLT</option>
             {olts.map(olt => (
-              <option key={olt} value={olt}>{olt}</option>
+              <option key={olt.ip} value={olt.ip}>{olt.displayText}</option>
             ))}
           </select>
         </div>
@@ -219,7 +245,7 @@ const Form = () => {
               value={dayjs(dateRange.initDate).format('YYYY-MM-DD')}
               onChange={(e) => setDateRange(prev => ({
                 ...prev,
-                initDate: dayjs(e.target.value).toISOString()
+                initDate: dayjs(e.target.value).format('YYYY-MM-DDTHH:mm:ss-04:00')
               }))}
               className="w-full px-3 py-2 bg-[#1e293b] border border-[#334155] rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -231,7 +257,7 @@ const Form = () => {
               value={dayjs(dateRange.finalDate).format('YYYY-MM-DD')}
               onChange={(e) => setDateRange(prev => ({
                 ...prev,
-                finalDate: dayjs(e.target.value).toISOString()
+                finalDate: dayjs(e.target.value).format('YYYY-MM-DDTHH:mm:ss-04:00')
               }))}
               className="w-full px-3 py-2 bg-[#1e293b] border border-[#334155] rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />

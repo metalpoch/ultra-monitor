@@ -6,6 +6,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/metalpoch/ultra-monitor/entity"
+	"github.com/metalpoch/ultra-monitor/internal/dto"
 )
 
 type TrafficRepository interface {
@@ -20,6 +21,7 @@ type TrafficRepository interface {
 	GetTrafficGroupedByRegion(ctx context.Context, startTime, endTime time.Time) (map[string][]entity.TrafficSummary, error)
 	GetTrafficGroupedByState(ctx context.Context, region string, startTime, endTime time.Time) (map[string][]entity.TrafficSummary, error)
 	GetTrafficGroupedByIP(ctx context.Context, state string, startTime, endTime time.Time) (map[string][]entity.TrafficSummary, error)
+	GetLocationHierarchy(ctx context.Context) (*dto.LocationHierarchy, error)
 }
 
 type trafficRepository struct {
@@ -255,4 +257,60 @@ func (r *trafficRepository) GetTrafficGroupedByIP(ctx context.Context, state str
 	}
 
 	return result, nil
+}
+
+func (r *trafficRepository) GetLocationHierarchy(ctx context.Context) (*dto.LocationHierarchy, error) {
+	hierarchy := &dto.LocationHierarchy{
+		Regions: []string{},
+		States:  make(map[string][]string),
+		Olts:    make(map[string][]dto.OltInfo),
+	}
+
+	// Get unique regions
+	var regions []string
+	queryRegions := `SELECT DISTINCT region FROM summary_traffic WHERE region IS NOT NULL AND region != '' ORDER BY region`
+	err := r.db.SelectContext(ctx, &regions, queryRegions)
+	if err != nil {
+		return nil, err
+	}
+	hierarchy.Regions = regions
+
+	// Get unique states by region
+	var stateRows []struct {
+		Region string `db:"region"`
+		State  string `db:"state"`
+	}
+	queryStates := `SELECT DISTINCT region, state FROM summary_traffic WHERE region IS NOT NULL AND state IS NOT NULL AND region != '' AND state != '' ORDER BY region, state`
+	err = r.db.SelectContext(ctx, &stateRows, queryStates)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, row := range stateRows {
+		hierarchy.States[row.Region] = append(hierarchy.States[row.Region], row.State)
+	}
+
+	// Get OLTs by state
+	var oltRows []struct {
+		State string `db:"state"`
+		IP    string `db:"ip"`
+	}
+	queryOlts := `SELECT DISTINCT st.state, st.ip
+		FROM summary_traffic st
+		WHERE st.state IS NOT NULL AND st.ip IS NOT NULL AND st.state != '' AND st.ip != ''
+		ORDER BY st.state, st.ip`
+	err = r.db.SelectContext(ctx, &oltRows, queryOlts)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, row := range oltRows {
+		oltInfo := dto.OltInfo{
+			IP:      row.IP,
+			SysName: row.IP, // Use IP as sys_name since sys_name column doesn't exist
+		}
+		hierarchy.Olts[row.State] = append(hierarchy.Olts[row.State], oltInfo)
+	}
+
+	return hierarchy, nil
 }

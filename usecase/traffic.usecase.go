@@ -727,7 +727,7 @@ func (use *TrafficUsecase) GetStateTraffic(state string,initDate, finalDate time
 	return result, nil
 }
 
-func (use *TrafficUsecase) GetOLTByIPTraffic(ip string, initDate, finalDate time.Time) (*dto.Traffic, error) {
+func (use *TrafficUsecase) GetOLTByIPTraffic(ip string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -736,21 +736,20 @@ func (use *TrafficUsecase) GetOLTByIPTraffic(ip string, initDate, finalDate time
 		return nil, err
 	}
 
-	// Sum all traffic data points to get total for the period
-	var totalBpsIn, totalBpsOut, totalBytesIn, totalBytesOut float64
+	var result []dto.Traffic
 	for _, data := range trafficData {
-		totalBpsIn += data.TotalBpsIn
-		totalBpsOut += data.TotalBpsOut
-		totalBytesIn += data.TotalBytesIn
-		totalBytesOut += data.TotalBytesOut
+		result = append(result, dto.Traffic{
+			Time:     data.Time,
+			BpsIn:    data.TotalBpsIn,
+			BpsOut:   data.TotalBpsOut,
+			BytesIn:  data.TotalBytesIn,
+			BytesOut: data.TotalBytesOut,
+		})
 	}
 
-	result := &dto.Traffic{
-		BpsIn:    totalBpsIn,
-		BpsOut:   totalBpsOut,
-		BytesIn:  totalBytesIn,
-		BytesOut: totalBytesOut,
-	}
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Time.Before(result[j].Time)
+	})
 
 	return result, nil
 }
@@ -834,4 +833,16 @@ func (use *TrafficUsecase) GetTrafficByIPs(state string, initDate, finalDate tim
 	}
 
 	return result, nil
+}
+
+func (use *TrafficUsecase) GetLocationHierarchy() (*dto.LocationHierarchy, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	hierarchy, err := use.repo.GetLocationHierarchy(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return hierarchy, nil
 }

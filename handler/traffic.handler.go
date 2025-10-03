@@ -158,6 +158,26 @@ func (hdlr *TrafficHandler) GetStateTraffic(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
+func (hdlr *TrafficHandler) GetOLTByIPTraffic(c fiber.Ctx) error {
+	var dates dto.RangeDate
+	if err := c.Bind().Query(&dates); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	ip, err := url.QueryUnescape(c.Params("ip"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetOLTByIPTraffic(ip, dates.InitDate, dates.FinalDate)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+
 func (hdlr *TrafficHandler) GetTrafficByRegions(c fiber.Ctx) error {
 	var dates dto.RangeDate
 	if err := c.Bind().Query(&dates); err != nil {
@@ -381,6 +401,15 @@ func (hdlr *TrafficHandler) ByIdx(c fiber.Ctx) error {
 	}
 
 	res, err := hdlr.Usecase.ByIdx(ip, idx, dates.InitDate, dates.FinalDate)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+func (hdlr *TrafficHandler) GetLocationHierarchy(c fiber.Ctx) error {
+	res, err := hdlr.Usecase.GetLocationHierarchy()
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

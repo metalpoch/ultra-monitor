@@ -17,3 +17,14 @@ type Find struct {
 	Value string `query:"value" validate:"required_with=Field"`
 	Pagination
 }
+
+type LocationHierarchy struct {
+	Regions []string          `json:"regions"`
+	States  map[string][]string `json:"states"`
+	Olts    map[string][]OltInfo `json:"olts"`
+}
+
+type OltInfo struct {
+	IP      string `json:"ip"`
+	SysName string `json:"sys_name"`
+}

@@ -139,55 +139,57 @@ const Chart = () => {
             endpoint = `${BASE_URL_TRAFFIC}/trend/national`
         }
 
-              // Fetch trend data
-              const trendResponse = await fetch(`${endpoint}?${params}`, {
+        const fullUrl = `${endpoint}?${params.toString()}`
+
+        // Fetch trend data
+        const trendResponse = await fetch(fullUrl, {
           headers: { Authorization: `Bearer ${TOKEN}` }
         })
 
-              if (!trendResponse.ok) {
-                throw new Error(`Error: ${trendResponse.status} ${trendResponse.statusText}`)
+        if (!trendResponse.ok) {
+          throw new Error(`Error: ${trendResponse.status} ${trendResponse.statusText}`)
         }
 
-              const trendData = await trendResponse.json()
-              setTrendData(trendData)
-        
-              // Fetch historical traffic data based on selected level
-              const historicalParams = new URLSearchParams({
-                initDate: initDate,
-                finalDate: finalDate
-              })
-        
-              let historicalEndpoint = '/api/traffic/total'
-              switch (selectedLevel) {
-                case 'national':
-                  historicalEndpoint = '/api/traffic/total'
-                  break
-                case 'regional':
-                  historicalEndpoint = `/api/traffic/region/${encodeURIComponent(selectedRegion)}`
-                  break
-                case 'state':
-                  historicalEndpoint = `/api/traffic/state/${encodeURIComponent(selectedState)}`
-                  break
-                case 'olt':
-                  historicalEndpoint = `/api/traffic/instances?ip=${encodeURIComponent(selectedOlt)}`
-                  break
-                default:
-                  historicalEndpoint = '/api/traffic/total'
-              }
-        
-              const historicalResponse = await fetch(`${BASE_URL_TRAFFIC}${historicalEndpoint.replace('/api/traffic', '')}?${historicalParams}`, {
-                headers: { Authorization: `Bearer ${TOKEN}` }
-              })
+        const trendData = await trendResponse.json()
+        setTrendData(trendData)
 
-              if (!historicalResponse.ok) {
-                setHistoricalData(null)
-              } else {
-                const historicalData = await historicalResponse.json()
-                setHistoricalData(historicalData)
-              }
+        // Fetch historical traffic data based on selected level
+        const historicalParams = new URLSearchParams({
+          initDate: initDate,
+          finalDate: finalDate
+        })
+
+        let historicalEndpoint = '/api/traffic/total'
+        switch (selectedLevel) {
+          case 'national':
+            historicalEndpoint = '/api/traffic/total'
+            break
+          case 'regional':
+            historicalEndpoint = `/api/traffic/region/${encodeURIComponent(selectedRegion)}`
+            break
+          case 'state':
+            historicalEndpoint = `/api/traffic/state/${encodeURIComponent(selectedState)}`
+            break
+          case 'olt':
+            historicalEndpoint = `/api/traffic/olt/${encodeURIComponent(selectedOlt)}`
+            break
+          default:
+            historicalEndpoint = '/api/traffic/total'
+        }
+
+        const historicalResponse = await fetch(`${BASE_URL_TRAFFIC}${historicalEndpoint.replace('/api/traffic', '')}?${historicalParams}`, {
+          headers: { Authorization: `Bearer ${TOKEN}` }
+        })
+
+        if (!historicalResponse.ok) {
+          setHistoricalData(null)
+        } else {
+          const historicalData = await historicalResponse.json()
+          setHistoricalData(historicalData)
+        }
 
         // Dispatch event to update metrics component
-              const event = new CustomEvent('trendDataUpdate', { detail: trendData })
+        const event = new CustomEvent('trendDataUpdate', { detail: trendData })
         window.dispatchEvent(event)
       } catch (err) {
         setError(err.message)
@@ -236,9 +238,9 @@ const Chart = () => {
     // Get the last historical date to adjust prediction dates
     const lastHistoricalDate = historicalData && historicalData.length > 0
       ? new Date(Math.max(...historicalData.map(h => {
-          const date = new Date(h.time)
-          return new Date(date.getTime() + date.getTimezoneOffset() * 60000)
-        })))
+        const date = new Date(h.time)
+        return new Date(date.getTime() + date.getTimezoneOffset() * 60000)
+      })))
       : null
 
 

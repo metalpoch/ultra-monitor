@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useStore } from "@nanostores/react";
-import TrafficChart from "../ui/TrafficChart";
+import TrafficChart from "../ui/TrafficChartChartJS";
 import useFetch from "../../hooks/useFetch";
 import { MAP_STATE_TRANSLATER } from "../../constants/regions";
 import {

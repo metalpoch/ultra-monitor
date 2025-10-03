@@ -83,7 +83,7 @@ export default function GponHWInventoryTable() {
   if (!dataTable) return null;
 
   return (
-    <section className="overflow-x-auto rounded-md border-2 border-[hsl(217,33%,20%)] bg-[#121b31]">
+    <section className="h-full overflow-x-auto rounded-md border-2 border-[hsl(217,33%,20%)] bg-[#121b31]">
       <h1 className="text-2xl px-4 pt-2 font-semibold">
         Inventario GPON Huawei
       </h1>

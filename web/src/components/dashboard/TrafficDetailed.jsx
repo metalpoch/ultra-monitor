@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
 import dayjs from "dayjs";
-import TrafficChartDetailed from "./ui/TrafficChartDetailed";
+import TrafficChartDetailed from "./ui/TrafficChartDetailedChartJS";
 import {
   selectedLevel,
   selectedRegion,

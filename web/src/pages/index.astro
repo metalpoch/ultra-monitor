@@ -14,12 +14,20 @@ import GponHWInventoryTable from "../components/dashboard/GponHWInventoryTable";
       <Form client:only />
     </div>
     <section class="w-full flex flex-wrap gap-5">
-      <TotalTraffic client:only />
-      <GponHWInventoryTable client:only />
+      <div class="flex-[2] min-w-[400px]">
+        <TotalTraffic client:only />
+      </div>
+      <div class="flex-1 min-w-[300px]">
+        <GponHWInventoryTable client:only />
+      </div>
     </section>
     <section class="w-full flex flex-wrap gap-5">
-      <TrafficDetailed client:only />
-      <ClientGrowthChart client:only />
+      <div class="flex-1 min-w-[400px]">
+        <TrafficDetailed client:only />
+      </div>
+      <div class="flex-1 min-w-[400px]">
+        <ClientGrowthChart client:only />
+      </div>
     </section>
   </main>
 </Layout>

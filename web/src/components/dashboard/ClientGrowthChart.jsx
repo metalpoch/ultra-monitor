@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
-import ClientsChart from "./ui/ClientsChart";
+import ClientsChart from "./ui/ClientsChartChartJS";
 import {
   selectedLevel,
   selectedRegion,

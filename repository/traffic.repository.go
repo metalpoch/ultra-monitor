@@ -60,12 +60,13 @@ func (r *trafficRepository) GetSnmpIndexByODN(ctx context.Context, state, munici
 }
 
 func (r *trafficRepository) SaveSummaryTraffic(ctx context.Context, trafficData []entity.SumaryTraffic) error {
-	query := `INSERT INTO summary_traffic (time, ip, state, region, bps_in, bps_out, bytes_in, bytes_out)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+	query := `INSERT INTO summary_traffic (time, ip, state, region, sysname, bps_in, bps_out, bytes_in, bytes_out)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		ON CONFLICT (ip, time)
 		DO UPDATE SET
 			state = EXCLUDED.state,
 			region = EXCLUDED.region,
+			sysname = EXCLUDED.sysname,
 			bps_in = EXCLUDED.bps_in,
 			bps_out = EXCLUDED.bps_out,
 			bytes_in = EXCLUDED.bytes_in,
@@ -83,6 +84,7 @@ func (r *trafficRepository) SaveSummaryTraffic(ctx context.Context, trafficData 
 			traffic.IP,
 			traffic.State,
 			traffic.Region,
+			traffic.Sysname,
 			traffic.BpsIn,
 			traffic.BpsOut,
 			traffic.BytesIn,
@@ -292,10 +294,11 @@ func (r *trafficRepository) GetLocationHierarchy(ctx context.Context) (*dto.Loca
 
 	// Get OLTs by state
 	var oltRows []struct {
-		State string `db:"state"`
-		IP    string `db:"ip"`
+		State   string `db:"state"`
+		IP      string `db:"ip"`
+		SysName string `db:"sysname"`
 	}
-	queryOlts := `SELECT DISTINCT st.state, st.ip
+	queryOlts := `SELECT DISTINCT st.state, st.ip, st.sysname
 		FROM summary_traffic st
 		WHERE st.state IS NOT NULL AND st.ip IS NOT NULL AND st.state != '' AND st.ip != ''
 		ORDER BY st.state, st.ip`
@@ -307,7 +310,7 @@ func (r *trafficRepository) GetLocationHierarchy(ctx context.Context) (*dto.Loca
 	for _, row := range oltRows {
 		oltInfo := dto.OltInfo{
 			IP:      row.IP,
-			SysName: row.IP, // Use IP as sys_name since sys_name column doesn't exist
+			SysName: row.SysName,
 		}
 		hierarchy.Olts[row.State] = append(hierarchy.Olts[row.State], oltInfo)
 	}

@@ -862,15 +862,15 @@ func (p *prometheus) processStats(matrix model.Matrix, isIn bool, instance strin
 
 func (p *prometheus) TrafficByInstanceStateRegion(ctx context.Context, initDate, finalDate time.Time) ([]TrafficByInstance, error) {
 	// Query for BpsOut (send bytes)
-	queryBpsOut := "sum(avg_over_time(rate(hwGponOltEthernetStatisticSendBytes_count{}[1h])[3h:1h]) * 8) by (instance, state, region)"
+	queryBpsOut := "sum(avg_over_time(rate(hwGponOltEthernetStatisticSendBytes_count{}[1h])[3h:1h]) * 8) by (instance, state, region) * on(instance) group_left(sysName) sysName"
 	// Query for BpsIn (received bytes)
-	queryBpsIn := "sum(avg_over_time(rate(hwGponOltEthernetStatisticReceivedBytes_count{}[1h])[3h:1h]) * 8) by (instance, state, region)"
+	queryBpsIn := "sum(avg_over_time(rate(hwGponOltEthernetStatisticReceivedBytes_count{}[1h])[3h:1h]) * 8) by (instance, state, region) * on(instance) group_left(sysName) sysName"
 	// Query for Bandwidth (ifSpeed)
-	queryBandwidth := "sum(ifSpeed{}) by (instance, state, region)"
+	queryBandwidth := "sum(ifSpeed{}) by (instance, state, region) * on(instance) group_left(sysName) sysName"
 	// Query for BytesIn (received bytes total)
-	queryBytesIn := "sum(avg_over_time(increase(hwGponOltEthernetStatisticReceivedBytes_count{}[1h])[3h:1h])) by (instance, state, region)"
+	queryBytesIn := "sum(avg_over_time(increase(hwGponOltEthernetStatisticReceivedBytes_count{}[1h])[3h:1h])) by (instance, state, region) * on(instance) group_left(sysName) sysName"
 	// Query for BytesOut (send bytes total)
-	queryBytesOut := "sum(avg_over_time(increase(hwGponOltEthernetStatisticSendBytes_count{}[1h])[3h:1h])) by (instance, state, region)"
+	queryBytesOut := "sum(avg_over_time(increase(hwGponOltEthernetStatisticSendBytes_count{}[1h])[3h:1h])) by (instance, state, region) * on(instance) group_left(sysName) sysName"
 
 	r := v1.Range{
 		Start: initDate,
@@ -918,6 +918,7 @@ func (p *prometheus) TrafficByInstanceStateRegion(ctx context.Context, initDate,
 		ip := string(serie.Metric["instance"])
 		state := string(serie.Metric["state"])
 		region := string(serie.Metric["region"])
+		sysName := string(serie.Metric["sysName"])
 		key := fmt.Sprintf("%s-%s-%s", ip, state, region)
 
 		if _, ok := trafficMap[key]; !ok {
@@ -928,10 +929,11 @@ func (p *prometheus) TrafficByInstanceStateRegion(ctx context.Context, initDate,
 			timeKey := int64(point.Timestamp) / 1000
 			if _, ok := trafficMap[key][timeKey]; !ok {
 				trafficMap[key][timeKey] = &TrafficByInstance{
-					IP:     ip,
-					State:  state,
-					Region: region,
-					Time:   time.Unix(timeKey, 0),
+					IP:      ip,
+					State:   state,
+					Region:  region,
+					SysName: sysName,
+					Time:    time.Unix(timeKey, 0),
 				}
 			}
 			trafficMap[key][timeKey].BpsOut = float64(point.Value)
@@ -943,6 +945,7 @@ func (p *prometheus) TrafficByInstanceStateRegion(ctx context.Context, initDate,
 		ip := string(serie.Metric["instance"])
 		state := string(serie.Metric["state"])
 		region := string(serie.Metric["region"])
+		sysName := string(serie.Metric["sysName"])
 		key := fmt.Sprintf("%s-%s-%s", ip, state, region)
 
 		if _, ok := trafficMap[key]; !ok {
@@ -953,10 +956,11 @@ func (p *prometheus) TrafficByInstanceStateRegion(ctx context.Context, initDate,
 			timeKey := int64(point.Timestamp) / 1000
 			if _, ok := trafficMap[key][timeKey]; !ok {
 				trafficMap[key][timeKey] = &TrafficByInstance{
-					IP:     ip,
-					State:  state,
-					Region: region,
-					Time:   time.Unix(timeKey, 0),
+					IP:      ip,
+					State:   state,
+					Region:  region,
+					SysName: sysName,
+					Time:    time.Unix(timeKey, 0),
 				}
 			}
 			trafficMap[key][timeKey].BpsIn = float64(point.Value)
@@ -968,6 +972,7 @@ func (p *prometheus) TrafficByInstanceStateRegion(ctx context.Context, initDate,
 		ip := string(serie.Metric["instance"])
 		state := string(serie.Metric["state"])
 		region := string(serie.Metric["region"])
+		sysName := string(serie.Metric["sysName"])
 		key := fmt.Sprintf("%s-%s-%s", ip, state, region)
 
 		if _, ok := trafficMap[key]; !ok {
@@ -978,10 +983,11 @@ func (p *prometheus) TrafficByInstanceStateRegion(ctx context.Context, initDate,
 			timeKey := int64(point.Timestamp) / 1000
 			if _, ok := trafficMap[key][timeKey]; !ok {
 				trafficMap[key][timeKey] = &TrafficByInstance{
-					IP:     ip,
-					State:  state,
-					Region: region,
-					Time:   time.Unix(timeKey, 0),
+					IP:      ip,
+					State:   state,
+					Region:  region,
+					SysName: sysName,
+					Time:    time.Unix(timeKey, 0),
 				}
 			}
 			trafficMap[key][timeKey].Bandwidth = float64(point.Value)
@@ -993,6 +999,7 @@ func (p *prometheus) TrafficByInstanceStateRegion(ctx context.Context, initDate,
 		ip := string(serie.Metric["instance"])
 		state := string(serie.Metric["state"])
 		region := string(serie.Metric["region"])
+		sysName := string(serie.Metric["sysName"])
 		key := fmt.Sprintf("%s-%s-%s", ip, state, region)
 
 		if _, ok := trafficMap[key]; !ok {
@@ -1003,10 +1010,11 @@ func (p *prometheus) TrafficByInstanceStateRegion(ctx context.Context, initDate,
 			timeKey := int64(point.Timestamp) / 1000
 			if _, ok := trafficMap[key][timeKey]; !ok {
 				trafficMap[key][timeKey] = &TrafficByInstance{
-					IP:     ip,
-					State:  state,
-					Region: region,
-					Time:   time.Unix(timeKey, 0),
+					IP:      ip,
+					State:   state,
+					Region:  region,
+					SysName: sysName,
+					Time:    time.Unix(timeKey, 0),
 				}
 			}
 			trafficMap[key][timeKey].BytesIn = float64(point.Value)
@@ -1018,6 +1026,7 @@ func (p *prometheus) TrafficByInstanceStateRegion(ctx context.Context, initDate,
 		ip := string(serie.Metric["instance"])
 		state := string(serie.Metric["state"])
 		region := string(serie.Metric["region"])
+		sysName := string(serie.Metric["sysName"])
 		key := fmt.Sprintf("%s-%s-%s", ip, state, region)
 
 		if _, ok := trafficMap[key]; !ok {
@@ -1028,10 +1037,11 @@ func (p *prometheus) TrafficByInstanceStateRegion(ctx context.Context, initDate,
 			timeKey := int64(point.Timestamp) / 1000
 			if _, ok := trafficMap[key][timeKey]; !ok {
 				trafficMap[key][timeKey] = &TrafficByInstance{
-					IP:     ip,
-					State:  state,
-					Region: region,
-					Time:   time.Unix(timeKey, 0),
+					IP:      ip,
+					State:   state,
+					Region:  region,
+					SysName: sysName,
+					Time:    time.Unix(timeKey, 0),
 				}
 			}
 			trafficMap[key][timeKey].BytesOut = float64(point.Value)

@@ -12,6 +12,7 @@ type SumaryTraffic struct {
 	IP       string    `db:"ip"`
 	State    string    `db:"state"`
 	Region   string    `db:"region"`
+	Sysname  string    `db:"sysname"`
 	BpsIn    float64   `db:"bps_in"`
 	BpsOut   float64   `db:"bps_out"`
 	BytesIn  float64   `db:"bytes_in"`

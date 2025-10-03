@@ -108,6 +108,7 @@ func (use *TrafficUsecase) UpdateSummaryTraffic(initDate, finalDate time.Time) e
 			IP:       record.IP,
 			State:    record.State,
 			Region:   record.Region,
+			Sysname:  record.SysName,
 			BpsIn:    record.BpsIn,
 			BpsOut:   record.BpsOut,
 			BytesIn:  record.BpsIn,

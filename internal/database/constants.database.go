@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS summary_traffic (
     ip VARCHAR(15) NOT NULL,
     state VARCHAR(128) NOT NULL,
     region VARCHAR(128) NOT NULL,
+    sysname VARCHAR(255),
     bps_in DOUBLE PRECISION NOT NULL,
     bps_out DOUBLE PRECISION NOT NULL,
     bytes_in DOUBLE PRECISION NOT NULL,

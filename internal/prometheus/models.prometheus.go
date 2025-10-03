@@ -95,6 +95,7 @@ type TrafficByInstance struct {
 	IP        string
 	State     string
 	Region    string
+	SysName   string
 	Time      time.Time
 	BpsIn     float64
 	BpsOut    float64

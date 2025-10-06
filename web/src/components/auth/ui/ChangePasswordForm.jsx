@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const BASE_URL = `${import.meta.env.PUBLIC_URL}/api/auth`;
+const BASE_URL = `${import.meta.env.PUBLIC_URL || ""}/api/auth`
 
 export default function ChangePasswordForm({token}) {
   const [currentPassword, setCurrentPassword] = useState("");

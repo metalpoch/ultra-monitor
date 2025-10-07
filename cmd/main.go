@@ -7,9 +7,13 @@ import (
 	"os"
 	"regexp"
 
+	"strconv"
+	"time"
+
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
+	"github.com/gofiber/fiber/v3/middleware/limiter"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/jmoiron/sqlx"
 	"github.com/metalpoch/ultra-monitor/internal/cache"
@@ -19,8 +23,6 @@ import (
 	"github.com/metalpoch/ultra-monitor/internal/validations"
 	"github.com/metalpoch/ultra-monitor/routes"
 	"github.com/metalpoch/ultra-monitor/usecase"
-	"strconv"
-	"time"
 )
 
 var db *sqlx.DB
@@ -114,11 +116,21 @@ func main() {
 		})
 
 		app.Use(logger.New())
+		app.Use(limiter.New(limiter.Config{
+			Max:        60,
+			Expiration: 1 * time.Minute,
+			LimitReached: func(c fiber.Ctx) error {
+				return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+					"error": "Rate limit exceeded",
+				})
+			},
+		}))
 		app.Use(cors.New(cors.Config{
 			AllowOrigins: []string{allowOrigin},
 			AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization"},
 			AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		}))
+
 
 		routes.Init(&routes.Config{
 			App:        app,

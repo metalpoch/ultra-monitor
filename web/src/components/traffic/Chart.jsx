@@ -13,7 +13,6 @@ import {
   odn,
   ip,
   gpon,
-  oltsPrometheus,
 } from "../../stores/traffic";
 import { isIpv4 } from "../../utils/validator";
 
@@ -33,9 +32,7 @@ export default function Chart() {
   const $odn = useStore(odn);
   const $ip = useStore(ip);
   const $gpon = useStore(gpon);
-  const $oltsPrometheus = useStore(oltsPrometheus);
 
-  // Memoiza los filtros para evitar renders innecesarios
   const filters = useMemo(
     () => ({
       initDate: $initDate,
@@ -47,7 +44,6 @@ export default function Chart() {
       odn: $odn,
       ip: $ip,
       gpon: $gpon,
-      oltsPrometheus: $oltsPrometheus,
     }),
     [
       $initDate,
@@ -59,7 +55,6 @@ export default function Chart() {
       $odn,
       $ip,
       $gpon,
-      $oltsPrometheus,
     ]
   );
 
@@ -68,45 +63,23 @@ export default function Chart() {
     params.append("initDate", filters.initDate);
     params.append("finalDate", filters.endDate);
 
-    // Prioridad: county > municipality > odn > gpon > ip > state > region
-    if (filters.county && filters.state && filters.municipality) {
-      setUrl(
-        `${BASE_URL}/county/${MAP_STATE_TRANSLATER[filters.state]}/${
-          filters.municipality
-        }/${filters.county}?${params.toString()}`
-      );
-    } else if (filters.odn && filters.state && filters.municipality) {
-      setUrl(
-        `${BASE_URL}/odn/${MAP_STATE_TRANSLATER[filters.state]}/${
-          filters.municipality
-        }/${filters.odn}?${params.toString()}`
-      );
-    } else if (filters.municipality && filters.state) {
-      setUrl(
-        `${BASE_URL}/municipality/${MAP_STATE_TRANSLATER[filters.state]}/${
-          filters.municipality
-        }?${params.toString()}`
-      );
-    } else if (filters.gpon && filters.ip) {
-      setUrl(
-        `${BASE_URL}/index/${filters.ip}/${filters.gpon}?${params.toString()}`
-      );
-    } else if (isIpv4(filters.ip)) {
-      params.append("ip", filters.ip);
-      setUrl(`${BASE_URL}/instances?${params.toString()}`);
-    } else if (filters.state && filters.oltsPrometheus) {
-      filters.oltsPrometheus
-        .filter(({ state }) => state === filters.state)
-        .forEach(({ ip }) => params.append("ip", ip));
-      setUrl(`${BASE_URL}/instances?${params.toString()}`);
-    } else if (filters.region && filters.oltsPrometheus) {
-      filters.oltsPrometheus
-        .filter(({ region }) => region === filters.region)
-        .forEach(({ ip }) => params.append("ip", ip));
-      setUrl(`${BASE_URL}/instances?${params.toString()}`);
-    } else {
-      setUrl(undefined);
-    }
+    if (filters.odn && filters.municipality && filters.state)
+      setUrl(`${BASE_URL}/basic/odn/${MAP_STATE_TRANSLATER[filters.state]}/${filters.municipality}/${filters.odn}?${params.toString()}`);
+    else if (filters.county && filters.municipality && filters.state)
+      setUrl(`${BASE_URL}/basic/county/${MAP_STATE_TRANSLATER[filters.state]}/${filters.municipality}/${filters.county}?${params.toString()}`);
+    else if (filters.municipality && filters.state)
+      setUrl(`${BASE_URL}/basic/municipality/${MAP_STATE_TRANSLATER[filters.state]}/${filters.municipality}?${params.toString()}`);
+
+    else if (isIpv4(filters.ip) && filters.gpon)
+      setUrl(`${BASE_URL}/basic/index/${filters.ip}/${filters.gpon}?${params.toString()}`);
+    else if (isIpv4(filters.ip))
+      setUrl(`${BASE_URL}/basic/criteria/instance/${filters.ip}?${params.toString()}`);
+    else if (filters.state)
+      setUrl(`${BASE_URL}/basic/criteria/state/${filters.state}?${params.toString()}`);
+    else if (filters.region)
+      setUrl(`${BASE_URL}/basic/criteria/region/${filters.region}?${params.toString()}`);
+    else setUrl(undefined)
+
   }, [filters]);
 
   const { data, status, loading, error } = useFetch(url, {
@@ -117,7 +90,7 @@ export default function Chart() {
     sessionStorage.removeItem("access_token");
     window.location.href = "/";
   }
-
+  
   if (loading) {
     return (
       <section className="flex justify-center items-center flex-col flex-1 sm:flex-2 px-6 py-3 h-[400px] rounded-lg bg-[#121b31]">
@@ -133,21 +106,19 @@ export default function Chart() {
         <div>
           <div className="flex space-x-4 mb-4">
             <button
-              className={`px-4 py-2 rounded-t-lg focus:outline-none ${
-                activeTab === "traffic"
-                  ? "bg-[#1f2a48] font-semibold text-white"
-                  : "bg-[#121b31] text-slate-400 hover:text-white"
-              }`}
+              className={`px-4 py-2 rounded-t-lg focus:outline-none ${activeTab === "traffic"
+                ? "bg-[#1f2a48] font-semibold text-white"
+                : "bg-[#121b31] text-slate-400 hover:text-white"
+                }`}
               onClick={() => setActiveTab("traffic")}
             >
               Tráfico de Red
             </button>
             <button
-              className={`px-4 py-2 rounded-t-lg focus:outline-none ${
-                activeTab === "volume"
-                  ? "bg-[#1f2a48] font-semibold text-white"
-                  : "bg-[#121b31] text-slate-400 hover:text-white"
-              }`}
+              className={`px-4 py-2 rounded-t-lg focus:outline-none ${activeTab === "volume"
+                ? "bg-[#1f2a48] font-semibold text-white"
+                : "bg-[#121b31] text-slate-400 hover:text-white"
+                }`}
               onClick={() => setActiveTab("volume")}
             >
               Volumen de la Red

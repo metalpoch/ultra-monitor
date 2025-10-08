@@ -111,8 +111,8 @@ func (use *TrafficUsecase) UpdateSummaryTraffic(initDate, finalDate time.Time) e
 			Sysname:  record.SysName,
 			BpsIn:    record.BpsIn,
 			BpsOut:   record.BpsOut,
-			BytesIn:  record.BpsIn,
-			BytesOut: record.BpsOut,
+			BytesIn:  record.BytesIn,
+			BytesOut: record.BytesOut,
 		})
 	}
 
@@ -124,77 +124,19 @@ func (use *TrafficUsecase) UpdateSummaryTraffic(initDate, finalDate time.Time) e
 	return nil
 }
 
-// func (use *TrafficUsecase) Total(initDate, finalDate time.Time) ([]dto.Traffic, error) {
-// 	var result []dto.Traffic
-//
-// 	keyCache := fmt.Sprintf("total-%d-%d", initDate.Unix(), finalDate.Unix())
-// 	if err := use.cache.FindOne(context.Background(), keyCache, &result); err == nil {
-// 		return result, nil
-// 	} else if err != redis.Nil {
-// 		return nil, err
-// 	}
-//
-// 	traffic, err := use.prometheus.TrafficTotalByField(context.Background(), "", "", initDate, finalDate)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-//
-// 	for _, t := range traffic {
-// 		result = append(result, (dto.Traffic)(*t))
-// 	}
-//
-// 	use.cache.InsertOne(context.Background(), keyCache, 8*time.Hour, result)
-//
-// 	return result, nil
-// }
+func (use *TrafficUsecase) GetTrafficByCriteria(criteria, value string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
+	traffic, err := use.prometheus.TrafficByCriteria(context.Background(), criteria, value, initDate, finalDate)
+	if err != nil {
+		return nil, err
+	}
 
-// func (use *TrafficUsecase) Region(region string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
-// 	var result []dto.Traffic
-//
-// 	keyCache := fmt.Sprintf("region-%s-%d-%d", region, initDate.Unix(), finalDate.Unix())
-// 	if err := use.cache.FindOne(context.Background(), keyCache, &result); err == nil {
-// 		return result, nil
-// 	} else if err != redis.Nil {
-// 		return nil, err
-// 	}
-//
-// 	traffic, err := use.prometheus.TrafficTotalByField(context.Background(), "region", region, initDate, finalDate)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-//
-// 	for _, t := range traffic {
-// 		result = append(result, (dto.Traffic)(*t))
-// 	}
-//
-// 	use.cache.InsertOne(context.Background(), keyCache, 8*time.Hour, result)
-//
-// 	return result, nil
-// }
+	var result []dto.Traffic
+	for _, t := range traffic {
+		result = append(result, (dto.Traffic)(*t))
+	}
 
-// func (use *TrafficUsecase) State(state string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
-// 	var result []dto.Traffic
-//
-// 	keyCache := fmt.Sprintf("states-%s-%d-%d", state, initDate.Unix(), finalDate.Unix())
-// 	if err := use.cache.FindOne(context.Background(), keyCache, &result); err == nil {
-// 		return result, nil
-// 	} else if err != redis.Nil {
-// 		return nil, err
-// 	}
-//
-// 	traffic, err := use.prometheus.TrafficTotalByField(context.Background(), "state", state, initDate, finalDate)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-//
-// 	for _, t := range traffic {
-// 		result = append(result, (dto.Traffic)(*t))
-// 	}
-//
-// 	use.cache.InsertOne(context.Background(), keyCache, 8*time.Hour, result)
-//
-// 	return result, nil
-// }
+	return result, nil
+}
 
 func (use *TrafficUsecase) Regions(initDate, finalDate time.Time) (dto.TrafficByLabel, error) {
 	results := make(dto.TrafficByLabel)
@@ -701,7 +643,7 @@ func (use *TrafficUsecase) GetRegionalTraffic(region string, initDate, finalDate
 	return result, nil
 }
 
-func (use *TrafficUsecase) GetStateTraffic(state string,initDate, finalDate time.Time) ([]dto.Traffic, error) {
+func (use *TrafficUsecase) GetStateTraffic(state string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -836,11 +778,11 @@ func (use *TrafficUsecase) GetTrafficByIPs(state string, initDate, finalDate tim
 	return result, nil
 }
 
-func (use *TrafficUsecase) GetLocationHierarchy() (*dto.LocationHierarchy, error) {
+func (use *TrafficUsecase) GetLocationHierarchy(initDate, finalDate time.Time) (*dto.LocationHierarchy, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	hierarchy, err := use.repo.GetLocationHierarchy(ctx)
+	hierarchy, err := use.repo.GetLocationHierarchy(ctx, initDate, finalDate)
 	if err != nil {
 		return nil, err
 	}

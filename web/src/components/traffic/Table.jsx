@@ -4,13 +4,10 @@ import useFetch from "../../hooks/useFetch";
 import {
   initDate,
   endDate,
-  oltsPrometheus,
   region,
   state,
   ip,
   gpon,
-  urlTableData,
-  urlStatusTableData
 } from "../../stores/traffic";
 import { isIpv4 } from "../../utils/validator";
 import { formatSpeed, removeAccentsAndToUpper } from "../../utils/formater";
@@ -21,13 +18,14 @@ const TOKEN = sessionStorage.getItem("access_token").replace("Bearer ", "");
 
 export default function Table() {
   const [header, setHeader] = useState(undefined);
+  const [urlTraffic, setUrlTraffic] = useState(undefined)
+  const [urlFat, setUrlFat] = useState(undefined)
   const $initDate = useStore(initDate);
   const $endDate = useStore(endDate);
   const $ip = useStore(ip);
   const $gpon = useStore(gpon);
   const $state = useStore(state);
   const $region = useStore(region);
-  const $dataChart = useStore(oltsPrometheus);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -35,29 +33,33 @@ export default function Table() {
     params.append("finalDate", $endDate);
 
     if (isIpv4($ip)) {
-      urlTableData.set(`${BASE_URL}/stats/ip/${$ip}?${params.toString()}`);
-      urlStatusTableData.set(`${FAT_STATUS_URL}/ip/${$ip}`);
+      setUrlTraffic(`${BASE_URL}/stats/ip/${$ip}?${params.toString()}`);
+      setUrlFat(`${FAT_STATUS_URL}/ip/${$ip}`);
     } else if ($state) {
-      urlTableData.set(`${BASE_URL}/stats/state/${$state}?${params.toString()}`);
-      urlStatusTableData.set(`${FAT_STATUS_URL}/state/${removeAccentsAndToUpper($state)}`);
+      setUrlTraffic(`${BASE_URL}/stats/state/${$state}?${params.toString()}`);
+      setUrlFat(`${FAT_STATUS_URL}/state/${removeAccentsAndToUpper($state)}`);
     } else if ($region) {
-      urlTableData.set(`${BASE_URL}/stats/region/${$region}?${params.toString()}`);
-      urlStatusTableData.set(`${FAT_STATUS_URL}/region/${$region}`);
+      setUrlTraffic(`${BASE_URL}/stats/region/${$region}?${params.toString()}`);
+      setUrlFat(`${FAT_STATUS_URL}/region/${$region}`);
+    } else {
+      // Clear URLs when no valid filters are selected
+      setUrlTraffic(undefined);
+      setUrlFat(undefined);
     }
   }, [$region, $state, $ip, $initDate, $endDate]);
 
-  const $url = useStore(urlTableData);
-  const $urlStatus = useStore(urlStatusTableData);
-  const { data, status } = useFetch($url, {
+  const { data: dataTraffic, status, loading: tableLoading } = useFetch(urlTraffic, {
     headers: { Authorization: `Bearer ${TOKEN}` },
   });
 
-  const { data: dataStatus } = useFetch($urlStatus, {
+  const { data: dataFat, loading: statusLoading } = useFetch(urlFat, {
     headers: { Authorization: `Bearer ${TOKEN}` },
   });
+
+  const isLoading = tableLoading || statusLoading;
 
   useEffect(() => {
-    if (!data) return;
+    if (!dataTraffic) return;
     if ($gpon) {
       setHeader(
         <>
@@ -141,20 +143,30 @@ export default function Table() {
         </>
       );
     }
-  }, [data, $region, $state, $ip, $gpon]);
+  }, [dataTraffic, $region, $state, $ip, $gpon]);
 
   if (status === 401 || status === 403) {
     sessionStorage.removeItem("access_token");
     window.location.href = "/";
   }
 
-  // Filtra por GPON si corresponde
-  const filteredData =
-    $gpon && data
-      ? data.filter((row) => String(row.port) === String($gpon))
-      : data;
+  if (isLoading) {
+    return (
+      <section className="w-full h-[300px] overflow-auto px-6 flex justify-center items-center">
+        <div className="flex flex-col items-center">
+          <span className="loader-table"></span>
+          <h1 className="text-xl mt-2">Cargando datos...</h1>
+        </div>
+      </section>
+    );
+  }
 
-  if (filteredData && filteredData.length > 0 && $dataChart.length > 0) {
+  const filteredData =
+    $gpon && dataTraffic
+      ? dataTraffic.filter((row) => String(row.port) === String($gpon))
+      : dataTraffic;
+
+  if (filteredData && filteredData.length > 0) {
     return (
       <section className="w-full h-[300px] overflow-auto px-6">
         <table className="min-w-full text-sm">
@@ -167,14 +179,14 @@ export default function Table() {
                 title = row.if_name
               } else if ($ip) {
                 title = row.if_name
-                fatStatus = dataStatus && dataStatus.find((r) => row.if_name === r.name)
+                fatStatus = dataFat && dataFat.find((r) => row.if_name === r.name)
               } else if ($state) {
                 title = row.sys_name
-                fatStatus = dataStatus && dataStatus.find((r) => row.ip === r.name)
+                fatStatus = dataFat && dataFat.find((r) => row.ip === r.name)
               }
               else {
                 title = row.state
-                fatStatus = dataStatus && dataStatus.find((r) => r.name === removeAccentsAndToUpper(title))
+                fatStatus = dataFat && dataFat.find((r) => r.name === (title ? removeAccentsAndToUpper(title) : ""))
               }
               return <tr key={row.port ? row.port : idx} className="text-center">
                 <td>{title}</td>

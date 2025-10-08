@@ -16,6 +16,7 @@ export default function useFetch(url, options = {}) {
     fetch(url, { ...options, signal: abortController.signal })
       .then((res) => {
         setStatus(res.status);
+        setLoading(false);
         return res.json();
       })
       .then((res) => setData(res))
@@ -24,9 +25,9 @@ export default function useFetch(url, options = {}) {
           console.warn("Petición Abortada");
         } else {
           setError(err);
+          setLoading(false)
         }
       })
-      .finally(() => setLoading(false));
 
     return () => abortController.abort();
   }, [url, JSON.stringify(options)]);

@@ -16,25 +16,21 @@ import {
   county,
   odn,
   gpon,
-  oltsPrometheus,
-  urlTableData,
 } from "../../stores/traffic";
 import { useStore } from "@nanostores/react";
 import { isIpv4 } from "../../utils/validator";
 
 const BASE_URL_TRAFFIC = `${import.meta.env.PUBLIC_URL || ""}/api/traffic`;
 const BASE_URL_FATS = `${import.meta.env.PUBLIC_URL || ""}/api/fat`;
-
+const TOKEN = sessionStorage.getItem("access_token")?.replace("Bearer ", "") || ""
 endDate.set(dayjs().toISOString());
 initDate.set(dayjs().subtract(1, "week").toISOString());
 
 export default function Form() {
-  const [urlFatState, serUrlFatState] = useState(undefined);
+  const [urlFatState, setUrlFatState] = useState(undefined);
   const [urlOlt, setUrlOlt] = useState(undefined);
-
-  const [regions, setRegions] = useState([]);
-  const [states, setStates] = useState([]);
-
+  const [regions, setRegions] = useState([])
+  const [states, setStates] = useState([])
   const [selectionMethod, setSelectionMethod] = useState("");
 
   const $initDate = useStore(initDate);
@@ -44,35 +40,38 @@ export default function Form() {
   const $municipality = useStore(municipality);
   const $county = useStore(county);
   const $ip = useStore(ip);
-  const $odn = useStore(odn);
   const $gpon = useStore(gpon);
+  const $odn = useStore(odn);
 
-  const headers = {
-    headers: {
-      Authorization: `Bearer ${sessionStorage
-        .getItem("access_token")
-        .replace("Bearer ", "")}`,
-    },
-  };
+  // Reset all form states when component mounts
+  useEffect(() => {
+    endDate.set(dayjs().toISOString());
+    initDate.set(dayjs().subtract(1, "week").toISOString());
+    region.set("");
+    state.set("");
+    municipality.set("");
+    county.set("");
+    ip.set("");
+    gpon.set("");
+    odn.set("");
+    setSelectionMethod("");
+  }, []);
 
-  const { data: infoAllOlt, status } = useFetch(
-    `${BASE_URL_TRAFFIC}/info`,
-    headers
-  );
-  const { data: fatsByState } = useFetch(urlFatState, headers);
+  const headers = { headers: { Authorization: `Bearer ${TOKEN}` } }
+
+  // Load all OLT from prometheus data
+  const { data, status, loading, error } = useFetch(`${BASE_URL_TRAFFIC}/hierarchy?initDate=${$initDate}&finalDate=${$endDate}`, headers);
+
+  // Load specific OLT info when URL is set
   const { data: infoOlt } = useFetch(urlOlt, headers);
 
-  // Get regions array
+  // Load specific OLT info when URL is set
+  const { data: fatsByState } = useFetch(urlFatState, headers);
+
+  // Get regions array and ensure OLT data is properly loaded
   useEffect(() => {
-    oltsPrometheus.set(infoAllOlt);
-    if (infoAllOlt)
-      setRegions(
-        [...new Set(infoAllOlt.map(({ region }) => region))].map((r) => ({
-          value: r,
-          label: r,
-        }))
-      );
-  }, [infoAllOlt]);
+    if (data) setRegions(data.regions)
+  }, [data]);
 
   const handleDateChange = ({ init, end }) => {
     if (init) initDate.set(init);
@@ -80,16 +79,7 @@ export default function Form() {
   };
 
   const handleChangeRegion = ({ target }) => {
-    setStates(
-      [
-        ...new Set(
-          infoAllOlt
-            .filter((item) => item.region === target.value)
-            .map(({ state }) => state)
-        ),
-      ].map((item) => ({ value: item, label: item }))
-    );
-    // Limpiar todos los campos dependientes
+    setStates(data.states[target.value])
     region.set(target.value);
     state.set("");
     municipality.set("");
@@ -102,10 +92,10 @@ export default function Form() {
 
   const handleChangeState = ({ target }) => {
     const formatedState = removeAccentsAndToUpper(target.value);
-    serUrlFatState(
+    setUrlFatState(
       `${BASE_URL_FATS}/location/${formatedState}?page=1&limit=65535`
     );
-    // Limpiar todos los campos dependientes
+
     state.set(target.value);
     municipality.set("");
     county.set("");
@@ -117,24 +107,8 @@ export default function Form() {
 
   const handleChangeMethod = (method) => {
     setSelectionMethod(method);
-    // Limpiar todos los campos dependientes
     municipality.set("");
     county.set("");
-    ip.set("");
-    gpon.set("");
-    odn.set("");
-  };
-
-  const handleChangeMunicipality = ({ target }) => {
-    municipality.set(target.value);
-    county.set("");
-    ip.set("");
-    gpon.set("");
-    odn.set("");
-  };
-
-  const handleChangeCounty = ({ target }) => {
-    county.set(target.value);
     ip.set("");
     gpon.set("");
     odn.set("");
@@ -145,6 +119,23 @@ export default function Form() {
       setUrlOlt(`${BASE_URL_TRAFFIC}/info/instance/${target.value}`);
     }
     ip.set(target.value);
+    gpon.set("");
+    municipality.set("");
+    county.set("");
+    odn.set("");
+  };
+
+  const handleChangeMunicipality = ({ target }) => {
+    municipality.set(target.value);
+    county.set("");
+    odn.set("");
+    ip.set("");
+    gpon.set("");
+  };
+
+  const handleChangeCounty = ({ target }) => {
+    county.set(target.value);
+    ip.set("");
     gpon.set("");
     odn.set("");
   };
@@ -164,7 +155,6 @@ export default function Form() {
 
   return (
     <form>
-      {/* Fecha inicial */}
       <DateField
         id="initDate"
         label="Fecha inicial *"
@@ -172,7 +162,6 @@ export default function Form() {
         onChange={(init) => handleDateChange({ init })}
       />
 
-      {/* Fecha final */}
       <DateField
         id="endDate"
         label="Fecha final *"
@@ -181,7 +170,6 @@ export default function Form() {
         onChange={(end) => handleDateChange({ end })}
       />
 
-      {/* Región */}
       <SelectField
         id="region"
         label="Región *"
@@ -192,13 +180,12 @@ export default function Form() {
             disabled: true,
             hidden: true,
           },
-          ...regions,
+          ...regions.map(region => ({ value: region, label: region })),
         ]}
         value={$region}
         onChange={handleChangeRegion}
       />
 
-      {/* Estado: se habilita solo si los tres anteriores están completos */}
       {$initDate && $endDate && $region && (
         <SelectField
           id="state"
@@ -210,38 +197,32 @@ export default function Form() {
               disabled: true,
               hidden: true,
             },
-            ...states,
+            ...states.map(state => ({ value: state, label: state })), ,
           ]}
           value={$state}
           onChange={handleChangeState}
         />
       )}
 
-      {/* Método de selección: Municipio/Parroquia o OLT directo */}
       {$state && (
         <RadioGroup
           id="selectionMethod"
-          label="Método de selección"
+          label="Método de busqueda"
           options={[
-            { value: "olt", label: "Seleccionar OLT directamente" },
-            { value: "municipality", label: "Seleccionar por Municipio" },
+            { value: "olt", label: "OLT" },
+            { value: "municipality", label: "Ubicación" },
           ]}
           value={selectionMethod}
           onChange={handleChangeMethod}
         />
       )}
 
-      {/* Opción 1: OLT directo */}
       {$state && selectionMethod === "olt" && (
         <>
           <DatalistField
             id="olt"
             label="OLT"
-            options={infoAllOlt
-              .filter(
-                (item) => item.region === $region && item.state === $state
-              )
-              .map(({ ip, sysName }) => ({ value: ip, label: sysName }))}
+            options={data.olts[$state].map(({ ip: value, sys_name: label }) => ({ value, label }))}
             value={$ip}
             onChange={handleChangeOlt}
             placeholder="Ingrese el OLT"
@@ -269,7 +250,6 @@ export default function Form() {
         </>
       )}
 
-      {/* Opción 2: Municipio → Parroquia → OLT */}
       {$state && selectionMethod === "municipality" && fatsByState && (
         <>
           <SelectField

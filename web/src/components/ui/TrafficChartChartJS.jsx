@@ -12,7 +12,6 @@ import {
 } from 'chart.js'
 import { Line } from 'react-chartjs-2'
 import 'chartjs-adapter-date-fns'
-import dayjs from 'dayjs'
 import { COLOR } from '../../constants/colors'
 
 ChartJS.register(
@@ -36,12 +35,7 @@ export default function TrafficChart({ data, dataType }) {
   }, [data, dataType])
 
   const prepareChartData = () => {
-    const labels = data.map(item => {
-      const date = new Date(item.time)
-      // Adjust for timezone offset to get correct local date
-      return new Date(date.getTime() + date.getTimezoneOffset() * 60000)
-    })
-
+    const labels = data.map(({time}) => time)
     const bpsIn = data.map(item => item.bps_in)
     const bpsOut = data.map(item => item.bps_out)
     const bytesIn = data.map(item => item.bytes_in)
@@ -203,7 +197,7 @@ export default function TrafficChart({ data, dataType }) {
 
   return (
     <div className="w-full h-full">
-      <div className="h-96 w-full">
+      <div className="h-96 w-full overflow-hidden">
         {chartData && <Line data={chartData} options={chartOptions} />}
       </div>
     </div>

@@ -21,7 +21,7 @@ type TrafficRepository interface {
 	GetTrafficGroupedByRegion(ctx context.Context, startTime, endTime time.Time) (map[string][]entity.TrafficSummary, error)
 	GetTrafficGroupedByState(ctx context.Context, region string, startTime, endTime time.Time) (map[string][]entity.TrafficSummary, error)
 	GetTrafficGroupedByIP(ctx context.Context, state string, startTime, endTime time.Time) (map[string][]entity.TrafficSummary, error)
-	GetLocationHierarchy(ctx context.Context) (*dto.LocationHierarchy, error)
+	GetLocationHierarchy(ctx context.Context, initDate, finalDate time.Time) (*dto.LocationHierarchy, error)
 }
 
 type trafficRepository struct {
@@ -261,7 +261,7 @@ func (r *trafficRepository) GetTrafficGroupedByIP(ctx context.Context, state str
 	return result, nil
 }
 
-func (r *trafficRepository) GetLocationHierarchy(ctx context.Context) (*dto.LocationHierarchy, error) {
+func (r *trafficRepository) GetLocationHierarchy(ctx context.Context, initDate, finalDate time.Time) (*dto.LocationHierarchy, error) {
 	hierarchy := &dto.LocationHierarchy{
 		Regions: []string{},
 		States:  make(map[string][]string),
@@ -270,8 +270,8 @@ func (r *trafficRepository) GetLocationHierarchy(ctx context.Context) (*dto.Loca
 
 	// Get unique regions
 	var regions []string
-	queryRegions := `SELECT DISTINCT region FROM summary_traffic WHERE region IS NOT NULL AND region != '' ORDER BY region`
-	err := r.db.SelectContext(ctx, &regions, queryRegions)
+	queryRegions := `SELECT DISTINCT region FROM summary_traffic WHERE time BETWEEN $1 AND $2 ORDER BY region`
+	err := r.db.SelectContext(ctx, &regions, queryRegions, initDate, finalDate)
 	if err != nil {
 		return nil, err
 	}
@@ -282,8 +282,8 @@ func (r *trafficRepository) GetLocationHierarchy(ctx context.Context) (*dto.Loca
 		Region string `db:"region"`
 		State  string `db:"state"`
 	}
-	queryStates := `SELECT DISTINCT region, state FROM summary_traffic WHERE region IS NOT NULL AND state IS NOT NULL AND region != '' AND state != '' ORDER BY region, state`
-	err = r.db.SelectContext(ctx, &stateRows, queryStates)
+	queryStates := `SELECT DISTINCT region, state FROM summary_traffic WHERE time BETWEEN $1 AND $2 ORDER BY region, state`
+	err = r.db.SelectContext(ctx, &stateRows, queryStates, initDate, finalDate)
 	if err != nil {
 		return nil, err
 	}
@@ -298,11 +298,8 @@ func (r *trafficRepository) GetLocationHierarchy(ctx context.Context) (*dto.Loca
 		IP      string `db:"ip"`
 		SysName string `db:"sysname"`
 	}
-	queryOlts := `SELECT DISTINCT st.state, st.ip, st.sysname
-		FROM summary_traffic st
-		WHERE st.state IS NOT NULL AND st.ip IS NOT NULL AND st.state != '' AND st.ip != ''
-		ORDER BY st.state, st.ip`
-	err = r.db.SelectContext(ctx, &oltRows, queryOlts)
+	queryOlts := `SELECT DISTINCT state, ip, sysname FROM summary_traffic WHERE time BETWEEN $1 AND $2 ORDER BY state, ip`
+	err = r.db.SelectContext(ctx, &oltRows, queryOlts, initDate, finalDate)
 	if err != nil {
 		return nil, err
 	}

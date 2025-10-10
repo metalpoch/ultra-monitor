@@ -3,7 +3,6 @@ import Layout from "../layouts/Layout.astro";
 import Form from "../components/dashboard/Form";
 import TotalTraffic from "../components/dashboard/Traffic";
 import TrafficDetailed from "../components/dashboard/TrafficDetailed";
-import ClientStatus from "../components/dashboard/ClientStatus";
 import ClientGrowthChart from "../components/dashboard/ClientGrowthChart";
 import GponHWInventoryTable from "../components/dashboard/GponHWInventoryTable";
 ---
@@ -14,7 +13,7 @@ import GponHWInventoryTable from "../components/dashboard/GponHWInventoryTable";
       <Form client:only />
     </div>
     <section class="w-full flex flex-wrap gap-5">
-      <div class="flex-[2] min-w-[400px]">
+      <div class="flex-2 min-w-[600px]">
         <TotalTraffic client:only />
       </div>
       <div class="flex-1 min-w-[300px]">

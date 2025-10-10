@@ -48,15 +48,13 @@ export default function Table() {
     }
   }, [$region, $state, $ip, $initDate, $endDate]);
 
-  const { data: dataTraffic, status, loading: tableLoading } = useFetch(urlTraffic, {
+  const { data: dataTraffic, status } = useFetch(urlTraffic, {
     headers: { Authorization: `Bearer ${TOKEN}` },
   });
 
-  const { data: dataFat, loading: statusLoading } = useFetch(urlFat, {
+  const { data: dataFat } = useFetch(urlFat, {
     headers: { Authorization: `Bearer ${TOKEN}` },
   });
-
-  const isLoading = tableLoading || statusLoading;
 
   useEffect(() => {
     if (!dataTraffic) return;
@@ -150,17 +148,6 @@ export default function Table() {
     window.location.href = "/";
   }
 
-  if (isLoading) {
-    return (
-      <section className="w-full h-[300px] overflow-auto px-6 flex justify-center items-center">
-        <div className="flex flex-col items-center">
-          <span className="loader-table"></span>
-          <h1 className="text-xl mt-2">Cargando datos...</h1>
-        </div>
-      </section>
-    );
-  }
-
   const filteredData =
     $gpon && dataTraffic
       ? dataTraffic.filter((row) => String(row.port) === String($gpon))
@@ -168,45 +155,47 @@ export default function Table() {
 
   if (filteredData && filteredData.length > 0) {
     return (
-      <section className="w-full h-[300px] overflow-auto px-6">
-        <table className="min-w-full text-sm">
-          <thead className="sticky top-0 bg-[#121b31] pb-1">{header}</thead>
-          <tbody>
-            {filteredData.map((row, idx) => {
-              let fatStatus = null
-              let title = ""
-              if ($gpon) {
-                title = row.if_name
-              } else if ($ip) {
-                title = row.if_name
-                fatStatus = dataFat && dataFat.find((r) => row.if_name === r.name)
-              } else if ($state) {
-                title = row.sys_name
-                fatStatus = dataFat && dataFat.find((r) => row.ip === r.name)
-              }
-              else {
-                title = row.state
-                fatStatus = dataFat && dataFat.find((r) => r.name === (title ? removeAccentsAndToUpper(title) : ""))
-              }
-              return <tr key={row.port ? row.port : idx} className="text-center">
-                <td>{title}</td>
-                <td>{formatSpeed(row.avg_in_bps)}</td>
-                <td>{formatSpeed(row.max_in_bps)}</td>
-                <td>{formatSpeed(row.avg_out_bps)}</td>
-                <td>{formatSpeed(row.max_out_bps)}</td>
-                <td>{formatSpeed(row.if_speed)}</td>
-                <td>{(row.usage_out + row.usage_in).toFixed(2)}%</td>
-                {fatStatus && <>
-                  <td className="bg-green-801 w-[80px]">{fatStatus.actives + fatStatus.provisioned_offline}</td>
-                  <td className="bg-red-801 w-[80px]">{fatStatus.cut_off}</td>
-                  <td className="bg-amber-801 w-[80px]">{fatStatus.in_progress}</td>
+      <div className="w-full p-4 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]">
+        <section className="w-full h-[300px] overflow-auto px-6">
+          <table className="min-w-full text-sm">
+            <thead className="sticky top-0 bg-[#121b31] pb-1">{header}</thead>
+            <tbody>
+              {filteredData.map((row, idx) => {
+                let fatStatus = null
+                let title = ""
+                if ($gpon) {
+                  title = row.if_name
+                } else if ($ip) {
+                  title = row.if_name
+                  fatStatus = dataFat && dataFat.find((r) => row.if_name === r.name)
+                } else if ($state) {
+                  title = row.sys_name
+                  fatStatus = dataFat && dataFat.find((r) => row.ip === r.name)
+                }
+                else {
+                  title = row.state
+                  fatStatus = dataFat && dataFat.find((r) => r.name === (title ? removeAccentsAndToUpper(title) : ""))
+                }
+                return <tr key={row.port ? row.port : idx} className="text-center">
+                  <td>{title}</td>
+                  <td>{formatSpeed(row.avg_in_bps)}</td>
+                  <td>{formatSpeed(row.max_in_bps)}</td>
+                  <td>{formatSpeed(row.avg_out_bps)}</td>
+                  <td>{formatSpeed(row.max_out_bps)}</td>
+                  <td>{formatSpeed(row.if_speed)}</td>
+                  <td>{(row.usage_out + row.usage_in).toFixed(2)}%</td>
+                  {fatStatus && <>
+                    <td className="bg-green-801 w-[80px]">{fatStatus.actives + fatStatus.provisioned_offline}</td>
+                    <td className="bg-red-801 w-[80px]">{fatStatus.cut_off}</td>
+                    <td className="bg-amber-801 w-[80px]">{fatStatus.in_progress}</td>
 
-                </>}
-              </tr>
-            })}
-          </tbody>
-        </table>
-      </section>
+                  </>}
+                </tr>
+              })}
+            </tbody>
+          </table>
+        </section>
+      </div>
     );
   }
 

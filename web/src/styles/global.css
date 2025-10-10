@@ -8,121 +8,113 @@
   /* Sombra suave */
 }
 
-.loader {
+/* From Uiverse.io by dexter-st */ 
+.loader-wrapper {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  max-width: 6rem;
-  margin-top: 3rem;
-  margin-bottom: 3rem;
-}
-
-.loader:before,
-.loader:after {
-  content: "";
-  position: absolute;
+  width: 180px;
+  height: 180px;
+  font-family: "Inter", sans-serif;
+  font-size: 1.2em;
+  font-weight: 300;
+  color: white;
   border-radius: 50%;
-  animation: pulsOut 1.8s ease-in-out infinite;
-  filter: drop-shadow(0 0 1rem rgba(255, 255, 255, 0.75));
+  background-color: transparent;
+  user-select: none;
 }
 
-.loader:before {
+.loader {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  padding-bottom: 100%;
-  box-shadow: inset 0 0 0 1rem #fff;
-  animation-name: pulsIn;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  background-color: transparent;
+  animation: loader-rotate 2s linear infinite;
+  z-index: 0;
 }
 
-.loader:after {
-  width: calc(100% - 2rem);
-  padding-bottom: calc(100% - 2rem);
-  box-shadow: 0 0 0 0 #fff;
-}
-
-@keyframes pulsIn {
+@keyframes loader-rotate {
   0% {
-    box-shadow: inset 0 0 0 1rem #fff;
-    opacity: 1;
+    transform: rotate(90deg);
+    box-shadow:
+      0 10px 20px 0 #fff inset,
+      0 20px 30px 0 #ad5fff inset,
+      0 60px 60px 0 #471eec inset;
   }
-
-  50%,
-  100% {
-    box-shadow: inset 0 0 0 0 #fff;
-    opacity: 0;
-  }
-}
-
-@keyframes pulsOut {
-
-  0%,
   50% {
-    box-shadow: 0 0 0 0 #fff;
-    opacity: 0;
+    transform: rotate(270deg);
+    box-shadow:
+      0 10px 20px 0 #fff inset,
+      0 20px 10px 0 #d60a47 inset,
+      0 40px 60px 0 #311e80 inset;
   }
-
   100% {
-    box-shadow: 0 0 0 1rem #fff;
+    transform: rotate(450deg);
+    box-shadow:
+      0 10px 20px 0 #fff inset,
+      0 20px 30px 0 #ad5fff inset,
+      0 60px 60px 0 #471eec inset;
+  }
+}
+
+.loader-letter {
+  display: inline-block;
+  opacity: 0.4;
+  transform: translateY(0);
+  animation: loader-letter-anim 2s infinite;
+  z-index: 1;
+  border-radius: 50ch;
+  border: none;
+}
+
+.loader-letter:nth-child(1) {
+  animation-delay: 0s;
+}
+.loader-letter:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.loader-letter:nth-child(3) {
+  animation-delay: 0.2s;
+}
+.loader-letter:nth-child(4) {
+  animation-delay: 0.3s;
+}
+.loader-letter:nth-child(5) {
+  animation-delay: 0.4s;
+}
+.loader-letter:nth-child(6) {
+  animation-delay: 0.5s;
+}
+.loader-letter:nth-child(7) {
+  animation-delay: 0.6s;
+}
+.loader-letter:nth-child(8) {
+  animation-delay: 0.7s;
+}
+.loader-letter:nth-child(9) {
+  animation-delay: 0.8s;
+}
+.loader-letter:nth-child(10) {
+  animation-delay: 0.9s;
+}
+
+@keyframes loader-letter-anim {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: translateY(0);
+  }
+  20% {
     opacity: 1;
+    transform: scale(1.15);
+  }
+  40% {
+    opacity: 0.7;
+    transform: translateY(0);
   }
 }
 
-/* Table loading */
-.loader-table {
-  width: 200px;
-  height: 140px;
-  background: #979794;
-  box-sizing: border-box;
-  position: relative;
-  border-radius: 8px;
-  perspective: 1000px;
-}
-
-.loader-table:before {
-  content: '';
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  top: 10px;
-  bottom: 10px;
-  border-radius: 8px;
-  background: #f5f5f5 no-repeat;
-  background-size: 60px 10px;
-  background-image: linear-gradient(#ddd 100px, transparent 0),
-    linear-gradient(#ddd 100px, transparent 0),
-    linear-gradient(#ddd 100px, transparent 0),
-    linear-gradient(#ddd 100px, transparent 0),
-    linear-gradient(#ddd 100px, transparent 0),
-    linear-gradient(#ddd 100px, transparent 0);
-
-  background-position: 15px 30px, 15px 60px, 15px 90px,
-    105px 30px, 105px 60px, 105px 90px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
-}
-
-.loader-table:after {
-  content: '';
-  position: absolute;
-  width: calc(50% - 10px);
-  right: 10px;
-  top: 10px;
-  bottom: 10px;
-  border-radius: 8px;
-  background: #fff no-repeat;
-  background-size: 60px 10px;
-  background-image: linear-gradient(#ddd 100px, transparent 0),
-    linear-gradient(#ddd 100px, transparent 0),
-    linear-gradient(#ddd 100px, transparent 0);
-  background-position: 50% 30px, 50% 60px, 50% 90px;
-  transform: rotateY(0deg);
-  transform-origin: left center;
-  animation: paging 1s linear infinite;
-}
-
-
-@keyframes paging {
-  to {
-    transform: rotateY(-180deg);
-  }
-}

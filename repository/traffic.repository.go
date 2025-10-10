@@ -100,14 +100,14 @@ func (r *trafficRepository) SaveSummaryTraffic(ctx context.Context, trafficData 
 func (r *trafficRepository) GetTotalTrafficByIP(ctx context.Context, ip string, startTime, endTime time.Time) ([]entity.TrafficSummary, error) {
 	var res []entity.TrafficSummary
 	query := `SELECT
-		date_trunc('day', time) as time,
+		date_trunc('day', time AT TIME ZONE 'America/Caracas') AT TIME ZONE 'America/Caracas' AS time,
 		SUM(bps_in) as total_bps_in,
 		SUM(bps_out) as total_bps_out,
 		SUM(bytes_in) as total_bytes_in,
 		SUM(bytes_out) as total_bytes_out
 		FROM summary_traffic
 		WHERE ip = $1 AND time BETWEEN $2 AND $3
-		GROUP BY date_trunc('day', time)
+		GROUP BY date_trunc('day', time AT TIME ZONE 'America/Caracas') AT TIME ZONE 'America/Caracas'
 		ORDER BY time`
 
 	err := r.db.SelectContext(ctx, &res, query, ip, startTime, endTime)
@@ -117,14 +117,15 @@ func (r *trafficRepository) GetTotalTrafficByIP(ctx context.Context, ip string, 
 func (r *trafficRepository) GetTotalTrafficByState(ctx context.Context, state string, startTime, endTime time.Time) ([]entity.TrafficSummary, error) {
 	var res []entity.TrafficSummary
 	query := `SELECT
-		date_trunc('day', time) as time,
+		date_trunc('day', time AT TIME ZONE 'America/Caracas') AT TIME ZONE 'America/Caracas' AS time,
 		SUM(bps_in) as total_bps_in,
 		SUM(bps_out) as total_bps_out,
 		SUM(bytes_in) as total_bytes_in,
 		SUM(bytes_out) as total_bytes_out
 		FROM summary_traffic
 		WHERE state = $1 AND time BETWEEN $2 AND $3
-		GROUP BY date_trunc('day', time)`
+		GROUP BY date_trunc('day', time AT TIME ZONE 'America/Caracas') AT TIME ZONE 'America/Caracas'
+		ORDER BY time`
 
 	err := r.db.SelectContext(ctx, &res, query, state, startTime, endTime)
 	return res, err
@@ -133,14 +134,15 @@ func (r *trafficRepository) GetTotalTrafficByState(ctx context.Context, state st
 func (r *trafficRepository) GetTotalTrafficByRegion(ctx context.Context, region string, startTime, endTime time.Time) ([]entity.TrafficSummary, error) {
 	var res []entity.TrafficSummary
 	query := `SELECT
-		date_trunc('day', time) as time,
+		date_trunc('day', time AT TIME ZONE 'America/Caracas') AT TIME ZONE 'America/Caracas' AS time,
 		SUM(bps_in) as total_bps_in,
 		SUM(bps_out) as total_bps_out,
 		SUM(bytes_in) as total_bytes_in,
 		SUM(bytes_out) as total_bytes_out
 		FROM summary_traffic
 		WHERE region = $1 AND time BETWEEN $2 AND $3
-		GROUP BY date_trunc('day', time)`
+		GROUP BY date_trunc('day', time AT TIME ZONE 'America/Caracas') AT TIME ZONE 'America/Caracas'
+		ORDER BY time`
 
 	err := r.db.SelectContext(ctx, &res, query, region, startTime, endTime)
 	return res, err
@@ -149,14 +151,15 @@ func (r *trafficRepository) GetTotalTrafficByRegion(ctx context.Context, region 
 func (r *trafficRepository) GetTotalTraffic(ctx context.Context, startTime, endTime time.Time) ([]entity.TrafficSummary, error) {
 	var res []entity.TrafficSummary
 	query := `SELECT
-		date_trunc('day', time) as time,
+		date_trunc('day', time AT TIME ZONE 'America/Caracas') AT TIME ZONE 'America/Caracas' AS time,
 		SUM(bps_in) as total_bps_in,
 		SUM(bps_out) as total_bps_out,
 		SUM(bytes_in) as total_bytes_in,
 		SUM(bytes_out) as total_bytes_out
 		FROM summary_traffic
 		WHERE time BETWEEN $1 AND $2
-		GROUP BY date_trunc('day', time)`
+		GROUP BY date_trunc('day', time AT TIME ZONE 'America/Caracas') AT TIME ZONE 'America/Caracas'
+		ORDER BY time`
 
 	err := r.db.SelectContext(ctx, &res, query, startTime, endTime)
 	return res, err
@@ -166,14 +169,15 @@ func (r *trafficRepository) GetTrafficGroupedByRegion(ctx context.Context, start
 	var rows []entity.TrafficByRegion
 	query := `SELECT
 		region,
-		date_trunc('day', time) as time,
+		date_trunc('day', time AT TIME ZONE 'America/Caracas') AT TIME ZONE 'America/Caracas' AS time,
 		SUM(bps_in) as total_bps_in,
 		SUM(bps_out) as total_bps_out,
 		SUM(bytes_in) as total_bytes_in,
 		SUM(bytes_out) as total_bytes_out
 		FROM summary_traffic
 		WHERE time BETWEEN $1 AND $2
-		GROUP BY region, date_trunc('day', time)`
+		GROUP BY region, date_trunc('day', time AT TIME ZONE 'America/Caracas') AT TIME ZONE 'America/Caracas'
+		ORDER BY time`
 
 	err := r.db.SelectContext(ctx, &rows, query, startTime, endTime)
 	if err != nil {
@@ -199,14 +203,15 @@ func (r *trafficRepository) GetTrafficGroupedByState(ctx context.Context, region
 	var rows []entity.TrafficByState
 	query := `SELECT
 		state,
-		date_trunc('day', time) as time,
+		date_trunc('day', time AT TIME ZONE 'America/Caracas') AT TIME ZONE 'America/Caracas' AS time,
 		SUM(bps_in) as total_bps_in,
 		SUM(bps_out) as total_bps_out,
 		SUM(bytes_in) as total_bytes_in,
 		SUM(bytes_out) as total_bytes_out
 		FROM summary_traffic
 		WHERE region = $1 AND time BETWEEN $2 AND $3
-		GROUP BY state, date_trunc('day', time)`
+		GROUP BY state, date_trunc('day', time AT TIME ZONE 'America/Caracas') AT TIME ZONE 'America/Caracas'
+		ORDER BY time`
 
 	err := r.db.SelectContext(ctx, &rows, query, region, startTime, endTime)
 	if err != nil {
@@ -232,14 +237,15 @@ func (r *trafficRepository) GetTrafficGroupedByIP(ctx context.Context, state str
 	var rows []entity.TrafficByIP
 	query := `SELECT
 		ip,
-		date_trunc('day', time) as time,
+		date_trunc('day', time AT TIME ZONE 'America/Caracas') AT TIME ZONE 'America/Caracas' AS time,
 		SUM(bps_in) as total_bps_in,
 		SUM(bps_out) as total_bps_out,
 		SUM(bytes_in) as total_bytes_in,
 		SUM(bytes_out) as total_bytes_out
 		FROM summary_traffic
 		WHERE state = $1 AND time BETWEEN $2 AND $3
-		GROUP BY ip, date_trunc('day', time)`
+		GROUP BY ip, date_trunc('day', time AT TIME ZONE 'America/Caracas') AT TIME ZONE 'America/Caracas'
+		ORDER BY time`
 
 	err := r.db.SelectContext(ctx, &rows, query, state, startTime, endTime)
 	if err != nil {

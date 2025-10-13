@@ -44,7 +44,22 @@ export default function LoginForm() {
   }
 
   if (loading) {
-    return <span className="mx-auto py-20 loader"></span>;
+    return (
+      <section className="flex justify-center items-center flex-col flex-1 sm:flex-2 px-6 py-3 h-[100%] rounded-lg bg-[#121b31]">
+        <div class="loader-wrapper">
+          <span class="loader-letter">V</span>
+          <span class="loader-letter">a</span>
+          <span class="loader-letter">l</span>
+          <span class="loader-letter">i</span>
+          <span class="loader-letter">d</span>
+          <span class="loader-letter">a</span>
+          <span class="loader-letter">n</span>
+          <span class="loader-letter">d</span>
+          <span class="loader-letter">o</span>
+          <div class="loader"></div>
+        </div>
+      </section>
+    );
   }
 
   return (

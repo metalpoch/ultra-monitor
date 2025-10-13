@@ -28,7 +28,7 @@ export default function TrafficRegions() {
   const $selectedState = useStore(selectedState);
 
   const token = sessionStorage.getItem("access_token").replace("Bearer ", "");
-  const { data, loading } = useFetch(url, {
+  const { data } = useFetch(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
   useEffect(() => {
@@ -45,13 +45,6 @@ export default function TrafficRegions() {
     setUrl(u);
   }, [$selectedLevel, $selectedRegion, $selectedState]);
 
-  if (loading) {
-    return (
-      <section className="flex flex-col flex-1 sm:flex-2 px-6 py-3 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]">
-        <span className="mx-auto py-20 loader"></span>
-      </section>
-    );
-  }
 
   return (
     <section className="flex flex-col flex-1 sm:flex-2 px-6 py-3 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]">

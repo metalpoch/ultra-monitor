@@ -28,7 +28,7 @@ export default function Traffic() {
   const $selectedState = useStore(selectedState);
 
   const token = sessionStorage.getItem("access_token").replace("Bearer ", "");
-  const { data, status, loading } = useFetch(url, {
+  const { data, status } = useFetch(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
@@ -49,14 +49,6 @@ export default function Traffic() {
   if (status === 401 || status === 403) {
     sessionStorage.removeItem("access_token")
     window.location.href = "/";
-  }
-
-  if (loading) {
-    return (
-      <section className="flex flex-col flex-1 sm:flex-2 px-6 py-3 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]">
-        <span className="mx-auto py-20 loader"></span>
-      </section>
-    );
   }
 
   return (

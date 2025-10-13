@@ -11,7 +11,6 @@ import {
   ip,
   gpon,
 } from "../../stores/traffic";
-import { isIpv4 } from "../../utils/validator";
 import Chart from "./Chart";
 
 export default function ChartWrapper() {
@@ -48,11 +47,11 @@ export default function ChartWrapper() {
   ]);
 
   return (
-    <div class="flex-4 p-4 min-w-[500px] rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]">
+    <div className="flex-4 p-4 min-w-[500px] rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]">
       {showChart ? (
         <Chart />
       ) : (
-        <div class="flex items-center justify-center h-full text-slate-400">
+        <div className="flex items-center justify-center h-full text-slate-400">
           <p>Selecciona filtros en el formulario para mostrar el gráfico</p>
         </div>
       )}

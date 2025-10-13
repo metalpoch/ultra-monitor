@@ -159,6 +159,7 @@ export default function Form() {
         id="initDate"
         label="Fecha inicial *"
         value={$initDate}
+        max={$endDate ? $endDate.split("T")[0] : undefined}
         onChange={(init) => handleDateChange({ init })}
       />
 
@@ -167,6 +168,7 @@ export default function Form() {
         label="Fecha final *"
         endOfDay={true}
         value={$endDate}
+        min={$initDate ? $initDate.split("T")[0] : undefined}
         onChange={(end) => handleDateChange({ end })}
       />
 
@@ -217,7 +219,7 @@ export default function Form() {
         />
       )}
 
-      {$state && selectionMethod === "olt" && (
+      {$state && selectionMethod === "olt" && data && data.olts && data.olts[$state] && (
         <>
           <DatalistField
             id="olt"

@@ -12,6 +12,7 @@ import {
 } from 'chart.js'
 import { Line } from 'react-chartjs-2'
 import 'chartjs-adapter-date-fns'
+import { es } from 'date-fns/locale'
 import dayjs from 'dayjs'
 
 ChartJS.register(
@@ -226,21 +227,14 @@ const Chart = () => {
     if (!trendData) return null
 
 
-    // Prepare historical data - handle timezone issues
-    const historicalLabels = historicalData ? historicalData.map(h => {
-      const date = new Date(h.time)
-      // Adjust for timezone offset to get correct local date
-      return new Date(date.getTime() + date.getTimezoneOffset() * 60000)
-    }) : []
+    // Prepare historical data - let Chart.js handle timezone conversion
+    const historicalLabels = historicalData ? historicalData.map(h => new Date(h.time)) : []
     const historicalBpsIn = historicalData ? historicalData.map(h => h.bps_in) : []
     const historicalBpsOut = historicalData ? historicalData.map(h => h.bps_out) : []
 
     // Get the last historical date to adjust prediction dates
     const lastHistoricalDate = historicalData && historicalData.length > 0
-      ? new Date(Math.max(...historicalData.map(h => {
-        const date = new Date(h.time)
-        return new Date(date.getTime() + date.getTimezoneOffset() * 60000)
-      })))
+      ? new Date(Math.max(...historicalData.map(h => new Date(h.time))))
       : null
 
 
@@ -402,6 +396,11 @@ const Chart = () => {
           unit: 'day',
           displayFormats: {
             day: 'MMM dd'
+          }
+        },
+        adapters: {
+          date: {
+            locale: es // Use Spanish locale for date formatting
           }
         },
         grid: {

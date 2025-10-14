@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useDebounce } from '../../hooks/useDebounce'
-import { REGIONS, STATES_BY_REGION } from '../../constants/regions'
 import dayjs from 'dayjs'
 
 const BASE_URL_TRAFFIC = `${import.meta.env.PUBLIC_URL || ""}/api/traffic`
@@ -13,7 +12,7 @@ const Form = () => {
   const [futureDays, setFutureDays] = useState(7)
   const [confidence, setConfidence] = useState(0.95)
   const [dateRange, setDateRange] = useState({
-    initDate: dayjs().subtract(30, 'day').format('YYYY-MM-DDTHH:mm:ss-04:00'),
+    initDate: dayjs().subtract(1, 'year').format('YYYY-MM-DDTHH:mm:ss-04:00'),
     finalDate: dayjs().format('YYYY-MM-DDTHH:mm:ss-04:00')
   })
   const [olts, setOlts] = useState([])
@@ -42,7 +41,7 @@ const Form = () => {
 
   const fetchOlts = async (state) => {
     try {
-      const response = await fetch(`${BASE_URL_TRAFFIC}/hierarchy`, {
+      const response = await fetch(`${BASE_URL_TRAFFIC}/hierarchy?initDate=${dateRange.initDate}&finalDate=${dateRange.finalDate}`, {
         headers: { Authorization: `Bearer ${TOKEN}` }
       })
 
@@ -72,7 +71,7 @@ const Form = () => {
 
   const fetchRegionsAndStates = async () => {
     try {
-      const response = await fetch(`${BASE_URL_TRAFFIC}/hierarchy`, {
+      const response = await fetch(`${BASE_URL_TRAFFIC}/hierarchy?initDate=${dateRange.initDate}&finalDate=${dateRange.finalDate}`, {
         headers: { Authorization: `Bearer ${TOKEN}` }
       })
 

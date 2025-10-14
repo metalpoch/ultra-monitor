@@ -35,14 +35,7 @@ export default function TrafficChartTotal({ data, dataType }) {
   }, [data, dataType])
 
   const prepareChartData = () => {
-    // Convert dates to account for timezone offset
-    const labels = data.map(item => {
-      const date = new Date(item.time)
-      // The date string includes timezone offset (-04:00), but Chart.js treats it as UTC
-      // We need to adjust by the timezone offset to get the correct local time
-      const timezoneOffset = date.getTimezoneOffset() * 60000 // Convert to milliseconds
-      return new Date(date.getTime() + timezoneOffset)
-    })
+    const labels = data.map(item => item.time)
 
     const bpsIn = data.map(item => item.bps_in || 0)
     const bpsOut = data.map(item => item.bps_out || 0)
@@ -158,9 +151,7 @@ export default function TrafficChartTotal({ data, dataType }) {
           unit: 'day',
           displayFormats: {
             day: 'MMM dd'
-          },
-          // Use local timezone instead of UTC
-          tooltipFormat: 'PPpp',
+          }
         },
         grid: {
           display: false

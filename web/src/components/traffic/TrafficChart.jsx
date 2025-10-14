@@ -12,6 +12,7 @@ import {
 } from 'chart.js'
 import { Line } from 'react-chartjs-2'
 import 'chartjs-adapter-date-fns'
+import { es } from 'date-fns/locale'
 import { COLOR } from '../../constants/colors'
 
 ChartJS.register(
@@ -35,14 +36,8 @@ export default function TrafficChart({ data, dataType }) {
   }, [data, dataType])
 
   const prepareChartData = () => {
-    // Convert dates to account for timezone offset
-    const labels = data.map(item => {
-      const date = new Date(item.time)
-      // The date string includes timezone offset (-04:00), but Chart.js treats it as UTC
-      // We need to adjust by the timezone offset to get the correct local time
-      const timezoneOffset = date.getTimezoneOffset() * 60000 // Convert to milliseconds
-      return new Date(date.getTime() + timezoneOffset)
-    })
+    // Use the original date strings - Chart.js will handle timezone conversion
+    const labels = data.map(item => new Date(item.time))
 
     const bpsIn = data.map(item => item.bps_in || 0)
     const bpsOut = data.map(item => item.bps_out || 0)
@@ -161,6 +156,11 @@ export default function TrafficChart({ data, dataType }) {
           },
           // Use local timezone instead of UTC
           tooltipFormat: 'PPpp',
+        },
+        adapters: {
+          date: {
+            locale: es // Use Spanish locale for date formatting
+          }
         },
         grid: {
           display: false

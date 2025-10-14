@@ -47,7 +47,7 @@ export default function TrafficChartDetailed({ data, dataType }) {
     const labels = allTimes.map(time => time)
 
     const datasets = Object.keys(data).map((name, index) => {
-      const datasetData = labels.map((label, labelIndex) => {
+      const datasetData = labels.map((_, labelIndex) => {
         const time = allTimes[labelIndex]
         const point = data[name].find((d) => d.time === time)
         if (point) {

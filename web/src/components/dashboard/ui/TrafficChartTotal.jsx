@@ -36,7 +36,6 @@ export default function TrafficChartTotal({ data, dataType }) {
 
   const prepareChartData = () => {
     const labels = data.map(item => item.time)
-
     const bpsIn = data.map(item => item.bps_in || 0)
     const bpsOut = data.map(item => item.bps_out || 0)
     const bytesIn = data.map(item => item.bytes_in || 0)

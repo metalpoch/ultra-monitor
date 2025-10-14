@@ -24,7 +24,7 @@ const BASE_URL_TRAFFIC = `${import.meta.env.PUBLIC_URL || ""}/api/traffic`;
 const BASE_URL_FATS = `${import.meta.env.PUBLIC_URL || ""}/api/fat`;
 const TOKEN = sessionStorage.getItem("access_token")?.replace("Bearer ", "") || ""
 endDate.set(dayjs().toISOString());
-initDate.set(dayjs().subtract(1, "week").toISOString());
+initDate.set(dayjs().subtract(1, "week").startOf("day").toISOString());
 
 export default function Form() {
   const [urlFatState, setUrlFatState] = useState(undefined);
@@ -46,7 +46,7 @@ export default function Form() {
   // Reset all form states when component mounts
   useEffect(() => {
     endDate.set(dayjs().toISOString());
-    initDate.set(dayjs().subtract(1, "week").toISOString());
+    initDate.set(dayjs().subtract(1, "week").startOf("day").toISOString());
     region.set("");
     state.set("");
     municipality.set("");

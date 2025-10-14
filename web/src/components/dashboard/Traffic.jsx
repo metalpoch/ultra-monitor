@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
 import dayjs from "dayjs";
-import TrafficChart from "../ui/TrafficChart";
+import TrafficChartTotal from "./ui/TrafficChartTotal";
 import {
   selectedLevel,
   selectedRegion,
@@ -81,7 +81,7 @@ export default function Traffic() {
               <p className="text-slate-400 text-sm">
                 Monitoreo del tráfico de entrada y salida total.
               </p>
-              <TrafficChart data={data} dataType="traffic" client:load />
+              <TrafficChartTotal data={data} dataType="traffic" client:load />
             </>
           )}
 
@@ -90,7 +90,7 @@ export default function Traffic() {
               <p className="text-slate-400 text-sm">
                 Monitoreo del volumen de datos de entrada y salida.
               </p>
-              <TrafficChart data={data} dataType="volume" client:load />
+              <TrafficChartTotal data={data} dataType="volume" client:load />
             </>
           )}
         </>

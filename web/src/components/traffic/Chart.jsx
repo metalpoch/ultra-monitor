@@ -94,18 +94,18 @@ export default function Chart() {
   if (loading) {
     return (
       <section className="flex justify-center items-center flex-col flex-1 sm:flex-2 px-6 py-3 h-[100%] rounded-lg bg-[#121b31]">
-        <div class="loader-wrapper">
-          <span class="loader-letter">G</span>
-          <span class="loader-letter">e</span>
-          <span class="loader-letter">n</span>
-          <span class="loader-letter">e</span>
-          <span class="loader-letter">r</span>
-          <span class="loader-letter">a</span>
-          <span class="loader-letter">n</span>
-          <span class="loader-letter">d</span>
-          <span class="loader-letter">o</span>
-          <span class="loader-letter">.</span>
-          <div class="loader"></div>
+        <div className="loader-wrapper">
+          <span className="loader-letter">G</span>
+          <span className="loader-letter">e</span>
+          <span className="loader-letter">n</span>
+          <span className="loader-letter">e</span>
+          <span className="loader-letter">r</span>
+          <span className="loader-letter">a</span>
+          <span className="loader-letter">n</span>
+          <span className="loader-letter">d</span>
+          <span className="loader-letter">o</span>
+          <span className="loader-letter">.</span>
+          <div className="loader"></div>
         </div>
       </section>
     );

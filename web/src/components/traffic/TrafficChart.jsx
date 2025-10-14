@@ -12,7 +12,7 @@ import {
 } from 'chart.js'
 import { Line } from 'react-chartjs-2'
 import 'chartjs-adapter-date-fns'
-import { COLOR } from '../../../constants/colors'
+import { COLOR } from '../../constants/colors'
 
 ChartJS.register(
   CategoryScale,
@@ -25,7 +25,7 @@ ChartJS.register(
   TimeScale
 )
 
-export default function TrafficChartTotal({ data, dataType }) {
+export default function TrafficChart({ data, dataType }) {
   const [chartData, setChartData] = useState(null)
 
   useEffect(() => {
@@ -121,7 +121,7 @@ export default function TrafficChartTotal({ data, dataType }) {
       },
       title: {
         display: true,
-        text: dataType === 'traffic' ? 'Tráfico de Red Total' : 'Volumen de la Red Total',
+        text: dataType === 'traffic' ? 'Tráfico de Red' : 'Volumen de la Red',
         color: '#e2e8f0',
         font: {
           size: 16,

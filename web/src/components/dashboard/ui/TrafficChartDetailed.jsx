@@ -44,7 +44,14 @@ export default function TrafficChartDetailed({ data, dataType }) {
       ),
     ].sort()
 
-    const labels = allTimes.map(time => time)
+    // Convert dates to account for timezone offset
+    const labels = allTimes.map(time => {
+      const date = new Date(time)
+      // The date string includes timezone offset (-04:00), but Chart.js treats it as UTC
+      // We need to adjust by the timezone offset to get the correct local time
+      const timezoneOffset = date.getTimezoneOffset() * 60000 // Convert to milliseconds
+      return new Date(date.getTime() + timezoneOffset)
+    })
 
     const datasets = Object.keys(data).map((name, index) => {
       const datasetData = labels.map((label, labelIndex) => {
@@ -157,7 +164,9 @@ export default function TrafficChartDetailed({ data, dataType }) {
           unit: 'day',
           displayFormats: {
             day: 'MMM dd'
-          }
+          },
+          // Use local timezone instead of UTC
+          tooltipFormat: 'PPpp',
         },
         grid: {
           display: false

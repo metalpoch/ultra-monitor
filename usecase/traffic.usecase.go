@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -21,6 +22,100 @@ type TrafficUsecase struct {
 	repo       repository.TrafficRepository
 	cache      *cache.Redis
 	prometheus prometheus.Prometheus
+}
+
+// isToday checks if a date is today
+type dateRange struct {
+	start time.Time
+	end   time.Time
+}
+
+// generateCacheKey creates a cache key based on query parameters and date
+func (use *TrafficUsecase) generateCacheKey(prefix, queryParam string, date time.Time) string {
+	// Format date as YYYY-MM-DD for daily caching
+	dateStr := date.Format("2006-01-02")
+	if queryParam != "" {
+		return fmt.Sprintf("%s:%s:%s", prefix, queryParam, dateStr)
+	}
+	return fmt.Sprintf("%s:%s", prefix, dateStr)
+}
+
+// getDateRanges splits a date range into individual days
+func (use *TrafficUsecase) getDateRanges(initDate, finalDate time.Time) []dateRange {
+	var ranges []dateRange
+	current := time.Date(initDate.Year(), initDate.Month(), initDate.Day(), 0, 0, 0, 0, initDate.Location())
+	final := time.Date(finalDate.Year(), finalDate.Month(), finalDate.Day(), 0, 0, 0, 0, finalDate.Location())
+
+	for current.Before(final) || current.Equal(final) {
+		startOfDay := current
+		endOfDay := current.Add(24*time.Hour - time.Second)
+		ranges = append(ranges, dateRange{start: startOfDay, end: endOfDay})
+		current = current.Add(24 * time.Hour)
+	}
+
+	return ranges
+}
+
+// isToday checks if a date is today
+func (use *TrafficUsecase) isToday(date time.Time) bool {
+	today := time.Now()
+	return date.Year() == today.Year() && date.Month() == today.Month() && date.Day() == today.Day()
+}
+
+// getCachedTraffic retrieves cached traffic data for a date range
+func (use *TrafficUsecase) getCachedTraffic(ctx context.Context, prefix, queryParam string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
+	var allTraffic []dto.Traffic
+
+	dateRanges := use.getDateRanges(initDate, finalDate)
+	for _, dateRange := range dateRanges {
+		// Skip caching for today
+		if use.isToday(dateRange.start) {
+			continue
+		}
+
+		cacheKey := use.generateCacheKey(prefix, queryParam, dateRange.start)
+		var dailyTraffic []dto.Traffic
+		if err := use.cache.FindOne(ctx, cacheKey, &dailyTraffic); err == nil {
+			// Cache hit, add all intervals to results
+			allTraffic = append(allTraffic, dailyTraffic...)
+		} else if err != redis.Nil {
+			return nil, err
+		}
+		// Cache miss - we'll handle this in the main query logic
+	}
+
+	return allTraffic, nil
+}
+
+// cacheTrafficData stores all traffic data intervals in cache by day
+func (use *TrafficUsecase) cacheTrafficData(ctx context.Context, prefix, queryParam string, trafficData []dto.Traffic) error {
+	// Group traffic data by day, preserving all time intervals
+	trafficByDay := make(map[string][]dto.Traffic)
+	for _, traffic := range trafficData {
+		dateKey := traffic.Time.Format("2006-01-02")
+		trafficByDay[dateKey] = append(trafficByDay[dateKey], traffic)
+	}
+
+	// Cache each day's data with all intervals
+	for dateStr, dailyTraffic := range trafficByDay {
+		date, err := time.Parse("2006-01-02", dateStr)
+		if err != nil {
+			continue
+		}
+
+		// Skip caching for today
+		if use.isToday(date) {
+			continue
+		}
+
+		cacheKey := use.generateCacheKey(prefix, queryParam, date)
+		// Cache for 30 days (historical data)
+		if err := use.cache.InsertOne(ctx, cacheKey, 30*24*time.Hour, dailyTraffic); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func NewTrafficUsecase(db *sqlx.DB, cache *cache.Redis, prometheus *prometheus.Prometheus) *TrafficUsecase {
@@ -125,17 +220,69 @@ func (use *TrafficUsecase) UpdateSummaryTraffic(initDate, finalDate time.Time) e
 }
 
 func (use *TrafficUsecase) GetTrafficByCriteria(criteria, value string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
-	traffic, err := use.prometheus.TrafficByCriteria(context.Background(), criteria, value, initDate, finalDate)
+	ctx := context.Background()
+
+	// Try to get cached data first
+	cachedTraffic, err := use.getCachedTraffic(ctx, "traffic:criteria:"+criteria, value, initDate, finalDate)
 	if err != nil {
 		return nil, err
 	}
 
-	var result []dto.Traffic
-	for _, t := range traffic {
-		result = append(result, (dto.Traffic)(*t))
+	// Determine which dates need to be queried from Prometheus
+	dateRanges := use.getDateRanges(initDate, finalDate)
+	var missingRanges []dateRange
+
+	for _, dateRange := range dateRanges {
+		// Skip today (never cache today)
+		if use.isToday(dateRange.start) {
+			missingRanges = append(missingRanges, dateRange)
+			continue
+		}
+
+		// Check if we have this date in cache
+		cacheKey := use.generateCacheKey("traffic:criteria:"+criteria, value, dateRange.start)
+		var dailyTraffic []dto.Traffic
+		if err := use.cache.FindOne(ctx, cacheKey, &dailyTraffic); err != nil && err != redis.Nil {
+			return nil, err
+		} else if err == redis.Nil {
+			// Cache miss, need to query this date
+			missingRanges = append(missingRanges, dateRange)
+		}
 	}
 
-	return result, nil
+	var prometheusTraffic []dto.Traffic
+	if len(missingRanges) > 0 {
+		// Query Prometheus for missing dates
+		for _, dateRange := range missingRanges {
+			traffic, err := use.prometheus.TrafficByCriteria(ctx, criteria, value, dateRange.start, dateRange.end)
+			if err != nil {
+				return nil, err
+			}
+
+			var result []dto.Traffic
+			for _, t := range traffic {
+				result = append(result, (dto.Traffic)(*t))
+			}
+			prometheusTraffic = append(prometheusTraffic, result...)
+
+			// Cache the data (excluding today)
+			if !use.isToday(dateRange.start) {
+				if err := use.cacheTrafficData(ctx, "traffic:criteria:"+criteria, value, result); err != nil {
+					log.Printf("Warning: failed to cache traffic data: %v", err)
+				}
+			}
+		}
+	}
+
+	// Combine cached and fresh data
+	allTraffic := append(cachedTraffic, prometheusTraffic...)
+
+	// Sort by time
+	sort.Slice(allTraffic, func(i, j int) bool {
+		return allTraffic[i].Time.Before(allTraffic[j].Time)
+	})
+
+	return allTraffic, nil
 }
 
 func (use *TrafficUsecase) Regions(initDate, finalDate time.Time) (dto.TrafficByLabel, error) {
@@ -402,17 +549,72 @@ func (use *TrafficUsecase) GponStats(ip string, initDate, finalDate time.Time) (
 }
 
 func (use *TrafficUsecase) GroupIP(ips []string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
-	traffic, err := use.prometheus.TrafficGroupInstance(context.Background(), ips, initDate, finalDate)
+	ctx := context.Background()
+
+	// Create a unique identifier for the IPs group
+	ipsKey := strings.Join(ips, ",")
+
+	// Try to get cached data first
+	cachedTraffic, err := use.getCachedTraffic(ctx, "traffic:groupip", ipsKey, initDate, finalDate)
 	if err != nil {
 		return nil, err
 	}
 
-	var result []dto.Traffic
-	for _, t := range traffic {
-		result = append(result, (dto.Traffic)(*t))
+	// Determine which dates need to be queried from Prometheus
+	dateRanges := use.getDateRanges(initDate, finalDate)
+	var missingRanges []dateRange
+
+	for _, dateRange := range dateRanges {
+		// Skip today (never cache today)
+		if use.isToday(dateRange.start) {
+			missingRanges = append(missingRanges, dateRange)
+			continue
+		}
+
+		// Check if we have this date in cache
+		cacheKey := use.generateCacheKey("traffic:groupip", ipsKey, dateRange.start)
+		var dailyTraffic []dto.Traffic
+		if err := use.cache.FindOne(ctx, cacheKey, &dailyTraffic); err != nil && err != redis.Nil {
+			return nil, err
+		} else if err == redis.Nil {
+			// Cache miss, need to query this date
+			missingRanges = append(missingRanges, dateRange)
+		}
 	}
 
-	return result, nil
+	var prometheusTraffic []dto.Traffic
+	if len(missingRanges) > 0 {
+		// Query Prometheus for missing dates
+		for _, dateRange := range missingRanges {
+			traffic, err := use.prometheus.TrafficGroupInstance(ctx, ips, dateRange.start, dateRange.end)
+			if err != nil {
+				return nil, err
+			}
+
+			var result []dto.Traffic
+			for _, t := range traffic {
+				result = append(result, (dto.Traffic)(*t))
+			}
+			prometheusTraffic = append(prometheusTraffic, result...)
+
+			// Cache the data (excluding today)
+			if !use.isToday(dateRange.start) {
+				if err := use.cacheTrafficData(ctx, "traffic:groupip", ipsKey, result); err != nil {
+					log.Printf("Warning: failed to cache traffic data: %v", err)
+				}
+			}
+		}
+	}
+
+	// Combine cached and fresh data
+	allTraffic := append(cachedTraffic, prometheusTraffic...)
+
+	// Sort by time
+	sort.Slice(allTraffic, func(i, j int) bool {
+		return allTraffic[i].Time.Before(allTraffic[j].Time)
+	})
+
+	return allTraffic, nil
 }
 
 func (use *TrafficUsecase) ByMunicipality(state, municipality string, initDate, finalDate time.Time) ([]dto.Traffic, error) {
@@ -432,40 +634,74 @@ func (use *TrafficUsecase) ByMunicipality(state, municipality string, initDate, 
 		}
 		instancesMap[r.IP] += r.Idx
 	}
-	accum := make(map[time.Time]prometheus.Traffic)
-	for ip, indexes := range instancesMap {
-		traffic, err := use.prometheus.TrafficInstanceByIndex(context.Background(), ip, indexes, initDate, finalDate)
-		if err != nil {
-			return nil, err
+
+	// Try to get cached data first
+	cacheKey := fmt.Sprintf("municipality:%s:%s", state, municipality)
+	cachedTraffic, err := use.getCachedTraffic(ctx, "traffic:municipality", cacheKey, initDate, finalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	// Determine which dates need to be queried from Prometheus
+	dateRanges := use.getDateRanges(initDate, finalDate)
+	var missingRanges []dateRange
+
+	for _, dateRange := range dateRanges {
+		// Skip today (never cache today)
+		if use.isToday(dateRange.start) {
+			missingRanges = append(missingRanges, dateRange)
+			continue
 		}
 
-		for _, t := range traffic {
-			key := t.Time.Truncate(15 * time.Minute)
+		// Check if we have this date in cache
+		dailyCacheKey := use.generateCacheKey("traffic:municipality", cacheKey, dateRange.start)
+		var dailyTraffic []dto.Traffic
+		if err := use.cache.FindOne(ctx, dailyCacheKey, &dailyTraffic); err != nil && err != redis.Nil {
+			return nil, err
+		} else if err == redis.Nil {
+			// Cache miss, need to query this date
+			missingRanges = append(missingRanges, dateRange)
+		}
+	}
 
-			if data, ok := accum[key]; ok {
-				data.BpsIn += t.BpsIn
-				data.BpsOut += t.BpsOut
-				data.BytesIn += t.BytesIn
-				data.BytesOut += t.BytesOut
-				data.Bandwidth += t.Bandwidth
-				accum[key] = data
-			} else {
-				cloned := *t
-				cloned.Time = key
-				accum[key] = cloned
+	var prometheusTraffic []dto.Traffic
+	if len(missingRanges) > 0 {
+		// Query Prometheus for missing dates and preserve all time intervals
+		for _, dateRange := range missingRanges {
+			var dailyTraffic []dto.Traffic
+			for ip, indexes := range instancesMap {
+				traffic, err := use.prometheus.TrafficInstanceByIndex(ctx, ip, indexes, dateRange.start, dateRange.end)
+				if err != nil {
+					return nil, err
+				}
+
+				// Convert and preserve all individual time intervals
+				for _, t := range traffic {
+					dailyTraffic = append(dailyTraffic, (dto.Traffic)(*t))
+				}
+			}
+
+			// Add to prometheus traffic results
+			prometheusTraffic = append(prometheusTraffic, dailyTraffic...)
+
+			// Cache the data (excluding today) - preserving all intervals
+			if !use.isToday(dateRange.start) && len(dailyTraffic) > 0 {
+				if err := use.cacheTrafficData(ctx, "traffic:municipality", cacheKey, dailyTraffic); err != nil {
+					log.Printf("Warning: failed to cache traffic data: %v", err)
+				}
 			}
 		}
 	}
-	var result []dto.Traffic
-	for _, val := range accum {
-		result = append(result, (dto.Traffic)(val))
-	}
 
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].Time.Before(result[j].Time)
+	// Combine cached and fresh data
+	allTraffic := append(cachedTraffic, prometheusTraffic...)
+
+	// Sort by time
+	sort.Slice(allTraffic, func(i, j int) bool {
+		return allTraffic[i].Time.Before(allTraffic[j].Time)
 	})
 
-	return result, nil
+	return allTraffic, nil
 }
 
 func (use *TrafficUsecase) ByCounty(state, municipality, county string, initDate, finalDate time.Time) ([]dto.Traffic, error) {

@@ -32,34 +32,54 @@ type dateRange struct {
 
 // generateCacheKey creates a cache key based on query parameters and date
 func (use *TrafficUsecase) generateCacheKey(prefix, queryParam string, date time.Time) string {
+	// Convert to UTC-4 timezone for consistent caching
+	loc, _ := time.LoadLocation("America/Caracas") // UTC-4
+	dateInUTC4 := date.In(loc)
+
 	// Format date as YYYY-MM-DD for daily caching
-	dateStr := date.Format("2006-01-02")
+	dateStr := dateInUTC4.Format("2006-01-02")
 	if queryParam != "" {
 		return fmt.Sprintf("%s:%s:%s", prefix, queryParam, dateStr)
 	}
 	return fmt.Sprintf("%s:%s", prefix, dateStr)
 }
 
-// getDateRanges splits a date range into individual days
+// getDateRanges splits a date range into individual days in UTC-4 timezone
 func (use *TrafficUsecase) getDateRanges(initDate, finalDate time.Time) []dateRange {
 	var ranges []dateRange
-	current := time.Date(initDate.Year(), initDate.Month(), initDate.Day(), 0, 0, 0, 0, initDate.Location())
-	final := time.Date(finalDate.Year(), finalDate.Month(), finalDate.Day(), 0, 0, 0, 0, finalDate.Location())
 
-	for current.Before(final) || current.Equal(final) {
+	// Convert to UTC-4 timezone for consistent date handling
+	loc, _ := time.LoadLocation("America/Caracas") // UTC-4
+	initDateUTC4 := initDate.In(loc)
+	finalDateUTC4 := finalDate.In(loc)
+
+	// Start from the beginning of the first day in UTC-4
+	current := time.Date(initDateUTC4.Year(), initDateUTC4.Month(), initDateUTC4.Day(), 0, 0, 0, 0, loc)
+	final := time.Date(finalDateUTC4.Year(), finalDateUTC4.Month(), finalDateUTC4.Day(), 0, 0, 0, 0, loc)
+
+	// Ensure we include the final day
+	final = final.Add(24 * time.Hour)
+
+	for current.Before(final) {
 		startOfDay := current
 		endOfDay := current.Add(24*time.Hour - time.Second)
-		ranges = append(ranges, dateRange{start: startOfDay, end: endOfDay})
+
+		// Only include ranges that overlap with the original query
+		if endOfDay.After(initDate) && startOfDay.Before(finalDate) {
+			ranges = append(ranges, dateRange{start: startOfDay, end: endOfDay})
+		}
 		current = current.Add(24 * time.Hour)
 	}
 
 	return ranges
 }
 
-// isToday checks if a date is today
+// isToday checks if a date is today in UTC-4 timezone
 func (use *TrafficUsecase) isToday(date time.Time) bool {
-	today := time.Now()
-	return date.Year() == today.Year() && date.Month() == today.Month() && date.Day() == today.Day()
+	loc, _ := time.LoadLocation("America/Caracas") // UTC-4
+	today := time.Now().In(loc)
+	dateInUTC4 := date.In(loc)
+	return dateInUTC4.Year() == today.Year() && dateInUTC4.Month() == today.Month() && dateInUTC4.Day() == today.Day()
 }
 
 // getCachedTraffic retrieves cached traffic data for a date range
@@ -89,10 +109,14 @@ func (use *TrafficUsecase) getCachedTraffic(ctx context.Context, prefix, queryPa
 
 // cacheTrafficData stores all traffic data intervals in cache by day
 func (use *TrafficUsecase) cacheTrafficData(ctx context.Context, prefix, queryParam string, trafficData []dto.Traffic) error {
-	// Group traffic data by day, preserving all time intervals
+	// Convert to UTC-4 timezone for consistent date grouping
+	loc, _ := time.LoadLocation("America/Caracas") // UTC-4
+
+	// Group traffic data by day in UTC-4 timezone, preserving all time intervals
 	trafficByDay := make(map[string][]dto.Traffic)
 	for _, traffic := range trafficData {
-		dateKey := traffic.Time.Format("2006-01-02")
+		dateInUTC4 := traffic.Time.In(loc)
+		dateKey := dateInUTC4.Format("2006-01-02")
 		trafficByDay[dateKey] = append(trafficByDay[dateKey], traffic)
 	}
 
@@ -102,6 +126,9 @@ func (use *TrafficUsecase) cacheTrafficData(ctx context.Context, prefix, queryPa
 		if err != nil {
 			continue
 		}
+
+		// Set the date in UTC-4 timezone
+		date = time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, loc)
 
 		// Skip caching for today
 		if use.isToday(date) {
@@ -721,40 +748,91 @@ func (use *TrafficUsecase) ByCounty(state, municipality, county string, initDate
 		}
 		instancesMap[r.IP] += r.Idx
 	}
-	accum := make(map[time.Time]prometheus.Traffic)
-	for ip, indexes := range instancesMap {
-		traffic, err := use.prometheus.TrafficInstanceByIndex(context.Background(), ip, indexes, initDate, finalDate)
-		if err != nil {
-			return nil, err
+
+	// Get date ranges for caching
+	dateRanges := use.getDateRanges(initDate, finalDate)
+
+	var cachedTraffic []dto.Traffic
+	var prometheusTraffic []dto.Traffic
+
+	// Try to get cached data first
+	for _, dateRange := range dateRanges {
+		cacheKey := fmt.Sprintf("%s:%s:%s", state, municipality, county)
+		cacheKey = use.generateCacheKey("traffic:county", cacheKey, dateRange.start)
+
+		var dailyTraffic []dto.Traffic
+		if err := use.cache.FindOne(ctx, cacheKey, &dailyTraffic); err == nil {
+			cachedTraffic = append(cachedTraffic, dailyTraffic...)
+		}
+	}
+
+	// If we have all data from cache, return it
+	if len(cachedTraffic) > 0 && len(cachedTraffic) >= len(dateRanges) {
+		return cachedTraffic, nil
+	}
+
+	// Fetch missing data from Prometheus
+	for _, dateRange := range dateRanges {
+		cacheKey := fmt.Sprintf("%s:%s:%s", state, municipality, county)
+		cacheKey = use.generateCacheKey("traffic:county", cacheKey, dateRange.start)
+
+		// Skip if we already have this day cached
+		var dailyTraffic []dto.Traffic
+		if err := use.cache.FindOne(ctx, cacheKey, &dailyTraffic); err == nil {
+			continue
 		}
 
-		for _, t := range traffic {
-			key := t.Time.Truncate(15 * time.Minute)
+		// Fetch from Prometheus
+		accum := make(map[time.Time]prometheus.Traffic)
+		for ip, indexes := range instancesMap {
+			traffic, err := use.prometheus.TrafficInstanceByIndex(context.Background(), ip, indexes, dateRange.start, dateRange.end)
+			if err != nil {
+				return nil, err
+			}
 
-			if data, ok := accum[key]; ok {
-				data.BpsIn += t.BpsIn
-				data.BpsOut += t.BpsOut
-				data.BytesIn += t.BytesIn
-				data.BytesOut += t.BytesOut
-				data.Bandwidth += t.Bandwidth
-				accum[key] = data
-			} else {
-				cloned := *t
-				cloned.Time = key
-				accum[key] = cloned
+			for _, t := range traffic {
+				key := t.Time.Truncate(15 * time.Minute)
+
+				if data, ok := accum[key]; ok {
+					data.BpsIn += t.BpsIn
+					data.BpsOut += t.BpsOut
+					data.BytesIn += t.BytesIn
+					data.BytesOut += t.BytesOut
+					data.Bandwidth += t.Bandwidth
+					accum[key] = data
+				} else {
+					cloned := *t
+					cloned.Time = key
+					accum[key] = cloned
+				}
+			}
+		}
+
+		// Convert to dto.Traffic
+		for _, val := range accum {
+			dailyTraffic = append(dailyTraffic, (dto.Traffic)(val))
+		}
+
+		// Add to prometheus traffic results
+		prometheusTraffic = append(prometheusTraffic, dailyTraffic...)
+
+		// Cache the data (excluding today) - preserving all intervals
+		if !use.isToday(dateRange.start) && len(dailyTraffic) > 0 {
+			if err := use.cacheTrafficData(ctx, "traffic:county", cacheKey, dailyTraffic); err != nil {
+				log.Printf("Warning: failed to cache traffic data: %v", err)
 			}
 		}
 	}
-	var result []dto.Traffic
-	for _, val := range accum {
-		result = append(result, (dto.Traffic)(val))
-	}
 
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].Time.Before(result[j].Time)
+	// Combine cached and fresh data
+	allTraffic := append(cachedTraffic, prometheusTraffic...)
+
+	// Sort by time
+	sort.Slice(allTraffic, func(i, j int) bool {
+		return allTraffic[i].Time.Before(allTraffic[j].Time)
 	})
 
-	return result, nil
+	return allTraffic, nil
 
 }
 
@@ -775,40 +853,91 @@ func (use *TrafficUsecase) ByODN(state, municipality, odn string, initDate, fina
 		}
 		instancesMap[r.IP] += r.Idx
 	}
-	accum := make(map[time.Time]prometheus.Traffic)
-	for ip, indexes := range instancesMap {
-		traffic, err := use.prometheus.TrafficInstanceByIndex(context.Background(), ip, indexes, initDate, finalDate)
-		if err != nil {
-			return nil, err
+
+	// Get date ranges for caching
+	dateRanges := use.getDateRanges(initDate, finalDate)
+
+	var cachedTraffic []dto.Traffic
+	var prometheusTraffic []dto.Traffic
+
+	// Try to get cached data first
+	for _, dateRange := range dateRanges {
+		cacheKey := fmt.Sprintf("%s:%s:%s", state, municipality, odn)
+		cacheKey = use.generateCacheKey("traffic:odn", cacheKey, dateRange.start)
+
+		var dailyTraffic []dto.Traffic
+		if err := use.cache.FindOne(ctx, cacheKey, &dailyTraffic); err == nil {
+			cachedTraffic = append(cachedTraffic, dailyTraffic...)
+		}
+	}
+
+	// If we have all data from cache, return it
+	if len(cachedTraffic) > 0 && len(cachedTraffic) >= len(dateRanges) {
+		return cachedTraffic, nil
+	}
+
+	// Fetch missing data from Prometheus
+	for _, dateRange := range dateRanges {
+		cacheKey := fmt.Sprintf("%s:%s:%s", state, municipality, odn)
+		cacheKey = use.generateCacheKey("traffic:odn", cacheKey, dateRange.start)
+
+		// Skip if we already have this day cached
+		var dailyTraffic []dto.Traffic
+		if err := use.cache.FindOne(ctx, cacheKey, &dailyTraffic); err == nil {
+			continue
 		}
 
-		for _, t := range traffic {
-			key := t.Time.Truncate(15 * time.Minute)
+		// Fetch from Prometheus
+		accum := make(map[time.Time]prometheus.Traffic)
+		for ip, indexes := range instancesMap {
+			traffic, err := use.prometheus.TrafficInstanceByIndex(context.Background(), ip, indexes, dateRange.start, dateRange.end)
+			if err != nil {
+				return nil, err
+			}
 
-			if data, ok := accum[key]; ok {
-				data.BpsIn += t.BpsIn
-				data.BpsOut += t.BpsOut
-				data.BytesIn += t.BytesIn
-				data.BytesOut += t.BytesOut
-				data.Bandwidth += t.Bandwidth
-				accum[key] = data
-			} else {
-				cloned := *t
-				cloned.Time = key
-				accum[key] = cloned
+			for _, t := range traffic {
+				key := t.Time.Truncate(15 * time.Minute)
+
+				if data, ok := accum[key]; ok {
+					data.BpsIn += t.BpsIn
+					data.BpsOut += t.BpsOut
+					data.BytesIn += t.BytesIn
+					data.BytesOut += t.BytesOut
+					data.Bandwidth += t.Bandwidth
+					accum[key] = data
+				} else {
+					cloned := *t
+					cloned.Time = key
+					accum[key] = cloned
+				}
+			}
+		}
+
+		// Convert to dto.Traffic
+		for _, val := range accum {
+			dailyTraffic = append(dailyTraffic, (dto.Traffic)(val))
+		}
+
+		// Add to prometheus traffic results
+		prometheusTraffic = append(prometheusTraffic, dailyTraffic...)
+
+		// Cache the data (excluding today) - preserving all intervals
+		if !use.isToday(dateRange.start) && len(dailyTraffic) > 0 {
+			if err := use.cacheTrafficData(ctx, "traffic:odn", cacheKey, dailyTraffic); err != nil {
+				log.Printf("Warning: failed to cache traffic data: %v", err)
 			}
 		}
 	}
-	var result []dto.Traffic
-	for _, val := range accum {
-		result = append(result, (dto.Traffic)(val))
-	}
 
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].Time.Before(result[j].Time)
+	// Combine cached and fresh data
+	allTraffic := append(cachedTraffic, prometheusTraffic...)
+
+	// Sort by time
+	sort.Slice(allTraffic, func(i, j int) bool {
+		return allTraffic[i].Time.Before(allTraffic[j].Time)
 	})
 
-	return result, nil
+	return allTraffic, nil
 }
 
 func (use *TrafficUsecase) ByIdx(ip, idx string, initDate, finalDate time.Time) ([]dto.Traffic, error) {

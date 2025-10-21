@@ -23,8 +23,8 @@ import { isIpv4 } from "../../utils/validator";
 const BASE_URL_TRAFFIC = `${import.meta.env.PUBLIC_URL || ""}/api/traffic`;
 const BASE_URL_FATS = `${import.meta.env.PUBLIC_URL || ""}/api/fat`;
 const TOKEN = sessionStorage.getItem("access_token")?.replace("Bearer ", "") || ""
-endDate.set(dayjs().toISOString());
-initDate.set(dayjs().subtract(1, "week").startOf("day").toISOString());
+endDate.set(dayjs().toJSON());
+initDate.set(dayjs().subtract(1, "week").startOf("day").toJSON());
 
 export default function Form() {
   const [urlFatState, setUrlFatState] = useState(undefined);
@@ -46,7 +46,7 @@ export default function Form() {
   // Reset all form states when component mounts
   useEffect(() => {
     endDate.set(dayjs().toISOString());
-    initDate.set(dayjs().subtract(1, "week").startOf("day").toISOString());
+    initDate.set(dayjs().subtract(1, "week").startOf("day").toJSON());
     region.set("");
     state.set("");
     municipality.set("");
@@ -74,8 +74,10 @@ export default function Form() {
   }, [data]);
 
   const handleDateChange = ({ init, end }) => {
-    if (init) initDate.set(init);
-    if (end) endDate.set(end);
+    const hour = dayjs().hour()
+    const minute = dayjs().minute()
+    if (init) initDate.set(dayjs(init).toJSON());
+    if (end) endDate.set(dayjs(end).hour(hour).minute(minute).toJSON());
   };
 
   const handleChangeRegion = ({ target }) => {

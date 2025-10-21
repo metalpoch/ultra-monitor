@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import { useState } from "react";
 
 export default function DateField({
@@ -13,23 +14,10 @@ export default function DateField({
 }) {
   const [dateValue, setDateValue] = useState(value ? value.split("T")[0] : "");
 
-  function formatDateToISOWithOffset(dateString) {
-    const date = new Date(dateString + "T00:00:00");
-    const offset = "-04:00";
-
-    if (endOfDay) {
-      return `${dateString}T23:59:59${offset}`;
-    } else {
-      const isoDateTime = date.toISOString().split("Z")[0];
-      return `${isoDateTime}${offset}`;
-    }
-  }
-
   const handleChange = (e) => {
     const selectedDate = e.target.value;
     setDateValue(selectedDate);
-    const formattedDate = formatDateToISOWithOffset(selectedDate);
-    onChange && onChange(formattedDate);
+    onChange && onChange(dayjs(selectedDate).toJSON());
   };
 
   return (

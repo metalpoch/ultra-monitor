@@ -268,6 +268,8 @@ func (r *trafficRepository) GetTrafficGroupedByIP(ctx context.Context, state str
 }
 
 func (r *trafficRepository) GetLocationHierarchy(ctx context.Context, initDate, finalDate time.Time) (*dto.LocationHierarchy, error) {
+	initDate = time.Date(initDate.Year(), initDate.Month(), initDate.Day(), 0, 0, 0, 0, initDate.Location())
+	finalDate = time.Date(finalDate.Year(), finalDate.Month(), finalDate.Day(), 23, 59, 59, 0, finalDate.Location())
 	hierarchy := &dto.LocationHierarchy{
 		Regions: []string{},
 		States:  make(map[string][]string),

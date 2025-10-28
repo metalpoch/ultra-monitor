@@ -11,6 +11,20 @@ type PrometheusHandler struct {
 	Usecase *usecase.PrometheusUsecase
 }
 
+
+func (hdlr *PrometheusHandler) GetDeviceByIP(c fiber.Ctx) error {
+	ip, err := url.QueryUnescape(c.Params("ip"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	res, err := hdlr.Usecase.GetDeviceByIP(ip)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
 func (hdlr *PrometheusHandler) GetGponPortsStatus(c fiber.Ctx) error {
 	res, err := hdlr.Usecase.GponPortsStatus()
 	if err != nil {

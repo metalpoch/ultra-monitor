@@ -13,6 +13,14 @@ type Prometheus struct {
 	Status int8   `json:"status"`
 }
 
+type PonPort struct {
+	IDX    int64 `json:"idx"`
+	Shell  uint8 `json:"shell"`
+	Card   uint8 `json:"card"`
+	Port   uint8 `json:"port"`
+	Status int8  `json:"status"`
+}
+
 type PrometheusPortStatus struct {
 	Olts          uint32 `json:"olts"`
 	Cards         uint32 `json:"cards"`

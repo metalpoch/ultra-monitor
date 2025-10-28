@@ -17,9 +17,9 @@ type ponHandler []struct {
 	handler func(*PonData, gosnmp.SnmpPDU) error
 }
 
-type ontHandler []struct {
+type ontSerialAndDesptHandler []struct {
 	oid     string
-	handler func(*OntData, gosnmp.SnmpPDU) error
+	handler func(*OntSerialsAndDespts, gosnmp.SnmpPDU) error
 }
 
 func (s snmp) oltOidHandlers() oltHandler {
@@ -116,86 +116,26 @@ func (s snmp) ponOidHandlers() ponHandler {
 	}
 }
 
-func (s snmp) ontOidHandlers(ponIdx int64) ontHandler {
-	return ontHandler{
+func (s snmp) ontOidSerialDesptHandlers() ontSerialAndDesptHandler {
+	return ontSerialAndDesptHandler{
 		{
-			fmt.Sprintf("%s.%d", HwGponDeviceOntDespt, ponIdx),
-			func(ont *OntData, pdu gosnmp.SnmpPDU) error {
-				if value, ok := pdu.Value.([]byte); ok {
-					ont.Despt = string(value)
-					return nil
-				}
-				return fmt.Errorf("invalid type for HwGponDeviceOntDespt OID: %v", pdu.Value)
-			},
-		},
-		{
-			fmt.Sprintf("%s.%d", HwGponDeviceOntSerialNumber, ponIdx),
-			func(ont *OntData, pdu gosnmp.SnmpPDU) error {
+			HwGponDeviceOntSerialNumber,
+			func(ont *OntSerialsAndDespts, pdu gosnmp.SnmpPDU) error {
 				if value, ok := pdu.Value.([]byte); ok {
 					ont.SerialNumber = hex.EncodeToString(value)
 					return nil
 				}
-				return fmt.Errorf("invalid type for HwGponDeviceOntSerialNumber OID: %v", pdu.Value)
+				return fmt.Errorf("invalid type for Depst OID: %v", pdu.Value)
 			},
 		},
 		{
-			fmt.Sprintf("%s.%d", HwGponDeviceOntLineProfName, ponIdx),
-			func(ont *OntData, pdu gosnmp.SnmpPDU) error {
+			HwGponDeviceOntDespt,
+			func(ont *OntSerialsAndDespts, pdu gosnmp.SnmpPDU) error {
 				if value, ok := pdu.Value.([]byte); ok {
-					ont.LineProfName = string(value)
+					ont.Despt = string(value)
 					return nil
 				}
-				return fmt.Errorf("invalid type for HwGponDeviceOntLineProfName OID: %v", pdu.Value)
-			},
-		},
-		{
-			fmt.Sprintf("%s.%d", HwGponDeviceOntControlRanging, ponIdx),
-			func(ont *OntData, pdu gosnmp.SnmpPDU) error {
-				if value, ok := s.toInt64(pdu.Value); ok {
-					ont.ControlRanging = int32(value)
-					return nil
-				}
-				return fmt.Errorf("invalid type for HwGponDeviceOntControlRanging OID: %v", pdu.Value)
-			},
-		},
-		{
-			fmt.Sprintf("%s.%d", HwGponDeviceOntControlMacCount, ponIdx),
-			func(ont *OntData, pdu gosnmp.SnmpPDU) error {
-				if value, ok := s.toInt64(pdu.Value); ok {
-					ont.ControlMacCount = int8(value)
-					return nil
-				}
-				return fmt.Errorf("invalid type for HwGponDeviceOntControlMacCount OID: %v", pdu.Value)
-			},
-		},
-		{
-			fmt.Sprintf("%s.%d", HwGponDeviceOntControlRunStatus, ponIdx),
-			func(ont *OntData, pdu gosnmp.SnmpPDU) error {
-				if value, ok := s.toInt64(pdu.Value); ok {
-					ont.ControlRunStatus = int8(value)
-					return nil
-				}
-				return fmt.Errorf("invalid type for HwGponDeviceOntControlRunStatus OID: %v", pdu.Value)
-			},
-		},
-		{
-			fmt.Sprintf("%s.%d", HwGponOntStatisticUpBytes, ponIdx),
-			func(ont *OntData, pdu gosnmp.SnmpPDU) error {
-				if value, ok := s.toUint64(pdu.Value); ok {
-					ont.BytesOut = value
-					return nil
-				}
-				return fmt.Errorf("invalid type for HwGponOntStatisticUpBytes OID: %v", pdu.Value)
-			},
-		},
-		{
-			fmt.Sprintf("%s.%d", HwGponOntStatisticDownBytes, ponIdx),
-			func(ont *OntData, pdu gosnmp.SnmpPDU) error {
-				if value, ok := s.toUint64(pdu.Value); ok {
-					ont.BytesIn = value
-					return nil
-				}
-				return fmt.Errorf("invalid type for HwGponOntStatisticDownBytes OID: %v", pdu.Value)
+				return fmt.Errorf("invalid type for Serial OID: %v", pdu.Value)
 			},
 		},
 	}

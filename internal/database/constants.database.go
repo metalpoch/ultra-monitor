@@ -82,6 +82,36 @@ CREATE TABLE IF NOT EXISTS summary_traffic (
     PRIMARY KEY (ip, time)
 );`
 
+const SQL_TABLE_ONT string = `
+CREATE TABLE IF NOT EXISTS onts (
+    id SERIAL PRIMARY KEY,
+    ip VARCHAR(15) NOT NULL,
+		ont_idx VARCHAR(15) NOT NULL,
+    serial VARCHAR(19) UNIQUE NOT NULL,
+    despt VARCHAR(50) UNIQUE NOT NULL,
+		line_prof VARCHAR(50) NOT NULL,
+		description VARCHAR(255) NOT NULL,
+		enabled BOOLEAN DEFAULT true,
+	  status BOOLEAN,
+		last_check TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);`
+
+const SQL_TABLE_ONT_TRAFFIC string = `
+CREATE TABLE IF NOT EXISTS onts_traffic (
+    ont_id INTEGER NOT NULL,
+    time TIMESTAMP WITH TIME ZONE NOT NULL,
+    bps_in DOUBLE PRECISION NOT NULL,
+    bps_out DOUBLE PRECISION NOT NULL,
+    bytes_in DOUBLE PRECISION NOT NULL,
+    bytes_out DOUBLE PRECISION NOT NULL,
+		temperature INTEGER NOT NULL,
+		rx INTEGER NOT NULL,
+		tx INTEGER NOT NULL,
+		FOREIGN KEY (ont_id) REFERENCES onts(id),
+		PRIMARY KEY (ont_id, time)
+);`
+
 const SQL_INDEX_REPORT_CATEGORY string = `CREATE INDEX IF NOT EXISTS idx_reports_category ON reports(category);`
 const SQL_INDEX_REPORT_USER_ID string = `CREATE INDEX IF NOT EXISTS idx_reports_user_id ON reports(user_id);`
 const SQL_INDEX_USERS_USERNAME string = `CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);`

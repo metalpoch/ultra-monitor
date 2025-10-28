@@ -18,6 +18,29 @@ func NewPrometheusUsecase(db *sqlx.DB) *PrometheusUsecase {
 	return &PrometheusUsecase{repository.NewPrometheusRepository(db)}
 }
 
+func (use *PrometheusUsecase) GetDeviceByIP(ip string) ([]dto.PonPort, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	device, err := use.repo.GetDeviceByIP(ctx, ip)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []dto.PonPort
+	for _, e := range device {
+		res = append(res, dto.PonPort{
+			IDX:    e.IDX,
+			Shell:  e.Shell,
+			Card:   e.Card,
+			Port:   e.Port,
+			Status: e.Status,
+		})
+	}
+
+	return res, nil
+}
+
 func (use *PrometheusUsecase) Upsert(ctx context.Context, data dto.Prometheus) error {
 	return use.repo.Upsert(ctx, (entity.PrometheusUpsert)(data))
 }

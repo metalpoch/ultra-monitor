@@ -1,6 +1,7 @@
 package snmp
 
 import (
+	"encoding/hex"
 	"fmt"
 	"log"
 	"strconv"
@@ -25,14 +26,17 @@ const (
 	HwGponOltEthernetStatisticSendBytes     string = ".1.3.6.1.4.1.2011.6.128.1.1.4.21.1.30"
 
 	// ONT queries
-	HwGponDeviceOntDespt            string = ".1.3.6.1.4.1.2011.6.128.1.1.2.43.1.9" // *
-	HwGponDeviceOntSerialNumber     string = ".1.3.6.1.4.1.2011.6.128.1.1.2.43.1.3" // *
+	HwGponDeviceOntDespt            string = ".1.3.6.1.4.1.2011.6.128.1.1.2.43.1.9"
+	HwGponDeviceOntSerialNumber     string = ".1.3.6.1.4.1.2011.6.128.1.1.2.43.1.3"
 	HwGponDeviceOntLineProfName     string = ".1.3.6.1.4.1.2011.6.128.1.1.2.43.1.7"
 	HwGponDeviceOntControlRanging   string = ".1.3.6.1.4.1.2011.6.128.1.1.2.46.1.20"
 	HwGponDeviceOntControlMacCount  string = ".1.3.6.1.4.1.2011.6.128.1.1.2.46.1.21"
 	HwGponDeviceOntControlRunStatus string = ".1.3.6.1.4.1.2011.6.128.1.1.2.46.1.15"
 	HwGponOntStatisticUpBytes       string = ".1.3.6.1.4.1.2011.6.128.1.1.4.23.1.3"
 	HwGponOntStatisticDownBytes     string = ".1.3.6.1.4.1.2011.6.128.1.1.4.23.1.4"
+	hwGponOntOpticalDdmTemperature  string = "1.3.6.1.4.1.2011.6.128.1.1.2.51.1.1"
+	HwGponOntOpticalDdmTxPower      string = "1.3.6.1.4.1.2011.6.128.1.1.2.51.1.3"
+	HwGponOntOpticalDdmRxPower      string = "1.3.6.1.4.1.2011.6.128.1.1.2.51.1.4"
 )
 
 type snmp struct {
@@ -60,6 +64,11 @@ type PonData struct {
 	Bandwidth       int64
 }
 
+type OntSerialsAndDespts struct {
+	Despt        string
+	SerialNumber string
+}
+
 type OntData struct {
 	Despt            string
 	SerialNumber     string
@@ -69,6 +78,9 @@ type OntData struct {
 	ControlRunStatus int8
 	BytesIn          uint64
 	BytesOut         uint64
+	Temperature      int32
+	Tx               int32
+	Rx               int32
 }
 
 func NewSnmp(config Config) *snmp {
@@ -94,14 +106,14 @@ func (s snmp) extractOntIdx(fullOID string) string {
 	return fullOID[lastDot+1:]
 }
 
-func (s snmp) toUint64(value interface{}) (uint64, bool) {
+func (s snmp) toUint64(value any) (uint64, bool) {
 	if !gosnmp.ToBigInt(value).IsUint64() {
 		return 0, false
 	}
 	return gosnmp.ToBigInt(value).Uint64(), true
 }
 
-func (s snmp) toInt64(value interface{}) (int64, bool) {
+func (s snmp) toInt64(value any) (int64, bool) {
 	if !gosnmp.ToBigInt(value).IsInt64() {
 		return 0, false
 	}
@@ -196,31 +208,33 @@ func (s snmp) PonQuery() (map[int64]PonData, error) {
 	return data, err
 }
 
-func (s snmp) OntQuery(ponIdx int64) (map[int64]OntData, error) {
+func (s snmp) OntSerialsAndDespts(ponIdx int64) (map[int64]OntSerialsAndDespts, error) {
 	err := s.client.Connect()
 	if err != nil {
 		return nil, fmt.Errorf("conexión fallida: %v", err)
 	}
 	defer s.client.Conn.Close()
 
-	oidHandlers := s.ontOidHandlers(ponIdx)
-	data := make(map[int64]OntData)
+	data := make(map[int64]OntSerialsAndDespts)
 
-	for _, oidHandler := range oidHandlers {
-		err = s.client.BulkWalk(oidHandler.oid, func(pdu gosnmp.SnmpPDU) error {
+	for _, oidHandler := range s.ontOidSerialDesptHandlers() {
+		err = s.client.BulkWalk(fmt.Sprintf("%s.%d", oidHandler.oid, ponIdx), func(pdu gosnmp.SnmpPDU) error {
 			index := s.extractOntIdx(pdu.Name)
 			if index == "" {
+				log.Printf("Error on proccess OID %s: index empty", pdu.Name)
 				return nil
 			}
 
 			idx, err := strconv.Atoi(index)
 			if err != nil {
+				log.Printf("Error on proccess OID %s in the index %s: %v", pdu.Name, index, err)
 				return err
 			}
 
 			ont := data[int64(idx)]
 			if err := oidHandler.handler(&ont, pdu); err != nil {
-				return err
+				log.Printf("Error on proccess OID %s in the index %s: %v", pdu.Name, index, err)
+				return nil
 			}
 			data[int64(idx)] = ont
 			return nil
@@ -228,4 +242,88 @@ func (s snmp) OntQuery(ponIdx int64) (map[int64]OntData, error) {
 	}
 
 	return data, err
+}
+
+func (s snmp) OntQuery(ponIdx int64, ontIdx uint8) (OntData, error) {
+	err := s.client.Connect()
+	if err != nil {
+		return OntData{}, fmt.Errorf("conexión fallida: %v", err)
+	}
+	defer s.client.Conn.Close()
+
+	var ont OntData
+
+	oids := []string{
+		fmt.Sprintf("%s.%d.%d", HwGponDeviceOntDespt, ponIdx, ontIdx),
+		fmt.Sprintf("%s.%d.%d", HwGponDeviceOntSerialNumber, ponIdx, ontIdx),
+		fmt.Sprintf("%s.%d.%d", HwGponDeviceOntLineProfName, ponIdx, ontIdx),
+		fmt.Sprintf("%s.%d.%d", HwGponDeviceOntControlRanging, ponIdx, ontIdx),
+		fmt.Sprintf("%s.%d.%d", HwGponDeviceOntControlMacCount, ponIdx, ontIdx),
+		fmt.Sprintf("%s.%d.%d", HwGponDeviceOntControlRunStatus, ponIdx, ontIdx),
+		fmt.Sprintf("%s.%d.%d", HwGponOntStatisticUpBytes, ponIdx, ontIdx),
+		fmt.Sprintf("%s.%d.%d", HwGponOntStatisticDownBytes, ponIdx, ontIdx),
+		fmt.Sprintf("%s.%d.%d", hwGponOntOpticalDdmTemperature, ponIdx, ontIdx),
+		fmt.Sprintf("%s.%d.%d", HwGponOntOpticalDdmTxPower, ponIdx, ontIdx),
+		fmt.Sprintf("%s.%d.%d", HwGponOntOpticalDdmRxPower, ponIdx, ontIdx),
+	}
+
+	result, err := s.client.Get(oids)
+	if err != nil {
+		return OntData{}, fmt.Errorf("error en SNMP Get: %v", err)
+	}
+
+	for i, pdu := range result.Variables {
+		if pdu.Type == gosnmp.NoSuchInstance || pdu.Type == gosnmp.NoSuchObject {
+			continue
+		}
+
+		switch i {
+		case 0: // HwGponDeviceOntDespt
+			if value, ok := pdu.Value.([]byte); ok {
+				ont.Despt = string(value)
+			}
+		case 1: // HwGponDeviceOntSerialNumber
+			if value, ok := pdu.Value.([]byte); ok {
+				ont.SerialNumber = hex.EncodeToString(value)
+			}
+		case 2: // HwGponDeviceOntLineProfName
+			if value, ok := pdu.Value.([]byte); ok {
+				ont.LineProfName = string(value)
+			}
+		case 3: // HwGponDeviceOntControlRanging
+			if value, ok := s.toInt64(pdu.Value); ok {
+				ont.ControlRanging = int32(value)
+			}
+		case 4: // HwGponDeviceOntControlMacCount
+			if value, ok := s.toInt64(pdu.Value); ok {
+				ont.ControlMacCount = int8(value)
+			}
+		case 5: // HwGponDeviceOntControlRunStatus
+			if value, ok := s.toInt64(pdu.Value); ok {
+				ont.ControlRunStatus = int8(value)
+			}
+		case 6: // HwGponOntStatisticUpBytes
+			if value, ok := s.toUint64(pdu.Value); ok {
+				ont.BytesOut = value
+			}
+		case 7: // HwGponOntStatisticDownBytes
+			if value, ok := s.toUint64(pdu.Value); ok {
+				ont.BytesIn = value
+			}
+		case 8: // hwGponOntOpticalDdmTemperature
+			if value, ok := s.toInt64(pdu.Value); ok {
+				ont.Temperature = int32(value)
+			}
+		case 9: // HwGponOntOpticalDdmTxPower
+			if value, ok := s.toInt64(pdu.Value); ok {
+				ont.Tx = int32(value)
+			}
+		case 10: // HwGponOntOpticalDdmRxPower
+			if value, ok := s.toInt64(pdu.Value); ok {
+				ont.Rx = int32(value)
+			}
+		}
+	}
+
+	return ont, nil
 }

@@ -20,6 +20,7 @@ func NewPrometheusRoutes(app *fiber.App, db *sqlx.DB, cache *cache.Redis, secret
 
 	route.Use(middleware.ValidateJWT(authUsecase, secret))
 
+	route.Get("/pons/ip/:ip", hdlr.GetDeviceByIP)
 	route.Get("/status", hdlr.GetGponPortsStatus)
 	route.Get("/status/region/:region", hdlr.GetGponPortsStatusByRegion)
 	route.Get("/status/state/:state", hdlr.GetGponPortsStatusByState)

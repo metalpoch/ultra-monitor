@@ -9,6 +9,7 @@ import (
 )
 
 type PrometheusRepository interface {
+	GetDeviceByIP(ctx context.Context, ip string) ([]entity.Prometheus, error)
 	Upsert(ctx context.Context, data entity.PrometheusUpsert) error
 	GponPortsStatus(ctx context.Context) (*entity.PrometheusPortStatus, error)
 	GponPortsStatusByRegion(ctx context.Context, region string) (*entity.PrometheusPortStatus, error)
@@ -21,6 +22,13 @@ type prometheusRepository struct {
 
 func NewPrometheusRepository(db *sqlx.DB) *prometheusRepository {
 	return &prometheusRepository{db}
+}
+
+func (r *prometheusRepository) GetDeviceByIP(ctx context.Context, ip string) ([]entity.Prometheus, error) {
+	var devices []entity.Prometheus
+	query := `SELECT * FROM prometheus_devices WHERE ip = $1 ORDER BY shell, card, port`
+	err := r.db.SelectContext(ctx, &devices, query, ip)
+	return devices, err
 }
 
 func (r *prometheusRepository) Upsert(ctx context.Context, data entity.PrometheusUpsert) error {

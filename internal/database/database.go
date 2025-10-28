@@ -28,6 +28,8 @@ func createTablesAndIndexes(db *sqlx.DB) error {
 		SQL_TABLE_FAT_STATUS,
 		SQL_TABLE_PROMETHEUS_DEVICES,
 		SQL_TABLE_SUMMARY_TRAFFIC,
+		SQL_TABLE_ONT,
+		SQL_TABLE_ONT_TRAFFIC,
 	}
 	indexQueries := []string{
 		SQL_INDEX_REPORT_CATEGORY,

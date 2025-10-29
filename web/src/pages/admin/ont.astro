@@ -1,8 +1,52 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import WebInDevelopment from "../../components/ui/WebInDevelopment.astro";
+import OntList from "../../components/admin/ont/OntList.jsx";
+import OntForm from "../../components/admin/ont/OntForm.jsx";
+import OntTrafficChart from "../../components/admin/ont/OntTrafficChart.jsx";
 ---
 
-<Layout title="Administración">
-  <WebInDevelopment/>
+<Layout title="Administración ONT">
+  <main class="w-full flex flex-col gap-6 px-6 py-4">
+    <div class="flex flex-col lg:flex-row gap-6">
+      <!-- Left Panel: ONT List -->
+      <div class="flex-1">
+        <section class="p-4 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)] h-full">
+          <h2 class="text-xl font-semibold text-gray-200 mb-4">Lista de ONTs</h2>
+          <div class="max-h-[500px] overflow-y-auto">
+            <OntList client:only />
+          </div>
+        </section>
+      </div>
+
+      <!-- Right Panel: Traffic Chart -->
+      <div class="flex-1">
+        <section class="p-4 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)] h-full">
+          <h2 class="text-xl font-semibold text-gray-200 mb-4">Tráfico de ONT Seleccionada</h2>
+          <OntTrafficChart client:only />
+        </section>
+      </div>
+    </div>
+
+    <!-- ONT Creation Form - At the bottom -->
+    <section class="p-4 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]">
+      <h2 class="text-xl font-semibold text-gray-200 mb-4">Crear Nueva ONT</h2>
+      <OntForm client:only />
+    </section>
+  </main>
 </Layout>
+
+<style>
+  .ont-card {
+    transition: all 0.2s ease-in-out;
+  }
+
+  .ont-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .ont-card.selected {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+  }
+</style>

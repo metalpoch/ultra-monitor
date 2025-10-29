@@ -1154,3 +1154,33 @@ func (use *TrafficUsecase) GetLocationHierarchy(initDate, finalDate time.Time) (
 
 	return hierarchy, nil
 }
+
+func (use *TrafficUsecase) GetOntTraffic(ontID int32, initDate, finalDate time.Time) ([]dto.OntTraffic, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	trafficData, err := use.repo.GetOntTraffic(ctx, ontID, initDate, finalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []dto.OntTraffic
+	for _, data := range trafficData {
+		result = append(result, dto.OntTraffic{
+			Time: data.Time,
+			BpsIn: data.BpsIn,
+			BpsOut: data.BpsOut,
+			BytesIn: data.BytesIn,
+			BytesOut: data.BytesOut,
+			Temperature: data.Temperature,
+			Rx: float64(data.Rx) / 100,
+			Tx: float64(data.Tx) / 100,
+		})
+	}
+
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Time.Before(result[j].Time)
+	})
+
+	return result, nil
+}

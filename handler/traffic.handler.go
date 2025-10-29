@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/url"
+	"strconv"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/metalpoch/ultra-monitor/internal/dto"
@@ -438,6 +439,25 @@ func (hdlr *TrafficHandler) GetTrafficByCriteria(c fiber.Ctx) error {
 	}
 
 	res, err := hdlr.Usecase.GetTrafficByCriteria(criteria, value, dates.InitDate, dates.FinalDate)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+func (hdlr *TrafficHandler) GetOntTraffic(c fiber.Ctx) error {
+	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
+	}
+
+	var dates dto.RangeDate
+	if err := c.Bind().Query(&dates); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetOntTraffic(int32(id), dates.InitDate, dates.FinalDate)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

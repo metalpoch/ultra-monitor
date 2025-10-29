@@ -16,15 +16,3 @@ type Ont struct {
 	LastCheck   time.Time `db:"last_check"`
 	CreatedAt   time.Time `db:"created_at"`
 }
-
-type OntTraffic struct {
-	OntID       int32     `db:"ont_id"`
-	Time        time.Time `db:"time"`
-	BpsIn       float64   `db:"bps_in"`
-	BpsOut      float64   `db:"bps_out"`
-	BytesIn     float64   `db:"bytes_in"`
-	BytesOut    float64   `db:"bytes_out"`
-	Temperature int32     `db:"temperature"`
-	Rx          int32     `db:"rx"`
-	Tx          int32     `db:"tx"`
-}

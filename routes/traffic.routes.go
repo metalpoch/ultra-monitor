@@ -56,4 +56,7 @@ func NewTrafficRoutes(app *fiber.App, db *sqlx.DB, cache *cache.Redis, prometheu
 
 	// Location hierarchy
 	route.Get("/hierarchy", hdlr.GetLocationHierarchy)
+
+	// ONT traffic
+	route.Get("/ont/:id", hdlr.GetOntTraffic)
 }

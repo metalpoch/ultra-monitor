@@ -22,6 +22,7 @@ type TrafficRepository interface {
 	GetTrafficGroupedByState(ctx context.Context, region string, startTime, endTime time.Time) (map[string][]entity.TrafficSummary, error)
 	GetTrafficGroupedByIP(ctx context.Context, state string, startTime, endTime time.Time) (map[string][]entity.TrafficSummary, error)
 	GetLocationHierarchy(ctx context.Context, initDate, finalDate time.Time) (*dto.LocationHierarchy, error)
+	GetOntTraffic(ctx context.Context, ontID int32, startTime, endTime time.Time) ([]entity.OntTraffic, error)
 }
 
 type trafficRepository struct {
@@ -321,4 +322,11 @@ func (r *trafficRepository) GetLocationHierarchy(ctx context.Context, initDate, 
 	}
 
 	return hierarchy, nil
+}
+
+func (r *trafficRepository) GetOntTraffic(ctx context.Context, id int32, initDate, finalDate time.Time) ([]entity.OntTraffic, error) {
+	var traffic []entity.OntTraffic
+	query := `SELECT * FROM onts_traffic WHERE ont_id = $1 AND time BETWEEN $2 AND $3 ORDER BY time`
+	err := r.db.SelectContext(ctx, &traffic, query, id, initDate, finalDate)
+	return traffic, err
 }

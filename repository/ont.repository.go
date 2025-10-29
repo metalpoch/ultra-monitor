@@ -21,8 +21,6 @@ type OntRepository interface {
 	UpdateStatus(ctx context.Context, ontID int32, status bool, lastCheck time.Time) error
 	CreateTraffic(ctx context.Context, traffic entity.OntTraffic) error
 	CreateTrafficBatch(ctx context.Context, traffic []entity.OntTraffic) error
-	GetTrafficByOntID(ctx context.Context, ontID int32) ([]entity.OntTraffic, error)
-	GetTrafficByOntIDAndTimeRange(ctx context.Context, ontID int32, startTime, endTime time.Time) ([]entity.OntTraffic, error)
 }
 
 type ontRepository struct {
@@ -55,6 +53,14 @@ func (repo *ontRepository) GetAll(ctx context.Context) ([]entity.Ont, error) {
 }
 
 func (repo *ontRepository) Delete(ctx context.Context, id int32) error {
+	// First delete related traffic records
+	trafficQuery := `DELETE FROM onts_traffic WHERE ont_id = $1`
+	_, err := repo.db.ExecContext(ctx, trafficQuery, id)
+	if err != nil {
+		return err
+	}
+
+	// Then delete the ONT
 	query := `DELETE FROM onts WHERE id = $1 AND enabled = false`
 	result, err := repo.db.ExecContext(ctx, query, id)
 	if err != nil {
@@ -121,17 +127,4 @@ func (repo *ontRepository) CreateTrafficBatch(ctx context.Context, traffic []ent
 	return err
 }
 
-func (repo *ontRepository) GetTrafficByOntID(ctx context.Context, ontID int32) ([]entity.OntTraffic, error) {
-	var traffic []entity.OntTraffic
-	query := `SELECT * FROM onts_traffic WHERE ont_id = $1 ORDER BY time DESC`
-	err := repo.db.SelectContext(ctx, &traffic, query, ontID)
-	return traffic, err
-}
-
-func (repo *ontRepository) GetTrafficByOntIDAndTimeRange(ctx context.Context, ontID int32, startTime, endTime time.Time) ([]entity.OntTraffic, error) {
-	var traffic []entity.OntTraffic
-	query := `SELECT * FROM onts_traffic WHERE ont_id = $1 AND time BETWEEN $2 AND $3 ORDER BY time`
-	err := repo.db.SelectContext(ctx, &traffic, query, ontID, startTime, endTime)
-	return traffic, err
-}
 

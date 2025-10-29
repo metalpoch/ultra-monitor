@@ -28,6 +28,7 @@ type OntResponse struct {
 	Serial      string `json:"serial"`
 	Despt       string `json:"despt"`
 	LineProf    string `json:"line_prof"`
+	OltDistance int32  `json:"olt_distance"`
 	Description string `json:"description"`
 	Enabled     bool   `json:"enabled"`
 	Status      bool   `json:"status"`

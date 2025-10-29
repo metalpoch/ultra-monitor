@@ -4,15 +4,16 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/jmoiron/sqlx"
 	"github.com/metalpoch/ultra-monitor/handler"
+	"github.com/metalpoch/ultra-monitor/internal/cache"
 	"github.com/metalpoch/ultra-monitor/middleware"
 	"github.com/metalpoch/ultra-monitor/usecase"
 )
 
-func NewOntRoutes(app *fiber.App, db *sqlx.DB, secret []byte) {
+func NewOntRoutes(app *fiber.App, db *sqlx.DB, cache *cache.Redis, secret []byte) {
 	authUsecase := *usecase.NewUserUsecase(db, secret)
 
 	hdlr := &handler.OntHandler{
-		Usecase: usecase.NewOntUsecase(db),
+		Usecase: usecase.NewOntUsecase(db, cache),
 	}
 
 	route := app.Group("/api/ont")

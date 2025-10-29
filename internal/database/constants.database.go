@@ -93,6 +93,7 @@ CREATE TABLE IF NOT EXISTS onts (
 		description VARCHAR(255) NOT NULL,
 		enabled BOOLEAN DEFAULT true,
 	  status BOOLEAN,
+		olt_distance INTEGER,
 		last_check TIMESTAMP WITH TIME ZONE NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );`

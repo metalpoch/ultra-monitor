@@ -119,6 +119,7 @@ func main() {
 		app.Use(limiter.New(limiter.Config{
 			Max:        60,
 			Expiration: 1 * time.Minute,
+			// },
 			LimitReached: func(c fiber.Ctx) error {
 				return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
 					"error": "Rate limit exceeded",
@@ -234,7 +235,21 @@ func main() {
 			log.Fatalf("Error updating summary traffic: %v", err)
 		}
 
+	case "traffic-ont":
+		// Check if community parameter is provided
+		if len(os.Args) < 3 {
+			log.Fatal("Uso: <app> traffic-ont <community> (ejemplo: <app> traffic-ont public)")
+		}
+
+		community := os.Args[2]
+
+		// Use the ont usecase to update traffic for all ONTs
+		ontUsecase := usecase.NewOntUsecase(db, redis)
+		if err := ontUsecase.UpdateTrafficForAllONTs(context.Background(), community); err != nil {
+			log.Fatalf("Error updating ONT traffic: %v", err)
+		}
+
 	default:
-		fmt.Println("Comando no reconocido. Usa 'server', 'scan' o 'traffic'")
+		fmt.Println("Comando no reconocido. Usa 'server', 'scan', 'traffic' o 'traffic-ont'")
 	}
 }

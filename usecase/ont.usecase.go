@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -24,43 +25,7 @@ func NewOntUsecase(db *sqlx.DB, cache *cache.Redis) *OntUsecase {
 	return &OntUsecase{repository.NewOntRepository(db), cache}
 }
 
-func (use *OntUsecase) UpdateTrafficForAllONTs(ctx context.Context, community string) error {
-	onts, err := use.repo.GetAll(ctx)
-	if err != nil {
-		return fmt.Errorf("error getting ONTs: %v", err)
-	}
-
-	log.Printf("Processing traffic for %d ONTs", len(onts))
-
-	var trafficData []entity.OntTraffic
-	currentTime := time.Now()
-
-	for _, ont := range onts {
-		if !ont.Enabled {
-			continue
-		}
-
-		ontTraffic, err := use.getONTData(ctx, ont, currentTime, community)
-		if err != nil {
-			log.Printf("Error getting traffic data for ONT %d (IP: %s): %v", ont.ID, ont.IP, err)
-			continue
-		}
-
-		if ontTraffic != nil {
-			trafficData = append(trafficData, *ontTraffic)
-		}
-	}
-
-	if len(trafficData) > 0 {
-		if err := use.repo.CreateTrafficBatch(ctx, trafficData); err != nil {
-			return fmt.Errorf("error saving traffic data: %v", err)
-		}
-		log.Printf("Successfully saved traffic data for %d ONTs", len(trafficData))
-	}
-
-	return nil
-}
-
+// UpdateTrafficForONT updates traffic for a single ONT
 func (use *OntUsecase) UpdateTrafficForONT(ctx context.Context, ontID int32, community string) error {
 	ont, err := use.repo.GetByID(ctx, ontID)
 	if err != nil {
@@ -82,6 +47,66 @@ func (use *OntUsecase) UpdateTrafficForONT(ctx context.Context, ontID int32, com
 			return fmt.Errorf("error saving traffic data: %v", err)
 		}
 		log.Printf("Successfully saved traffic data for ONT %d", ontID)
+	}
+
+	return nil
+}
+
+// UpdateTrafficForAllONTs processes all ONTs in parallel (for backward compatibility)
+func (use *OntUsecase) UpdateTrafficForAllONTs(ctx context.Context, community string) error {
+	onts, err := use.repo.GetAll(ctx)
+	if err != nil {
+		return fmt.Errorf("error getting ONTs: %v", err)
+	}
+
+	log.Printf("Processing traffic for %d ONTs", len(onts))
+
+	var trafficData []entity.OntTraffic
+	currentTime := time.Now()
+
+	// Use goroutines for parallel processing
+	type result struct {
+		traffic *entity.OntTraffic
+		err     error
+	}
+
+	results := make(chan result, len(onts))
+	var wg sync.WaitGroup
+
+	// Process each ONT in parallel
+	for _, ont := range onts {
+		if !ont.Enabled {
+			continue
+		}
+
+		wg.Add(1)
+		go func(ont entity.Ont) {
+			defer wg.Done()
+			ontTraffic, err := use.getONTData(ctx, ont, currentTime, community)
+			results <- result{ontTraffic, err}
+		}(ont)
+	}
+
+	// Wait for all goroutines to complete
+	wg.Wait()
+	close(results)
+
+	// Collect results
+	for res := range results {
+		if res.err != nil {
+			log.Printf("Error processing ONT: %v", res.err)
+			continue
+		}
+		if res.traffic != nil {
+			trafficData = append(trafficData, *res.traffic)
+		}
+	}
+
+	if len(trafficData) > 0 {
+		if err := use.repo.CreateTrafficBatch(ctx, trafficData); err != nil {
+			return fmt.Errorf("error saving traffic data: %v", err)
+		}
+		log.Printf("Successfully saved traffic data for %d ONTs", len(trafficData))
 	}
 
 	return nil

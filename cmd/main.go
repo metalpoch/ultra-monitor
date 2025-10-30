@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
 	"regexp"
-
 	"strconv"
 	"time"
 
@@ -243,11 +243,251 @@ func main() {
 
 		community := os.Args[2]
 
-		// Use the ont usecase to update traffic for all ONTs
+			// Use the ont usecase to update traffic for all ONTs with individual intervals
 		ontUsecase := usecase.NewOntUsecase(db, redis)
-		if err := ontUsecase.UpdateTrafficForAllONTs(context.Background(), community); err != nil {
-			log.Fatalf("Error updating ONT traffic: %v", err)
-		}
+	
+			// Create context with cancellation for graceful shutdown
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+	
+			// Handle SIGINT (Ctrl+C) for graceful shutdown
+			sigChan := make(chan os.Signal, 1)
+			signal.Notify(sigChan, os.Interrupt)
+	
+			log.Println("Starting distributed ONT traffic monitoring with individual intervals...")
+			log.Println("Press Ctrl+C to stop")
+	
+			// Get all enabled ONTs
+			onts, err := ontUsecase.GetAll()
+			if err != nil {
+				log.Fatalf("Error getting ONTs: %v", err)
+			}
+	
+			// Filter only enabled ONTs
+			var enabledONTs []dto.OntResponse
+			for _, ont := range onts {
+				if ont.Enabled {
+					enabledONTs = append(enabledONTs, ont)
+				}
+			}
+	
+			if len(enabledONTs) == 0 {
+				log.Fatal("No enabled ONTs found")
+			}
+	
+			log.Printf("Monitoring %d enabled ONTs with individual intervals", len(enabledONTs))
+	
+					// Each ONT will be queried every minute, but start times are staggered
+					// to distribute load evenly throughout the minute
+					intervalPerONT := 1 * time.Minute
+	
+					log.Printf("Each ONT will be queried every %v", intervalPerONT)
+	
+			// Create individual tickers for each ONT
+			type ontTicker struct {
+				ontID int32
+				ticker *time.Ticker
+			}
+	
+			var ontTickers []ontTicker
+	
+					// Calculate staggered start times to distribute load
+					staggerInterval := 1 * time.Minute / time.Duration(len(enabledONTs))
+					if staggerInterval < 5*time.Second {
+						staggerInterval = 5 * time.Second // Minimum stagger
+					}
+			
+					log.Printf("Stagger interval between ONTs: %v", staggerInterval)
+			
+			// Start tickers with staggered intervals
+			for i, ont := range enabledONTs {
+						// Calculate initial delay to distribute start times
+						initialDelay := time.Duration(i) * staggerInterval
+	
+				ticker := time.NewTicker(intervalPerONT)
+				ontTickers = append(ontTickers, ontTicker{
+					ontID: ont.ID,
+					ticker: ticker,
+				})
+	
+				// Start goroutine for this ONT
+				go func(ontID int32, delay time.Duration, ticker *time.Ticker) {
+					// Initial delay to stagger starts
+					time.Sleep(delay)
+	
+					// Run first execution immediately after delay
+							log.Printf("Starting monitoring for ONT %d (first query)", ontID)
+					if err := ontUsecase.UpdateTrafficForONT(ctx, ontID, community); err != nil {
+						log.Printf("Error updating ONT %d: %v", ontID, err)
+					}
+	
+							// Continue with 1-minute ticker
+					for {
+						select {
+						case <-ticker.C:
+									log.Printf("Querying ONT %d", ontID)
+							if err := ontUsecase.UpdateTrafficForONT(ctx, ontID, community); err != nil {
+								log.Printf("Error updating ONT %d: %v", ontID, err)
+							}
+						case <-ctx.Done():
+							return
+						}
+					}
+				}(ont.ID, initialDelay, ticker)
+			}
+	
+			log.Println("All ONT monitors started successfully")
+	
+					// Refresh ticker to check for new ONTs periodically
+					refreshTicker := time.NewTicker(5 * time.Minute)
+					defer refreshTicker.Stop()
+	
+					// Track current ONTs to detect changes
+					currentONTs := make(map[int32]bool)
+					for _, ont := range enabledONTs {
+						currentONTs[ont.ID] = true
+			}
+	
+					// Function to refresh ONT list
+					refreshONTs := func() {
+						log.Println("Checking for ONT list changes...")
+			
+						// Get current ONTs from database
+						currentONTsList, err := ontUsecase.GetAll()
+						if err != nil {
+							log.Printf("Error getting current ONTs: %v", err)
+							return
+						}
+			
+						// Filter enabled ONTs
+						var newEnabledONTs []dto.OntResponse
+						for _, ont := range currentONTsList {
+							if ont.Enabled {
+								newEnabledONTs = append(newEnabledONTs, ont)
+							}
+						}
+			
+						// Check for new ONTs
+						newONTs := make(map[int32]dto.OntResponse)
+						for _, ont := range newEnabledONTs {
+							if !currentONTs[ont.ID] {
+								newONTs[ont.ID] = ont
+							}
+						}
+			
+						// Check for removed ONTs
+						removedONTs := make(map[int32]bool)
+						for ontID := range currentONTs {
+							found := false
+							for _, ont := range newEnabledONTs {
+								if ont.ID == ontID {
+									found = true
+									break
+								}
+							}
+							if !found {
+								removedONTs[ontID] = true
+							}
+						}
+			
+						// Add new ONTs
+						if len(newONTs) > 0 {
+							log.Printf("Found %d new ONTs, adding to monitoring...", len(newONTs))
+			
+							// Calculate stagger interval for new ONTs
+							staggerInterval := 1 * time.Minute / time.Duration(len(newEnabledONTs))
+							if staggerInterval < 5*time.Second {
+								staggerInterval = 5 * time.Second
+							}
+			
+							// Start monitoring for new ONTs
+							for _, ont := range newONTs {
+								// Calculate initial delay based on current time
+								secondsInMinute := time.Now().Second()
+								initialDelay := time.Duration(60-secondsInMinute) * time.Second
+			
+								ticker := time.NewTicker(intervalPerONT)
+								ontTickers = append(ontTickers, ontTicker{
+									ontID: ont.ID,
+									ticker: ticker,
+								})
+			
+								// Start goroutine for new ONT
+								go func(ontID int32, delay time.Duration, ticker *time.Ticker) {
+									// Initial delay to align with minute boundary
+									time.Sleep(delay)
+			
+									log.Printf("Starting monitoring for new ONT %d", ontID)
+									if err := ontUsecase.UpdateTrafficForONT(ctx, ontID, community); err != nil {
+										log.Printf("Error updating new ONT %d: %v", ontID, err)
+									}
+			
+									// Continue with 1-minute ticker
+									for {
+										select {
+										case <-ticker.C:
+											if err := ontUsecase.UpdateTrafficForONT(ctx, ontID, community); err != nil {
+												log.Printf("Error updating ONT %d: %v", ontID, err)
+											}
+										case <-ctx.Done():
+											return
+										}
+									}
+								}(ont.ID, initialDelay, ticker)
+			
+								// Add to current ONTs tracking
+								currentONTs[ont.ID] = true
+							}
+						}
+			
+						// Remove ONTs that are no longer enabled
+						if len(removedONTs) > 0 {
+							log.Printf("Found %d ONTs to remove from monitoring...", len(removedONTs))
+			
+							// Stop tickers for removed ONTs
+							var remainingTickers []ontTicker
+							for _, ot := range ontTickers {
+								if removedONTs[ot.ontID] {
+									ot.ticker.Stop()
+									log.Printf("Stopped monitoring for ONT %d", ot.ontID)
+								} else {
+									remainingTickers = append(remainingTickers, ot)
+								}
+							}
+							ontTickers = remainingTickers
+			
+							// Remove from current ONTs tracking
+							for ontID := range removedONTs {
+								delete(currentONTs, ontID)
+							}
+						}
+			
+						if len(newONTs) == 0 && len(removedONTs) == 0 {
+							log.Println("No changes in ONT list")
+						}
+					}
+			
+					// Run first refresh immediately
+					go refreshONTs()
+			
+					// Main loop for refresh and signal handling
+					for {
+						select {
+						case <-refreshTicker.C:
+							refreshONTs()
+						case <-sigChan:
+							log.Println("Received interrupt signal, shutting down...")
+							cancel()
+			
+							// Stop all tickers
+							for _, ot := range ontTickers {
+								ot.ticker.Stop()
+							}
+			
+							log.Println("All ONT monitors stopped")
+							return
+						}
+					}
 
 	default:
 		fmt.Println("Comando no reconocido. Usa 'server', 'scan', 'traffic' o 'traffic-ont'")

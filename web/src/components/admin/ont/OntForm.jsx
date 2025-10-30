@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function OntForm() {
   const [step, setStep] = useState(1) // 1: PON selection, 2: ONT selection, 3: Create
   const [formData, setFormData] = useState({
     ip: '',
-    community: '',
+    community: import.meta.env.PUBLIC_SNMP_COMMUNITY || '',
     pon_idx: '',
     ont_idx: '',
     description: ''
@@ -15,6 +15,7 @@ export default function OntForm() {
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(null)
   const [selectedOnt, setSelectedOnt] = useState(null)
+  const [oltData, setOltData] = useState([]) // Store OLT data from API
 
   // Pagination states
   const [ponCurrentPage, setPonCurrentPage] = useState(1)
@@ -41,6 +42,33 @@ export default function OntForm() {
       'Content-Type': 'application/json'
     }
   }
+
+  // Fetch OLT data on component mount
+  useEffect(() => {
+    const fetchOltData = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/traffic/info`, headers)
+
+        if (response.status === 401 || response.status === 403) {
+          sessionStorage.removeItem("access_token")
+          window.location.href = "/auth/login"
+          return
+        }
+
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status}`)
+        }
+
+        const data = await response.json()
+        setOltData(data)
+      } catch (err) {
+        console.error('Error fetching OLT data:', err)
+        setError('Error al cargar la lista de OLTs')
+      }
+    }
+
+    fetchOltData()
+  }, [])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -226,15 +254,26 @@ export default function OntForm() {
                 type="text"
                 value={formData.ip}
                 onChange={handleChange}
-                placeholder="192.168.1.1"
+                placeholder="Seleccione o ingrese IP del OLT"
+                list="olt-list"
                 required
                 className="w-full border border-[hsl(217,33%,20%)] bg-[#0f1729] text-gray-200 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+              <datalist id="olt-list">
+                {oltData.map((olt) => (
+                  <option key={olt.ip} value={olt.ip}>
+                    {olt.sysName} - {olt.region}, {olt.state}
+                  </option>
+                ))}
+              </datalist>
             </div>
 
             <div className="flex flex-col gap-1">
               <label htmlFor="community" className="text-gray-200">
-                Comunidad SNMP *
+                Comunidad SNMP
+                <span className="text-xs text-gray-400 ml-1">
+                  (No es requerida para ola OLT Huawei)
+                </span>
               </label>
               <input
                 id="community"
@@ -242,8 +281,7 @@ export default function OntForm() {
                 type="text"
                 value={formData.community}
                 onChange={handleChange}
-                placeholder="public"
-                required
+                placeholder="Ingrese comunidad SNMP"
                 className="w-full border border-[hsl(217,33%,20%)] bg-[#0f1729] text-gray-200 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>

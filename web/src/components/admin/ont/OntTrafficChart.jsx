@@ -30,7 +30,7 @@ export default function OntTrafficChart() {
   const [selectedOnt, setSelectedOnt] = useState(null)
   const [trafficData, setTrafficData] = useState([])
   const [loading, setLoading] = useState(false)
-  const [dataType, setDataType] = useState('traffic') // 'traffic' or 'volume'
+  const [dataType, setDataType] = useState('traffic') // 'traffic', 'volume', 'signal', or 'temperature'
   const [timeRange, setTimeRange] = useState('week') // 'day', 'week', 'month'
 
   const BASE_URL = `${import.meta.env.PUBLIC_URL || ""}/api/traffic`
@@ -130,37 +130,132 @@ export default function OntTrafficChart() {
     const bpsOut = trafficData.map(item => item.bps_out || 0)
     const bytesIn = trafficData.map(item => item.bytes_in || 0)
     const bytesOut = trafficData.map(item => item.bytes_out || 0)
+    const rx = trafficData.map(item => item.rx || 0)
+    const tx = trafficData.map(item => item.tx || 0)
+    const temperature = trafficData.map(item => item.temperature || 0)
 
-    return {
-      labels,
-      datasets: [
-        {
-          label: 'Entrante',
-          data: labels.map((label, index) => ({
-            x: label,
-            y: dataType === 'traffic' ? bpsIn[index] : bytesIn[index]
-          })),
-          borderColor: dataType === 'traffic' ? COLOR[9] : COLOR[1],
-          backgroundColor: dataType === 'traffic' ? COLOR[9] : COLOR[1],
-          borderWidth: 2,
-          fill: false,
-          tension: 0.1,
-          pointRadius: 0
-        },
-        {
-          label: 'Saliente',
-          data: labels.map((label, index) => ({
-            x: label,
-            y: dataType === 'traffic' ? bpsOut[index] : bytesOut[index]
-          })),
-          borderColor: dataType === 'traffic' ? COLOR[5] : COLOR[3],
-          backgroundColor: dataType === 'traffic' ? COLOR[5] : COLOR[3],
-          borderWidth: 2,
-          fill: false,
-          tension: 0.1,
-          pointRadius: 0
+    switch (dataType) {
+      case 'traffic':
+        return {
+          labels,
+          datasets: [
+            {
+              label: 'Entrante',
+              data: labels.map((label, index) => ({
+                x: label,
+                y: bpsIn[index]
+              })),
+              borderColor: COLOR[9],
+              backgroundColor: COLOR[9],
+              borderWidth: 2,
+              fill: false,
+              tension: 0.1,
+              pointRadius: 0
+            },
+            {
+              label: 'Saliente',
+              data: labels.map((label, index) => ({
+                x: label,
+                y: bpsOut[index]
+              })),
+              borderColor: COLOR[5],
+              backgroundColor: COLOR[5],
+              borderWidth: 2,
+              fill: false,
+              tension: 0.1,
+              pointRadius: 0
+            }
+          ]
         }
-      ]
+
+      case 'volume':
+        return {
+          labels,
+          datasets: [
+            {
+              label: 'Entrante',
+              data: labels.map((label, index) => ({
+                x: label,
+                y: bytesIn[index]
+              })),
+              borderColor: COLOR[1],
+              backgroundColor: COLOR[1],
+              borderWidth: 2,
+              fill: false,
+              tension: 0.1,
+              pointRadius: 0
+            },
+            {
+              label: 'Saliente',
+              data: labels.map((label, index) => ({
+                x: label,
+                y: bytesOut[index]
+              })),
+              borderColor: COLOR[3],
+              backgroundColor: COLOR[3],
+              borderWidth: 2,
+              fill: false,
+              tension: 0.1,
+              pointRadius: 0
+            }
+          ]
+        }
+
+      case 'signal':
+        return {
+          labels,
+          datasets: [
+            {
+              label: 'RX (dBm)',
+              data: labels.map((label, index) => ({
+                x: label,
+                y: rx[index]
+              })),
+              borderColor: COLOR[2],
+              backgroundColor: COLOR[2],
+              borderWidth: 2,
+              fill: false,
+              tension: 0.1,
+              pointRadius: 0
+            },
+            {
+              label: 'TX (dBm)',
+              data: labels.map((label, index) => ({
+                x: label,
+                y: tx[index]
+              })),
+              borderColor: COLOR[6],
+              backgroundColor: COLOR[6],
+              borderWidth: 2,
+              fill: false,
+              tension: 0.1,
+              pointRadius: 0
+            }
+          ]
+        }
+
+      case 'temperature':
+        return {
+          labels,
+          datasets: [
+            {
+              label: 'Temperatura (°C)',
+              data: labels.map((label, index) => ({
+                x: label,
+                y: temperature[index]
+              })),
+              borderColor: COLOR[8],
+              backgroundColor: COLOR[8],
+              borderWidth: 2,
+              fill: false,
+              tension: 0.1,
+              pointRadius: 0
+            }
+          ]
+        }
+
+      default:
+        return null
     }
   }
 
@@ -222,9 +317,15 @@ export default function OntTrafficChart() {
               label += ': '
             }
             if (context.parsed.y !== null) {
-              label += dataType === 'traffic'
-                ? formatBps(context.parsed.y)
-                : formatBytes(context.parsed.y)
+              if (dataType === 'traffic') {
+                label += formatBps(context.parsed.y)
+              } else if (dataType === 'volume') {
+                label += formatBytes(context.parsed.y)
+              } else if (dataType === 'signal') {
+                label += context.parsed.y.toFixed(2) + ' dBm'
+              } else if (dataType === 'temperature') {
+                label += context.parsed.y.toFixed(1) + ' °C'
+              }
             }
             return label
           }
@@ -265,9 +366,16 @@ export default function OntTrafficChart() {
         ticks: {
           color: '#94a3b8',
           callback: function(value) {
-            return dataType === 'traffic'
-              ? formatBps(value)
-              : formatBytes(value)
+            if (dataType === 'traffic') {
+              return formatBps(value)
+            } else if (dataType === 'volume') {
+              return formatBytes(value)
+            } else if (dataType === 'signal') {
+              return value.toFixed(2) + ' dBm'
+            } else if (dataType === 'temperature') {
+              return value.toFixed(1) + ' °C'
+            }
+            return value
           }
         }
       }
@@ -311,6 +419,8 @@ export default function OntTrafficChart() {
           >
             <option value="traffic">Tráfico (bps)</option>
             <option value="volume">Volumen (bytes)</option>
+            <option value="signal">Señal (RX/TX)</option>
+            <option value="temperature">Temperatura</option>
           </select>
         </div>
 

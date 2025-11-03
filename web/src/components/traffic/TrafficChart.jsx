@@ -26,7 +26,7 @@ ChartJS.register(
   TimeScale
 )
 
-export default function TrafficChart({ data, dataType }) {
+export default function TrafficChart({ title, data, dataType }) {
   const [chartData, setChartData] = useState(null)
 
   useEffect(() => {
@@ -36,7 +36,6 @@ export default function TrafficChart({ data, dataType }) {
   }, [data, dataType])
 
   const prepareChartData = () => {
-    // Use the original date strings - Chart.js will handle timezone conversion
     const labels = data.map(item => new Date(item.time))
 
     const bpsIn = data.map(item => item.bps_in || 0)
@@ -48,7 +47,7 @@ export default function TrafficChart({ data, dataType }) {
       labels,
       datasets: [
         {
-          label: 'Entrante',
+          label: 'Downstream',
           data: labels.map((label, index) => ({
             x: label,
             y: dataType === 'traffic' ? bpsIn[index] : bytesIn[index]
@@ -61,7 +60,7 @@ export default function TrafficChart({ data, dataType }) {
           pointRadius: 0
         },
         {
-          label: 'Saliente',
+          label: 'Upstream',
           data: labels.map((label, index) => ({
             x: label,
             y: dataType === 'traffic' ? bpsOut[index] : bytesOut[index]
@@ -106,7 +105,7 @@ export default function TrafficChart({ data, dataType }) {
     },
     plugins: {
       legend: {
-        position: 'top',
+       position: 'top',
         labels: {
           color: '#e2e8f0',
           font: {
@@ -116,8 +115,8 @@ export default function TrafficChart({ data, dataType }) {
       },
       title: {
         display: true,
-        text: dataType === 'traffic' ? 'Tráfico de Red' : 'Volumen de la Red',
-        color: '#e2e8f0',
+        text: dataType === 'traffic' ? `Tráfico de red: ${title}` : `Volumen de la red: ${title}`,
+        color: '#ccc',
         font: {
           size: 16,
           weight: 'bold'
@@ -159,7 +158,7 @@ export default function TrafficChart({ data, dataType }) {
         },
         adapters: {
           date: {
-            locale: es // Use Spanish locale for date formatting
+            locale: es 
           }
         },
         grid: {

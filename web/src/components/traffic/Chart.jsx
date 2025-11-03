@@ -12,6 +12,7 @@ import {
   county,
   odn,
   ip,
+  oltName,
   gpon,
 } from "../../stores/traffic";
 import { isIpv4 } from "../../utils/validator";
@@ -23,6 +24,7 @@ const TOKEN =
 export default function Chart() {
   const [url, setUrl] = useState(undefined);
   const [activeTab, setActiveTab] = useState("traffic");
+  const [title, setTitle] = useState("");
   const $initDate = useStore(initDate);
   const $endDate = useStore(endDate);
   const $region = useStore(region);
@@ -31,6 +33,7 @@ export default function Chart() {
   const $county = useStore(county);
   const $odn = useStore(odn);
   const $ip = useStore(ip);
+  const $oltName = useStore(oltName);
   const $gpon = useStore(gpon);
 
   const filters = useMemo(
@@ -43,6 +46,7 @@ export default function Chart() {
       county: $county,
       odn: $odn,
       ip: $ip,
+      oltName: $oltName,
       gpon: $gpon,
     }),
     [
@@ -54,6 +58,7 @@ export default function Chart() {
       $county,
       $odn,
       $ip,
+      $oltName,
       $gpon,
     ]
   );
@@ -63,22 +68,35 @@ export default function Chart() {
     params.append("initDate", filters.initDate);
     params.append("finalDate", filters.endDate);
 
-    if (filters.odn && filters.municipality && filters.state)
+    if (filters.odn && filters.municipality && filters.state) {
       setUrl(`${BASE_URL}/basic/odn/${MAP_STATE_TRANSLATER[filters.state]}/${filters.municipality}/${filters.odn}?${params.toString()}`);
-    else if (filters.county && filters.municipality && filters.state)
+      setTitle(`${filters.state}, municipio ${filters.municipality}, ODN ${filters.odn}`)
+    }
+    else if (filters.county && filters.municipality && filters.state) {
       setUrl(`${BASE_URL}/basic/county/${MAP_STATE_TRANSLATER[filters.state]}/${filters.municipality}/${filters.county}?${params.toString()}`);
-    else if (filters.municipality && filters.state)
+      setTitle(`${filters.state}, municipio ${filters.municipality}, parroquia ${filters.county}`)
+    }
+    else if (filters.municipality && filters.state) {
       setUrl(`${BASE_URL}/basic/municipality/${MAP_STATE_TRANSLATER[filters.state]}/${filters.municipality}?${params.toString()}`);
-
-    else if (isIpv4(filters.ip) && filters.gpon)
+      setTitle(`${filters.state}, municipio ${filters.municipality}`)
+    }
+    else if (isIpv4(filters.ip) && filters.gpon) {
       setUrl(`${BASE_URL}/basic/index/${filters.ip}/${filters.gpon}?${params.toString()}`);
-    else if (isIpv4(filters.ip))
+      setTitle(`${filters.oltName} - ${filters.gpon}`)
+    }
+    else if (isIpv4(filters.ip)) {
       setUrl(`${BASE_URL}/basic/criteria/instance/${filters.ip}?${params.toString()}`);
-    else if (filters.state)
+      setTitle(`${filters.oltName}`)
+    }
+    else if (filters.state) {
       setUrl(`${BASE_URL}/basic/criteria/state/${filters.state}?${params.toString()}`);
-    else if (filters.region)
+      setTitle(`estado ${filters.state}`)
+    }
+    else if (filters.region) {
       setUrl(`${BASE_URL}/basic/criteria/region/${filters.region}?${params.toString()}`);
-    else setUrl(undefined)
+      setTitle(`región ${filters.region}`)
+    }
+    else setUrl(undefined) 
 
   }, [filters]);
 
@@ -141,7 +159,7 @@ export default function Chart() {
               <p className="text-slate-400 text-sm">
                 Monitoreo del tráfico de entrada y salida total.
               </p>
-              <TrafficChart data={data} dataType="traffic" client:load />
+              <TrafficChart title={title} data={data} dataType="traffic" client:load />
             </>
           )}
 
@@ -150,7 +168,7 @@ export default function Chart() {
               <p className="text-slate-400 text-sm">
                 Monitoreo del volumen de datos de entrada y salida.
               </p>
-              <TrafficChart data={data} dataType="volume" client:load />
+              <TrafficChart title={title} data={data} dataType="volume" client:load />
             </>
           )}
         </div>

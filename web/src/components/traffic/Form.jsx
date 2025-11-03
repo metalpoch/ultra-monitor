@@ -12,6 +12,7 @@ import {
   region,
   state,
   ip,
+  oltName,
   municipality,
   county,
   odn,
@@ -40,6 +41,7 @@ export default function Form() {
   const $municipality = useStore(municipality);
   const $county = useStore(county);
   const $ip = useStore(ip);
+  const $oltName = useStore(oltName);
   const $gpon = useStore(gpon);
   const $odn = useStore(odn);
 
@@ -52,6 +54,7 @@ export default function Form() {
     municipality.set("");
     county.set("");
     ip.set("");
+    oltName.set("");
     gpon.set("");
     odn.set("");
     setSelectionMethod("");
@@ -87,6 +90,7 @@ export default function Form() {
     municipality.set("");
     county.set("");
     ip.set("");
+    oltName.set("");
     gpon.set("");
     odn.set("");
     setSelectionMethod("");
@@ -102,6 +106,7 @@ export default function Form() {
     municipality.set("");
     county.set("");
     ip.set("");
+    oltName.set("");
     gpon.set("");
     odn.set("");
     setSelectionMethod("");
@@ -112,6 +117,7 @@ export default function Form() {
     municipality.set("");
     county.set("");
     ip.set("");
+    oltName.set("");
     gpon.set("");
     odn.set("");
   };
@@ -120,7 +126,11 @@ export default function Form() {
     if (isIpv4(target.value)) {
       setUrlOlt(`${BASE_URL_TRAFFIC}/info/instance/${target.value}`);
     }
+
+    const selectedObject = data.olts[$state].find(({ ip }) => ip === target.value);
+
     ip.set(target.value);
+    oltName.set(selectedObject.sys_name);
     gpon.set("");
     municipality.set("");
     county.set("");
@@ -138,6 +148,7 @@ export default function Form() {
   const handleChangeCounty = ({ target }) => {
     county.set(target.value);
     ip.set("");
+    oltName.set("");
     gpon.set("");
     odn.set("");
   };

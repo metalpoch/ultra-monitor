@@ -198,9 +198,9 @@ func (use *OntUsecase) calculateTraffic(ctx context.Context, ontID int32, curren
 	bytesInDiff := float64(currentBytesIn) - float64(cachedData.BytesIn)
 	bytesOutDiff := float64(currentBytesOut) - float64(cachedData.BytesOut)
 
-	// Calculate BPS (bytes per second)
-	bpsIn := bytesInDiff / timeDiff
-	bpsOut := bytesOutDiff / timeDiff
+	// Calculate bps (bits per second)
+	bpsIn := (bytesInDiff * 8) / timeDiff
+	bpsOut := (bytesOutDiff * 8) / timeDiff
 
 	// Update cache with current data
 	newCacheData := dto.OntTrafficCache{

@@ -858,8 +858,8 @@ func (p *prometheus) processStats(matrix model.Matrix, isIn bool, instance strin
 }
 
 func (p *prometheus) TrafficByInstanceStateRegion(ctx context.Context, initDate, finalDate time.Time) ([]TrafficByInstance, error) {
-	queryBpsIn := `sum(rate(hwGponOltEthernetStatisticSendBytes_count[15m]) * 8 <= 2.49e9) by (instance,state,region) * on (instance,state,region) group_left(sysName) sysName`
-	queryBpsOut := `sum(rate(hwGponOltEthernetStatisticReceivedBytes_count[15m]) * 8 <= 2.49e9) by (instance,state,region) * on (instance,state,region) group_left(sysName) sysName`
+	queryBpsIn := `sum(rate(hwGponOltEthernetStatisticReceivedBytes_count[15m]) * 8 <= 2.49e9) by (instance,state,region) * on (instance,state,region) group_left(sysName) sysName`
+	queryBpsOut := `sum(rate(hwGponOltEthernetStatisticSendBytes_count[15m]) * 8 <= 2.49e9) by (instance,state,region) * on (instance,state,region) group_left(sysName) sysName`
 	queryBandwidth := "sum(ifSpeed) by (instance, state, region) * on(instance) group_left(sysName) sysName"
 	queryBytesIn := `sum(increase(hwGponOltEthernetStatisticReceivedBytes_count[15m]) and (rate(hwGponOltEthernetStatisticReceivedBytes_count[15m]) * 8 <= 2.5e9)) by (instance,state,region) * on (instance,state,region) group_left(sysName) sysName`
 	queryBytesOut := `sum(increase(hwGponOltEthernetStatisticSendBytes_count[15m]) and (rate(hwGponOltEthernetStatisticSendBytes_count[15m]) * 8 <= 2.5e9)) by (instance,state,region) * on (instance,state,region) group_left(sysName) sysName`

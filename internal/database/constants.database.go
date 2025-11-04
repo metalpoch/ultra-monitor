@@ -35,11 +35,12 @@ CREATE TABLE IF NOT EXISTS fats (
     county VARCHAR(128) NOT NULL,
     odn VARCHAR(128) NOT NULL,
     fat VARCHAR(128) NOT NULL,
+    bras VARCHAR(15) NOT NULL,
     shell SMALLINT NOT NULL,
     card SMALLINT NOT NULL,
     port SMALLINT NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW(),
-    UNIQUE (ip, region, state, municipality, county, odn, fat, shell, card, port)
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE (ip, region, state, municipality, county, odn, fat, bras, shell, card, port)
 );`
 
 const SQL_TABLE_FAT_STATUS string = `

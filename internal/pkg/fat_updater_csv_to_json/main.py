@@ -30,6 +30,7 @@ def proccess_data(df: pd.DataFrame) -> pd.DataFrame:
         "SLOT",
         "PUERTO",
         "IP_OLT",
+        "HOSTNAME",
         "ODN",
         "FAT",
     ]

@@ -59,3 +59,5 @@ web/pnpm-debug.log*
 # environment variables
 web/.env
 web/.env.production
+fats-csv-to-json
+internal/pkg/fat_updater_csv_to_json/dist/

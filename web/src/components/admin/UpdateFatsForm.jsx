@@ -98,9 +98,19 @@ export default function UpdateFatsForm(){
       />
 
       {isProcessing && (
-        <div className="mt-4 flex justify-center">
-          <span className="mx-auto py-20 loader"></span>
+        <section className="flex justify-center items-center flex-col flex-1 sm:flex-2 px-6 py-3 h-[100%] rounded-lg bg-[#121b31]">
+        <div className="loader-wrapper">
+          <span className="loader-letter">S</span>
+          <span className="loader-letter">u</span>
+          <span className="loader-letter">b</span>
+          <span className="loader-letter">i</span>
+          <span className="loader-letter">e</span>
+          <span className="loader-letter">n</span>
+          <span className="loader-letter">d</span>
+          <span className="loader-letter">o</span>
+          <div className="loader"></div>
         </div>
+      </section>
       )}
 
       {submitError && (

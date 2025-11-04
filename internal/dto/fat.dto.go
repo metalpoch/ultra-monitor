@@ -14,6 +14,7 @@ type Fat struct {
 	County             string    `json:"county"`
 	Odn                string    `json:"odn"`
 	Fat                string    `json:"fat"`
+	Bras               string    `json:"bras"`
 	Shell              uint8     `json:"shell"`
 	Card               uint8     `json:"card"`
 	Port               uint8     `json:"port"`
@@ -49,6 +50,7 @@ type UpsertFat struct {
 	County             string    `json:"PARROQUIA"`
 	Odn                string    `json:"ODN"`
 	Fat                string    `json:"FAT"`
+	Bras               string    `json:"HOSTNAME"`
 	Shell              uint8     `json:"SHELL"`
 	Card               uint8     `json:"SLOT"`
 	Port               uint8     `json:"PUERTO"`

@@ -87,9 +87,9 @@ func (r *fatRepository) UpsertFats(ctx context.Context, fats []entity.UpsertFat)
 	}()
 
 	queryFats := `
-        INSERT INTO fats (ip, region, state, municipality, county, odn, fat, shell, card, port)
-        VALUES (:ip, :region, :state, :municipality, :county, :odn, :fat, :shell, :card, :port)
-        ON CONFLICT (ip, region, state, municipality, county, odn, fat, shell, card, port) DO NOTHING
+        INSERT INTO fats (ip, region, state, municipality, county, odn, fat, bras, shell, card, port)
+				VALUES (:ip, :region, :state, :municipality, :county, :odn, :fat, :bras, :shell, :card, :port)
+        ON CONFLICT (ip, region, state, municipality, county, odn, fat, bras, shell, card, port) DO NOTHING
         RETURNING id;`
 
 	queryGetFatID := `
@@ -102,6 +102,7 @@ func (r *fatRepository) UpsertFats(ctx context.Context, fats []entity.UpsertFat)
 			AND county = :county
 			AND odn = :odn
 			AND fat = :fat
+			AND bras = :bras
 			AND	shell = :shell
 			AND card = :card
 			AND port = :port;`

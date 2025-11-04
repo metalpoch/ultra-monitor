@@ -13,6 +13,7 @@ type Fat struct {
 	County       string    `db:"county"`
 	Odn          string    `db:"odn"`
 	Fat          string    `db:"fat"`
+	Bras         string    `db:"bras"`
 	Shell        uint8     `db:"shell"`
 	Card         uint8     `db:"card"`
 	Port         uint8     `db:"port"`
@@ -28,6 +29,7 @@ type FatInfoStatus struct {
 	County             string    `db:"county"`
 	Odn                string    `db:"odn"`
 	Fat                string    `db:"fat"`
+	Bras               string    `db:"bras"`
 	Shell              uint8     `db:"shell"`
 	Card               uint8     `db:"card"`
 	Port               uint8     `db:"port"`
@@ -72,6 +74,7 @@ type UpsertFat struct {
 	County             string    `db:"county"`
 	Odn                string    `db:"odn"`
 	Fat                string    `db:"fat"`
+	Bras               string    `db:"bras"`
 	Shell              uint8     `db:"shell"`
 	Card               uint8     `db:"card"`
 	Port               uint8     `db:"port"`

@@ -47,7 +47,7 @@ export default function TrafficChart({ title, data, dataType }) {
       labels,
       datasets: [
         {
-          label: 'Downstream',
+          label: 'Entrante',
           data: labels.map((label, index) => ({
             x: label,
             y: dataType === 'traffic' ? bpsIn[index] : bytesIn[index]
@@ -60,7 +60,7 @@ export default function TrafficChart({ title, data, dataType }) {
           pointRadius: 0
         },
         {
-          label: 'Upstream',
+          label: 'Saliente',
           data: labels.map((label, index) => ({
             x: label,
             y: dataType === 'traffic' ? bpsOut[index] : bytesOut[index]

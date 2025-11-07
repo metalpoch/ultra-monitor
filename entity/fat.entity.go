@@ -52,6 +52,7 @@ type FatStatus struct {
 
 type LastFatStatus struct {
 	Name               string `db:"name"`
+	Bras               string `db:"bras"`
 	Actives            uint32 `db:"actives"`
 	ProvisionedOffline uint32 `db:"provisioned_offline"`
 	CutOff             uint32 `db:"cut_off"`

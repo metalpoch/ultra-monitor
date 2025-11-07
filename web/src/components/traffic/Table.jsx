@@ -76,11 +76,34 @@ export default function Table() {
           </tr>
         </>
       );
+    } else if ($ip) {
+      setHeader(
+        <>
+          <tr>
+            <th rowSpan="2">Puerto</th>
+            <th colSpan="2">Entrante (Mbps)</th>
+            <th colSpan="2">Saliente (Mbps)</th>
+            <th rowSpan="2">Capacidad (Mbps)</th>
+            <th rowSpan="2">Uso</th>
+            <th colSpan="3">Estatus ONT</th>
+          </tr>
+          <tr>
+            <th>Prom.</th>
+            <th>Max.</th>
+            <th>Prom.</th>
+            <th>Max.</th>
+            <th className="bg-green-900">Activo</th>
+            <th className="bg-red-900">Cortado</th>
+            <th className="bg-amber-900">En progreso</th>
+          </tr>
+        </>
+      );
     } else if ($state) {
       setHeader(
         <>
           <tr>
             <th rowSpan="2">OLT</th>
+            <th rowSpan="2">Agregador</th>
             <th colSpan="2">Entrante</th>
             <th colSpan="2">Saliente</th>
             <th rowSpan="2">Capacidad</th>
@@ -117,26 +140,6 @@ export default function Table() {
             <th className="bg-green-900">Activo</th>
             <th className="bg-red-900">Cortado</th>
             <th className="bg-amber-900">En progreso</th>
-          </tr>
-        </>
-      );
-    } else if ($ip) {
-      setHeader(
-        <>
-          <tr>
-            <th rowSpan="2">Puerto</th>
-            <th colSpan="2">Entrante (Mbps)</th>
-            <th colSpan="2">Saliente (Mbps)</th>
-            <th rowSpan="2">Capacidad (Mbps)</th>
-            <th>Uso %</th>
-          </tr>
-          <tr>
-            <th>Prom.</th>
-            <th>Max.</th>
-            <th>Prom.</th>
-            <th>Max.</th>
-            <th>Entrante</th>
-            <th>Saliente</th>
           </tr>
         </>
       );
@@ -178,6 +181,7 @@ export default function Table() {
                 }
                 return <tr key={row.port ? row.port : idx} className="text-center">
                   <td>{title}</td>
+                  {$state && !$ip && <td>{fatStatus ? fatStatus.bras : ""}</td>}
                   <td>{formatSpeed(row.avg_in_bps)}</td>
                   <td>{formatSpeed(row.max_in_bps)}</td>
                   <td>{formatSpeed(row.avg_out_bps)}</td>

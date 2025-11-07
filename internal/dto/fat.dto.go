@@ -36,6 +36,7 @@ type FatStatusSummary struct {
 
 type FatStatus struct {
 	Name               string `json:"name"`
+	Bras               string `json:"bras"`
 	Actives            uint32 `json:"actives"`
 	ProvisionedOffline uint32 `json:"provisioned_offline"`
 	CutOff             uint32 `json:"cut_off"`

@@ -509,6 +509,7 @@ func (r *fatRepository) GetFatStatusOltByState(ctx context.Context, state string
 	query := `
 	SELECT
 		f.ip AS name,
+		f.bras AS bras,
 		SUM(fs.actives) AS actives,
 		SUM(fs.provisioned_offline) AS provisioned_offline,
 		SUM(fs.cut_off) AS cut_off,
@@ -523,7 +524,7 @@ func (r *fatRepository) GetFatStatusOltByState(ctx context.Context, state string
 		GROUP BY f.ip
 	) AS latest ON latest.ip = f.ip AND latest.max_date = fs.date
 	WHERE f.state = $1
-	GROUP BY name;
+	GROUP BY name, bras;
 	`
 	err := r.db.SelectContext(ctx, &res, query, state)
 	return res, err

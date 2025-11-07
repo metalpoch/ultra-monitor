@@ -126,13 +126,13 @@ export default function OntTrafficChart() {
     // Use the original date strings - Chart.js will handle timezone conversion
     const labels = trafficData.map(item => new Date(item.time))
 
-    const bpsIn = trafficData.map(item => item.bps_in || 0)
-    const bpsOut = trafficData.map(item => item.bps_out || 0)
-    const bytesIn = trafficData.map(item => item.bytes_in || 0)
-    const bytesOut = trafficData.map(item => item.bytes_out || 0)
-    const rx = trafficData.map(item => item.rx || 0)
-    const tx = trafficData.map(item => item.tx || 0)
-    const temperature = trafficData.map(item => item.temperature || 0)
+    const bpsIn = trafficData.map(item => Math.max(0, Number(item.bps_in) || 0))
+    const bpsOut = trafficData.map(item => Math.max(0, Number(item.bps_out) || 0))
+    const bytesIn = trafficData.map(item => Math.max(0, Number(item.bytes_in) || 0))
+    const bytesOut = trafficData.map(item => Math.max(0, Number(item.bytes_out) || 0))
+    const rx = trafficData.map(item => Number(item.rx) || 0)
+    const tx = trafficData.map(item => Number(item.tx) || 0)
+    const temperature = trafficData.map(item => Number(item.temperature) || 0)
 
     switch (dataType) {
       case 'traffic':
@@ -366,6 +366,11 @@ export default function OntTrafficChart() {
         ticks: {
           color: '#94a3b8',
           callback: function(value) {
+            // Handle NaN and undefined values
+            if (value === null || value === undefined || isNaN(value)) {
+              return '0'
+            }
+
             if (dataType === 'traffic') {
               return formatBps(value)
             } else if (dataType === 'volume') {

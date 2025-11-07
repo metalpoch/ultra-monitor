@@ -326,7 +326,9 @@ func (r *trafficRepository) GetLocationHierarchy(ctx context.Context, initDate, 
 
 func (r *trafficRepository) GetOntTraffic(ctx context.Context, id int32, initDate, finalDate time.Time) ([]entity.OntTraffic, error) {
 	var traffic []entity.OntTraffic
-	query := `SELECT * FROM onts_traffic WHERE ont_id = $1 AND time BETWEEN $2 AND $3 ORDER BY time`
+	query := `SELECT * FROM onts_traffic WHERE ont_id = $1 AND time BETWEEN $2 AND $3 AND (bps_in <= 2.49e9 OR bps_out <= 2.49e9) ORDER BY time`
 	err := r.db.SelectContext(ctx, &traffic, query, id, initDate, finalDate)
 	return traffic, err
 }
+
+

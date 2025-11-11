@@ -6,7 +6,6 @@ import DatalistField from "../ui/DatalistField";
 import RadioGroup from "../ui/RadioGroup";
 import useFetch from "../../hooks/useFetch";
 import { removeAccentsAndToUpper } from "../../utils/formater";
-import { generateTablePDF, extractTableData } from "../../utils/pdfTableGenerator";
 import {
   initDate,
   endDate,
@@ -19,7 +18,6 @@ import {
   odn,
   gpon,
 } from "../../stores/traffic";
-import { pdfHeaderConfig } from "../../stores/pdfHeader";
 import { useStore } from "@nanostores/react";
 import { isIpv4 } from "../../utils/validator";
 
@@ -35,7 +33,6 @@ export default function Form() {
   const [regions, setRegions] = useState([])
   const [states, setStates] = useState([])
   const [selectionMethod, setSelectionMethod] = useState("");
-  const [isDownloading, setIsDownloading] = useState(false);
 
   const $initDate = useStore(initDate);
   const $endDate = useStore(endDate);
@@ -162,68 +159,6 @@ export default function Form() {
 
   const handleChangeGpon = ({ target }) => {
     gpon.set(target.value);
-  };
-
-  const handleDownloadPDF = async () => {
-    if (isDownloading) return;
-
-    setIsDownloading(true);
-
-    try {
-      // Find the table element
-      const tableElement = document.querySelector('table');
-      if (!tableElement) {
-        alert('No hay datos de tabla disponibles para exportar');
-        return;
-      }
-
-      // Extract table data only (no headers from DOM)
-      const { data } = extractTableData(tableElement);
-
-      if (data.length === 0) {
-        alert('No hay datos disponibles para exportar');
-        return;
-      }
-
-      // Get headers from the shared store
-      const headerConfig = pdfHeaderConfig.get();
-      const headers = headerConfig.headers;
-
-      if (headers.length === 0) {
-        alert('No hay configuración de encabezados disponible');
-        return;
-      }
-
-      // Get current filter values
-      const filters = {
-        region: $region,
-        state: $state,
-        ip: $ip,
-        gpon: $gpon,
-        initDate: $initDate,
-        endDate: $endDate
-      };
-
-      // Generate PDF
-      const doc = generateTablePDF(data, headers, filters);
-
-      // Generate filename
-      const timestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss');
-      let filename = `traffic_report_${timestamp}.pdf`;
-
-      if ($region) filename = `traffic_${$region}_${timestamp}.pdf`;
-      if ($state) filename = `traffic_${$state}_${timestamp}.pdf`;
-      if ($ip) filename = `traffic_${$ip.replace(/\./g, '_')}_${timestamp}.pdf`;
-
-      // Save PDF
-      doc.save(filename);
-
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Error al generar el PDF. Por favor, intente nuevamente.');
-    } finally {
-      setIsDownloading(false);
-    }
   };
 
   if (status === 401 || status === 403) {
@@ -403,68 +338,6 @@ export default function Form() {
           )}
         </>
       )}
-
-      {/* PDF Download Button */}
-      <div className="mt-6 flex justify-center">
-        <button
-          type="button"
-          onClick={handleDownloadPDF}
-          disabled={isDownloading}
-          className={`
-            px-6 py-3 rounded-lg font-medium transition-all duration-300
-            flex items-center gap-2
-            ${isDownloading
-              ? 'bg-blue-600 cursor-not-allowed'
-              : 'bg-blue-500 hover:bg-blue-600 active:scale-95'
-            }
-            text-white shadow-lg hover:shadow-xl
-          `}
-        >
-          {isDownloading ? (
-            <>
-              <svg
-                className="animate-spin h-5 w-5 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              Generando PDF...
-            </>
-          ) : (
-            <>
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                ></path>
-              </svg>
-              Descargar PDF
-            </>
-          )}
-        </button>
-      </div>
     </form>
   );
 }

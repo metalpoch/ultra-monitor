@@ -9,6 +9,7 @@ import {
   ip,
   gpon,
 } from "../../stores/traffic";
+import { pdfHeaderConfig, getColumnCount } from "../../stores/pdfHeader";
 import { isIpv4 } from "../../utils/validator";
 import { formatSpeed, removeAccentsAndToUpper } from "../../utils/formater";
 
@@ -59,7 +60,7 @@ export default function Table() {
   useEffect(() => {
     if (!dataTraffic) return;
     if ($gpon) {
-      setHeader(
+      const headerElement = (
         <>
           <tr>
             <th rowSpan="2">Puerto</th>
@@ -76,8 +77,13 @@ export default function Table() {
           </tr>
         </>
       );
+      setHeader(headerElement);
+      pdfHeaderConfig.set({
+        headers: ["Puerto", "Prom. Entrante (Mbps)", "Max. Entrante (Mbps)", "Prom. Saliente (Mbps)", "Max. Saliente (Mbps)", "Capacidad (Mbps)", "Uso %"],
+        columnCount: getColumnCount('gpon')
+      });
     } else if ($ip) {
-      setHeader(
+      const headerElement = (
         <>
           <tr>
             <th rowSpan="2">Puerto</th>
@@ -98,8 +104,13 @@ export default function Table() {
           </tr>
         </>
       );
+      setHeader(headerElement);
+      pdfHeaderConfig.set({
+        headers: ["Puerto", "Prom. Entrante (Mbps)", "Max. Entrante (Mbps)", "Prom. Saliente (Mbps)", "Max. Saliente (Mbps)", "Capacidad (Mbps)", "Uso", "Activo", "Cortado", "En progreso"],
+        columnCount: getColumnCount('ip')
+      });
     } else if ($state) {
-      setHeader(
+      const headerElement = (
         <>
           <tr>
             <th rowSpan="2">OLT</th>
@@ -121,8 +132,13 @@ export default function Table() {
           </tr>
         </>
       );
+      setHeader(headerElement);
+      pdfHeaderConfig.set({
+        headers: ["OLT", "Agregador", "Prom. Entrante", "Max. Entrante", "Prom. Saliente", "Max. Saliente", "Capacidad", "Uso", "Activo", "Cortado", "En progreso"],
+        columnCount: getColumnCount('state')
+      });
     } else if ($region) {
-      setHeader(
+      const headerElement = (
         <>
           <tr>
             <th rowSpan="2">Estado</th>
@@ -143,6 +159,11 @@ export default function Table() {
           </tr>
         </>
       );
+      setHeader(headerElement);
+      pdfHeaderConfig.set({
+        headers: ["Estado", "Prom. Entrante", "Max. Entrante", "Prom. Saliente", "Max. Saliente", "Capacidad", "Uso", "Activo", "Cortado", "En progreso"],
+        columnCount: getColumnCount('region')
+      });
     }
   }, [dataTraffic, $region, $state, $ip, $gpon]);
 

@@ -19,6 +19,7 @@ import {
   odn,
   gpon,
 } from "../../stores/traffic";
+import { pdfHeaderConfig } from "../../stores/pdfHeader";
 import { useStore } from "@nanostores/react";
 import { isIpv4 } from "../../utils/validator";
 
@@ -176,11 +177,20 @@ export default function Form() {
         return;
       }
 
-      // Extract table data
-      const { headers, data } = extractTableData(tableElement);
+      // Extract table data only (no headers from DOM)
+      const { data } = extractTableData(tableElement);
 
       if (data.length === 0) {
         alert('No hay datos disponibles para exportar');
+        return;
+      }
+
+      // Get headers from the shared store
+      const headerConfig = pdfHeaderConfig.get();
+      const headers = headerConfig.headers;
+
+      if (headers.length === 0) {
+        alert('No hay configuración de encabezados disponible');
         return;
       }
 

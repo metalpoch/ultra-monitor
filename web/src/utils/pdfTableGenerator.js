@@ -124,27 +124,14 @@ export function generateTablePDF(tableData, headers, filters) {
 }
 
 /**
- * Extracts table data and headers from the DOM table element
+ * Extracts table data from the DOM table element
  * @param {HTMLElement} tableElement - The table DOM element
- * @returns {Object} Object containing headers and data
+ * @returns {Object} Object containing data only (headers are now provided separately)
  */
 export function extractTableData(tableElement) {
-  if (!tableElement) return { headers: [], data: [] };
+  if (!tableElement) return { data: [] };
 
-  const headers = [];
   const data = [];
-
-  // Extract headers from thead
-  const headerRows = tableElement.querySelectorAll('thead tr');
-  headerRows.forEach(row => {
-    const thElements = row.querySelectorAll('th');
-    thElements.forEach(th => {
-      const text = th.textContent?.trim() || '';
-      if (text && !headers.includes(text)) {
-        headers.push(text);
-      }
-    });
-  });
 
   // Extract data from tbody
   const dataRows = tableElement.querySelectorAll('tbody tr');
@@ -153,7 +140,7 @@ export function extractTableData(tableElement) {
     const tdElements = row.querySelectorAll('td');
 
     tdElements.forEach((td, index) => {
-      const header = headers[index] || `Columna ${index + 1}`;
+      const header = `Columna ${index + 1}`;
       rowData[header] = td.textContent?.trim() || '';
     });
 
@@ -162,6 +149,6 @@ export function extractTableData(tableElement) {
     }
   });
 
-  return { headers, data };
+  return { data };
 }
 

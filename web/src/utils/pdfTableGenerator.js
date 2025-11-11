@@ -1,5 +1,9 @@
 import jsPDF from 'jspdf';
 
+// Import header images
+import headerLeft from '../assets/header-l.png';
+import headerRight from '../assets/header-r.png';
+
 /**
  * Generates a PDF from table data in landscape orientation
  * @param {Array} tableData - The data from the traffic table
@@ -14,18 +18,27 @@ export function generateTablePDF(tableData, headers, filters) {
     unit: 'mm',
     format: 'a4'
   });
-
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 15;
-  const tableStartY = 60;
+  const tableStartY = 80; // Increased to make space for header images
   const rowHeight = 8;
   const headerHeight = 12;
+
+  // Add header images
+  const headerImageHeight = 20;
+  const headerImageWidth = 80;
+
+  // Add left header image
+  doc.addImage(headerLeft.src, 'PNG', margin, 10, headerImageWidth, headerImageHeight);
+
+  // Add right header image
+  doc.addImage(headerRight.src, 'PNG', pageWidth - margin - headerImageWidth, 10, headerImageWidth, headerImageHeight);
 
   // Add title and date
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text('Reporte de Tráfico', pageWidth / 2, 20, { align: 'center' });
+  doc.text('Reporte de Tráfico', pageWidth / 2, 35, { align: 'center' });
 
   // Add filter information
   doc.setFontSize(10);
@@ -44,12 +57,12 @@ export function generateTablePDF(tableData, headers, filters) {
   }
 
   if (filterText) {
-    doc.text(filterText, pageWidth / 2, 30, { align: 'center' });
+    doc.text(filterText, pageWidth / 2, 45, { align: 'center' });
   }
 
   // Add generation date
   const generationDate = new Date().toLocaleString();
-  doc.text(`Generado: ${generationDate}`, pageWidth / 2, 40, { align: 'center' });
+  doc.text(`Generado: ${generationDate}`, pageWidth / 2, 55, { align: 'center' });
 
   // Calculate column widths based on content
   const columnCount = headers.length;
@@ -78,6 +91,10 @@ export function generateTablePDF(tableData, headers, filters) {
     if (currentY + rowHeight > pageHeight - margin) {
       doc.addPage();
       currentY = margin;
+
+      // Add header images on new page
+      doc.addImage(headerLeft.src, 'PNG', margin, 10, headerImageWidth, headerImageHeight);
+      doc.addImage(headerRight.src, 'PNG', pageWidth - margin - headerImageWidth, 10, headerImageWidth, headerImageHeight);
 
       // Redraw headers on new page
       doc.setFillColor(41, 41, 41);

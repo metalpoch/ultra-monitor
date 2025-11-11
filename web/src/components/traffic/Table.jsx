@@ -64,9 +64,9 @@ export default function Table() {
         <>
           <tr>
             <th rowSpan="2">Puerto</th>
-            <th colSpan="2">Entrante (Mbps)</th>
-            <th colSpan="2">Saliente (Mbps)</th>
-            <th rowSpan="2">Capacidad (Mbps)</th>
+            <th colSpan="2">Entrante</th>
+            <th colSpan="2">Saliente </th>
+            <th rowSpan="2">Capacidad</th>
             <th rowSpan="2">Uso %</th>
           </tr>
           <tr>
@@ -79,7 +79,7 @@ export default function Table() {
       );
       setHeader(headerElement);
       pdfHeaderConfig.set({
-        headers: ["Puerto", "Prom. Entrante (Mbps)", "Max. Entrante (Mbps)", "Prom. Saliente (Mbps)", "Max. Saliente (Mbps)", "Capacidad (Mbps)", "Uso %"],
+        headers: ["Puerto", "Prom. Entrante", "Max. Entrante", "Prom. Saliente", "Max. Saliente", "Capacidad", "Uso %"],
         columnCount: getColumnCount('gpon')
       });
     } else if ($ip) {
@@ -87,9 +87,9 @@ export default function Table() {
         <>
           <tr>
             <th rowSpan="2">Puerto</th>
-            <th colSpan="2">Entrante (Mbps)</th>
-            <th colSpan="2">Saliente (Mbps)</th>
-            <th rowSpan="2">Capacidad (Mbps)</th>
+            <th colSpan="2">Entrante</th>
+            <th colSpan="2">Saliente</th>
+            <th rowSpan="2">Capacidad</th>
             <th rowSpan="2">Uso</th>
             <th colSpan="3">Estatus ONT</th>
           </tr>
@@ -106,7 +106,7 @@ export default function Table() {
       );
       setHeader(headerElement);
       pdfHeaderConfig.set({
-        headers: ["Puerto", "Prom. Entrante (Mbps)", "Max. Entrante (Mbps)", "Prom. Saliente (Mbps)", "Max. Saliente (Mbps)", "Capacidad (Mbps)", "Uso", "Activo", "Cortado", "En progreso"],
+        headers: ["Puerto", "Prom. Entrante", "Max. Entrante", "Prom. Saliente", "Max. Saliente", "Capacidad", "Uso", "Activo", "Cortado", "En progreso"],
         columnCount: getColumnCount('ip')
       });
     } else if ($state) {

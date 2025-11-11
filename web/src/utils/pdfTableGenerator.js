@@ -47,7 +47,8 @@ export function generateTablePDF(tableData, headers, filters) {
   let filterText = '';
   if (filters.region) filterText += `Región: ${filters.region} | `;
   if (filters.state) filterText += `Estado: ${filters.state} | `;
-  if (filters.ip) filterText += `OLT: ${filters.ip} | `;
+  if (filters.oltName) filterText += `OLT: ${filters.oltName} `;
+  if (filters.ip) filterText += `(${filters.ip}) | `;
   if (filters.gpon) filterText += `GPON: ${filters.gpon} | `;
 
   if (filters.initDate && filters.endDate) {

@@ -7,6 +7,7 @@ import {
   region,
   state,
   ip,
+  oltName,
   gpon,
 } from "../../stores/traffic";
 import { pdfHeaderConfig, getColumnCount } from "../../stores/pdfHeader";
@@ -27,6 +28,7 @@ export default function Table() {
   const $initDate = useStore(initDate);
   const $endDate = useStore(endDate);
   const $ip = useStore(ip);
+  const $oltName = useStore(oltName);
   const $gpon = useStore(gpon);
   const $state = useStore(state);
   const $region = useStore(region);
@@ -210,6 +212,7 @@ export default function Table() {
         region: $region,
         state: $state,
         ip: $ip,
+        oltName: $oltName,
         gpon: $gpon,
         initDate: $initDate,
         endDate: $endDate

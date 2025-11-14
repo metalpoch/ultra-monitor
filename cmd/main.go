@@ -19,6 +19,7 @@ import (
 	"github.com/metalpoch/ultra-monitor/internal/cache"
 	"github.com/metalpoch/ultra-monitor/internal/database"
 	"github.com/metalpoch/ultra-monitor/internal/dto"
+	"github.com/metalpoch/ultra-monitor/internal/mongodb"
 	"github.com/metalpoch/ultra-monitor/internal/prometheus"
 	"github.com/metalpoch/ultra-monitor/internal/validations"
 	"github.com/metalpoch/ultra-monitor/routes"
@@ -28,12 +29,14 @@ import (
 var db *sqlx.DB
 var redis *cache.Redis
 var prometheusClient prometheus.Prometheus
+var mongoDB *mongodb.MongoDB
 var jwtSecret string
 var reportsDir string
 var port string
 var webAppDir string
 var allowOrigin string
 var enviroment string
+var mongoURI string
 
 func init() {
 	enviroment = os.Getenv("ENVIROMENT")
@@ -81,7 +84,7 @@ func init() {
 	}
 
 	cacheURI := os.Getenv("REDIS_URI")
-	if dbURI == "" {
+	if cacheURI == "" {
 		log.Fatal("error 'REDIS_URI' enviroment varables requried.")
 	}
 
@@ -89,6 +92,15 @@ func init() {
 	if prometheusURL == "" {
 		log.Fatal("error 'PROMETHEUS_URL' enviroment varables requried.")
 	}
+
+	// MongoDB connection variables
+	mongoURI = os.Getenv("MONGODB_URI")
+	if mongoURI == "" {
+		log.Fatal("error 'MONGODB_URI' enviroment varables requried.")
+	}
+
+	// Initialize MongoDB connection
+	mongoDB = mongodb.NewMongoDB(mongoURI)
 
 	db = database.Connect(dbURI)
 	redis = cache.NewCache(cacheURI)
@@ -484,7 +496,15 @@ func main() {
 			}
 		}
 
+case "interface-bandwidth":
+		// Use the interface bandwidth usecase to update interface bandwidth data
+		interfaceBandwidthUsecase := usecase.NewInterfaceBandwidthUsecase(db, mongoDB)
+		if err := interfaceBandwidthUsecase.UpdateInterfaceBandwidth(context.Background()); err != nil {
+			log.Fatalf("Error updating interface bandwidth: %v", err)
+		}
+
+		log.Printf("Interface bandwidth data updated successfully for date range: yesterday 00:00 to today 23:59")
 	default:
-		fmt.Println("Comando no reconocido. Usa 'server', 'scan', 'traffic' o 'traffic-ont'")
+		fmt.Println("Comando no reconocido. Usa 'server', 'scan', 'traffic', 'traffic-ont' o 'interface-bandwidth'")
 	}
 }

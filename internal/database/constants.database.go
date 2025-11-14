@@ -114,6 +114,17 @@ CREATE TABLE IF NOT EXISTS onts_traffic (
 		PRIMARY KEY (ont_id, time)
 );`
 
+const SQL_TABLE_INTERFACE_BANDWIDTH string = `
+CREATE TABLE IF NOT EXISTS interface_bandwidth (
+    interface VARCHAR(255) NOT NULL,
+    olt VARCHAR(255) NOT NULL,
+    bandwidth FLOAT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+
+    -- Primary key is interface and created_at to allow historical tracking
+    PRIMARY KEY (interface, created_at)
+);`
+
 const SQL_INDEX_REPORT_CATEGORY string = `CREATE INDEX IF NOT EXISTS idx_reports_category ON reports(category);`
 const SQL_INDEX_REPORT_USER_ID string = `CREATE INDEX IF NOT EXISTS idx_reports_user_id ON reports(user_id);`
 const SQL_INDEX_USERS_USERNAME string = `CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);`

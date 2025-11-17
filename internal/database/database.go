@@ -30,6 +30,8 @@ func createTablesAndIndexes(db *sqlx.DB) error {
 		SQL_TABLE_SUMMARY_TRAFFIC,
 		SQL_TABLE_ONT,
 		SQL_TABLE_ONT_TRAFFIC,
+		SQL_TABLE_INTERFACE_BANDWIDTH,
+		SQL_TABLE_INTERFACE_OLT, 
 	}
 	indexQueries := []string{
 		SQL_INDEX_REPORT_CATEGORY,

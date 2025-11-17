@@ -34,4 +34,5 @@ func Init(cfg *Config) {
 	NewTrafficRoutes(cfg.App, cfg.DB, cfg.Cache, cfg.Prometheus, cfg.Secret)
 	NewPrometheusRoutes(cfg.App, cfg.DB, cfg.Cache, cfg.Secret)
 	NewOntRoutes(cfg.App, cfg.DB, cfg.Cache, cfg.Secret)
+	NewInterfacesOltRoutes(cfg.App, cfg.DB, cfg.Secret)
 }

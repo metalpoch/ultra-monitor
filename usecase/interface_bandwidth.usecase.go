@@ -10,14 +10,12 @@ import (
 )
 
 type InterfaceBandwidthUsecase struct {
-	postgresRepo repository.InterfaceBandwidthRepository
-	mongoRepo    *repository.InterfaceBandwidthMongoRepository
+	repo repository.InterfaceBandwidthRepository
 }
 
 func NewInterfaceBandwidthUsecase(db *sqlx.DB, mongoDB *mongodb.MongoDB) *InterfaceBandwidthUsecase {
 	return &InterfaceBandwidthUsecase{
-		postgresRepo: repository.NewInterfaceBandwidthRepository(db),
-		mongoRepo:    repository.NewInterfaceBandwidthMongoRepository(mongoDB.Database),
+		repo: repository.NewInterfaceBandwidthRepository(db, mongoDB.Database),
 	}
 }
 
@@ -30,7 +28,7 @@ func (u *InterfaceBandwidthUsecase) UpdateInterfaceBandwidth(ctx context.Context
 	endDate := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, now.Location())
 
 	// Get interface bandwidth data from MongoDB
-	bandwidthData, err := u.mongoRepo.GetInterfaceBandwidthFromMongoDB(ctx, startDate, endDate)
+	bandwidthData, err := u.repo.GetInterfaceBandwidthFromMongoDB(ctx, startDate, endDate)
 	if err != nil {
 		return err
 	}
@@ -39,12 +37,17 @@ func (u *InterfaceBandwidthUsecase) UpdateInterfaceBandwidth(ctx context.Context
 		return nil // No data to process
 	}
 
+	// Clean previously data
+	err = u.repo.CleanInterfacesBandwidth(ctx)
+	if err != nil {
+		return err
+	}
+
 	// Store the data in PostgreSQL
-	err = u.postgresRepo.UpsertInterfaceBandwidth(ctx, bandwidthData)
+	err = u.repo.InsertInterfaceBandwidth(ctx, bandwidthData)
 	if err != nil {
 		return err
 	}
 
 	return nil
 }
-

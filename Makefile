@@ -46,14 +46,14 @@ run-traffic:
 	CORS_ALLOW_ORIGIN=$(CORS_ALLOW_ORIGIN) \
 	go run ./cmd/main.go traffic $(DAY)
 
-start-server: build
+run-interface: 
 	PORT=$(PORT) \
 	POSTGRES_URI=$(POSTGRES_URI) \
 	REDIS_URI=$(REDIS_URI) \
 	AUTH_SECRET_KEY=$(AUTH_SECRET_KEY) \
 	REPORTS_DIRECTORY=$(REPORTS_DIRECTORY) \
 	PROMETHEUS_URL=$(PROMETHEUS_URL) \
-	CORS_ALLOW_ORIGIN=$(CORS_ALLOW_ORIGIN) \
 	WEB_APP_DIRECTORY=$(WEB_APP_DIRECTORY) \
-	ENVIROMENT="production"
-	./dist/gestor-ultra server
+	CORS_ALLOW_ORIGIN=$(CORS_ALLOW_ORIGIN) \
+	MONGODB_URI=$(MONGODB_URI) \
+	go run ./cmd/main.go interface-bandwidth

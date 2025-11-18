@@ -5,12 +5,14 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/favicon"
 	"github.com/jmoiron/sqlx"
 	"github.com/metalpoch/ultra-monitor/internal/cache"
+	"github.com/metalpoch/ultra-monitor/internal/mongodb"
 	"github.com/metalpoch/ultra-monitor/internal/prometheus"
 )
 
 type Config struct {
 	App        *fiber.App
 	DB         *sqlx.DB
+	MongoDB    *mongodb.MongoDB
 	Cache      *cache.Redis
 	Secret     []byte
 	Prometheus *prometheus.Prometheus
@@ -35,4 +37,5 @@ func Init(cfg *Config) {
 	NewPrometheusRoutes(cfg.App, cfg.DB, cfg.Cache, cfg.Secret)
 	NewOntRoutes(cfg.App, cfg.DB, cfg.Cache, cfg.Secret)
 	NewInterfacesOltRoutes(cfg.App, cfg.DB, cfg.Secret)
+	NewInterfacesBandwidthRoutes(cfg.App, cfg.DB, cfg.MongoDB, cfg.Secret)
 }

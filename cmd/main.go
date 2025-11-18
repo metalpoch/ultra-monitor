@@ -147,6 +147,7 @@ func main() {
 		routes.Init(&routes.Config{
 			App:        app,
 			DB:         db,
+			MongoDB:    mongoDB,
 			Cache:      redis,
 			Secret:     []byte(jwtSecret),
 			Prometheus: &prometheusClient,
@@ -496,7 +497,7 @@ func main() {
 			}
 		}
 
-case "interface-bandwidth":
+	case "interface-bandwidth":
 		// Use the interface bandwidth usecase to update interface bandwidth data
 		interfaceBandwidthUsecase := usecase.NewInterfaceBandwidthUsecase(db, mongoDB)
 		if err := interfaceBandwidthUsecase.UpdateInterfaceBandwidth(context.Background()); err != nil {

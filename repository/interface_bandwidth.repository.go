@@ -13,6 +13,7 @@ import (
 
 type InterfaceBandwidthRepository interface {
 	GetInterfaceBandwidthFromMongoDB(ctx context.Context, startDate, endDate time.Time) ([]entity.InterfaceBandwidth, error)
+	GetAll(ctx context.Context) ([]entity.InterfaceBandwidth, error)
 	CleanInterfacesBandwidth(ctx context.Context) error
 	InsertInterfaceBandwidth(ctx context.Context, bandwidthData []entity.InterfaceBandwidth) error
 }
@@ -110,6 +111,12 @@ func (r *interfaceBandwidthRepository) InsertInterfaceBandwidth(ctx context.Cont
 	query := `INSERT INTO interfaces_bandwidth (olt_verbose, interface, bandwidth) VALUES (:olt_verbose, :interface, :bandwidth);`
 	_, err := r.db.NamedExecContext(ctx, query, bandwidthData)
 	return err
+}
+
+func (r *interfaceBandwidthRepository) GetAll(ctx context.Context) ([]entity.InterfaceBandwidth, error) {
+	var res []entity.InterfaceBandwidth
+	err := r.db.SelectContext(ctx, &res, `SELECT * FROM interfaces_bandwidth;`)
+	return res, err
 }
 
 // extractOLTFromInterface extracts the OLT name from the interface string

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/metalpoch/ultra-monitor/internal/dto"
 	"github.com/metalpoch/ultra-monitor/internal/mongodb"
 	"github.com/metalpoch/ultra-monitor/repository"
 )
@@ -17,6 +18,23 @@ func NewInterfaceBandwidthUsecase(db *sqlx.DB, mongoDB *mongodb.MongoDB) *Interf
 	return &InterfaceBandwidthUsecase{
 		repo: repository.NewInterfaceBandwidthRepository(db, mongoDB.Database),
 	}
+}
+
+func (u *InterfaceBandwidthUsecase) GetAll() ([]dto.InterfaceBandwidth, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	res, err := u.repo.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var intrf []dto.InterfaceBandwidth
+	for _, e := range res {
+		intrf = append(intrf, (dto.InterfaceBandwidth)(e))
+	}
+
+	return intrf, nil
 }
 
 func (u *InterfaceBandwidthUsecase) UpdateInterfaceBandwidth(ctx context.Context) error {

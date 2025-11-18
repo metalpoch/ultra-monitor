@@ -18,6 +18,7 @@ func NewInterfacesOltRoutes(app *fiber.App, db *sqlx.DB, secret []byte) {
 	route := app.Group("/api/interfaces-olt")
 
 	route.Use(middleware.ValidateJWT(authUsecase, secret))
+	route.Use(middleware.AdminAccess)
 
 	route.Get("/", hdlr.GetAll)
 	route.Patch("/", hdlr.Update)

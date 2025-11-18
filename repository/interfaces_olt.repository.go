@@ -22,7 +22,7 @@ func NewInterfaceOltRepository(db *sqlx.DB) *interfaceOltRepository {
 
 func (r *interfaceOltRepository) GetAll(ctx context.Context) ([]entity.InterfacesDetailedOlt, error) {
 	var olts []entity.InterfacesDetailedOlt
-	query := `SELECT DISTINCT st.region, st.state, st.sysname, inf.olt_ip, inf.olt_verbose
+	query := `SELECT DISTINCT st.region, st.state, st.sysname, st.ip, inf.olt_verbose
 	FROM summary_traffic AS st
 	LEFT JOIN  interfaces_olt AS inf ON st.ip = inf.olt_ip
 	ORDER BY st.region, st.state, inf.olt_verbose, st.ip;`
@@ -31,7 +31,10 @@ func (r *interfaceOltRepository) GetAll(ctx context.Context) ([]entity.Interface
 }
 
 func (r *interfaceOltRepository) Update(ctx context.Context, ip, oltVerbose string) error {
-	query := `UPDATE interfaces_olt SET olt_verbose = $1 WHERE olt_ip = $2;`
+	query := `INSERT INTO interfaces_olt (olt_verbose, olt_ip)
+	VALUES ($1, $2)
+	ON CONFLICT (olt_ip)
+	DO UPDATE SET olt_verbose = EXCLUDED.olt_verbose;`
 	_, err := r.db.ExecContext(ctx, query, oltVerbose, ip)
 	return err
 }

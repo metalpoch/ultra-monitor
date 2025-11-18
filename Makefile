@@ -22,6 +22,7 @@ run-server:
 	PROMETHEUS_URL=$(PROMETHEUS_URL) \
 	WEB_APP_DIRECTORY=$(WEB_APP_DIRECTORY) \
 	CORS_ALLOW_ORIGIN=$(CORS_ALLOW_ORIGIN) \
+	MONGODB_URI=$(MONGODB_URI) \
 	go run ./cmd/main.go server
 
 run-scan:
@@ -33,6 +34,7 @@ run-scan:
 	PROMETHEUS_URL=$(PROMETHEUS_URL) \
 	WEB_APP_DIRECTORY=$(WEB_APP_DIRECTORY) \
 	CORS_ALLOW_ORIGIN=$(CORS_ALLOW_ORIGIN) \
+	MONGODB_URI=$(MONGODB_URI) \
 	go run ./cmd/main.go scan
 
 run-traffic:
@@ -44,6 +46,7 @@ run-traffic:
 	PROMETHEUS_URL=$(PROMETHEUS_URL) \
 	WEB_APP_DIRECTORY=$(WEB_APP_DIRECTORY) \
 	CORS_ALLOW_ORIGIN=$(CORS_ALLOW_ORIGIN) \
+	MONGODB_URI=$(MONGODB_URI) \
 	go run ./cmd/main.go traffic $(DAY)
 
 run-interface: 

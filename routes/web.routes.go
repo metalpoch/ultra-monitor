@@ -19,6 +19,7 @@ func NewWebRoutes(app *fiber.App, webAppDir string) {
 	app.Get("/admin/user", static.New(webAppDir+"/admin/user"))
 	app.Get("/admin/fat", static.New(webAppDir+"/admin/fat"))
 	app.Get("/admin/ont", static.New(webAppDir+"/admin/ont"))
+	app.Get("/admin/interfaces", static.New(webAppDir+"/admin/interfaces"))
 
 	app.Get("/_astro/*", static.New(webAppDir+"/_astro/"))
 	app.Get("/health", func(c fiber.Ctx) error { return c.SendString("OK") })

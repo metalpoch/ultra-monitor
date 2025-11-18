@@ -1,0 +1,18 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import InterfacesManagement from "../../components/admin/InterfacesManagement.jsx";
+---
+
+<Layout title="Gestión de Interfaces OLT">
+  <main class="w-full flex flex-col gap-6 px-6 py-4">
+    <section class="p-4 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)]">
+      <h1 class="text-2xl font-semibold text-gray-200 mb-4">Gestión de Interfaces OLT</h1>
+      <p class="text-gray-400 mb-6">
+        Esta herramienta te permite mantener actualizados los datos de los OLT con sus respectivas interfaces.
+        Puedes asignar nombres descriptivos (olt_verbose) a los OLT basándote en la información de las interfaces.
+      </p>
+      <InterfacesManagement client:only />
+    </section>
+  </main>
+</Layout>
+

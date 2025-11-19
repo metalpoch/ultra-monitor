@@ -188,7 +188,25 @@ func (use *TrafficUsecase) InfoInstance(ip string) ([]dto.InfoDevice, error) {
 
 	var res []dto.InfoDevice
 	for _, d := range devices {
-		res = append(res, (dto.InfoDevice)(d))
+		// Get switch prefix for this instance
+		switchPrefix, err := use.repo.GetSwitchByIP(ctx, ip)
+		if err != nil {
+			// If error getting switch, set empty string but continue
+			switchPrefix = ""
+		}
+
+		// Manually map the fields since prometheus.InfoDevice and dto.InfoDevice are different types
+		infoDevice := dto.InfoDevice{
+			Region:       d.Region,
+			State:        d.State,
+			IP:           d.IP,
+			IfName:       d.IfName,
+			IfIndex:      d.IfIndex,
+			IfOperStatus: d.IfOperStatus,
+			Switch:       switchPrefix,
+		}
+
+		res = append(res, infoDevice)
 	}
 
 	sort.SliceStable(res, func(i, j int) bool {

@@ -43,6 +43,7 @@ type InfoDevice struct {
 	IfName       string `json:"if_name"`
 	IfIndex      int64  `json:"if_index"`
 	IfOperStatus int8   `json:"if_oper_status"`
+	Switch       string `json:"switch"`
 }
 
 type Traffic struct {

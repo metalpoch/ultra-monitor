@@ -7,6 +7,7 @@ import {
   region,
   state,
   ip,
+  switchValue,
   oltName,
   gpon,
 } from "../../stores/traffic";
@@ -29,6 +30,7 @@ export default function Table() {
   const $endDate = useStore(endDate);
   const $ip = useStore(ip);
   const $oltName = useStore(oltName);
+  const $switchValue = useStore(switchValue);
   const $gpon = useStore(gpon);
   const $state = useStore(state);
   const $region = useStore(region);
@@ -213,6 +215,7 @@ export default function Table() {
         region: $region,
         state: $state,
         ip: $ip,
+        switchValue: $switchValue,
         oltName: $oltName,
         gpon: $gpon,
         initDate: $initDate,

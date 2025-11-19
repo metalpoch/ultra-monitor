@@ -12,6 +12,7 @@ import {
   county,
   odn,
   ip,
+  switchValue,
   oltName,
   gpon,
 } from "../../stores/traffic";
@@ -34,6 +35,7 @@ export default function Chart() {
   const $odn = useStore(odn);
   const $ip = useStore(ip);
   const $oltName = useStore(oltName);
+  const $switchValue = useStore(switchValue);
   const $gpon = useStore(gpon);
 
   const filters = useMemo(
@@ -47,6 +49,7 @@ export default function Chart() {
       odn: $odn,
       ip: $ip,
       oltName: $oltName,
+      switchValue: $switchValue,
       gpon: $gpon,
     }),
     [
@@ -59,6 +62,7 @@ export default function Chart() {
       $odn,
       $ip,
       $oltName,
+      $switchValue,
       $gpon,
     ]
   );
@@ -82,11 +86,11 @@ export default function Chart() {
     }
     else if (isIpv4(filters.ip) && filters.gpon) {
       setUrl(`${BASE_URL}/basic/index/${filters.ip}/${filters.gpon}?${params.toString()}`);
-      setTitle(`${filters.oltName} - ${filters.gpon}`)
+      setTitle(`estado ${filters.state} - ${filters.switchValue} - ${filters.oltName} - ${filters.gpon}`)
     }
     else if (isIpv4(filters.ip)) {
       setUrl(`${BASE_URL}/basic/criteria/instance/${filters.ip}?${params.toString()}`);
-      setTitle(`${filters.oltName}`)
+      setTitle(`estado ${filters.state} - ${filters.switchValue} - ${filters.oltName}`)
     }
     else if (filters.state) {
       setUrl(`${BASE_URL}/basic/criteria/state/${filters.state}?${params.toString()}`);
@@ -96,7 +100,7 @@ export default function Chart() {
       setUrl(`${BASE_URL}/basic/criteria/region/${filters.region}?${params.toString()}`);
       setTitle(`región ${filters.region}`)
     }
-    else setUrl(undefined) 
+    else setUrl(undefined)
 
   }, [filters]);
 

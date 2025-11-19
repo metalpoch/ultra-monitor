@@ -13,6 +13,7 @@ import {
   state,
   ip,
   oltName,
+  switchValue,
   municipality,
   county,
   odn,
@@ -41,7 +42,6 @@ export default function Form() {
   const $municipality = useStore(municipality);
   const $county = useStore(county);
   const $ip = useStore(ip);
-  const $oltName = useStore(oltName);
   const $gpon = useStore(gpon);
   const $odn = useStore(odn);
 
@@ -55,6 +55,7 @@ export default function Form() {
     county.set("");
     ip.set("");
     oltName.set("");
+    switchValue.set("")
     gpon.set("");
     odn.set("");
     setSelectionMethod("");
@@ -107,6 +108,7 @@ export default function Form() {
     county.set("");
     ip.set("");
     oltName.set("");
+    switchValue.set("");
     gpon.set("");
     odn.set("");
     setSelectionMethod("");
@@ -118,6 +120,7 @@ export default function Form() {
     county.set("");
     ip.set("");
     oltName.set("");
+    switchValue.set("");
     gpon.set("");
     odn.set("");
   };
@@ -149,6 +152,7 @@ export default function Form() {
     county.set(target.value);
     ip.set("");
     oltName.set("");
+    switchValue.set("");
     gpon.set("");
     odn.set("");
   };
@@ -164,6 +168,10 @@ export default function Form() {
   if (status === 401 || status === 403) {
     sessionStorage.removeItem("access_token");
     window.location.href = "/";
+  }
+
+  if (infoOlt) {
+    switchValue.set(infoOlt[0].switch);
   }
 
   return (

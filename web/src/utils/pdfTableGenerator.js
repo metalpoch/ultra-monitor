@@ -128,8 +128,8 @@ export function generateTablePDF(tableData, headers, filters) {
       const x = margin + (colIndex * columnWidth) + (columnWidth / 2);
       const text = String(value || '');
 
-      // Truncate long text
-      const maxChars = Math.floor(columnWidth / 2); // Approximate character limit
+      // Truncate long text - use more generous character limit
+      const maxChars = Math.floor(columnWidth / 1.5); // Increased from /2 to /1.5 for more characters
       const displayText = text.length > maxChars ? text.substring(0, maxChars - 3) + '...' : text;
 
       doc.text(displayText, x, currentY + (rowHeight / 2), { align: 'center' });

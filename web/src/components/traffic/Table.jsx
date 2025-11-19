@@ -119,6 +119,7 @@ export default function Table() {
         <>
           <tr>
             <th rowSpan="2">OLT</th>
+            <th rowSpan="2">Switch</th>
             <th rowSpan="2">Agregador</th>
             <th colSpan="2">Entrante</th>
             <th colSpan="2">Saliente</th>
@@ -139,7 +140,7 @@ export default function Table() {
       );
       setHeader(headerElement);
       pdfHeaderConfig.set({
-        headers: ["OLT", "Agregador", "Prom. Entrante", "Max. Entrante", "Prom. Saliente", "Max. Saliente", "Capacidad", "Uso", "Activo", "Cortado", "En progreso"],
+        headers: ["OLT", "Switch", "Agregador", "Prom. Entrante", "Max. Entrante", "Prom. Saliente", "Max. Saliente", "Capacidad", "Uso", "Activo", "Cortado", "En progreso"],
         columnCount: getColumnCount('state')
       });
     } else if ($region) {
@@ -332,6 +333,7 @@ export default function Table() {
                 }
                 return <tr key={row.port ? row.port : idx} className="text-center">
                   <td>{title}</td>
+                  {$state && !$ip && <td>{row.switch || ""}</td>}
                   {$state && !$ip && <td>{fatStatus ? fatStatus.bras : ""}</td>}
                   <td>{formatSpeed(row.avg_in_bps)}</td>
                   <td>{formatSpeed(row.max_in_bps)}</td>

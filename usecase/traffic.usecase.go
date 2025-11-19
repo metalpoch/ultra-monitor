@@ -407,14 +407,34 @@ func (use *TrafficUsecase) SysnameByState(state string, initDate, finalDate time
 	return results, nil
 }
 
-func (use *TrafficUsecase) RegionStats(ip string, initDate, finalDate time.Time) ([]dto.StateStats, error) {
-	stats, err := use.prometheus.StatesStatsByRegion(context.Background(), ip, initDate, finalDate)
+func (use *TrafficUsecase) RegionStats(region string, initDate, finalDate time.Time) ([]dto.StateStats, error) {
+	stats, err := use.prometheus.StatesStatsByRegion(context.Background(), region, initDate, finalDate)
 	if err != nil {
 		return nil, err
 	}
 
 	var result []dto.StateStats
 	for _, s := range stats {
+		// Get real bandwidth for this specific state
+		realBandwidth, err := use.repo.GetRealBandwidthByState(context.Background(), s.State, initDate, finalDate)
+		if err != nil {
+			return nil, err
+		}
+
+		// Replace the bandwidth from Prometheus with the real bandwidth from database
+		if realBandwidth > 0 {
+			s.IfSpeed = realBandwidth
+			// Recalculate usage percentages with real bandwidth
+			if s.IfSpeed > 0 {
+				s.UsageIn = (s.MaxInBps / s.IfSpeed) * 100
+				s.UsageOut = (s.MaxOutBps / s.IfSpeed) * 100
+			}
+		} else {
+			// If no real bandwidth found, set to 0
+			s.IfSpeed = 0
+			s.UsageIn = 0
+			s.UsageOut = 0
+		}
 		result = append(result, (dto.StateStats)(s))
 	}
 
@@ -547,14 +567,34 @@ func (use *TrafficUsecase) generateTrendResponse(trafficData []entity.TrafficSum
 	return response, nil
 }
 
-func (use *TrafficUsecase) StateStats(ip string, initDate, finalDate time.Time) ([]dto.OltStats, error) {
-	stats, err := use.prometheus.OltStatsByState(context.Background(), ip, initDate, finalDate)
+func (use *TrafficUsecase) StateStats(state string, initDate, finalDate time.Time) ([]dto.OltStats, error) {
+	stats, err := use.prometheus.OltStatsByState(context.Background(), state, initDate, finalDate)
 	if err != nil {
 		return nil, err
 	}
 
 	var result []dto.OltStats
 	for _, s := range stats {
+		// Get real bandwidth for this specific OLT
+		realBandwidth, err := use.repo.GetRealBandwidthByIP(context.Background(), s.Instance)
+		if err != nil {
+			return nil, err
+		}
+
+		// Replace the bandwidth from Prometheus with the real bandwidth from database
+		if realBandwidth > 0 {
+			s.IfSpeed = realBandwidth
+			// Recalculate usage percentages with real bandwidth
+			if s.IfSpeed > 0 {
+				s.UsageIn = (s.MaxInBps / s.IfSpeed) * 100
+				s.UsageOut = (s.MaxOutBps / s.IfSpeed) * 100
+			}
+		} else {
+			// If no real bandwidth found, set to 0
+			s.IfSpeed = 0
+			s.UsageIn = 0
+			s.UsageOut = 0
+		}
 		result = append(result, (dto.OltStats)(s))
 	}
 

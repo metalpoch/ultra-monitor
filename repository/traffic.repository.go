@@ -23,6 +23,9 @@ type TrafficRepository interface {
 	GetTrafficGroupedByIP(ctx context.Context, state string, startTime, endTime time.Time) (map[string][]entity.TrafficSummary, error)
 	GetLocationHierarchy(ctx context.Context, initDate, finalDate time.Time) (*dto.LocationHierarchy, error)
 	GetOntTraffic(ctx context.Context, ontID int32, startTime, endTime time.Time) ([]entity.OntTraffic, error)
+	GetRealBandwidthByIP(ctx context.Context, ip string) (float64, error)
+	GetRealBandwidthByState(ctx context.Context, state string, initDate, finalDate time.Time) (float64, error)
+	GetRealBandwidthByRegion(ctx context.Context, region string, initDate, finalDate time.Time) (float64, error)
 }
 
 type trafficRepository struct {
@@ -322,6 +325,48 @@ func (r *trafficRepository) GetLocationHierarchy(ctx context.Context, initDate, 
 	}
 
 	return hierarchy, nil
+}
+
+func (r *trafficRepository) GetRealBandwidthByIP(ctx context.Context, ip string) (float64, error) {
+	var bandwidth float64
+	query := `
+		SELECT COALESCE(SUM(ib.bandwidth), 0) as total_bandwidth
+		FROM interfaces_bandwidth ib
+		JOIN interfaces_olt io ON ib.olt_verbose = io.olt_verbose
+		WHERE io.olt_ip = $1
+	`
+	err := r.db.GetContext(ctx, &bandwidth, query, ip)
+	return bandwidth, err
+}
+
+func (r *trafficRepository) GetRealBandwidthByState(ctx context.Context, state string, initDate, finalDate time.Time) (float64, error) {
+	var bandwidth float64
+	query := `
+		SELECT COALESCE(SUM(ib.bandwidth), 0) as total_bandwidth
+		FROM interfaces_bandwidth ib
+		JOIN interfaces_olt io ON ib.olt_verbose = io.olt_verbose
+		WHERE io.olt_ip IN (
+			SELECT DISTINCT ip FROM summary_traffic
+			WHERE state = $1 AND time BETWEEN $2 AND $3
+		)
+	`
+	err := r.db.GetContext(ctx, &bandwidth, query, state, initDate, finalDate)
+	return bandwidth, err
+}
+
+func (r *trafficRepository) GetRealBandwidthByRegion(ctx context.Context, region string, initDate, finalDate time.Time) (float64, error) {
+	var bandwidth float64
+	query := `
+		SELECT COALESCE(SUM(ib.bandwidth), 0) as total_bandwidth
+		FROM interfaces_bandwidth ib
+		JOIN interfaces_olt io ON ib.olt_verbose = io.olt_verbose
+		WHERE io.olt_ip IN (
+			SELECT DISTINCT ip FROM summary_traffic
+			WHERE region = $1 AND time BETWEEN $2 AND $3
+		)
+	`
+	err := r.db.GetContext(ctx, &bandwidth, query, region, initDate, finalDate)
+	return bandwidth, err
 }
 
 func (r *trafficRepository) GetOntTraffic(ctx context.Context, id int32, initDate, finalDate time.Time) ([]entity.OntTraffic, error) {

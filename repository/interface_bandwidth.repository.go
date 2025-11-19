@@ -88,15 +88,78 @@ func (r *interfaceBandwidthRepository) GetInterfaceBandwidthFromMongoDB(ctx cont
 		return nil, err
 	}
 
-	var bandwidthData []entity.InterfaceBandwidth
+	// Group interfaces by OLT
+	oltGroups := make(map[string][]struct {
+		Interface string
+		Bandwidth float64
+	})
+
 	for _, result := range results {
 		oltName := extractOLTFromInterface(result.Interface)
+		if oltName == "" {
+			continue
+		}
 
-		bandwidthData = append(bandwidthData, entity.InterfaceBandwidth{
-			OltVerbose: oltName,
-			Interface:  result.Interface,
-			Bandwidth:  result.Bandwidth,
+		oltGroups[oltName] = append(oltGroups[oltName], struct {
+			Interface string
+			Bandwidth float64
+		}{
+			Interface: result.Interface,
+			Bandwidth: result.Bandwidth,
 		})
+	}
+
+	var bandwidthData []entity.InterfaceBandwidth
+
+	// Process each OLT group
+	for oltName, interfaces := range oltGroups {
+		var lagInterfaces []struct {
+			Interface string
+			Bandwidth float64
+		}
+		var portInterfaces []struct {
+			Interface string
+			Bandwidth float64
+		}
+
+		// Separate LAG interfaces from port interfaces
+		for _, iface := range interfaces {
+			if isLAGInterface(iface.Interface) {
+				lagInterfaces = append(lagInterfaces, iface)
+			} else {
+				portInterfaces = append(portInterfaces, iface)
+			}
+		}
+
+		// Apply deduplication logic
+		if len(lagInterfaces) > 0 {
+			// If there are LAG interfaces, keep only the LAG interface with highest bandwidth
+			var bestLAG struct {
+				Interface string
+				Bandwidth float64
+			}
+
+			for _, lag := range lagInterfaces {
+				if lag.Bandwidth > bestLAG.Bandwidth {
+					bestLAG = lag
+				}
+			}
+
+			bandwidthData = append(bandwidthData, entity.InterfaceBandwidth{
+				OltVerbose: oltName,
+				Interface:  bestLAG.Interface,
+				Bandwidth:  bestLAG.Bandwidth,
+			})
+		} else {
+			// If no LAG interfaces, keep all port interfaces
+			for _, portIface := range portInterfaces {
+				bandwidthData = append(bandwidthData, entity.InterfaceBandwidth{
+					OltVerbose: oltName,
+					Interface:  portIface.Interface,
+					Bandwidth:  portIface.Bandwidth,
+				})
+			}
+		}
 	}
 
 	return bandwidthData, nil
@@ -142,6 +205,68 @@ func extractOLTFromInterface(interfaceStr string) string {
 
 	// If "-TO_" is not found, return the original interface
 	return ""
+}
+
+// isLAGInterface determines if an interface is a LAG (Link Aggregation Group) interface
+// LAG interfaces typically don't have port numbers with slashes
+// Examples of LAG interfaces:
+// - "scr-hwsr-01-Eth-6-To_OLT-HW-SAN-CRISTOBAL-03" -> true (no port numbers with slashes)
+// - "cco-sar-00-smg-4-To_OLT-HW-CARICUAO-03" -> true (no port numbers with slashes)
+// Examples of port interfaces:
+// - "scr-hwsr-01-7/1/2-To_OLT-HW-SAN-CRISTOBAL-03" -> false (has port numbers with slashes)
+// - "cco-sar-00-0/2/0/3-To_OLT-HW-CARICUAO-03" -> false (has port numbers with slashes)
+func isLAGInterface(interfaceStr string) bool {
+	// Extract the part between the switch name and "-To_"
+	upperInterface := strings.ToUpper(interfaceStr)
+
+	// Find the position of "-TO_" in the string
+	toIndex := -1
+	for i := 0; i < len(upperInterface)-3; i++ {
+		if upperInterface[i:i+4] == "-TO_" || upperInterface[i:i+4] == "-TO-" || upperInterface[i:i+4] == "_TO_" {
+			toIndex = i // Position of "-TO_"
+			break
+		}
+	}
+
+	if toIndex == -1 {
+		return false
+	}
+
+	// Extract the port/interface part (everything between last dash before "-TO_" and "-TO_")
+	portPart := interfaceStr[:toIndex]
+
+	// Find the last dash in the port part
+	lastDashIndex := -1
+	for i := len(portPart) - 1; i >= 0; i-- {
+		if portPart[i] == '-' {
+			lastDashIndex = i
+			break
+		}
+	}
+
+	if lastDashIndex == -1 {
+		return false
+	}
+
+	// Extract the actual interface identifier (after the last dash)
+	interfaceIdentifier := portPart[lastDashIndex+1:]
+
+	// Check if the interface identifier contains port numbers with slashes
+	// If it contains numbers and slashes, it's a port interface, not a LAG
+	hasNumbers := false
+	hasSlashes := false
+	for _, char := range interfaceIdentifier {
+		if char >= '0' && char <= '9' {
+			hasNumbers = true
+		}
+		if char == '/' {
+			hasSlashes = true
+		}
+	}
+
+	// If it has both numbers and slashes, it's a port interface (not LAG)
+	// Otherwise, it's a LAG interface
+	return !(hasNumbers && hasSlashes)
 }
 
 // extractSwitchFromInterface extracts the switch prefix from the interface string

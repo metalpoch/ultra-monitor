@@ -581,6 +581,13 @@ func (use *TrafficUsecase) StateStats(state string, initDate, finalDate time.Tim
 			return nil, err
 		}
 
+		// Get switch prefix from interface
+		switchPrefix, err := use.repo.GetSwitchByIP(context.Background(), s.Instance)
+		if err != nil {
+			// If error getting switch, set empty string but continue
+			switchPrefix = ""
+		}
+
 		// Replace the bandwidth from Prometheus with the real bandwidth from database
 		if realBandwidth > 0 {
 			s.IfSpeed = realBandwidth
@@ -595,6 +602,9 @@ func (use *TrafficUsecase) StateStats(state string, initDate, finalDate time.Tim
 			s.UsageIn = 0
 			s.UsageOut = 0
 		}
+
+		// Set the switch prefix
+		s.Switch = switchPrefix
 		result = append(result, (dto.OltStats)(s))
 	}
 

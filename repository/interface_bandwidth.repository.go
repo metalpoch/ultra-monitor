@@ -143,3 +143,67 @@ func extractOLTFromInterface(interfaceStr string) string {
 	// If "-TO_" is not found, return the original interface
 	return ""
 }
+
+// extractSwitchFromInterface extracts the switch prefix from the interface string
+// Examples:
+// - "scr-hwsr-01-7/1/2-To_OLT-HW-SAN-CRISTOBAL-03" -> "scr-hwsr-01"
+// - "merii-hwsar-01-1/1/22-To_OLT-HW-MERIDA-01" -> "merii-hwsar-01"
+// - "cch-sar-00-0/4/1/5-To_OLT-HW-CACHAMAY-01" -> "cch-sar-00"
+func extractSwitchFromInterface(interfaceStr string) string {
+	// Convert the interface string to uppercase for case-insensitive search
+	upperInterface := strings.ToUpper(interfaceStr)
+
+	// Find the position of "-TO_" in the string
+	toIndex := -1
+	for i := 0; i < len(upperInterface)-3; i++ {
+		if upperInterface[i:i+4] == "-TO_" || upperInterface[i:i+4] == "-TO-" || upperInterface[i:i+4] == "_TO_" {
+			toIndex = i // Position of "-TO_"
+			break
+		}
+	}
+
+	// If "-TO_" is found, extract everything before it
+	if toIndex != -1 && toIndex > 0 {
+		switchWithPorts := interfaceStr[:toIndex]
+
+		// Now we need to extract just the switch name without port numbers
+		// The switch name typically ends before the port pattern (numbers and slashes)
+		// Look for the last dash that separates switch name from port numbers
+		lastDashIndex := -1
+		for i := len(switchWithPorts) - 1; i >= 0; i-- {
+			if switchWithPorts[i] == '-' {
+				// Check if the part after this dash contains numbers and slashes (port pattern)
+				if i+1 < len(switchWithPorts) {
+					portPart := switchWithPorts[i+1:]
+					// Check if port part contains numbers and slashes
+					hasNumbers := false
+					hasSlashes := false
+					for _, char := range portPart {
+						if char >= '0' && char <= '9' {
+							hasNumbers = true
+						}
+						if char == '/' {
+							hasSlashes = true
+						}
+					}
+					// If it has both numbers and slashes, this is likely the port part
+					if hasNumbers && hasSlashes {
+						lastDashIndex = i
+						break
+					}
+				}
+			}
+		}
+
+		// If we found a dash that separates switch name from ports, return only the switch name
+		if lastDashIndex != -1 && lastDashIndex > 0 {
+			return switchWithPorts[:lastDashIndex]
+		}
+
+		// Otherwise return the original string before "-TO_"
+		return switchWithPorts
+	}
+
+	// If "-TO_" is not found, return empty string
+	return ""
+}

@@ -87,6 +87,7 @@ type StateStats struct {
 type OltStats struct {
 	Instance  string  `json:"ip"`
 	SysName   string  `json:"sys_name"`
+	Switch    string  `json:"switch"`
 	IfSpeed   float64 `json:"if_speed"`
 	MaxInBps  float64 `json:"max_in_bps"`
 	AvgInBps  float64 `json:"avg_in_bps"`

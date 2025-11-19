@@ -26,6 +26,7 @@ type TrafficRepository interface {
 	GetRealBandwidthByIP(ctx context.Context, ip string) (float64, error)
 	GetRealBandwidthByState(ctx context.Context, state string, initDate, finalDate time.Time) (float64, error)
 	GetRealBandwidthByRegion(ctx context.Context, region string, initDate, finalDate time.Time) (float64, error)
+	GetSwitchByIP(ctx context.Context, ip string) (string, error)
 }
 
 type trafficRepository struct {
@@ -374,6 +375,24 @@ func (r *trafficRepository) GetOntTraffic(ctx context.Context, id int32, initDat
 	query := `SELECT * FROM onts_traffic WHERE ont_id = $1 AND time BETWEEN $2 AND $3 AND (bps_in <= 2.49e9 OR bps_out <= 2.49e9) ORDER BY time`
 	err := r.db.SelectContext(ctx, &traffic, query, id, initDate, finalDate)
 	return traffic, err
+}
+
+func (r *trafficRepository) GetSwitchByIP(ctx context.Context, ip string) (string, error) {
+	var interfaceName string
+	query := `
+		SELECT ib.interface
+		FROM interfaces_bandwidth ib
+		JOIN interfaces_olt io ON ib.olt_verbose = io.olt_verbose
+		WHERE io.olt_ip = $1
+		LIMIT 1
+	`
+	err := r.db.GetContext(ctx, &interfaceName, query, ip)
+	if err != nil {
+		return "", err
+	}
+
+	// Extract switch prefix from interface name
+	return extractSwitchFromInterface(interfaceName), nil
 }
 
 

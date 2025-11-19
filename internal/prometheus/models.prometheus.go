@@ -82,6 +82,7 @@ type RegionStats struct {
 type OltStats struct {
 	Instance  string
 	SysName   string
+	Switch    string
 	IfSpeed   float64
 	MaxInBps  float64
 	AvgInBps  float64

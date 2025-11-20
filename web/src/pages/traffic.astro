@@ -3,6 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import Form from "../components/traffic/Form";
 import ChartWrapper from "../components/traffic/ChartWrapper";
 import Table from "../components/traffic/Table";
+import PlansCard from "../components/traffic/PlansCard";
 ---
 
 <Layout title="Tráfico">
@@ -13,8 +14,13 @@ import Table from "../components/traffic/Table";
       </div>
       <ChartWrapper client:only />
     </section>
-    <section class="w-full">
-      <Table client:only />
+    <section class="w-full flex flex-wrap gap-5">
+      <div class="flex-1">
+        <Table client:only />
+      </div>
+      <div class="w-96">
+        <PlansCard client:only />
+      </div>
     </section>
   </main>
 </Layout>

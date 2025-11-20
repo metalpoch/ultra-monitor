@@ -1,6 +1,29 @@
 import sys
+import re
 
 import pandas as pd
+
+
+def extract_plan_speed(plan_string: str) -> str:
+    """
+    Extrae la velocidad de bajada/subida de un string de plan.
+
+    Args:
+        plan_string (str): String que contiene información del plan
+
+    Returns:
+        str: String con formato 'bajada/subida' o cadena vacía si no se encuentra
+    """
+    if pd.isna(plan_string) or not isinstance(plan_string, str):
+        return ""
+
+    # Buscar patrones como "300/300", "100/50", "15/6", etc.
+    pattern = r'(\d+)/(\d+)'
+    match = re.search(pattern, plan_string)
+
+    if match:
+        return match.group(0)
+    return ""
 
 
 def proccess_data(df: pd.DataFrame) -> pd.DataFrame:
@@ -11,7 +34,7 @@ def proccess_data(df: pd.DataFrame) -> pd.DataFrame:
     Args:
         df (pd.DataFrame): DataFrame de entrada que debe contener al menos
             las columnas: REGION, ESTADO, MUNICIPIO, PARROQUIA, SLOT, PUERTO,
-            IP_OLT, ODN, FAT y STATUS.
+            IP_OLT, ODN, FAT, STATUS y PLAN.
 
     Returns:
         pd.DataFrame: Nuevo DataFrame agrupado por las columnas especificadas
@@ -20,8 +43,11 @@ def proccess_data(df: pd.DataFrame) -> pd.DataFrame:
         - EN_PROCESO: conteo de STATUS=='EN PROCESO' por grupo.
         - CORTADO: conteo de STATUS=='CORTADO' por grupo.
         - APROVISIONADO_OFFLINE: conteo de STATUS=='APROVISIONADO OFFLINE' por grupo.
-        - TOTAL: total de registros por grupo.
+        - plans: string con formato 'countxplan;countxplan;...' que agrupa los planes
     """
+    # Primero extraemos las velocidades de los planes
+    df['PLAN_SPEED'] = df['PLAN'].apply(extract_plan_speed)
+
     cols = [
         "REGION",
         "ESTADO",
@@ -34,6 +60,15 @@ def proccess_data(df: pd.DataFrame) -> pd.DataFrame:
         "ODN",
         "FAT",
     ]
+
+    def aggregate_plans(plans_series):
+        """Agrega los planes en formato 'countxplan;countxplan;...'"""
+        plan_counts = plans_series.value_counts()
+        plan_strings = []
+        for plan, count in plan_counts.items():
+            if plan:  # Solo incluir planes no vacíos
+                plan_strings.append(f"{count}x{plan}")
+        return ";".join(plan_strings)
 
     grouped = (
         df.groupby(cols)
@@ -50,6 +85,9 @@ def proccess_data(df: pd.DataFrame) -> pd.DataFrame:
             APROVISIONADO_OFFLINE=pd.NamedAgg(
                 column="STATUS", aggfunc=lambda x: (x == "APROVISIONADO OFFLINE").sum()
             ),
+            plans=pd.NamedAgg(
+                column="PLAN_SPEED", aggfunc=aggregate_plans
+            )
         )
         .reset_index()
     )
@@ -73,10 +111,14 @@ def main() -> None:
     """
     if len(sys.argv) != 2:
         sys.exit("se requiere como unico parametro el reporte de los fats")
-
     try:
         filename = sys.argv[1]
-        df = pd.read_csv(filename, sep=";")
+        # Solo cargar las columnas necesarias para optimizar recursos
+        required_columns = [
+            "REGION", "ESTADO", "MUNICIPIO", "PARROQUIA", "SLOT", "PUERTO",
+            "IP_OLT", "HOSTNAME", "ODN", "FAT", "STATUS", "PLAN"
+        ]
+        df = pd.read_csv(filename, sep=";", usecols=required_columns)
         data = proccess_data(df)
         print(data.to_json(orient="records"))
     except Exception as e:

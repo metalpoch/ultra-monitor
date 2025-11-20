@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS fats (
     shell SMALLINT NOT NULL,
     card SMALLINT NOT NULL,
     port SMALLINT NOT NULL,
+		plans TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE (ip, region, state, municipality, county, odn, fat, bras, shell, card, port)
 );`

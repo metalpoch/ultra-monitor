@@ -11,4 +11,4 @@ COPY . .
 RUN pip3 install pyinstaller pandas
 
 # Compila tu script con el comando original
-CMD pyinstaller -F -n fats-csv-to-json --optimize 2 main.py
+CMD ["pyinstaller", "-F", "-n", "fats-csv-to-json", "--optimize", "2", "main.py"]

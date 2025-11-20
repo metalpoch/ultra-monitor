@@ -17,6 +17,7 @@ type Fat struct {
 	Shell        uint8     `db:"shell"`
 	Card         uint8     `db:"card"`
 	Port         uint8     `db:"port"`
+	Plans        string    `db:"plans"`
 	CreatedAt    time.Time `db:"created_at"`
 }
 

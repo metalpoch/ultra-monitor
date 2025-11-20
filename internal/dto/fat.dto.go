@@ -18,6 +18,7 @@ type Fat struct {
 	Shell              uint8     `json:"shell"`
 	Card               uint8     `json:"card"`
 	Port               uint8     `json:"port"`
+	Plans              string    `json:"plans"`
 	CreatedAt          time.Time `json:"created_at"`
 	Actives            uint32    `json:"actives"`
 	ProvisionedOffline uint32    `json:"provisioned_offline"`
@@ -55,6 +56,7 @@ type UpsertFat struct {
 	Shell              uint8     `json:"SHELL"`
 	Card               uint8     `json:"SLOT"`
 	Port               uint8     `json:"PUERTO"`
+	Plans              string    `json:"PLANS"`
 	Actives            uint32    `json:"ACTIVOS"`
 	ProvisionedOffline uint32    `json:"APROVISIONADO_OFFLINE"`
 	CutOff             uint32    `json:"CORTADO"`

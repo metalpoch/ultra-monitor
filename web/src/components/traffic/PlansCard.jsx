@@ -1,9 +1,11 @@
 import { useStore } from "@nanostores/react";
+import { useState, useEffect, useMemo } from "react";
 import useFetch from "../../hooks/useFetch";
 import { removeAccentsAndToUpper } from "../../utils/formater";
 import { state, region, ip } from "../../stores/traffic";
 
 const BASE_URL_FATS = `${import.meta.env.PUBLIC_URL || ""}/api/fat`;
+const BASE_URL_TRAFFIC = `${import.meta.env.PUBLIC_URL || ""}/api/traffic`;
 const TOKEN = sessionStorage.getItem("access_token")?.replace("Bearer ", "") || "";
 
 export default function PlansCard() {
@@ -11,42 +13,91 @@ export default function PlansCard() {
   const $region = useStore(region);
   const $ip = useStore(ip);
 
-  // Build URL based on current selection
-  const buildFatUrl = () => {
-    if ($ip) {
-      return `${BASE_URL_FATS}/ip/${$ip}?page=1&limit=65535`;
-    } else if ($state) {
-      const formattedState = removeAccentsAndToUpper($state);
-      return `${BASE_URL_FATS}/location/${formattedState}?page=1&limit=65535`;
-    } else if ($region) {
-      // Use the base endpoint with region filter to get plans data
-      // Apply same formatting as states for database consistency
-      const formattedRegion = removeAccentsAndToUpper($region);
-      return `${BASE_URL_FATS}/?field=region&value=${formattedRegion}&page=1&limit=65535`;
-    }
-    return null;
-  };
-
-  const url = buildFatUrl();
-  const { data: fatData } = useFetch(url, {
+  // Fetch traffic data to get devices info
+  const { data: trafficData } = useFetch(`${BASE_URL_TRAFFIC}/info`, {
     headers: { Authorization: `Bearer ${TOKEN}` },
   });
 
+  // Build URLs based on current selection
+  const urls = useMemo(() => {
+    if ($ip) {
+      return [`${BASE_URL_FATS}/ip/${$ip}?page=1&limit=65535`];
+    } else if ($state) {
+      const formattedState = removeAccentsAndToUpper($state);
+      return [`${BASE_URL_FATS}/location/${formattedState}?page=1&limit=65535`];
+    } else if ($region && trafficData && Array.isArray(trafficData)) {
+      // For regions, fetch data for all states in the region
+      const regionStates = [...new Set(
+        trafficData
+          .filter(device => device.region === $region)
+          .map(device => device.state)
+      )];
+
+      return regionStates.map(state => {
+        const formattedState = removeAccentsAndToUpper(state);
+        return `${BASE_URL_FATS}/location/${formattedState}?page=1&limit=65535`;
+      });
+    }
+    return [];
+  }, [$ip, $state, $region, trafficData]);
+
+  // State to store combined FAT data
+  const [allFatData, setAllFatData] = useState([]);
+
+  // Fetch data for all URLs
+  useEffect(() => {
+    if (urls.length === 0) {
+      setAllFatData([]);
+      return;
+    }
+
+    const fetchAllData = async () => {
+      try {
+        const responses = await Promise.all(
+          urls.map(url =>
+            fetch(url, {
+              headers: { Authorization: `Bearer ${TOKEN}` }
+            }).then(res => {
+              if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+              }
+              return res.json();
+            })
+          )
+        );
+
+        const combinedData = responses.reduce((acc, data) => {
+          if (data && Array.isArray(data)) {
+            return [...acc, ...data];
+          }
+          return acc;
+        }, []);
+
+        setAllFatData(combinedData);
+      } catch (error) {
+        setAllFatData([]);
+      }
+    };
+
+    fetchAllData();
+  }, [urls]);
+
   // Parse plans data from all FAT entries
   const parsePlansData = () => {
-    if (!fatData || !Array.isArray(fatData)) return [];
+    if (!allFatData || !Array.isArray(allFatData)) return [];
 
     const planCounts = {};
     let totalUsers = 0;
 
-    fatData.forEach(fat => {
+    allFatData.forEach(fat => {
       if (fat.plans && typeof fat.plans === 'string') {
         const planEntries = fat.plans.split(';');
         planEntries.forEach(entry => {
           const [countStr, plan] = entry.split('x');
           const count = parseInt(countStr, 10);
           if (!isNaN(count) && plan) {
-            planCounts[plan] = (planCounts[plan] || 0) + count;
+            const cleanPlan = plan.trim();
+            planCounts[cleanPlan] = (planCounts[cleanPlan] || 0) + count;
             totalUsers += count;
           }
         });
@@ -64,7 +115,8 @@ export default function PlansCard() {
   const plansData = parsePlansData();
   const { plans = [], totalUsers = 0 } = plansData;
 
-  if (!url || plans.length === 0) {
+  // Only show if we have URLs and plans data
+  if (urls.length === 0 || plans.length === 0) {
     return null;
   }
 

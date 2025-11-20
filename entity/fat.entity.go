@@ -34,6 +34,7 @@ type FatInfoStatus struct {
 	Shell              uint8     `db:"shell"`
 	Card               uint8     `db:"card"`
 	Port               uint8     `db:"port"`
+	Plans              string    `db:"plans"`
 	CreatedAt          time.Time `db:"created_at"`
 	Actives            uint32    `db:"actives"`
 	ProvisionedOffline uint32    `db:"provisioned_offline"`
@@ -80,6 +81,7 @@ type UpsertFat struct {
 	Shell              uint8     `db:"shell"`
 	Card               uint8     `db:"card"`
 	Port               uint8     `db:"port"`
+	Plans              string    `db:"plans"`
 	Actives            uint32    `db:"actives"`
 	ProvisionedOffline uint32    `db:"provisioned_offline"`
 	CutOff             uint32    `db:"cut_off"`

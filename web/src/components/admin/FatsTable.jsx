@@ -184,6 +184,7 @@ export default function FatsTable() {
                 <th className="px-2">ODN</th>
                 <th>FAT</th>
                 <th className="px-2">Puerto</th>
+                <th>Planes</th>
                 <th>Activos</th>
                 <th className="px-2">Offline</th>
                 <th>Corte</th>
@@ -202,6 +203,11 @@ export default function FatsTable() {
                   <td className="px-2">{fat.odn}</td>
                   <td>{fat.fat}</td>
                   <td className="px-2">GPON {fat.shell}/{fat.card}/{fat.port}</td>
+                  <td title={fat.plans}>
+                    {fat.plans && fat.plans.length > 50
+                      ? `${fat.plans.substring(0, 50)}...`
+                      : fat.plans || "-"}
+                  </td>
                   <td>{fat.actives}</td>
                   <td className="px-2">{fat.provisioned_offline}</td>
                   <td>{fat.cut_off}</td>

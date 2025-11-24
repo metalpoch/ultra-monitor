@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -39,6 +40,7 @@ type FatRepository interface {
 	GetFatStatusStateByRegion(ctx context.Context, region string) ([]entity.LastFatStatus, error)
 	GetFatStatusOltByState(ctx context.Context, state string) ([]entity.LastFatStatus, error)
 	GetFatStatusGponByOlt(ctx context.Context, olt string) ([]entity.LastFatStatus, error)
+	DeleteByDate(ctx context.Context, date time.Time) error
 }
 
 type fatRepository struct {
@@ -64,7 +66,8 @@ func (r *fatRepository) AllInfo(ctx context.Context, field, value string, page, 
 		fs.actives,
 		fs.provisioned_offline,
 		fs.cut_off,
-		fs.in_progress
+		fs.in_progress,
+		fs.plans
 	FROM fats AS f
 	INNER JOIN fat_status AS fs ON fs.fats_id = f.id
 	WHERE %s fs.date = (SELECT MAX(date) FROM fat_status)
@@ -87,10 +90,9 @@ func (r *fatRepository) UpsertFats(ctx context.Context, fats []entity.UpsertFat)
 	}()
 
 	queryFats := `
-        INSERT INTO fats (ip, region, state, municipality, county, odn, fat, bras, shell, card, port, plans)
-				VALUES (:ip, :region, :state, :municipality, :county, :odn, :fat, :bras, :shell, :card, :port, :plans)
-        ON CONFLICT (ip, region, state, municipality, county, odn, fat, bras, shell, card, port) DO UPDATE SET
-				plans = EXCLUDED.plans
+        INSERT INTO fats (ip, region, state, municipality, county, odn, fat, bras, shell, card, port)
+				VALUES (:ip, :region, :state, :municipality, :county, :odn, :fat, :bras, :shell, :card, :port)
+        ON CONFLICT (ip, region, state, municipality, county, odn, fat, bras, shell, card, port) DO NOTHING
         RETURNING id;`
 
 	queryGetFatID := `
@@ -146,6 +148,7 @@ func (r *fatRepository) UpsertFats(ctx context.Context, fats []entity.UpsertFat)
 			ProvisionedOffline: fat.ProvisionedOffline,
 			CutOff:             fat.CutOff,
 			InProgress:         fat.InProgress,
+			Plans:              fat.Plans,
 		}
 		totalProcessed++
 	}
@@ -160,15 +163,16 @@ func (r *fatRepository) UpsertFats(ctx context.Context, fats []entity.UpsertFat)
 	}
 
 	queryFatStatus := `
-	INSERT INTO fat_status (fats_id, date, actives, provisioned_offline, cut_off, in_progress)
-	VALUES (:fats_id, :date, :actives, :provisioned_offline, :cut_off, :in_progress)
+	INSERT INTO fat_status (fats_id, date, actives, provisioned_offline, cut_off, in_progress, plans)
+	VALUES (:fats_id, :date, :actives, :provisioned_offline, :cut_off, :in_progress, :plans)
 	ON CONFLICT (fats_id, date) DO UPDATE SET
 		actives = EXCLUDED.actives,
 		provisioned_offline = EXCLUDED.provisioned_offline,
 		cut_off = EXCLUDED.cut_off,
-		in_progress = EXCLUDED.in_progress;`
+		in_progress = EXCLUDED.in_progress,
+		plans = EXCLUDED.plans;`
 
-	batchSize := 10000
+	batchSize := 9000
 	for i := 0; i < len(fatStatusesDeduplicated); i += batchSize {
 		end := i + batchSize
 		if end > len(fatStatusesDeduplicated) {
@@ -199,7 +203,8 @@ func (r *fatRepository) FindByID(ctx context.Context, id int32) (entity.FatInfoS
 		fs.actives,
 		fs.provisioned_offline,
 		fs.cut_off,
-		fs.in_progress
+		fs.in_progress,
+		fs.plans
 	FROM fats AS f
 	INNER JOIN fat_status AS fs ON fs.fats_id = f.id
 	WHERE f.id = $1 AND fs.date = (SELECT MAX(date) FROM fat_status);
@@ -220,7 +225,8 @@ func (r *fatRepository) GetAllByIP(ctx context.Context, ip string) ([]entity.Fat
 		fs.actives,
 		fs.provisioned_offline,
 		fs.cut_off,
-		fs.in_progress
+		fs.in_progress,
+		fs.plans
 	FROM fats AS f
 	INNER JOIN fat_status AS fs ON fs.fats_id = f.id
 	WHERE f.ip = $1 AND fs.date = (SELECT MAX(date) FROM fat_status)
@@ -273,7 +279,8 @@ func (r *fatRepository) FindByStates(ctx context.Context, state string, page, li
 		fs.actives,
 		fs.provisioned_offline,
 		fs.cut_off,
-		fs.in_progress
+		fs.in_progress,
+		fs.plans
 	FROM fats AS f
 	INNER JOIN fat_status AS fs ON fs.fats_id = f.id
 	WHERE f.state = $1 AND fs.date = (SELECT MAX(date) FROM fat_status)
@@ -294,7 +301,8 @@ func (r *fatRepository) FindByMunicipality(ctx context.Context, state, municipal
 		fs.actives,
 		fs.provisioned_offline,
 		fs.cut_off,
-		fs.in_progress
+		fs.in_progress,
+		fs.plans
 	FROM fats AS f
 	INNER JOIN fat_status AS fs ON fs.fats_id = f.id
 	WHERE f.state = $1 AND f.municipality = $2 AND fs.date = (SELECT MAX(date) FROM fat_status)
@@ -315,7 +323,8 @@ func (r *fatRepository) FindByCounty(ctx context.Context, state, municipality, c
 		fs.actives,
 		fs.provisioned_offline,
 		fs.cut_off,
-		fs.in_progress
+		fs.in_progress,
+		fs.plans
 	FROM fats AS f
 	INNER JOIN fat_status AS fs ON fs.fats_id = f.id
 	WHERE f.state = $1 AND f.municipality = $2 AND f.county = $3 AND fs.date = (SELECT MAX(date) FROM fat_status)
@@ -336,7 +345,8 @@ func (r *fatRepository) FindByOdn(ctx context.Context, state, municipality, coun
 		fs.actives,
 		fs.provisioned_offline,
 		fs.cut_off,
-		fs.in_progress
+		fs.in_progress,
+		fs.plans
 	FROM fats AS f
 	INNER JOIN fat_status AS fs ON fs.fats_id = f.id
 	WHERE f.state = $1 AND f.municipality = $2 AND f.county = $3 AND f.odn = $4 AND fs.date = (SELECT MAX(date) FROM fat_status)
@@ -575,4 +585,32 @@ func (r *fatRepository) GetFieldsOptions(ctx context.Context, field string) ([]s
 
 	err := r.db.SelectContext(ctx, &res, query)
 	return res, err
+}
+
+func (r *fatRepository) DeleteByDate(ctx context.Context, date time.Time) error {
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
+
+	queryDeleteStatus := `DELETE FROM fat_status WHERE date = $1;`
+	_, err = tx.ExecContext(ctx, queryDeleteStatus, date)
+	if err != nil {
+		return err
+	}
+
+	queryDeleteOrphans := `
+	DELETE FROM fats
+	WHERE id NOT IN (SELECT DISTINCT fats_id FROM fat_status);`
+	_, err = tx.ExecContext(ctx, queryDeleteOrphans)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }

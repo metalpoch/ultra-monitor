@@ -39,7 +39,6 @@ CREATE TABLE IF NOT EXISTS fats (
     shell SMALLINT NOT NULL,
     card SMALLINT NOT NULL,
     port SMALLINT NOT NULL,
-		plans TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE (ip, region, state, municipality, county, odn, fat, bras, shell, card, port)
 );`
@@ -52,6 +51,7 @@ CREATE TABLE IF NOT EXISTS fat_status (
     provisioned_offline INTEGER NOT NULL,
     cut_off INTEGER NOT NULL,
     in_progress INTEGER NOT NULL,
+		plans TEXT NOT NULL,
     FOREIGN KEY (fats_id) REFERENCES fats(id),
     UNIQUE (fats_id, date)
 );`

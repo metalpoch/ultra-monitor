@@ -5,6 +5,7 @@ import TotalTraffic from "../components/dashboard/Traffic";
 import TrafficDetailed from "../components/dashboard/TrafficDetailed";
 import ClientGrowthChart from "../components/dashboard/ClientGrowthChart";
 import GponHWInventoryTable from "../components/dashboard/GponHWInventoryTable";
+import PlansCard from "../components/dashboard/PlansCard";
 ---
 
 <Layout title="Dashboard">
@@ -12,21 +13,23 @@ import GponHWInventoryTable from "../components/dashboard/GponHWInventoryTable";
     <div class="w-full sticky-form">
       <Form client:only />
     </div>
+    <TotalTraffic client:only />
     <section class="w-full flex flex-wrap gap-5">
       <div class="flex-2 min-w-[600px]">
-        <TotalTraffic client:only />
+        <TrafficDetailed client:only />
       </div>
       <div class="flex-1 min-w-[300px]">
         <GponHWInventoryTable client:only />
       </div>
     </section>
     <section class="w-full flex flex-wrap gap-5">
-      <div class="flex-1 min-w-[400px]">
-        <TrafficDetailed client:only />
-      </div>
-      <div class="flex-1 min-w-[400px]">
+      <div class="flex-2 min-w-[600px]">
         <ClientGrowthChart client:only />
       </div>
+      <div class="flex-1 min-w-[300px]">
+        <PlansCard client:only />
+      </div>
     </section>
+
   </main>
 </Layout>

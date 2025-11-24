@@ -461,4 +461,19 @@ func (hdlr *FatHandler) GetFieldsOptions(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
+func (hdlr *FatHandler) DeleteByDate(c fiber.Ctx) error {
+	dateStr := c.Params("date")
+	date, err := time.Parse("2006-01-02", dateStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid date format, expected YYYY-MM-DD"})
+	}
+
+	err = hdlr.Usecase.DeleteByDate(date)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.SendStatus(fiber.StatusOK)
+}
+
 

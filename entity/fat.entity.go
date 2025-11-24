@@ -17,7 +17,6 @@ type Fat struct {
 	Shell        uint8     `db:"shell"`
 	Card         uint8     `db:"card"`
 	Port         uint8     `db:"port"`
-	Plans        string    `db:"plans"`
 	CreatedAt    time.Time `db:"created_at"`
 }
 
@@ -50,6 +49,7 @@ type FatStatus struct {
 	ProvisionedOffline uint32    `db:"provisioned_offline"`
 	CutOff             uint32    `db:"cut_off"`
 	InProgress         uint32    `db:"in_progress"`
+	Plans              string    `db:"plans"`
 }
 
 type LastFatStatus struct {

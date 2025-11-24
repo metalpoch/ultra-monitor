@@ -1194,7 +1194,7 @@ func (use *TrafficUsecase) GetTrafficByIPs(state string, initDate, finalDate tim
 	}
 
 	result := make(dto.TrafficByLabel)
-	for ip, trafficList := range trafficData {
+	for sysname, trafficList := range trafficData {
 		var trafficDTO []dto.Traffic
 		for _, traffic := range trafficList {
 			trafficDTO = append(trafficDTO, dto.Traffic{
@@ -1205,7 +1205,7 @@ func (use *TrafficUsecase) GetTrafficByIPs(state string, initDate, finalDate tim
 				BytesOut: traffic.TotalBytesOut,
 			})
 		}
-		result[ip] = trafficDTO
+		result[sysname] = trafficDTO
 	}
 
 	return result, nil
@@ -1235,14 +1235,14 @@ func (use *TrafficUsecase) GetOntTraffic(ontID int32, initDate, finalDate time.T
 	var result []dto.OntTraffic
 	for _, data := range trafficData {
 		result = append(result, dto.OntTraffic{
-			Time: data.Time,
-			BpsIn: data.BpsIn,
-			BpsOut: data.BpsOut,
-			BytesIn: data.BytesIn,
-			BytesOut: data.BytesOut,
+			Time:        data.Time,
+			BpsIn:       data.BpsIn,
+			BpsOut:      data.BpsOut,
+			BytesIn:     data.BytesIn,
+			BytesOut:    data.BytesOut,
 			Temperature: data.Temperature,
-			Rx: float64(data.Rx) / 100,
-			Tx: float64(data.Tx) / 100,
+			Rx:          float64(data.Rx) / 100,
+			Tx:          float64(data.Tx) / 100,
 		})
 	}
 

@@ -239,9 +239,9 @@ func (r *trafficRepository) GetTrafficGroupedByState(ctx context.Context, region
 }
 
 func (r *trafficRepository) GetTrafficGroupedByIP(ctx context.Context, state string, startTime, endTime time.Time) (map[string][]entity.TrafficSummary, error) {
-	var rows []entity.TrafficByIP
+	var rows []entity.TrafficBySysname
 	query := `SELECT
-		ip,
+		sysname,
 		date_trunc('day', time AT TIME ZONE 'America/Caracas') AT TIME ZONE 'America/Caracas' AS time,
 		SUM(bps_in) as total_bps_in,
 		SUM(bps_out) as total_bps_out,
@@ -249,8 +249,8 @@ func (r *trafficRepository) GetTrafficGroupedByIP(ctx context.Context, state str
 		SUM(bytes_out) as total_bytes_out
 		FROM summary_traffic
 		WHERE state = $1 AND time BETWEEN $2 AND $3
-		GROUP BY ip, date_trunc('day', time AT TIME ZONE 'America/Caracas') AT TIME ZONE 'America/Caracas'
-		ORDER BY time`
+		GROUP BY sysname, date_trunc('day', time AT TIME ZONE 'America/Caracas') AT TIME ZONE 'America/Caracas'
+		ORDER BY sysname, time`
 
 	err := r.db.SelectContext(ctx, &rows, query, state, startTime, endTime)
 	if err != nil {
@@ -266,7 +266,7 @@ func (r *trafficRepository) GetTrafficGroupedByIP(ctx context.Context, state str
 			TotalBytesIn:  row.TotalBytesIn,
 			TotalBytesOut: row.TotalBytesOut,
 		}
-		result[row.IP] = append(result[row.IP], traffic)
+		result[row.Sysname] = append(result[row.Sysname], traffic)
 	}
 
 	return result, nil

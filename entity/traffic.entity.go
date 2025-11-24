@@ -21,6 +21,7 @@ type SumaryTraffic struct {
 
 type TrafficSummary struct {
 	Time          time.Time `db:"time"`
+	Sysname       string    `db:"sysname"`
 	TotalBpsIn    float64   `db:"total_bps_in"`
 	TotalBpsOut   float64   `db:"total_bps_out"`
 	TotalBytesIn  float64   `db:"total_bytes_in"`
@@ -45,8 +46,8 @@ type TrafficByState struct {
 	TotalBytesOut float64   `db:"total_bytes_out"`
 }
 
-type TrafficByIP struct {
-	IP            string    `db:"ip"`
+type TrafficBySysname struct {
+	Sysname       string    `db:"sysname"`
 	Time          time.Time `db:"time"`
 	TotalBpsIn    float64   `db:"total_bps_in"`
 	TotalBpsOut   float64   `db:"total_bps_out"`

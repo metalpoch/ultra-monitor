@@ -57,13 +57,15 @@ export default function Table() {
     }
   }, [$region, $state, $ip, $initDate, $endDate]);
 
-  const { data: dataTraffic, status } = useFetch(urlTraffic, {
+  const { data: dataTraffic, status, loading } = useFetch(urlTraffic, {
     headers: { Authorization: `Bearer ${TOKEN}` },
   });
 
   const { data: dataFat } = useFetch(urlFat, {
     headers: { Authorization: `Bearer ${TOKEN}` },
   });
+
+
 
   useEffect(() => {
     if (!dataTraffic) return;
@@ -175,6 +177,26 @@ export default function Table() {
       });
     }
   }, [dataTraffic, $region, $state, $ip, $gpon]);
+
+  if (loading) {
+    return (
+      <div className="w-full p-4 rounded-lg bg-[#121b31] border-2 border-[hsl(217,33%,20%)] h-[400px] flex items-center justify-center">
+        <div className="loader-wrapper">
+          <span className="loader-letter">G</span>
+          <span className="loader-letter">e</span>
+          <span className="loader-letter">n</span>
+          <span className="loader-letter">e</span>
+          <span className="loader-letter">r</span>
+          <span className="loader-letter">a</span>
+          <span className="loader-letter">n</span>
+          <span className="loader-letter">d</span>
+          <span className="loader-letter">o</span>
+          <span className="loader-letter">.</span>
+          <div className="loader"></div>
+        </div>
+      </div>
+    );
+  }
 
   if (status === 401 || status === 403) {
     sessionStorage.removeItem("access_token");

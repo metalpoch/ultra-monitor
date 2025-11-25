@@ -210,8 +210,7 @@ export default function TrafficChart({ title, data, dataType }) {
       }
     },
     interaction: {
-      mode: 'nearest',
-      axis: 'x',
+      mode: 'index',
       intersect: false
     }
   }

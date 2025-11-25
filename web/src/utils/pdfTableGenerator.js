@@ -1,8 +1,8 @@
 import jsPDF from 'jspdf';
 
-// Import header images
-import headerLeft from '../assets/header-l.png';
-import headerRight from '../assets/header-r.png';
+// Import images
+import backgroundImg from '../assets/pdfbg.png';
+import headerWhiteLogo from '../assets/cantv-white.png';
 
 /**
  * Generates a PDF from table data in landscape orientation
@@ -21,23 +21,35 @@ export function generateTablePDF(tableData, headers, filters) {
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 15;
-  const tableStartY = 80; // Increased to make space for header images
+  const tableStartY = 50; // Increased to make space for header images
+  const otherPagesTableStartY = 35
   const rowHeight = 8;
   const headerHeight = 12;
 
+  // Agregar footer en la página actual
+  function addFooter() {
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(255, 255, 255);
+    const footerY = pageHeight - 15;
+    doc.text('Gerencia General de Operaciones Centralizadas', pageWidth / 2, footerY, { align: 'center' });
+    doc.text('Gerencia de Gestión de Tráfico', pageWidth / 2, footerY + 6, { align: 'center' });
+  }
+
+  // Add background image
+  doc.addImage(backgroundImg.src, 'PNG', 0, 0, pageWidth, pageHeight);
+
   // Add header images
-  const headerImageHeight = 20;
-  const headerImageWidth = 80;
+  const headerImageHeight = 12;
+  const headerImageWidth = 28;
 
   // Add left header image
-  doc.addImage(headerLeft.src, 'PNG', margin, 10, headerImageWidth, headerImageHeight);
-
-  // Add right header image
-  doc.addImage(headerRight.src, 'PNG', pageWidth - margin - headerImageWidth, 10, headerImageWidth, headerImageHeight);
+  doc.addImage(headerWhiteLogo.src, 'PNG', margin, 10, headerImageWidth, headerImageHeight);
 
   // Add title and date
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
+  doc.setTextColor(255, 255, 255);
   doc.text('Reporte de Tráfico', pageWidth / 2, 35, { align: 'center' });
 
   // Add filter information
@@ -57,6 +69,8 @@ export function generateTablePDF(tableData, headers, filters) {
     filterText += `Período: ${initDate} - ${endDate}`;
   }
 
+  doc.setTextColor(255, 255, 255);
+
   if (filterText) {
     doc.text(filterText, pageWidth / 2, 45, { align: 'center' });
   }
@@ -64,6 +78,8 @@ export function generateTablePDF(tableData, headers, filters) {
   // Add generation date
   const generationDate = new Date().toLocaleString();
   doc.text(`Generado: ${generationDate}`, pageWidth / 2, 55, { align: 'center' });
+
+  addFooter();
 
   // Calculate column widths based on content
   const columnCount = headers.length;
@@ -91,23 +107,25 @@ export function generateTablePDF(tableData, headers, filters) {
     // Check if we need a new page
     if (currentY + rowHeight > pageHeight - margin) {
       doc.addPage();
-      currentY = margin;
+      // currentY = otherPagesTableStartY + headerHeight;
+
+      // Add background image
+      doc.addImage(backgroundImg.src, 'PNG', 0, 0, pageWidth, pageHeight);
 
       // Add header images on new page
-      doc.addImage(headerLeft.src, 'PNG', margin, 10, headerImageWidth, headerImageHeight);
-      doc.addImage(headerRight.src, 'PNG', pageWidth - margin - headerImageWidth, 10, headerImageWidth, headerImageHeight);
+      doc.addImage(headerWhiteLogo.src, 'PNG', margin, 10, headerImageWidth, headerImageHeight);
 
       // Redraw headers on new page
       doc.setFillColor(41, 41, 41);
-      doc.rect(margin, currentY, availableWidth, headerHeight, 'F');
+      doc.rect(margin, otherPagesTableStartY, availableWidth, headerHeight, 'F');
       doc.setTextColor(255, 255, 255);
 
       headers.forEach((header, index) => {
         const x = margin + (index * columnWidth) + (columnWidth / 2);
-        doc.text(header, x, currentY + (headerHeight / 2), { align: 'center' });
+        doc.text(header, x, otherPagesTableStartY + (headerHeight / 2), { align: 'center' });
       });
 
-      currentY += headerHeight;
+      currentY = otherPagesTableStartY + headerHeight;
     }
 
     // Alternate row colors for better readability
@@ -136,6 +154,7 @@ export function generateTablePDF(tableData, headers, filters) {
     });
 
     currentY += rowHeight;
+    addFooter();
   });
 
   return doc;

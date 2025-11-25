@@ -15,6 +15,7 @@ import { pdfHeaderConfig, getColumnCount } from "../../stores/pdfHeader";
 import { isIpv4 } from "../../utils/validator";
 import { formatSpeed, removeAccentsAndToUpper } from "../../utils/formater";
 import { generateTablePDF, extractTableData } from "../../utils/pdfTableGenerator";
+import { chartImage } from "../../stores/chart";
 import dayjs from "dayjs";
 
 const BASE_URL = `${import.meta.env.PUBLIC_URL || ""}/api/traffic`;
@@ -222,8 +223,11 @@ export default function Table() {
         endDate: $endDate
       };
 
+      // Get chart image
+      const chartImg = chartImage.get();
+
       // Generate PDF
-      const doc = generateTablePDF(data, headers, filters);
+      const doc = generateTablePDF(data, headers, filters, chartImg);
 
       // Generate filename
       const timestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss');

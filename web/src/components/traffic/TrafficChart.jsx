@@ -8,7 +8,8 @@ import {
   Title,
   Tooltip,
   Legend,
-  TimeScale
+  TimeScale,
+  Filler
 } from 'chart.js'
 import { Line } from 'react-chartjs-2'
 import 'chartjs-adapter-date-fns'
@@ -23,17 +24,29 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  TimeScale
+  TimeScale,
+  Filler
 )
+
+import { useRef } from 'react'
+import { chartImage } from '../../stores/chart'
 
 export default function TrafficChart({ title, data, dataType }) {
   const [chartData, setChartData] = useState(null)
+  const chartRef = useRef(null)
 
   useEffect(() => {
     if (data && data.length > 0) {
       prepareChartData()
     }
   }, [data, dataType])
+
+  const hexToRgba = (hex, alpha) => {
+    const r = parseInt(hex.slice(1, 3), 16)
+    const g = parseInt(hex.slice(3, 5), 16)
+    const b = parseInt(hex.slice(5, 7), 16)
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`
+  }
 
   const prepareChartData = () => {
     const labels = data.map(item => new Date(item.time))
@@ -47,29 +60,29 @@ export default function TrafficChart({ title, data, dataType }) {
       labels,
       datasets: [
         {
-          label: 'Entrante',
-          data: labels.map((label, index) => ({
-            x: label,
-            y: dataType === 'traffic' ? bpsIn[index] : bytesIn[index]
-          })),
-          borderColor: dataType === 'traffic' ? COLOR[9] : COLOR[1],
-          backgroundColor: dataType === 'traffic' ? COLOR[9] : COLOR[1],
-          borderWidth: 2,
-          fill: false,
-          tension: 0.1,
-          pointRadius: 0
-        },
-        {
           label: 'Saliente',
           data: labels.map((label, index) => ({
             x: label,
             y: dataType === 'traffic' ? bpsOut[index] : bytesOut[index]
           })),
           borderColor: dataType === 'traffic' ? COLOR[5] : COLOR[3],
-          backgroundColor: dataType === 'traffic' ? COLOR[5] : COLOR[3],
+          backgroundColor: dataType === 'traffic' ? hexToRgba(COLOR[5], 0.4) : hexToRgba(COLOR[3], 0.4),
           borderWidth: 2,
-          fill: false,
-          tension: 0.1,
+          fill: true,
+          tension: 0.3,
+          pointRadius: 0
+        },
+        {
+          label: 'Entrante',
+          data: labels.map((label, index) => ({
+            x: label,
+            y: dataType === 'traffic' ? bpsIn[index] : bytesIn[index]
+          })),
+          borderColor: dataType === 'traffic' ? COLOR[9] : COLOR[1],
+          backgroundColor: dataType === 'traffic' ? hexToRgba(COLOR[9], 0.4) : hexToRgba(COLOR[1], 0.4),
+          borderWidth: 2,
+          fill: true,
+          tension: 0.3,
           pointRadius: 0
         }
       ]
@@ -95,6 +108,13 @@ export default function TrafficChart({ title, data, dataType }) {
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: {
+      onComplete: () => {
+        if (chartRef.current) {
+          chartImage.set(chartRef.current.toBase64Image())
+        }
+      }
+    },
     layout: {
       padding: {
         top: 10,
@@ -105,7 +125,7 @@ export default function TrafficChart({ title, data, dataType }) {
     },
     plugins: {
       legend: {
-       position: 'top',
+        position: 'top',
         labels: {
           color: '#e2e8f0',
           font: {
@@ -126,7 +146,7 @@ export default function TrafficChart({ title, data, dataType }) {
         mode: 'index',
         intersect: false,
         callbacks: {
-          label: function(context) {
+          label: function (context) {
             let label = context.dataset.label || ''
             if (label) {
               label += ': '
@@ -158,7 +178,7 @@ export default function TrafficChart({ title, data, dataType }) {
         },
         adapters: {
           date: {
-            locale: es 
+            locale: es
           }
         },
         grid: {
@@ -166,7 +186,10 @@ export default function TrafficChart({ title, data, dataType }) {
         },
         ticks: {
           color: '#94a3b8',
-          maxRotation: 45
+          maxRotation: 45,
+          font: {
+            weight: 'bold'
+          }
         }
       },
       y: {
@@ -175,7 +198,10 @@ export default function TrafficChart({ title, data, dataType }) {
         },
         ticks: {
           color: '#94a3b8',
-          callback: function(value) {
+          font: {
+            weight: 'bold'
+          },
+          callback: function (value) {
             return dataType === 'traffic'
               ? formatBps(value)
               : formatBytes(value)
@@ -201,7 +227,7 @@ export default function TrafficChart({ title, data, dataType }) {
   return (
     <div className="w-full h-full">
       <div className="h-96 w-full">
-        {chartData && <Line data={chartData} options={chartOptions} />}
+        {chartData && <Line ref={chartRef} data={chartData} options={chartOptions} />}
       </div>
     </div>
   )

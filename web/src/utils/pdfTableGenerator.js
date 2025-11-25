@@ -11,7 +11,7 @@ import headerWhiteLogo from '../assets/cantv-white.png';
  * @param {Object} filters - The current filter values (date, region, state, etc.)
  * @returns {jsPDF} The generated PDF document
  */
-export function generateTablePDF(tableData, headers, filters) {
+export function generateTablePDF(tableData, headers, filters, chartImage) {
   // Create PDF in landscape orientation (A4 landscape)
   const doc = new jsPDF({
     orientation: 'landscape',
@@ -21,7 +21,7 @@ export function generateTablePDF(tableData, headers, filters) {
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 15;
-  const tableStartY = 50; // Increased to make space for header images
+  const tableStartY = 65; // Increased to make space for header images
   const otherPagesTableStartY = 35
   const rowHeight = 8;
   const headerHeight = 12;
@@ -79,6 +79,24 @@ export function generateTablePDF(tableData, headers, filters) {
   const generationDate = new Date().toLocaleString();
   doc.text(`Generado: ${generationDate}`, pageWidth / 2, 55, { align: 'center' });
 
+  let currentY = tableStartY;
+
+  if (chartImage) {
+    // Add chart image
+    const chartWidth = pageWidth - (margin * 2);
+    const chartHeight = 100; // Fixed height for chart
+    doc.addImage(chartImage, 'PNG', margin, 65, chartWidth, chartHeight);
+
+    addFooter();
+    doc.addPage();
+
+    // Add background and header to new page
+    doc.addImage(backgroundImg.src, 'PNG', 0, 0, pageWidth, pageHeight);
+    doc.addImage(headerWhiteLogo.src, 'PNG', margin, 10, headerImageWidth, headerImageHeight);
+
+    currentY = otherPagesTableStartY;
+  }
+
   addFooter();
 
   // Calculate column widths based on content
@@ -88,7 +106,7 @@ export function generateTablePDF(tableData, headers, filters) {
 
   // Draw table headers
   doc.setFillColor(41, 41, 41); // Dark gray background
-  doc.rect(margin, tableStartY, availableWidth, headerHeight, 'F');
+  doc.rect(margin, currentY, availableWidth, headerHeight, 'F');
 
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
@@ -97,11 +115,11 @@ export function generateTablePDF(tableData, headers, filters) {
   // Draw header text
   headers.forEach((header, index) => {
     const x = margin + (index * columnWidth) + (columnWidth / 2);
-    doc.text(header, x, tableStartY + (headerHeight / 2), { align: 'center' });
+    doc.text(header, x, currentY + (headerHeight / 2), { align: 'center' });
   });
 
   // Draw table rows
-  let currentY = tableStartY + headerHeight;
+  currentY += headerHeight;
 
   tableData.forEach((row, rowIndex) => {
     // Check if we need a new page

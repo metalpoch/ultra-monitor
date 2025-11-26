@@ -761,19 +761,38 @@ func (use *TrafficUsecase) ByMunicipality(state, municipality string, initDate, 
 
 	var prometheusTraffic []dto.Traffic
 	if len(missingRanges) > 0 {
-		// Query Prometheus for missing dates and preserve all time intervals
+		// Query Prometheus for missing dates
 		for _, dateRange := range missingRanges {
 			var dailyTraffic []dto.Traffic
+			accum := make(map[time.Time]prometheus.Traffic)
+
 			for ip, indexes := range instancesMap {
 				traffic, err := use.prometheus.TrafficInstanceByIndex(ctx, ip, indexes, dateRange.start, dateRange.end)
 				if err != nil {
 					return nil, err
 				}
 
-				// Convert and preserve all individual time intervals
 				for _, t := range traffic {
-					dailyTraffic = append(dailyTraffic, (dto.Traffic)(*t))
+					key := t.Time.Truncate(15 * time.Minute)
+
+					if data, ok := accum[key]; ok {
+						data.BpsIn += t.BpsIn
+						data.BpsOut += t.BpsOut
+						data.BytesIn += t.BytesIn
+						data.BytesOut += t.BytesOut
+						data.Bandwidth += t.Bandwidth
+						accum[key] = data
+					} else {
+						cloned := *t
+						cloned.Time = key
+						accum[key] = cloned
+					}
 				}
+			}
+
+			// Convert to dto.Traffic
+			for _, val := range accum {
+				dailyTraffic = append(dailyTraffic, (dto.Traffic)(val))
 			}
 
 			// Add to prometheus traffic results

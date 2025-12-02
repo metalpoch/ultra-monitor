@@ -65,8 +65,6 @@ export default function Table() {
     headers: { Authorization: `Bearer ${TOKEN}` },
   });
 
-
-
   useEffect(() => {
     if (!dataTraffic) return;
     if ($gpon) {

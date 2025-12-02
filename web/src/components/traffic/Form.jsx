@@ -15,7 +15,6 @@ import {
   oltName,
   switchValue,
   municipality,
-  county,
   odn,
   gpon,
 } from "../../stores/traffic";
@@ -29,7 +28,9 @@ endDate.set(dayjs().toJSON());
 initDate.set(dayjs().subtract(1, "week").startOf("day").toJSON());
 
 export default function Form() {
-  const [urlFatState, setUrlFatState] = useState(undefined);
+
+  const [urlOdnStatsByMunicipality, setUrlOdnStatByMunicipality] = useState(undefined);
+  const [urlMunicipalityByState, setUrlunicipalityByState] = useState(undefined);
   const [urlOlt, setUrlOlt] = useState(undefined);
   const [regions, setRegions] = useState([])
   const [states, setStates] = useState([])
@@ -40,7 +41,6 @@ export default function Form() {
   const $region = useStore(region);
   const $state = useStore(state);
   const $municipality = useStore(municipality);
-  const $county = useStore(county);
   const $ip = useStore(ip);
   const $gpon = useStore(gpon);
   const $odn = useStore(odn);
@@ -52,7 +52,6 @@ export default function Form() {
     region.set("");
     state.set("");
     municipality.set("");
-    county.set("");
     ip.set("");
     oltName.set("");
     switchValue.set("")
@@ -63,14 +62,10 @@ export default function Form() {
 
   const headers = { headers: { Authorization: `Bearer ${TOKEN}` } }
 
-  // Load all OLT from prometheus data
   const { data, status, loading, error } = useFetch(`${BASE_URL_TRAFFIC}/hierarchy?initDate=${$initDate}&finalDate=${$endDate}`, headers);
-
-  // Load specific OLT info when URL is set
   const { data: infoOlt } = useFetch(urlOlt, headers);
-
-  // Load specific OLT info when URL is set
-  const { data: fatsByState } = useFetch(urlFatState, headers);
+  const { data: odnMunicipalities } = useFetch(urlMunicipalityByState, headers);
+  const { data: odnStatsByMunicipality } = useFetch(urlOdnStatsByMunicipality, headers);
 
   // Get regions array and ensure OLT data is properly loaded
   useEffect(() => {
@@ -89,7 +84,6 @@ export default function Form() {
     region.set(target.value);
     state.set("");
     municipality.set("");
-    county.set("");
     ip.set("");
     oltName.set("");
     gpon.set("");
@@ -99,13 +93,10 @@ export default function Form() {
 
   const handleChangeState = ({ target }) => {
     const formatedState = removeAccentsAndToUpper(target.value);
-    setUrlFatState(
-      `${BASE_URL_FATS}/location/${formatedState}?page=1&limit=65535`
-    );
+    setUrlunicipalityByState(`${BASE_URL_FATS}/municipalities/${formatedState}`);
 
     state.set(target.value);
     municipality.set("");
-    county.set("");
     ip.set("");
     oltName.set("");
     switchValue.set("");
@@ -117,7 +108,6 @@ export default function Form() {
   const handleChangeMethod = (method) => {
     setSelectionMethod(method);
     municipality.set("");
-    county.set("");
     ip.set("");
     oltName.set("");
     switchValue.set("");
@@ -136,25 +126,17 @@ export default function Form() {
     oltName.set(selectedObject.sys_name);
     gpon.set("");
     municipality.set("");
-    county.set("");
     odn.set("");
   };
 
   const handleChangeMunicipality = ({ target }) => {
-    municipality.set(target.value);
-    county.set("");
-    odn.set("");
-    ip.set("");
-    gpon.set("");
-  };
+    const formatedState = removeAccentsAndToUpper($state);
+    setUrlOdnStatByMunicipality(`${BASE_URL_FATS}/stats/${formatedState}/${target.value}?finalDate=${$endDate}`);
 
-  const handleChangeCounty = ({ target }) => {
-    county.set(target.value);
-    ip.set("");
-    oltName.set("");
-    switchValue.set("");
-    gpon.set("");
+    municipality.set(target.value);
     odn.set("");
+    ip.set("");
+    gpon.set("");
   };
 
   const handleChangeOdn = ({ target }) => {
@@ -171,7 +153,7 @@ export default function Form() {
   }
 
   if (infoOlt) {
-    switchValue.set(infoOlt[0].switch);
+    switchValue.set(infoOlt[0]?.switch);
   }
 
   return (
@@ -273,7 +255,7 @@ export default function Form() {
         </>
       )}
 
-      {$state && selectionMethod === "municipality" && fatsByState && (
+      {$state && selectionMethod === "municipality" && odnMunicipalities && (
         <>
           <SelectField
             id="municipality"
@@ -285,42 +267,16 @@ export default function Form() {
                 disabled: true,
                 hidden: true,
               },
-              ...[...new Set(fatsByState.map((f) => f.municipality))].map(
-                (m) => ({ value: m, label: m })
-              ),
+              ...odnMunicipalities.toSorted().map(m => ({ value: m, label: m }))
             ]}
             value={$municipality}
             onChange={handleChangeMunicipality}
           />
 
-          {$municipality && (
-            <SelectField
-              id="county"
-              label="Parroquia *"
-              options={[
-                {
-                  value: "",
-                  label: "Seleccionar Parroquia",
-                  disabled: true,
-                  hidden: true,
-                },
-                ...[
-                  ...new Set(
-                    fatsByState
-                      .filter((f) => f.municipality === $municipality)
-                      .map(({ county }) => county)
-                  ),
-                ].map((c) => ({ value: c, label: c })),
-              ]}
-              value={$county}
-              onChange={handleChangeCounty}
-            />
-          )}
-
-          {$county && (
+          {$municipality && odnStatsByMunicipality && (
             <SelectField
               id="odn"
-              label="ODN *"
+              label="ODN"
               options={[
                 {
                   value: "",
@@ -330,20 +286,16 @@ export default function Form() {
                 },
                 ...[
                   ...new Set(
-                    fatsByState
-                      .filter(
-                        (f) =>
-                          f.municipality === $municipality &&
-                          f.county === $county
-                      )
+                    odnStatsByMunicipality
                       .map(({ odn }) => odn)
                   ),
-                ].map((o) => ({ value: o, label: o })),
+                ].toSorted().map((c) => ({ value: c, label: c })),
               ]}
               value={$odn}
               onChange={handleChangeOdn}
             />
           )}
+
         </>
       )}
     </form>

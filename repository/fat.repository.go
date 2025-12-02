@@ -40,6 +40,10 @@ type FatRepository interface {
 	GetFatStatusStateByRegion(ctx context.Context, region string) ([]entity.LastFatStatus, error)
 	GetFatStatusOltByState(ctx context.Context, state string) ([]entity.LastFatStatus, error)
 	GetFatStatusGponByOlt(ctx context.Context, olt string) ([]entity.LastFatStatus, error)
+
+	// stats
+	GetAllOdnStatsByMunicipality(ctx context.Context, state, municipality string, finalDate time.Time) ([]entity.OdnStatus, error)
+
 	DeleteByDate(ctx context.Context, date time.Time) error
 }
 
@@ -563,6 +567,99 @@ func (r *fatRepository) GetFatStatusGponByOlt(ctx context.Context, ip string) ([
 	GROUP BY f.shell, f.card, f.port;
 	`
 	err := r.db.SelectContext(ctx, &res, query, ip)
+	return res, err
+}
+
+func (r *fatRepository) GetAllOdnStatsByMunicipality(ctx context.Context, state, municipality string, finalDate time.Time) ([]entity.OdnStatus, error) {
+	var res []entity.OdnStatus
+	query := `
+WITH RecentFatStatus AS (
+    -- PASO 1a: Filtrar los registros de fat_status hasta una fecha específica y encontrar el más reciente.
+    SELECT
+        *,
+        ROW_NUMBER() OVER(PARTITION BY fats_id ORDER BY date DESC) as rn
+    FROM
+        fat_status
+    WHERE
+        date <= $1 
+),
+FilteredFatData AS (
+    -- PASO 1b: Unir los datos más recientes con 'fats' y la tabla 'prometheus_devices'.
+    SELECT
+        t2.ip,
+        t2.odn,
+        t2.bras,
+        t3.idx,
+        t1.actives,
+        t1.cut_off,
+        t1.provisioned_offline,
+        t1.in_progress,
+        TRIM(regexp_split_to_table(t1.plans, ';')) AS individual_plan_entry
+    FROM
+        RecentFatStatus t1
+    JOIN
+        fats t2 ON t1.fats_id = t2.id
+    JOIN 
+        prometheus_devices t3 ON 
+            t2.ip = t3.ip AND 
+            t2.shell = t3.shell AND 
+            t2.card = t3.card AND 
+            t2.port = t3.port
+    WHERE
+        t1.rn = 1 
+        AND t2.state = $2 
+        AND t2.municipality = $3
+),
+AggregatedPlans AS (
+    -- PASO 2: Desglosar la cantidad de usuarios por plan
+    SELECT
+        ip,
+        odn,
+        bras,
+        idx,
+        actives,
+        cut_off,
+        provisioned_offline,
+        in_progress, 
+        CAST(SUBSTRING(individual_plan_entry FROM '^(\d+)x') AS INTEGER) AS plan_count,
+        SUBSTRING(individual_plan_entry FROM 'x(.*)$') AS plan_name
+    FROM
+        FilteredFatData
+),
+GroupedTotals AS (
+    -- PASO 3: Agrupar por las claves solicitadas (IP, ODN, BRAS, IDX) y sumar todos los campos numéricos.
+    SELECT
+        ip,
+        odn,
+        bras,
+        idx, -- ⬅️ Clave de agrupación principal
+        plan_name,
+        SUM(actives) AS total_actives,
+        SUM(cut_off) AS total_cut_off,
+        SUM(provisioned_offline) AS total_provisioned_offline,
+        SUM(in_progress) AS total_in_progress, 
+        SUM(plan_count) AS total_plan_count_by_plan
+    FROM
+        AggregatedPlans
+    GROUP BY
+        ip, odn, bras, idx, plan_name
+)
+-- PASO 4: Reagrupar para reconstruir la cadena 'plans' final
+SELECT
+    ip,
+    odn,
+    bras,
+    idx AS snmp_idx,
+    MAX(total_actives) AS actives,
+    MAX(total_cut_off) AS cut_off,
+    MAX(total_provisioned_offline) AS provisioned_offline,
+    MAX(total_in_progress) AS in_progress, 
+    STRING_AGG(total_plan_count_by_plan || 'x' || plan_name, ';' ORDER BY plan_name) AS plans
+FROM
+    GroupedTotals
+GROUP BY
+    ip, odn, bras, snmp_idx;`
+	err := r.db.SelectContext(ctx, &res, query, finalDate, state, municipality)
 	return res, err
 }
 

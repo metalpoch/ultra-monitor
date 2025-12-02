@@ -41,6 +41,9 @@ func NewFatRoutes(app *fiber.App, db *sqlx.DB, secret []byte) {
 	route.Get("/location/:state/:municipality", hdlr.FindByMunicipality)
 	route.Get("/location/:state/:municipality/:county", hdlr.FindByCounty)
 
+	// Stats
+	route.Get("/stats/:state/:municipality", hdlr.GetAllOdnStatsByMunicipality)
+
 	// Trend status
 	route.Get("/trend/detail/region/:region", hdlr.GetFatStatusStateByRegion)
 	route.Get("/trend/detail/state/:state", hdlr.GetFatStatusOltByState)
@@ -52,4 +55,5 @@ func NewFatRoutes(app *fiber.App, db *sqlx.DB, secret []byte) {
 	route.Get("/trend/status/state/:state/:municipality/:county", hdlr.GetAllFatStatusByCounty)
 	route.Get("/trend/status/state/:state/:municipality/:county/:odn", hdlr.GetAllFatStatusByODN)
 	route.Get("/trend/status/state/:state/:municipality/:county/:odn/:fat", hdlr.GetAllFatStatusByFat)
+
 }

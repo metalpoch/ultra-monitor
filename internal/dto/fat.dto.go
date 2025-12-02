@@ -44,6 +44,18 @@ type FatStatus struct {
 	InProgress         uint32 `json:"in_progress"`
 }
 
+type OdnStatus struct {
+	Actives            uint32 `json:"actives"`
+	ProvisionedOffline uint32 `json:"provisioned_offline"`
+	CutOff             uint32 `json:"cut_off"`
+	InProgress         uint32 `json:"in_progress"`
+	IP                 string `json:"ip"`
+	Odn                string `json:"odn"`
+	Bras               string `json:"bras"`
+	Plans              string `json:"plans"`
+	SnmpIdx            string `json:"snmp_idx"`
+}
+
 type UpsertFat struct {
 	IP                 string    `json:"IP_OLT"`
 	Region             string    `json:"REGION"`

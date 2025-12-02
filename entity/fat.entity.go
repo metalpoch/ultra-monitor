@@ -69,6 +69,18 @@ type FatStatusSummary struct {
 	InProgress         uint32    `db:"in_progress"`
 }
 
+type OdnStatus struct {
+	Actives            uint32 `db:"actives"`
+	ProvisionedOffline uint32 `db:"provisioned_offline"`
+	CutOff             uint32 `db:"cut_off"`
+	InProgress         uint32 `db:"in_progress"`
+	IP                 string `db:"ip"`
+	Odn                string `db:"odn"`
+	Bras               string `db:"bras"`
+	Plans              string `db:"plans"`
+	SnmpIdx            string `db:"snmp_idx"`
+}
+
 type UpsertFat struct {
 	IP                 string    `db:"ip"`
 	Region             string    `db:"region"`

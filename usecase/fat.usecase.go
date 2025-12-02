@@ -400,6 +400,23 @@ func (use *FatUsecase) GetFatStatusGponByOlt(ip string) ([]dto.FatStatus, error)
 	return fats, nil
 }
 
+func (use *FatUsecase) GetAllOdnStatsByMunicipality(state, municipality string, finalDate time.Time) ([]dto.OdnStatus, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	res, err := use.repo.GetAllOdnStatsByMunicipality(ctx, state, municipality, finalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var fats []dto.OdnStatus
+	for _, e := range res {
+		fats = append(fats, (dto.OdnStatus)(e))
+	}
+
+	return fats, nil
+}
+
 func (use *FatUsecase) GetFieldsOptions(field string) ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()

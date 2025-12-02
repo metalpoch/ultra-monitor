@@ -447,6 +447,35 @@ func (hdlr *FatHandler) GetFatStatusGponByOlt(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
+func (hdlr *FatHandler) GetAllOdnStatsByMunicipality(c fiber.Ctx) error {
+	dateStr := c.Query("finalDate")
+	if dateStr == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "finalDate required"})
+	}
+
+	finalDate, err := time.Parse(time.RFC3339, dateStr)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid Format, use RFC3339"})
+	}
+
+	state, err := url.QueryUnescape(c.Params("state"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	municipality, err := url.QueryUnescape(c.Params("municipality"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetAllOdnStatsByMunicipality(state, municipality, finalDate)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
 func (hdlr *FatHandler) GetFieldsOptions(c fiber.Ctx) error {
 	field, err := url.QueryUnescape(c.Params("field"))
 	if err != nil {
@@ -475,5 +504,3 @@ func (hdlr *FatHandler) DeleteByDate(c fiber.Ctx) error {
 
 	return c.SendStatus(fiber.StatusOK)
 }
-
-

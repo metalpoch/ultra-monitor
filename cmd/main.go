@@ -34,17 +34,18 @@ var jwtSecret string
 var reportsDir string
 var port string
 var webAppDir string
-var allowOrigin string
+var origin string
 var enviroment string
 var mongoURI string
 
+var allowOrigin []string
+
 func init() {
 	enviroment = os.Getenv("ENVIROMENT")
-	allowOrigin = "*"
 
 	if enviroment == "production" {
-		allowOrigin = os.Getenv("CORS_ALLOW_ORIGIN")
-		if allowOrigin == "" {
+		origin = os.Getenv("CORS_ALLOW_ORIGIN")
+		if origin == "" {
 			log.Fatal("error 'CORS_ALLOW_ORIGIN' enviroment varables requried.")
 		}
 
@@ -52,6 +53,9 @@ func init() {
 		if webAppDir == "" {
 			log.Fatal("error 'WEB_APP_DIRECTORY' enviroment varables requried.")
 		}
+		allowOrigin = append(allowOrigin, origin)
+	} else {
+		allowOrigin = append(allowOrigin, "http://localhost:3000", "http://localhost:4321")
 	}
 
 	reportsDir = os.Getenv("REPORTS_DIRECTORY")
@@ -129,9 +133,8 @@ func main() {
 
 		app.Use(logger.New())
 		app.Use(limiter.New(limiter.Config{
-			Max:        60,
+			Max:        50,
 			Expiration: 1 * time.Minute,
-			// },
 			LimitReached: func(c fiber.Ctx) error {
 				return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
 					"error": "Rate limit exceeded",
@@ -139,8 +142,8 @@ func main() {
 			},
 		}))
 		app.Use(cors.New(cors.Config{
-			AllowOrigins: []string{allowOrigin},
-			AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization"},
+			AllowOrigins: allowOrigin,
+			AllowHeaders: []string{"Access-Control-Allow-Origin", "Content-Type", "Accept", "Authorization"},
 			AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		}))
 

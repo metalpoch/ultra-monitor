@@ -574,14 +574,16 @@ func (r *fatRepository) GetAllOdnStatsByMunicipality(ctx context.Context, state,
 	var res []entity.OdnStatus
 	query := `
 WITH RecentFatStatus AS (
-    -- PASO 1a: Filtrar los registros de fat_status hasta una fecha específica y encontrar el más reciente.
     SELECT
         *,
-        ROW_NUMBER() OVER(PARTITION BY fats_id ORDER BY date DESC) as rn
+        ROW_NUMBER() OVER (PARTITION BY ip, shell, card, port ORDER BY date DESC) AS rn
     FROM
-        fat_status
+        fat_status fs
+    JOIN fats f ON fs.fats_id = f.id
     WHERE
-        date <= $1 
+        f.state = $1 
+        AND f.municipality = $2
+        AND fs.date <= $3
 ),
 FilteredFatData AS (
     -- PASO 1b: Unir los datos más recientes con 'fats' y la tabla 'prometheus_devices'.
@@ -607,8 +609,8 @@ FilteredFatData AS (
             t2.port = t3.port
     WHERE
         t1.rn = 1 
-        AND t2.state = $2 
-        AND t2.municipality = $3
+        AND t2.state = $1 
+        AND t2.municipality = $2
 ),
 AggregatedPlans AS (
     -- PASO 2: Desglosar la cantidad de usuarios por plan
@@ -659,7 +661,7 @@ FROM
     GroupedTotals
 GROUP BY
     ip, odn, bras, snmp_idx;`
-	err := r.db.SelectContext(ctx, &res, query, finalDate, state, municipality)
+	err := r.db.SelectContext(ctx, &res, query, state, municipality, finalDate)
 	return res, err
 }
 

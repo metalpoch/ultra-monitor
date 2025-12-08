@@ -43,6 +43,10 @@ func NewTrafficRoutes(app *fiber.App, db *sqlx.DB, cache *cache.Redis, prometheu
 	route.Get("/basic/instances", hdlr.GroupIP)
 	route.Get("/basic/index/:ip/:idx", hdlr.ByIdx)
 
+	// Volume
+	route.Get("/basic/volume/national", hdlr.GetNationalBytesVolume)
+	route.Get("/basic/volume/criteria/:criteria/:value", hdlr.GetBytesVolumeByCriteria)
+
 	// using fats table
 	route.Get("/basic/municipality/:state/:municipality", hdlr.ByMunicipality)
 	route.Get("/basic/county/:state/:municipality/:county", hdlr.ByCounty)

@@ -29,6 +29,7 @@ type Prometheus interface {
 
 	// Basic traffic
 	TrafficByCriteria(ctx context.Context, criteria, value string, initDate, finalDate time.Time) ([]*Traffic, error)
+	GetBytesVolume(ctx context.Context, criteria, value string, initDate, finalDate time.Time) (Volume, error)
 
 	// stats
 	StatesStatsByRegion(ctx context.Context, region string, initDate, finalDate time.Time) ([]RegionStats, error)
@@ -349,7 +350,6 @@ func (p *prometheus) TrafficByCriteria(ctx context.Context, criteria, value stri
 	sort.Slice(result, func(i, j int) bool {
 		return result[i].Time.Before(result[j].Time)
 	})
-
 	return result, nil
 }
 
@@ -864,6 +864,17 @@ func (p *prometheus) TrafficByInstanceStateRegion(ctx context.Context, initDate,
 	queryBytesIn := `sum(increase(hwGponOltEthernetStatisticSendBytes_count[15m]) and (rate(hwGponOltEthernetStatisticSendBytes_count[15m]) * 8 <= 2.5e9)) by (instance,state,region) * on (instance,state,region) group_left(sysName) sysName`
 	queryBytesOut := `sum(increase(hwGponOltEthernetStatisticReceivedBytes_count[15m]) and (rate(hwGponOltEthernetStatisticReceivedBytes_count[15m]) * 8 <= 2.5e9)) by (instance,state,region) * on (instance,state,region) group_left(sysName) sysName`
 
+	// Volume
+	maxDailyBytes := (2.49e9 / 8) * 86400
+	queryVolumeIn := fmt.Sprintf(
+		"sum(clamp_max(increase(hwGponOltEthernetStatisticSendBytes_count[1d]), %f)) by (instance, state, region) * on(instance, state, region) group_left(sysName) sysName",
+		maxDailyBytes,
+	)
+	queryVolumeOut := fmt.Sprintf(
+		"sum(clamp_max(increase(hwGponOltEthernetStatisticReceivedBytes_count[1d]), %f)) by (instance, state, region) * on(instance, state, region) group_left(sysName) sysName",
+		maxDailyBytes,
+	)
+
 	r := v1.Range{
 		Start: initDate,
 		End:   finalDate,
@@ -896,14 +907,28 @@ func (p *prometheus) TrafficByInstanceStateRegion(ctx context.Context, initDate,
 		return nil, err
 	}
 
+	volumeInResult, _, err := p.client.QueryRange(ctx, queryVolumeIn, r)
+	if err != nil {
+		return nil, err
+	}
+
+	volumeOutResult, _, err := p.client.QueryRange(ctx, queryVolumeOut, r)
+	if err != nil {
+		return nil, err
+	}
+
 	bpsOutMatrix, _ := bpsOutResult.(model.Matrix)
 	bpsInMatrix, _ := bpsInResult.(model.Matrix)
 	bandwidthMatrix, _ := bandwidthResult.(model.Matrix)
 	bytesInMatrix, _ := bytesInResult.(model.Matrix)
 	bytesOutMatrix, _ := bytesOutResult.(model.Matrix)
+	volumeInMatrix, _ := volumeInResult.(model.Matrix)
+	volumeOutMatrix, _ := volumeOutResult.(model.Matrix)
 
-	// Create a map to aggregate data by instance, state, region and time
+	// Create a map to aggregate data by instance, state, region and time / Volumes
 	trafficMap := make(map[string]map[int64]*TrafficByInstance)
+	volumeInMap := make(map[string]float64)
+	volumeOutMap := make(map[string]float64)
 
 	// Process BpsOut data
 	for _, serie := range bpsOutMatrix {
@@ -1040,6 +1065,31 @@ func (p *prometheus) TrafficByInstanceStateRegion(ctx context.Context, initDate,
 		}
 	}
 
+	// Procesar VolumeIn
+	for _, serie := range volumeInMatrix {
+		ip := string(serie.Metric["instance"])
+		state := string(serie.Metric["state"])
+		region := string(serie.Metric["region"])
+		key := fmt.Sprintf("%s-%s-%s", ip, state, region)
+
+		// Tomar el último valor (o cualquiera, son todos iguales en un día)
+		if len(serie.Values) > 0 {
+			volumeInMap[key] = float64(serie.Values[len(serie.Values)-1].Value)
+		}
+	}
+
+	// Procesar VolumeOut
+	for _, serie := range volumeOutMatrix {
+		ip := string(serie.Metric["instance"])
+		state := string(serie.Metric["state"])
+		region := string(serie.Metric["region"])
+		key := fmt.Sprintf("%s-%s-%s", ip, state, region)
+
+		if len(serie.Values) > 0 {
+			volumeOutMap[key] = float64(serie.Values[len(serie.Values)-1].Value)
+		}
+	}
+
 	// Convert the map to a slice
 	var trafficData []TrafficByInstance
 	for _, timeMap := range trafficMap {
@@ -1048,5 +1098,61 @@ func (p *prometheus) TrafficByInstanceStateRegion(ctx context.Context, initDate,
 		}
 	}
 
+	// Asignar VolumeIn y VolumeOut a cada registro
+	for i := range trafficData {
+		key := fmt.Sprintf("%s-%s-%s", trafficData[i].IP, trafficData[i].State, trafficData[i].Region)
+		trafficData[i].VolumeIn = volumeInMap[key]
+		trafficData[i].VolumeOut = volumeOutMap[key]
+	}
+
 	return trafficData, nil
+}
+
+func (p *prometheus) GetBytesVolume(ctx context.Context, criteria, value string, initDate, finalDate time.Time) (Volume, error) {
+	// Calculate duration for the query range
+	duration := finalDate.Sub(initDate)
+	durationStr := fmt.Sprintf("%.0fs", duration.Seconds())
+
+	// Build filter based on criteria and value
+	var filter string
+	if criteria != "" && value != "" {
+		filter = fmt.Sprintf("%s='%s'", criteria, value)
+	}
+
+	// Construct queries for bytes in and bytes out
+	queryBytesIn := fmt.Sprintf("sum(clamp_max(increase(hwGponOltEthernetStatisticSendBytes_count{%s}[%s]), 2.49e9 * %.0f))", filter, durationStr, duration.Seconds())
+	queryBytesOut := fmt.Sprintf("sum(clamp_max(increase(hwGponOltEthernetStatisticReceivedBytes_count{%s}[%s]), 2.49e9 * %.0f))", filter, durationStr, duration.Seconds())
+
+	// Execute queries at the final date time
+	bytesInResult, _, err := p.client.Query(ctx, queryBytesIn, finalDate)
+	if err != nil {
+		return Volume{}, fmt.Errorf("error querying bytes in: %v", err)
+	}
+
+	bytesOutResult, _, err := p.client.Query(ctx, queryBytesOut, finalDate)
+	if err != nil {
+		return Volume{}, fmt.Errorf("error querying bytes out: %v", err)
+	}
+
+	// Parse results
+	bytesInVector, okIn := bytesInResult.(model.Vector)
+	bytesOutVector, okOut := bytesOutResult.(model.Vector)
+
+	if !okIn || !okOut {
+		return Volume{}, fmt.Errorf("unexpected result types: bytesIn=%T, bytesOut=%T", bytesInResult, bytesOutResult)
+	}
+
+	// Sum all values from the vectors
+	var totalBytesIn, totalBytesOut int64
+	for _, sample := range bytesInVector {
+		totalBytesIn += int64(sample.Value)
+	}
+	for _, sample := range bytesOutVector {
+		totalBytesOut += int64(sample.Value)
+	}
+
+	return Volume{
+		BytesIn:  totalBytesIn,
+		BytesOut: totalBytesOut,
+	}, nil
 }

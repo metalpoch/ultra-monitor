@@ -62,6 +62,11 @@ type GroupedIP struct {
 	RangeDate
 }
 
+type Volume struct {
+	BytesIn  string `json:"in"`
+	BytesOut string `json:"out"`
+}
+
 type GponStats struct {
 	Port      string  `json:"port"`
 	IfName    string  `json:"if_name"`

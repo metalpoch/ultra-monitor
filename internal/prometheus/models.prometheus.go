@@ -17,6 +17,11 @@ type TrafficQuery struct {
 	PortIndex string
 }
 
+type Volume struct {
+	BytesIn  int64
+	BytesOut int64
+}
+
 type Traffic struct {
 	Time      time.Time
 	BpsIn     float64
@@ -103,4 +108,6 @@ type TrafficByInstance struct {
 	Bandwidth float64
 	BytesIn   float64
 	BytesOut  float64
+	VolumeIn  float64
+	VolumeOut float64
 }

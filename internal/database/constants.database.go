@@ -81,6 +81,8 @@ CREATE TABLE IF NOT EXISTS summary_traffic (
     bps_out DOUBLE PRECISION NOT NULL,
     bytes_in DOUBLE PRECISION NOT NULL,
     bytes_out DOUBLE PRECISION NOT NULL,
+		volumen_in DOUBLE PRECISION NOT NULL,
+		volumen_out DOUBLE PRECISION NOT NULL,
     PRIMARY KEY (ip, time)
 );`
 

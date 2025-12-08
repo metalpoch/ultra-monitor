@@ -65,8 +65,8 @@ func (r *trafficRepository) GetSnmpIndexByODN(ctx context.Context, state, munici
 }
 
 func (r *trafficRepository) SaveSummaryTraffic(ctx context.Context, trafficData []entity.SumaryTraffic) error {
-	query := `INSERT INTO summary_traffic (time, ip, state, region, sysname, bps_in, bps_out, bytes_in, bytes_out)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+	query := `INSERT INTO summary_traffic (time, ip, state, region, sysname, bps_in, bps_out, bytes_in, bytes_out, volume_in, volume_out)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 		ON CONFLICT (ip, time)
 		DO UPDATE SET
 			state = EXCLUDED.state,
@@ -75,7 +75,9 @@ func (r *trafficRepository) SaveSummaryTraffic(ctx context.Context, trafficData 
 			bps_in = EXCLUDED.bps_in,
 			bps_out = EXCLUDED.bps_out,
 			bytes_in = EXCLUDED.bytes_in,
-			bytes_out = EXCLUDED.bytes_out`
+			bytes_out = EXCLUDED.bytes_out,
+			volume_in = EXCLUDED.volume_in,
+			volume_out = EXCLUDED.volume_out`
 
 	tx, err := r.db.Beginx()
 	if err != nil {
@@ -93,7 +95,9 @@ func (r *trafficRepository) SaveSummaryTraffic(ctx context.Context, trafficData 
 			traffic.BpsIn,
 			traffic.BpsOut,
 			traffic.BytesIn,
-			traffic.BytesOut)
+			traffic.BytesOut,
+			traffic.VolumeIn,
+			traffic.VolumeOut)
 		if err != nil {
 			return err
 		}

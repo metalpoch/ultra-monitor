@@ -446,6 +446,44 @@ func (hdlr *TrafficHandler) GetTrafficByCriteria(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
+func (hdlr *TrafficHandler) GetNationalBytesVolume(c fiber.Ctx) error {
+	var dates dto.RangeDate
+	if err := c.Bind().Query(&dates); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetBytesVolume("", "", dates.InitDate, dates.FinalDate)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+func (hdlr *TrafficHandler) GetBytesVolumeByCriteria(c fiber.Ctx) error {
+	var dates dto.RangeDate
+	if err := c.Bind().Query(&dates); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	criteria, err := url.QueryUnescape(c.Params("criteria"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	value, err := url.QueryUnescape(c.Params("value"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res, err := hdlr.Usecase.GetBytesVolume(criteria, value, dates.InitDate, dates.FinalDate)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
 func (hdlr *TrafficHandler) GetOntTraffic(c fiber.Ctx) error {
 	id, err := fiber.Convert(c.Params("id"), strconv.Atoi)
 	if err != nil {

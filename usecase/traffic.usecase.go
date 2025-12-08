@@ -14,6 +14,7 @@ import (
 	"github.com/metalpoch/ultra-monitor/internal/dto"
 	"github.com/metalpoch/ultra-monitor/internal/prometheus"
 	"github.com/metalpoch/ultra-monitor/internal/trend"
+	"github.com/metalpoch/ultra-monitor/internal/utils"
 	"github.com/metalpoch/ultra-monitor/repository"
 	"github.com/redis/go-redis/v9"
 )
@@ -244,15 +245,17 @@ func (use *TrafficUsecase) UpdateSummaryTraffic(initDate, finalDate time.Time) e
 	var result []entity.SumaryTraffic
 	for _, record := range maxTrafficByIP {
 		result = append(result, entity.SumaryTraffic{
-			Time:     record.Time,
-			IP:       record.IP,
-			State:    record.State,
-			Region:   record.Region,
-			Sysname:  record.SysName,
-			BpsIn:    record.BpsIn,
-			BpsOut:   record.BpsOut,
-			BytesIn:  record.BytesIn,
-			BytesOut: record.BytesOut,
+			Time:      record.Time,
+			IP:        record.IP,
+			State:     record.State,
+			Region:    record.Region,
+			Sysname:   record.SysName,
+			BpsIn:     record.BpsIn,
+			BpsOut:    record.BpsOut,
+			BytesIn:   record.BytesIn,
+			BytesOut:  record.BytesOut,
+			VolumeIn:  record.VolumeIn,
+			VolumeOut: record.VolumeOut,
 		})
 	}
 
@@ -1039,6 +1042,18 @@ func (use *TrafficUsecase) ByIdx(ip, idx string, initDate, finalDate time.Time) 
 	}
 
 	return result, nil
+}
+
+func (use *TrafficUsecase) GetBytesVolume(criteria, value string, initDate, finalDate time.Time) (*dto.Volume, error) {
+	volume, err := use.prometheus.GetBytesVolume(context.Background(), criteria, value, initDate, finalDate)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.Volume{
+		BytesIn:  utils.VolumeSuffix(volume.BytesIn),
+		BytesOut: utils.VolumeSuffix(volume.BytesOut),
+	}, nil
 }
 
 func (use *TrafficUsecase) GetNationalTraffic(initDate, finalDate time.Time) ([]dto.Traffic, error) {

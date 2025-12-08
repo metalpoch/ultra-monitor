@@ -14,8 +14,8 @@ import {
   ip,
   oltName,
   switchValue,
-  municipality,
-  odn,
+  // municipality,
+  // odn,
   gpon,
 } from "../../stores/traffic";
 import { useStore } from "@nanostores/react";
@@ -29,8 +29,8 @@ initDate.set(dayjs().subtract(1, "week").startOf("day").toJSON());
 
 export default function Form() {
 
-  const [urlOdnStatsByMunicipality, setUrlOdnStatByMunicipality] = useState(undefined);
-  const [urlMunicipalityByState, setUrlunicipalityByState] = useState(undefined);
+  // const [urlOdnStatsByMunicipality, setUrlOdnStatByMunicipality] = useState(undefined);
+  // const [urlMunicipalityByState, setUrlunicipalityByState] = useState(undefined);
   const [urlOlt, setUrlOlt] = useState(undefined);
   const [regions, setRegions] = useState([])
   const [states, setStates] = useState([])
@@ -40,10 +40,10 @@ export default function Form() {
   const $endDate = useStore(endDate);
   const $region = useStore(region);
   const $state = useStore(state);
-  const $municipality = useStore(municipality);
+  // const $municipality = useStore(municipality);
   const $ip = useStore(ip);
   const $gpon = useStore(gpon);
-  const $odn = useStore(odn);
+  // const $odn = useStore(odn);
 
   // Reset all form states when component mounts
   useEffect(() => {
@@ -51,12 +51,12 @@ export default function Form() {
     initDate.set(dayjs().subtract(1, "week").startOf("day").toJSON());
     region.set("");
     state.set("");
-    municipality.set("");
+    // municipality.set("");
     ip.set("");
     oltName.set("");
     switchValue.set("")
     gpon.set("");
-    odn.set("");
+    // odn.set("");
     setSelectionMethod("");
   }, []);
 
@@ -64,8 +64,8 @@ export default function Form() {
 
   const { data, status, loading, error } = useFetch(`${BASE_URL_TRAFFIC}/hierarchy?initDate=${$initDate}&finalDate=${$endDate}`, headers);
   const { data: infoOlt } = useFetch(urlOlt, headers);
-  const { data: odnMunicipalities } = useFetch(urlMunicipalityByState, headers);
-  const { data: odnStatsByMunicipality } = useFetch(urlOdnStatsByMunicipality, headers);
+  // const { data: odnMunicipalities } = useFetch(urlMunicipalityByState, headers);
+  // const { data: odnStatsByMunicipality } = useFetch(urlOdnStatsByMunicipality, headers);
 
   // Get regions array and ensure OLT data is properly loaded
   useEffect(() => {
@@ -83,36 +83,36 @@ export default function Form() {
     setStates(data.states[target.value])
     region.set(target.value);
     state.set("");
-    municipality.set("");
+    // municipality.set("");
     ip.set("");
     oltName.set("");
     gpon.set("");
-    odn.set("");
+    // odn.set("");
     setSelectionMethod("");
   };
 
   const handleChangeState = ({ target }) => {
-    const formatedState = removeAccentsAndToUpper(target.value);
-    setUrlunicipalityByState(`${BASE_URL_FATS}/municipalities/${formatedState}`);
+    // const formatedState = removeAccentsAndToUpper(target.value);
+    // setUrlunicipalityByState(`${BASE_URL_FATS}/municipalities/${formatedState}`);
 
     state.set(target.value);
-    municipality.set("");
+    // municipality.set("");
     ip.set("");
     oltName.set("");
     switchValue.set("");
     gpon.set("");
-    odn.set("");
+    // odn.set("");
     setSelectionMethod("");
   };
 
   const handleChangeMethod = (method) => {
     setSelectionMethod(method);
-    municipality.set("");
+    // municipality.set("");
     ip.set("");
     oltName.set("");
     switchValue.set("");
     gpon.set("");
-    odn.set("");
+    // odn.set("");
   };
 
   const handleChangeOlt = ({ target }) => {
@@ -125,23 +125,23 @@ export default function Form() {
     ip.set(target.value);
     oltName.set(selectedObject.sys_name);
     gpon.set("");
-    municipality.set("");
-    odn.set("");
+    // municipality.set("");
+    // odn.set("");
   };
 
-  const handleChangeMunicipality = ({ target }) => {
-    const formatedState = removeAccentsAndToUpper($state);
-    setUrlOdnStatByMunicipality(`${BASE_URL_FATS}/stats/${formatedState}/${target.value}?finalDate=${$endDate}`);
+  // const handleChangeMunicipality = ({ target }) => {
+  //   const formatedState = removeAccentsAndToUpper($state);
+  //   setUrlOdnStatByMunicipality(`${BASE_URL_FATS}/stats/${formatedState}/${target.value}?finalDate=${$endDate}`);
 
-    municipality.set(target.value);
-    odn.set("");
-    ip.set("");
-    gpon.set("");
-  };
+  //   municipality.set(target.value);
+  //   odn.set("");
+  //   ip.set("");
+  //   gpon.set("");
+  // };
 
-  const handleChangeOdn = ({ target }) => {
-    odn.set(target.value);
-  };
+  // const handleChangeOdn = ({ target }) => {
+  //   odn.set(target.value);
+  // };
 
   const handleChangeGpon = ({ target }) => {
     gpon.set(target.value);
@@ -215,7 +215,6 @@ export default function Form() {
           label="Método de busqueda"
           options={[
             { value: "olt", label: "OLT" },
-            { value: "municipality", label: "Ubicación" },
           ]}
           value={selectionMethod}
           onChange={handleChangeMethod}
@@ -255,7 +254,7 @@ export default function Form() {
         </>
       )}
 
-      {$state && selectionMethod === "municipality" && odnMunicipalities && (
+      {/* {$state && selectionMethod === "municipality" && odnMunicipalities && (
         <>
           <SelectField
             id="municipality"
@@ -297,7 +296,7 @@ export default function Form() {
           )}
 
         </>
-      )}
+      )} */}
     </form>
   );
 }

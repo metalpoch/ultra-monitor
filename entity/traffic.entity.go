@@ -28,6 +28,8 @@ type TrafficSummary struct {
 	TotalBpsOut   float64   `db:"total_bps_out"`
 	TotalBytesIn  float64   `db:"total_bytes_in"`
 	TotalBytesOut float64   `db:"total_bytes_out"`
+	VolumeIn      float64   `db:"total_volume_in"`
+	VolumeOut     float64   `db:"total_volume_out"`
 }
 
 type TrafficByRegion struct {

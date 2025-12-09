@@ -113,7 +113,9 @@ func (r *trafficRepository) GetTotalTrafficByIP(ctx context.Context, ip string, 
 		SUM(bps_in) as total_bps_in,
 		SUM(bps_out) as total_bps_out,
 		SUM(bytes_in) as total_bytes_in,
-		SUM(bytes_out) as total_bytes_out
+		SUM(bytes_out) as total_bytes_out,
+		SUM(volume_in) as total_volume_in,
+		SUM(volume_out) as total_volume_out
 		FROM summary_traffic
 		WHERE ip = $1 AND time BETWEEN $2 AND $3
 		GROUP BY date_trunc('day', time AT TIME ZONE 'America/Caracas') AT TIME ZONE 'America/Caracas'
@@ -130,7 +132,9 @@ func (r *trafficRepository) GetTotalTrafficByState(ctx context.Context, state st
 		SUM(bps_in) as total_bps_in,
 		SUM(bps_out) as total_bps_out,
 		SUM(bytes_in) as total_bytes_in,
-		SUM(bytes_out) as total_bytes_out
+		SUM(bytes_out) as total_bytes_out,
+		SUM(volume_in) as total_volume_in,
+		SUM(volume_out) as total_volume_out
 		FROM summary_traffic
 		WHERE state = $1 AND time BETWEEN $2 AND $3
 		GROUP BY date_trunc('day', time AT TIME ZONE 'America/Caracas') AT TIME ZONE 'America/Caracas'
@@ -147,7 +151,9 @@ func (r *trafficRepository) GetTotalTrafficByRegion(ctx context.Context, region 
 		SUM(bps_in) as total_bps_in,
 		SUM(bps_out) as total_bps_out,
 		SUM(bytes_in) as total_bytes_in,
-		SUM(bytes_out) as total_bytes_out
+		SUM(bytes_out) as total_bytes_out,
+		SUM(volume_in) as total_volume_in,
+		SUM(volume_out) as total_volume_out
 		FROM summary_traffic
 		WHERE region = $1 AND time BETWEEN $2 AND $3
 		GROUP BY date_trunc('day', time AT TIME ZONE 'America/Caracas') AT TIME ZONE 'America/Caracas'
@@ -164,7 +170,9 @@ func (r *trafficRepository) GetTotalTraffic(ctx context.Context, startTime, endT
 		SUM(bps_in) as total_bps_in,
 		SUM(bps_out) as total_bps_out,
 		SUM(bytes_in) as total_bytes_in,
-		SUM(bytes_out) as total_bytes_out
+		SUM(bytes_out) as total_bytes_out,
+		SUM(volume_in) as total_volume_in,
+		SUM(volume_out) as total_volume_out
 		FROM summary_traffic
 		WHERE time BETWEEN $1 AND $2
 		GROUP BY date_trunc('day', time AT TIME ZONE 'America/Caracas') AT TIME ZONE 'America/Caracas'

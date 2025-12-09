@@ -29,6 +29,8 @@ type Traffic struct {
 	Bandwidth float64
 	BytesIn   float64
 	BytesOut  float64
+	VolumeIn  *float64
+	VolumeOut *float64
 }
 
 type InfoDevice struct {

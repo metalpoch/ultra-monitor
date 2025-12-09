@@ -53,6 +53,8 @@ type Traffic struct {
 	Bandwidth float64   `json:"bw_mbps"`
 	BytesIn   float64   `json:"bytes_in"`
 	BytesOut  float64   `json:"bytes_out"`
+	VolumeIn  *float64  `json:"volume_in,omitempty"`
+	VolumeOut *float64  `json:"volume_out,omitempty"`
 }
 
 type TrafficByLabel map[string][]Traffic

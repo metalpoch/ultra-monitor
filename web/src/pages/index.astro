@@ -6,13 +6,17 @@ import TrafficDetailed from "../components/dashboard/TrafficDetailed";
 import ClientGrowthChart from "../components/dashboard/ClientGrowthChart";
 import GponHWInventoryTable from "../components/dashboard/GponHWInventoryTable";
 import PlansCard from "../components/dashboard/PlansCard";
+import VolumePerUserCards from "../components/dashboard/VolumePerUserCards";
+import DataLoader from "../components/dashboard/DataLoader";
 ---
 
 <Layout title="Dashboard">
   <main class="w-full flex flex-wrap gap-5 justify-evenly px-10">
+    <DataLoader client:only />
     <div class="w-full sticky-form">
       <Form client:only />
     </div>
+    <VolumePerUserCards client:only />
     <TotalTraffic client:only />
     <section class="w-full flex flex-wrap gap-5">
       <div class="flex-2 min-w-[600px]">
@@ -30,6 +34,5 @@ import PlansCard from "../components/dashboard/PlansCard";
         <PlansCard client:only />
       </div>
     </section>
-
   </main>
 </Layout>

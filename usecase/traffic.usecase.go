@@ -1068,11 +1068,13 @@ func (use *TrafficUsecase) GetNationalTraffic(initDate, finalDate time.Time) ([]
 	var result []dto.Traffic
 	for _, data := range trafficData {
 		result = append(result, dto.Traffic{
-			Time:     data.Time,
-			BpsIn:    data.TotalBpsIn,
-			BpsOut:   data.TotalBpsOut,
-			BytesIn:  data.TotalBytesIn,
-			BytesOut: data.TotalBytesOut,
+			Time:      data.Time,
+			BpsIn:     data.TotalBpsIn,
+			BpsOut:    data.TotalBpsOut,
+			BytesIn:   data.TotalBytesIn,
+			BytesOut:  data.TotalBytesOut,
+			VolumeIn:  &data.VolumeIn,
+			VolumeOut: &data.VolumeOut,
 		})
 	}
 
@@ -1095,11 +1097,13 @@ func (use *TrafficUsecase) GetRegionalTraffic(region string, initDate, finalDate
 	var result []dto.Traffic
 	for _, data := range trafficData {
 		result = append(result, dto.Traffic{
-			Time:     data.Time,
-			BpsIn:    data.TotalBpsIn,
-			BpsOut:   data.TotalBpsOut,
-			BytesIn:  data.TotalBytesIn,
-			BytesOut: data.TotalBytesOut,
+			Time:      data.Time,
+			BpsIn:     data.TotalBpsIn,
+			BpsOut:    data.TotalBpsOut,
+			BytesIn:   data.TotalBytesIn,
+			BytesOut:  data.TotalBytesOut,
+			VolumeIn:  &data.VolumeIn,
+			VolumeOut: &data.VolumeOut,
 		})
 	}
 
@@ -1122,11 +1126,13 @@ func (use *TrafficUsecase) GetStateTraffic(state string, initDate, finalDate tim
 	var result []dto.Traffic
 	for _, data := range trafficData {
 		result = append(result, dto.Traffic{
-			Time:     data.Time,
-			BpsIn:    data.TotalBpsIn,
-			BpsOut:   data.TotalBpsOut,
-			BytesIn:  data.TotalBytesIn,
-			BytesOut: data.TotalBytesOut,
+			Time:      data.Time,
+			BpsIn:     data.TotalBpsIn,
+			BpsOut:    data.TotalBpsOut,
+			BytesIn:   data.TotalBytesIn,
+			BytesOut:  data.TotalBytesOut,
+			VolumeIn:  &data.VolumeIn,
+			VolumeOut: &data.VolumeOut,
 		})
 	}
 
@@ -1149,11 +1155,13 @@ func (use *TrafficUsecase) GetOLTByIPTraffic(ip string, initDate, finalDate time
 	var result []dto.Traffic
 	for _, data := range trafficData {
 		result = append(result, dto.Traffic{
-			Time:     data.Time,
-			BpsIn:    data.TotalBpsIn,
-			BpsOut:   data.TotalBpsOut,
-			BytesIn:  data.TotalBytesIn,
-			BytesOut: data.TotalBytesOut,
+			Time:      data.Time,
+			BpsIn:     data.TotalBpsIn,
+			BpsOut:    data.TotalBpsOut,
+			BytesIn:   data.TotalBytesIn,
+			BytesOut:  data.TotalBytesOut,
+			VolumeIn:  &data.VolumeIn,
+			VolumeOut: &data.VolumeOut,
 		})
 	}
 
@@ -1178,11 +1186,11 @@ func (use *TrafficUsecase) GetTrafficByRegions(initDate, finalDate time.Time) (d
 		var trafficDTO []dto.Traffic
 		for _, traffic := range trafficList {
 			trafficDTO = append(trafficDTO, dto.Traffic{
-				Time:     traffic.Time,
-				BpsIn:    traffic.TotalBpsIn,
-				BpsOut:   traffic.TotalBpsOut,
-				BytesIn:  traffic.TotalBytesIn,
-				BytesOut: traffic.TotalBytesOut,
+				Time:      traffic.Time,
+				BpsIn:     traffic.TotalBpsIn,
+				BpsOut:    traffic.TotalBpsOut,
+				BytesIn:   traffic.TotalBytesIn,
+				BytesOut:  traffic.TotalBytesOut,
 			})
 		}
 		result[region] = trafficDTO

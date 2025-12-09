@@ -121,22 +121,22 @@ export default function VolumePerUserCards() {
             <div className="space-y-3">
               <div>
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-slate-300 text-sm">Entrante Total</span>
+                  <span className="text-slate-300 text-sm">Entrante</span>
                   <span className="text-white font-medium">{formatBytes(card.volume.incoming)}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-300 text-sm">Saliente Total</span>
+                  <span className="text-slate-300 text-sm">Saliente</span>
                   <span className="text-white font-medium">{formatBytes(card.volume.outgoing)}</span>
                 </div>
               </div>
 
               <div className="pt-2 border-t border-[hsl(217,33%,20%)]">
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-slate-300 text-sm">Promedio Entrante/Usuario</span>
+                  <span className="text-slate-300 text-sm">Volumen Entrante/Usuario</span>
                   <span className="text-green-400 font-medium">{card.average.incoming}</span>
                 </div>
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-slate-300 text-sm">Promedio Saliente/Usuario</span>
+                  <span className="text-slate-300 text-sm">Volumen Saliente/Usuario</span>
                   <span className="text-blue-400 font-medium">{card.average.outgoing}</span>
                 </div>
                 <div className="flex justify-between items-center pt-1 border-t border-[hsl(217,33%,20%)]">

@@ -259,14 +259,6 @@ export default function OntTrafficChart() {
     }
   }
 
-  const formatBytes = (bytes) => {
-    if (bytes === 0) return '0 B'
-    const k = 1024
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-  }
-
   const formatBps = (bps) => {
     if (bps === 0) return '0 bps'
     const k = 1000
@@ -274,6 +266,52 @@ export default function OntTrafficChart() {
     const i = Math.floor(Math.log(bps) / Math.log(k))
     return parseFloat((bps / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
+
+  // Calculate total volumes
+  const calculateTotalVolumes = () => {
+    if (!trafficData || trafficData.length === 0) {
+      return {
+        totalIn: '0 B',
+        totalOut: '0 B',
+        total: '0 B'
+      };
+    }
+
+    // Función auxiliar para convertir a número seguro (0 si inválido)
+    const toSafeNumber = (value) => {
+      const num = Number(value);
+      return isNaN(num) || num < 0 ? 0 : num;
+    };
+
+    // Sumar valores seguros
+    const totalIn = trafficData.reduce((sum, item) => sum + toSafeNumber(item.bytes_in), 0);
+    const totalOut = trafficData.reduce((sum, item) => sum + toSafeNumber(item.bytes_out), 0);
+    const total = totalIn + totalOut;
+
+    // Formatear bytes a unidad legible
+    const formatBytes = (bytes) => {
+      if (bytes <= 0) return '0 B';
+
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+      // Asegurarnos de que bytes es un número positivo
+      const validBytes = Math.max(0, Number(bytes));
+      if (validBytes === 0) return '0 B';
+
+      const i = Math.floor(Math.log(validBytes) / Math.log(k));
+      const index = Math.min(i, sizes.length - 1);
+      const value = validBytes / Math.pow(k, index);
+
+      return `${value.toFixed(2)} ${sizes[index]}`;
+    };
+
+    return {
+      totalIn: formatBytes(totalIn),
+      totalOut: formatBytes(totalOut),
+      total: formatBytes(total)
+    };
+  };
 
   const chartOptions = {
     responsive: true,
@@ -411,6 +449,9 @@ export default function OntTrafficChart() {
     )
   }
 
+  // Calculate volumes for display
+  const volumes = calculateTotalVolumes()
+
   return (
     <div className="w-full h-full flex flex-col">
       {/* Controls */}
@@ -442,6 +483,30 @@ export default function OntTrafficChart() {
           </select>
         </div>
       </div>
+
+      {/* Volume Statistics */}
+      {trafficData && trafficData.length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-lg font-medium text-gray-200 mb-3">Volúmenes Totales</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 rounded-lg bg-[#0f1729] border border-[hsl(217,33%,20%)]">
+              <div className="text-sm text-gray-400 mb-1">Volumen Entrante</div>
+              <div className="text-2xl font-semibold text-blue-400">{volumes.totalIn}</div>
+              <div className="text-xs text-gray-500 mt-1">Total de bytes recibidos</div>
+            </div>
+            <div className="p-4 rounded-lg bg-[#0f1729] border border-[hsl(217,33%,20%)]">
+              <div className="text-sm text-gray-400 mb-1">Volumen Saliente</div>
+              <div className="text-2xl font-semibold text-green-400">{volumes.totalOut}</div>
+              <div className="text-xs text-gray-500 mt-1">Total de bytes enviados</div>
+            </div>
+            <div className="p-4 rounded-lg bg-[#0f1729] border border-[hsl(217,33%,20%)]">
+              <div className="text-sm text-gray-400 mb-1">Volumen Total</div>
+              <div className="text-2xl font-semibold text-purple-400">{volumes.total}</div>
+              <div className="text-xs text-gray-500 mt-1">Suma de bytes entrantes y salientes</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Chart */}
       <div className="flex-1">
